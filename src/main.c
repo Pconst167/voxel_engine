@@ -635,19 +635,26 @@ void update_light(void){
   sun_direction.y = sin_eta;
   sun_direction.z = cosf(sun_eta);
 
-  light_sources[1].direction = (vector3_t){sun_direction.x, -sun_direction.y, -sun_direction.z};
   if(sin_eta < 0.0f) sin_eta = 0.0f;
+
+  light_sources[1].direction = (vector3_t){sun_direction.x, -sun_direction.y, -sun_direction.z};
+
+  /* skybox is a special case and needs to always track camera position */
+  skybox->translation.x  = camera.position.x; 
+  skybox->translation.y  = camera.position.y;
+  skybox->translation.z  = camera.position.z;
 
   skybox->emissive_color.rgb.red = light_sources[1].color.rgb.red = 200 + 55 * (1.0f - sin_eta);
   skybox->emissive_color.rgb.green = light_sources[1].color.rgb.green = 100 + 155 * sin_eta;
   skybox->emissive_color.rgb.blue = light_sources[1].color.rgb.blue = 255 * sin_eta;
+
+  /* obj 0 is skybox */
+  skybox->emissive_intensity = sin_eta < MIN_SKYBOX_INTENSITY ? MIN_SKYBOX_INTENSITY : sin_eta; /* sky luminosity as a function of time */
+
   light_sources[1].intensity = sin_eta;
   /* as sun sets or rises, ambient light should get bluer, and oranger towards noon */
   //light_sources[0].color = skybox->emissive_color; 
   light_sources[0].intensity = MIN_AMBIENT_LIGHT_INTENSITY + AMBIENT_LIGHT_MAX_FACTOR * sin_eta;
-
-  /* obj 0 is skydome */
-  skybox->emissive_intensity = sin_eta < MIN_SKYBOX_INTENSITY ? MIN_SKYBOX_INTENSITY : sin_eta; /* sky luminosity as a function of time */
 }
 
 void update_state(void){
@@ -957,21 +964,12 @@ void update_and_render_color_buffer(void) {
     uint32_t object_index = objects_sorted[object_i].object_index;
     object_t *object = &objects[object_index];
     
-    switch(object->object_type){
-      case OBJECT_TYPE_NORMAL:
-        object->translation.x += object->velocity.x * delta_time;
-        object->translation.y += object->velocity.y * delta_time;
-        object->translation.z += object->velocity.z * delta_time;
-        break;
-      case OBJECT_TYPE_SKYBOX:
-        object->translation.x  = camera.position.x; /* skybox is a special case and needs to always track camera position */
-        object->translation.y  = camera.position.y;
-        object->translation.z  = camera.position.z;
-        break;
-    }
-    object->rotation.x += object->angular_velocity.x * delta_time;
-    object->rotation.y += object->angular_velocity.y * delta_time;
-    object->rotation.z += object->angular_velocity.z * delta_time;
+    object->translation.x += object->velocity.x * delta_time;
+    object->translation.y += object->velocity.y * delta_time;
+    object->translation.z += object->velocity.z * delta_time;
+    object->rotation.x    += object->angular_velocity.x * delta_time;
+    object->rotation.y    += object->angular_velocity.y * delta_time;
+    object->rotation.z    += object->angular_velocity.z * delta_time;
 
     /* generate the final combined world/view matrix */
     matrix4_t world_view_matrix = matrix4_gen_world_view(object, &view_matrix);
