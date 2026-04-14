@@ -15,30 +15,26 @@
       and the final dot product intensity needs to be absolute value after that
       (NEED TO DO SAME TO DIRECTIONAL LIGHTS)
 
-    TODO:
       mesh ordering front to back for helping with zbuffer
+
+      for some objects we dont want the light to shine on just one side (when both camera and normal are on same side), such as trees,
+      because then it looks wrong. so need to add a parameter for "two-sided-lighting"
+
+      check for meshes totally outside frustrum and cull
+
+      textures should be bound to objects not meshes
+
+    TODO:
 
       specular needs to have its own intensity variable. it needs to be added to the color instead of multiplied by the pixel value. as it is it takes on the texel color and thats wrong.
       also, for two sided lighting, there is no specular, might want to add it?
-
-      should light intensities be inside the triangle type? or just use local array and pass onto raster?
-
-      for some objects we dont want the light to shine on just one side (when both camera and normal are on same side), such as trees,
-      because then it looks wrong. so need to add a parameter for "penetrating light"
 
       tint skydome with rising/setting sun colors on the sun side?
 
       create command prompt in game
 
-      check for meshes totally outside frustrum and cull
-
-      maybe use sort again to avoid drawing unseen triangles?
-
-      add a background mesh for skybox, and set w component (after projection, before raster) to large value, and set sphere to track camera position
-
       add color buffer rendering function pointers so different functions can be used/selected
 
-      textures should be bound to objects not meshes
 
       during sunset and sunrise, create a greenish blue band in the horizon.
 
@@ -176,83 +172,91 @@ void setup(void) {
   //return;
  
   // 0
-  mesh = load_mesh("./assets/obj/skybox_cube.obj", "./assets/textures/sky/sky.png");
+  mesh = load_mesh("./assets/obj/skybox_cube.obj");
   skybox = create_object(mesh, OBJECT_TYPE_SKYBOX, false, 
                          (color_t){.uint32 = 0xFF000000}, (color_t){.uint32 = 0xFF2080FF}, 1.0f,
                          1.0f, false, false, false, 
                          BLEND_MODE_OPAQUE, 0x01, 
                          (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
-                         (vector3_t){0, 0, 0}, (vector3_t){0, 0.01, 0}
+                         (vector3_t){0, 0, 0}, (vector3_t){0, 0.01, 0},
+                         "./assets/textures/sky/sky.png"
   );
 
   // 1
-  mesh = load_mesh("./assets/obj/mountain.obj", "./assets/textures/ground/grass3.png");
+  mesh = load_mesh("./assets/obj/mountain.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                 (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 0.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x01, 
                 (vector3_t){0.5, 0.5, 0.528}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/ground/grass3.png"
   );
 
   //2
-  mesh = load_mesh("./assets/obj/spires.obj", "./assets/textures/ground/mountain.png");
+  mesh = load_mesh("./assets/obj/spires.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                (color_t){.uint32 = 0xFFFF9090}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                0.0f, false, true, true,
                BLEND_MODE_OPAQUE, 0x01, 
                (vector3_t){0.5, 0.5, 0.5}, (vector3_t){0, 0, 0}, (vector3_t){490, 0, 0}, 
-               (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+               (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+               "./assets/textures/ground/mountain.png"
   );
 
   // 3
-  mesh = load_mesh("./assets/obj/river.obj", "./assets/textures/ground/mountain.png");
+  mesh = load_mesh("./assets/obj/river.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                 (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 0.0f, false, true, true,
                 BLEND_MODE_OPAQUE, 0x01, 
                 (vector3_t){0.5, 0.5, 0.5}, (vector3_t){0, 0, 0}, (vector3_t){-490, 0, 0}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/ground/mountain.png"
   );
 
   // 4
-  mesh = load_mesh("./assets/obj/water2.obj", "./assets/textures/water/water.png");
+  mesh = load_mesh("./assets/obj/water2.obj");
   water1 = create_object(mesh, OBJECT_TYPE_NORMAL, false, 
                 (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFF80}, 1.0f, 
                 0.5f, false, false, false,
                 BLEND_MODE_OPAQUE, 0x01, 
                 (vector3_t){0.5, 1, 0.5}, (vector3_t){0, 0, 0}, (vector3_t){-490, -50, 0}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/water/water.png"
   );
   
   // 5
-  mesh = load_mesh("./assets/obj/rocks/rock2.obj", "./assets/textures/stone/rock2.png");
+  mesh = load_mesh("./assets/obj/rocks/rock2.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF40FF40}, 0.4f, 
                 0.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
                 (vector3_t){25, 25, 25}, (vector3_t){0.2, 0, 0}, (vector3_t){1000, 148, -30}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0.5, 0.5, 0}
+                (vector3_t){0, 0, 0}, (vector3_t){0.5, 0.5, 0},
+                "./assets/textures/stone/rock2.png"
   );
 
   // 6
-  mesh = load_mesh("./assets/obj/sphere.obj", "./assets/textures/misc/moon.png");
+  mesh = load_mesh("./assets/obj/sphere.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                 (color_t){.uint32 = 0xFFFFA0A0}, (color_t){.uint32 = 0xFFFFFFFF}, 0.5f,
                 1.0f, false, true, false,
                 BLEND_MODE_ALPHA_BLEND, 0x01, 
                 (vector3_t){30, 30, 30}, (vector3_t){0, 0, 0}, (vector3_t){0, 800, -400}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0.5, 0}
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0.5, 0},
+                "./assets/textures/misc/moon.png"
   );
     
   // 7
-  mesh = load_mesh("./assets/obj/tree_trunk.obj", "./assets/textures/plants/bark3.png");
+  mesh = load_mesh("./assets/obj/tree_trunk.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                (color_t){.uint32 = 0xFF606090}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                1.0f, false, true, false,
                BLEND_MODE_OPAQUE, 0x01, 
                (vector3_t){4, 6, 4}, (vector3_t){0, 0, 0}, (vector3_t){260,  80, 180}, 
-               (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+               (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+               "./assets/textures/plants/bark3.png"
   );
 
   // 8
@@ -261,7 +265,8 @@ void setup(void) {
                 1.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x01, 
                 (vector3_t){4, 6, 4}, (vector3_t){0, 0, 0}, (vector3_t){-60,  150, 200}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/plants/bark3.png"
   );
 
   // 9
@@ -270,17 +275,19 @@ void setup(void) {
                 1.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x01, 
                 (vector3_t){4, 6, 4}, (vector3_t){0, 0, 0}, (vector3_t){-160,  0, -200}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/plants/bark3.png"
   );
 
   // 10
-  mesh = load_mesh("./assets/obj/tree_leaves.obj", "./assets/textures/plants/leaves2.png");
+  mesh = load_mesh("./assets/obj/tree_leaves.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, false, 
                 (color_t){.uint32 = 0xFF90F030}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, true, true, false,
                 BLEND_MODE_ALPHA_TEST, 0x01, 
                 (vector3_t){4, 6, 4}, (vector3_t){0, 0, 0}, (vector3_t){260,  80, 180}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/plants/leaves2.png"
   );
 
   // 11
@@ -289,7 +296,8 @@ void setup(void) {
                 1.0f, true, true, false,
                 BLEND_MODE_ALPHA_TEST, 0x01, 
                 (vector3_t){4, 6, 4}, (vector3_t){0, 0, 0}, (vector3_t){-60,  150, 200}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/plants/leaves2.png"
   );
 
   // 12
@@ -298,87 +306,96 @@ void setup(void) {
                 1.0f, true, true, false,
                 BLEND_MODE_ALPHA_TEST, 0x01, 
                 (vector3_t){4, 6, 4}, (vector3_t){0, 0, 0}, (vector3_t){-160,  0, -200}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/plants/leaves2.png"
   );
   
   // 13
-  mesh = load_mesh("./assets/obj/sakura_trunk.obj", "./assets/textures/plants/bark2.png");
+  mesh = load_mesh("./assets/obj/sakura_trunk.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                 (color_t){.uint32 = 0xFF808090}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){1.2, 1.2, 1.2},          (vector3_t){0, 0, 0},    (vector3_t){150,  45, -60}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+                (vector3_t){1.2, 1.2, 1.2}, (vector3_t){0, 0, 0},    (vector3_t){150,  45, -60}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/plants/bark2.png"
   );
 
   // 14
-  mesh = load_mesh("./assets/obj/sakura_leaves.obj", "./assets/textures/plants/sakura_leaves.png");
+  mesh = load_mesh("./assets/obj/sakura_leaves.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, false, 
                (color_t){.uint32 = 0xFFFF60FF}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                1.0f, true, true, false,
                BLEND_MODE_ALPHA_TEST, 0x01, 
-               (vector3_t){1.2, 1.2, 1.2},          (vector3_t){0, 0, 0},    (vector3_t){150,  45, -60}, 
-               (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+               (vector3_t){1.2, 1.2, 1.2}, (vector3_t){0, 0, 0},    (vector3_t){150,  45, -60}, 
+               (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+               "./assets/textures/plants/sakura_leaves.png"
   );
 
   // 15
-  mesh = load_mesh("./assets/obj/cabin.obj", "./assets/textures/buildings/cabin.png");
+  mesh = load_mesh("./assets/obj/cabin.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                 (color_t){.uint32 = 0xFF8080A0}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){1, 1, 1},    (vector3_t){0, 0, 0},    (vector3_t){-25, 10, -150}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+                (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){-25, 10, -150}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/buildings/cabin.png"
   );
 
   // 16
-  mesh = load_mesh("./assets/obj/ufo.obj", "./assets/textures/misc/ufo.png");
+  mesh = load_mesh("./assets/obj/ufo.obj");
   ufo = create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                       (color_t){.uint32 = 0xFFFFFFFF}, (color_t){.uint32 = 0xFFFFFFFF}, 0.5f, 
                       1.0f, false, true, true,
                       BLEND_MODE_OPAQUE, 0x00, 
                       (vector3_t){400, 400, 400}, (vector3_t){0, 0, 0},    (vector3_t){0,  300, 200}, 
-                      (vector3_t){0, 0, 0}, (vector3_t){0, 0.8, 0}
+                      (vector3_t){0, 0, 0}, (vector3_t){0, 0.8, 0},
+                      "./assets/textures/misc/ufo.png"
   );
 
   // 17
-  mesh = load_mesh("./assets/obj/baloon.obj", "./assets/textures/misc/baloon.png");
+  mesh = load_mesh("./assets/obj/baloon.obj");
   baloon = create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                          (color_t){.uint32 = 0xFFFF80FF}, (color_t){.uint32 = 0xFFFF0000}, 0.5f, 
                          1.0f, false, true, true,
                          BLEND_MODE_OPAQUE, 0x00, 
                          (vector3_t){2, 2, 2}, (vector3_t){0, 0, 0},    (vector3_t){150,  250, -100}, 
-                         (vector3_t){10, 0, 0}, (vector3_t){0, 0, 0}
+                         (vector3_t){10, 0, 0}, (vector3_t){0, 0, 0},
+                         "./assets/textures/misc/baloon.png"
   );
 
   // 18
-  mesh = load_mesh("./assets/obj/rocks/rock1.obj", "./assets/textures/stone/rock1.png");
+  mesh = load_mesh("./assets/obj/rocks/rock1.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                           (color_t){.uint32 = 0xFF80FFFF}, (color_t){.uint32 = 0xFF00FFFF}, 0.5f, 
                           1.0f, false, true, true,
                           BLEND_MODE_OPAQUE, 0x00, 
-                          (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0},    (vector3_t){-30, 90, 0}, 
-                          (vector3_t){0, 0, 0}, (vector3_t){0.1, 0.5, 0}
+                          (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-30, 90, 0}, 
+                          (vector3_t){0, 0, 0}, (vector3_t){0.1, 0.5, 0},
+                          "./assets/textures/stone/rock1.png"
   );
 
   // 19
-  mesh = load_mesh("./assets/obj/rocks/rock2.obj", "./assets/textures/stone/rock2.png");
+  mesh = load_mesh("./assets/obj/rocks/rock2.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                           (color_t){.uint32 = 0xFFFF8080}, (color_t){.uint32 = 0xFF00FF40}, 0.5f, 
                           1.0f, false, true, true,
                           BLEND_MODE_OPAQUE, 0x00, 
-                          (vector3_t){25, 25, 25}, (vector3_t){0, 0, 0},    (vector3_t){-110, 120, -20}, 
-                          (vector3_t){0, 0, 0}, (vector3_t){0.4, 0.3, 0}
+                          (vector3_t){25, 25, 25}, (vector3_t){0, 0, 0}, (vector3_t){-110, 120, -20}, 
+                          (vector3_t){0, 0, 0}, (vector3_t){0.4, 0.3, 0},
+                          "./assets/textures/stone/rock2.png"
   );
 
   // 20
-  mesh = load_mesh("./assets/obj/rocks/rock1.obj", "./assets/textures/stone/rock1.png");
+  mesh = load_mesh("./assets/obj/rocks/rock1.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                           (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF00FFFF}, 0.8f, 
                           1.0f, false, true, false,
                           BLEND_MODE_OPAQUE, 0x00, 
-                          (vector3_t){35, 35, 35}, (vector3_t){0, 0, 0},    (vector3_t){-800, 50, 20}, 
-                          (vector3_t){0, 0, 0}, (vector3_t){0.6, 0.2, 0}
+                          (vector3_t){35, 35, 35}, (vector3_t){0, 0, 0}, (vector3_t){-800, 50, 20}, 
+                          (vector3_t){0, 0, 0}, (vector3_t){0.6, 0.2, 0},
+                          "./assets/textures/stone/rock1.png"
   );
 
   // 21
@@ -386,8 +403,9 @@ void setup(void) {
                           (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF0080FF}, 0.9f, 
                           1.0f, false, true, true,
                           BLEND_MODE_OPAQUE, 0x00, 
-                          (vector3_t){25, 35, 25}, (vector3_t){0, 0, 0},    (vector3_t){70, 150, 20}, 
-                          (vector3_t){0, 0, 0}, (vector3_t){0.6, 0.3, 0}
+                          (vector3_t){25, 35, 25}, (vector3_t){0, 0, 0}, (vector3_t){70, 150, 20}, 
+                          (vector3_t){0, 0, 0}, (vector3_t){0.6, 0.3, 0},
+                          "./assets/textures/stone/rock1.png"
   );
 
   // 22
@@ -395,8 +413,9 @@ void setup(void) {
                           (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF00FF80}, 0.4f, 
                           1.0f, false, true, false,
                           BLEND_MODE_OPAQUE, 0x00, 
-                          (vector3_t){45, 45, 45}, (vector3_t){0, 0, 0},    (vector3_t){-160, 250, 20}, 
-                          (vector3_t){0, 0, 0}, (vector3_t){0.7, 0.3, 0}
+                          (vector3_t){45, 45, 45}, (vector3_t){0, 0, 0}, (vector3_t){-160, 250, 20}, 
+                          (vector3_t){0, 0, 0}, (vector3_t){0.7, 0.3, 0},
+                          "./assets/textures/stone/rock1.png"
   );
 
   // 23
@@ -404,67 +423,74 @@ void setup(void) {
                           (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFF80}, 0.9f, 
                           1.0f, false, true, false,
                           BLEND_MODE_OPAQUE, 0x00, 
-                          (vector3_t){45, 45, 45}, (vector3_t){0, 0, 0},    (vector3_t){-40, 360, 30}, 
-                          (vector3_t){0, 0, 0}, (vector3_t){0.8, 0.5, 0}
+                          (vector3_t){45, 45, 45}, (vector3_t){0, 0, 0}, (vector3_t){-40, 360, 30}, 
+                          (vector3_t){0, 0, 0}, (vector3_t){0.8, 0.5, 0},
+                          "./assets/textures/stone/rock1.png"
   );
 
   // 24
-  mesh = load_mesh("./assets/obj/rocks/rock1.obj", "./assets/textures/stone/rock1.png");
+  mesh = load_mesh("./assets/obj/rocks/rock1.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, false, true, true,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){25, 25, 25}, (vector3_t){0, 0, 0},    (vector3_t){-50, 2, -50}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+                (vector3_t){25, 25, 25}, (vector3_t){0, 0, 0}, (vector3_t){-50, 2, -50}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/stone/rock1.png"
   );
 
   // 25
-  mesh = load_mesh("./assets/obj/rocks/rock2.obj", "./assets/textures/stone/rock3.png");
+  mesh = load_mesh("./assets/obj/rocks/rock2.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, false, true, true,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){15, 15, 15}, (vector3_t){M_PI_2, 0, 0},    (vector3_t){-80, 18, -90}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+                (vector3_t){15, 15, 15}, (vector3_t){M_PI_2, 0, 0}, (vector3_t){-80, 18, -90}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/stone/rock3.png"
   );
 
   // 26
-  mesh = load_mesh("./assets/obj/rocks/rock2.obj", "./assets/textures/stone/rock2.png");
+  mesh = load_mesh("./assets/obj/rocks/rock2.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, false, true, true,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){25, 25, 25}, (vector3_t){0, 0, 0},    (vector3_t){-80, 18, -30}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+                (vector3_t){25, 25, 25}, (vector3_t){0, 0, 0}, (vector3_t){-80, 18, -30}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/stone/rock2.png"
   );
 
   // 27
-  mesh = load_mesh("./assets/obj/rocks/rock2.obj", "./assets/textures/stone/rock2.png");
+  mesh = load_mesh("./assets/obj/rocks/rock2.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, false, true, true,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){25, 25, 25}, (vector3_t){0, 0, 0},    (vector3_t){-80, 18, -30}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+                (vector3_t){25, 25, 25}, (vector3_t){0, 0, 0}, (vector3_t){-80, 18, -30}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/stone/rock2.png"
   );
 
   // 28
-  mesh = load_mesh("./assets/obj/castle.obj", "./assets/textures/walls/castle.png");
+  mesh = load_mesh("./assets/obj/castle.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, false, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f,
                 1.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){10, 10, 10}, (vector3_t){0, -M_PI_2, 0},    (vector3_t){1100, 0, 40}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+                (vector3_t){10, 10, 10}, (vector3_t){0, -M_PI_2, 0}, (vector3_t){1100, 0, 40}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/walls/castle.png"
   );
 
-  mesh = load_mesh("./assets/obj/volcano1.obj", "./assets/textures/volcano2.png");
+  mesh = load_mesh("./assets/obj/volcano1.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, false, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f,
                 1.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){0.2, 0.3, 0.1}, (vector3_t){0, 0, 0},    (vector3_t){0, 0, 1300}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+                (vector3_t){0.2, 0.3, 0.1}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 1300}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/volcano2.png"
   );
 }
 
@@ -1101,8 +1127,8 @@ void update_and_render_color_buffer(void) {
         /* TRIANGLE RASTERIZATION */
         rasterize_triangle(
           &projected_triangle, 
-          object->mesh->mesh_texture, 
-          object->mesh->texture_width, object->mesh->texture_height, 
+          object->texture, 
+          object->texture_width, object->texture_height, 
           object->blend_mode, object->alpha_cutoff,
           object->solid_color,
           object->opacity,

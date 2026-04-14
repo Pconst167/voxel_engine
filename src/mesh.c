@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include "array.h"
@@ -119,16 +118,13 @@ void load_obj_file(char* filename) {
 }
 
 mesh_t *load_mesh(
-  char *obj_filename, 
-  char *png_filename
+  char *obj_filename
 ){
   mesh_t *mesh;
   load_obj_file(obj_filename);
 
   /* grab pointer to last created mesh */
   mesh = &meshes[num_meshes - 1];
-
-  load_png_texture_data(mesh, png_filename);
 
   /* compute a bounding box around the mesh */
   int num_vertices = array_length(mesh->vertices);
@@ -176,69 +172,4 @@ mesh_t *load_mesh(
 
   /* return pointer to mesh */
   return mesh;
-}
-
-void load_png_texture_data(mesh_t *mesh, char *filename){
-  upng_t *png_texture = upng_new_from_file(filename);
-  if(png_texture == NULL){
-    fprintf(stderr, "ERROR: could not load PNG file: %s\n", filename);
-    exit(1);
-  }
-  
-  upng_decode(png_texture);
-
-  if(upng_get_error(png_texture) != UPNG_EOK){
-    fprintf(stderr, "ERROR: could not decode PNG file: %s\n", filename);
-    upng_free(png_texture);
-    exit(1);
-  }
-
-  unsigned width  = upng_get_width(png_texture);
-  unsigned height = upng_get_height(png_texture);
-  unsigned comps  = upng_get_components(png_texture); // key
-
-  const unsigned char *src = upng_get_buffer(png_texture);
-
-  mesh->texture_width  = width;
-  mesh->texture_height = height;
-
-  mesh->mesh_texture = (color_t *)malloc(width * height * sizeof(color_t));
-  if(mesh->mesh_texture == NULL){
-    fprintf(stderr, "ERROR: could not allocate texture memory\n");
-    upng_free(png_texture);
-    exit(1);
-  }
-
-  // Convert to RGBA always
-  for(unsigned i = 0; i < width * height; i++){
-    uint8_t r, g, b, a;
-
-    if(comps == 4){
-      r = src[i*4 + 0];
-      g = src[i*4 + 1];
-      b = src[i*4 + 2];
-      a = src[i*4 + 3];
-    }
-    else if(comps == 3){
-      r = src[i*3 + 0];
-      g = src[i*3 + 1];
-      b = src[i*3 + 2];
-      a = 0xFF; // force opaque
-    }
-    else {
-      // optional: handle grayscale etc
-      r = g = b = src[i];
-      a = 0xFF;
-    }
-
-    /* ABGR */
-    mesh->mesh_texture[i] = (color_t){
-      .rgb.alpha = a,
-      .rgb.blue  = b,
-      .rgb.green = g,
-      .rgb.red   = r
-    };
-  }
-
-  upng_free(png_texture);
 }

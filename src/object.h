@@ -1,6 +1,8 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
+#include <stdio.h>
+#include <stdlib.h>
 #include "mesh.h"
 #include "vector.h"
 #include "material.h"
@@ -33,6 +35,10 @@ typedef struct{
   /* these are added to the current transformation state for potential movement */
   vector3_t velocity;
   vector3_t angular_velocity;
+  /* texture data */
+  color_t *texture;
+  uint32_t texture_width;
+  uint32_t texture_height;
 } object_t;
 
 typedef struct{
@@ -47,6 +53,8 @@ typedef struct{
 
 extern object_t objects[MAX_NUM_OBJECTS];
 extern uint32_t num_objects;
+
+void load_png_texture_data(object_t *object, char* filename);
 
 object_t *create_object(
   mesh_t *mesh,
@@ -68,7 +76,9 @@ object_t *create_object(
   vector3_t rotation,
   vector3_t translation,
   vector3_t velocity,
-  vector3_t angular_velocity
+  vector3_t angular_velocity,
+
+  char *texture_filename
 );
 
 #endif
