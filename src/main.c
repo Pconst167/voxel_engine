@@ -86,7 +86,7 @@
 #include "object.h"
 
 
-#define CAMERA_SPEED_SHIFT_KEY_FACTOR 2.0f
+#define CAMERA_SPEED_SHIFT_KEY_FACTOR 5.0f
 #define CAMERA_ETA_DIRECTION 1.0f /* +1: mouse back looks up, -1: mouse back looks down */
 #define MOUSE_SENSITIVITY 0.3f
 #define DAY_LENGTH (1.01f * 60.0f * 60.0f / 0.016f) /* hours */
@@ -136,7 +136,7 @@ vector3_t up = {.x = 0, .y = 1, .z = 0}; /* up direction vector for view matrix 
 /* sun/sky data */
 object_t *skybox;
 vector3_t sun_direction; /* world-space sun direction vector */
-float sun_eta = (M_PI/4.0f); /* sun's eta angle, start sun on horizon */
+float sun_eta = (M_PI/6.0f); /* sun's eta angle, start sun on horizon */
 
 /* objects */
 object_t *ufo;
@@ -159,9 +159,10 @@ void setup(void) {
 
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
   
-  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,   .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.05f);
+  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,   .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFF0000}, 0.1f);
   create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,   .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
   create_light_source(LIGHT_POINT,       (vector3_t){.x = 0.0f,   .y = 60.0f, .z = -90.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 2000.0f);
+  create_light_source(LIGHT_POINT,       (vector3_t){.x = -1540.0f,   .y = 170.0f, .z = -500.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFF40FFFF}, 30000.0f);
 
   /* normalize all light direction vectors to unity */
   initialize_lights();
@@ -174,7 +175,7 @@ void setup(void) {
   // 0
   mesh = load_mesh("./assets/obj/skybox_cube.obj");
   skybox = create_object(mesh, OBJECT_TYPE_SKYBOX, false, 
-                         (color_t){.uint32 = 0xFF000000}, (color_t){.uint32 = 0xFF2080FF}, 1.0f,
+                         (color_t){.uint32 = 0xFF000000}, (color_t){.uint32 = 0xFF20FFFF}, 1.0f,
                          1.0f, false, false, false, 
                          BLEND_MODE_OPAQUE, 0x01, 
                          (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
@@ -491,7 +492,7 @@ void setup(void) {
                 BLEND_MODE_OPAQUE, 0x00, 
                 (vector3_t){0.2, 0.3, 0.1}, (vector3_t){0, 0, 0}, (vector3_t){0, -50, 1300}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                "./assets/textures/volcano2.png"
+                "./assets/textures/misc/volcano.png"
   );
   mesh = load_mesh("./assets/obj/dunes.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
@@ -501,6 +502,24 @@ void setup(void) {
                 (vector3_t){80, 40, 80}, (vector3_t){0, 0, 0}, (vector3_t){-1550, -60, -500}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 "./assets/textures/sand/dunes.png"
+  );
+  mesh = load_mesh("./assets/obj/pyramid.obj");
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF00FFFF}, 0.2f,
+                1.0f, false, true, false,
+                BLEND_MODE_OPAQUE, 0x00, 
+                (vector3_t){200, 200, 200}, (vector3_t){0, M_PI_2, 0}, (vector3_t){-1550, -60, -500}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/walls/pyramid.png"
+  );
+  mesh = load_mesh("./assets/obj/pyramid2.obj");
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF00FFFF}, 0.2f,
+                1.0f, false, true, false,
+                BLEND_MODE_OPAQUE, 0x00, 
+                (vector3_t){200, 200, 200}, (vector3_t){0, M_PI_2, 0}, (vector3_t){-2200, -60, -700}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/walls/pyramid.png"
   );
 }
 
@@ -1185,7 +1204,9 @@ void update_and_render_color_buffer(void) {
               float lightpos_to_v_a_ray_length_squarred = vector3_length_squarred(lightpos_to_v_a_ray);
               
               if(object->two_sided_lighting){
-                projected_triangle.light_intensities[light_index] = fabsf(v_face_normal.x * lightpos_to_v_a_ray.x + v_face_normal.y * lightpos_to_v_a_ray.y + v_face_normal.z * lightpos_to_v_a_ray.z) / sqrtf(lightpos_to_v_a_ray_length_squarred);
+                projected_triangle.light_intensities[light_index] = fabsf(v_face_normal.x * lightpos_to_v_a_ray.x + v_face_normal.y * lightpos_to_v_a_ray.y + v_face_normal.z * lightpos_to_v_a_ray.z) * q_rsqrt(lightpos_to_v_a_ray_length_squarred);
+                projected_triangle.light_intensities[light_index] /= 1.0f + lightpos_to_v_a_ray_length_squarred;
+                projected_triangle.light_intensities[light_index] *= light_sources[light_index].intensity;
               }
               else{
                 vector3_t cam_ray = {.x = 0 - v_a.x, .y = 0 - v_a.y, .z = 0 - v_a.z}; 
@@ -1200,13 +1221,14 @@ void update_and_render_color_buffer(void) {
                   float d = fmax(vector3_dot(v_face_normal, H), 0.0f);
                   if(d > 0.0f) spec = 5 * powf(d, SPECULAR_POWER);
                 }
-                if((light_v_a_dot_normal > 0.0f && camera_v_a_dot_normal > 0.0f) || (light_v_a_dot_normal < 0.0f && camera_v_a_dot_normal < 0.0f))
-                  projected_triangle.light_intensities[light_index] = spec + fabsf(light_v_a_dot_normal / sqrtf(lightpos_to_v_a_ray_length_squarred));
+                if((light_v_a_dot_normal > 0.0f && camera_v_a_dot_normal > 0.0f) || (light_v_a_dot_normal < 0.0f && camera_v_a_dot_normal < 0.0f)){
+                  projected_triangle.light_intensities[light_index] = spec + fabsf(light_v_a_dot_normal) * q_rsqrt(lightpos_to_v_a_ray_length_squarred);
+                  projected_triangle.light_intensities[light_index] /= 1.0f + lightpos_to_v_a_ray_length_squarred;
+                  projected_triangle.light_intensities[light_index] *= light_sources[light_index].intensity;
+                }
                 else
                   projected_triangle.light_intensities[light_index] = 0.0f;
               } 
-              projected_triangle.light_intensities[light_index] /= 1.0f + lightpos_to_v_a_ray_length_squarred;
-              projected_triangle.light_intensities[light_index] *= light_sources[light_index].intensity;
             }
             else if(light_sources[light_index].type == LIGHT_AMBIENT){
               projected_triangle.light_intensities[light_index] = light_sources[light_index].intensity;
