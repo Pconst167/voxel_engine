@@ -28,4 +28,17 @@ inline void rasterize_triangle(
   float emissive_intensity
 );
 
+inline void rasterize_triangle_no_zbuffer_write(
+  triangle_t *triangle, 
+  color_t *mesh_texture, 
+  uint32_t texture_width, uint32_t texture_height, 
+  blend_mode_t blend_mode,
+  uint8_t alpha_cutoff,
+  color_t solid_color,
+  float opacity,
+  bool reflective,
+  color_t emissive_color,
+  float emissive_intensity
+);
+
 #endif

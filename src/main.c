@@ -109,7 +109,7 @@ char text3[256];
 
 /* game control */
 float delta_time;
-float move_speed = 55.0f;
+float move_speed = 40.0f;
 float turn_speed = 1.5f;
 bool quit = false;
 bool is_paused = false;
@@ -136,7 +136,7 @@ vector3_t up = {.x = 0, .y = 1, .z = 0}; /* up direction vector for view matrix 
 /* sun/sky data */
 object_t *skybox;
 vector3_t sun_direction; /* world-space sun direction vector */
-float sun_eta = (M_PI/3.0f); /* sun's eta angle, start sun on horizon */
+float sun_eta = (M_PI/4.0f); /* sun's eta angle, start sun on horizon */
 
 /* objects */
 object_t *ufo;
@@ -218,7 +218,7 @@ void setup(void) {
   // 4
   mesh = load_mesh("./assets/obj/water2.obj");
   water1 = create_object(mesh, OBJECT_TYPE_NORMAL, false, 
-                (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFF80}, 1.0f, 
+                (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFF20FF20}, 1.0f, 
                 0.5f, false, false, false,
                 BLEND_MODE_OPAQUE, 0x01, 
                 (vector3_t){0.5, 1, 0.5}, (vector3_t){0, 0, 0}, (vector3_t){-490, -50, 0}, 
@@ -334,7 +334,7 @@ void setup(void) {
 
   // 15
   mesh = load_mesh("./assets/obj/cabin.obj");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, false, 
                 (color_t){.uint32 = 0xFF8080A0}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
@@ -483,14 +483,24 @@ void setup(void) {
                 "./assets/textures/walls/castle.png"
   );
 
+  // 29
   mesh = load_mesh("./assets/obj/volcano1.obj");
-  create_object(mesh, OBJECT_TYPE_NORMAL, false, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f,
                 1.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){0.2, 0.3, 0.1}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 1300}, 
+                (vector3_t){0.2, 0.3, 0.1}, (vector3_t){0, 0, 0}, (vector3_t){0, -50, 1300}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 "./assets/textures/volcano2.png"
+  );
+  mesh = load_mesh("./assets/obj/dunes.obj");
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f,
+                1.0f, false, true, false,
+                BLEND_MODE_OPAQUE, 0x00, 
+                (vector3_t){80, 40, 80}, (vector3_t){0, 0, 0}, (vector3_t){-1550, -60, -500}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/sand/dunes.png"
   );
 }
 
@@ -752,6 +762,90 @@ inline void rasterize_triangle(
   }
 }
 
+inline void rasterize_triangle_no_zbuffer_write(
+  triangle_t *triangle, 
+  color_t *mesh_texture, 
+  uint32_t texture_width, uint32_t texture_height, 
+  blend_mode_t blend_mode,
+  uint8_t alpha_cutoff,
+  color_t solid_color,
+  float opacity,
+  bool reflective,
+  color_t emissive_color,
+  float emissive_intensity
+){
+  if(projection_options.projection_mode == TEXT_FILLED){
+    draw_filled_triangle_no_zbuffer_write(
+      &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, 
+      &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[0].z, triangle->points[1].w}, 
+      &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[0].z, triangle->points[2].w}, 
+      solid_color,
+      triangle->light_intensities,
+      emissive_color,
+      emissive_intensity,
+      reflective,
+      projection_options.dither
+    );
+    return;
+  }
+  else if(projection_options.projection_mode == TEXT_WIREFRAME){
+    draw_triangle(
+      triangle->points[0].x, triangle->points[0].y,
+      triangle->points[1].x, triangle->points[1].y,
+      triangle->points[2].x, triangle->points[2].y,
+      (color_t){.uint32 = 0xFFFFFFFF}
+    );
+    return;
+  }
+  else{
+    switch(blend_mode){
+      case BLEND_MODE_OPAQUE:
+        draw_textured_triangle_opaque_no_zbuffer_write(
+          &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, (tex2_t){triangle->uv[0].u, triangle->uv[0].v},
+          &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[1].z, triangle->points[1].w}, (tex2_t){triangle->uv[1].u, triangle->uv[1].v},
+          &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[2].z, triangle->points[2].w}, (tex2_t){triangle->uv[2].u, triangle->uv[2].v},
+          mesh_texture, texture_width, texture_height,
+          triangle->light_intensities,
+          emissive_color,
+          emissive_intensity,
+          reflective,
+          projection_options.dither
+        );
+        return;
+
+      case BLEND_MODE_ALPHA_TEST:
+        draw_textured_triangle_alpha_test_no_zbuffer_write(
+          &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, (tex2_t){triangle->uv[0].u, triangle->uv[0].v},
+          &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[1].z, triangle->points[1].w}, (tex2_t){triangle->uv[1].u, triangle->uv[1].v},
+          &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[2].z, triangle->points[2].w}, (tex2_t){triangle->uv[2].u, triangle->uv[2].v},
+          mesh_texture, texture_width, texture_height,
+          triangle->light_intensities,
+          emissive_color,
+          emissive_intensity,
+          reflective,
+          projection_options.dither,
+          alpha_cutoff
+        );
+        return;
+
+      case BLEND_MODE_ALPHA_BLEND:
+        draw_textured_triangle_alpha_blend(
+          &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, (tex2_t){triangle->uv[0].u, triangle->uv[0].v},
+          &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[1].z, triangle->points[1].w}, (tex2_t){triangle->uv[1].u, triangle->uv[1].v},
+          &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[2].z, triangle->points[2].w}, (tex2_t){triangle->uv[2].u, triangle->uv[2].v},
+          mesh_texture, texture_width, texture_height,
+          triangle->light_intensities,
+          emissive_color,
+          emissive_intensity,
+          reflective,
+          projection_options.dither,
+          opacity
+        );
+        return;
+    }
+  }
+}
+
 /* 
   render the base colorbuffer on top of which everything else is painted
 */
@@ -925,8 +1019,9 @@ void update_and_render_color_buffer(void) {
   */
 
   object_sort_key_t objects_sorted[MAX_NUM_OBJECTS]; /* list of objects to be sorted */
-  uint32_t num_objects_sorted = 1;
+  uint32_t num_objects_sorted = 0;
 
+  /* skip skybox object by starting at 1 */
   for(uint32_t object_i = 1; object_i < num_objects; object_i++){
     object_t object = objects[object_i];
 
@@ -950,17 +1045,17 @@ void update_and_render_color_buffer(void) {
     objects_sorted[num_objects_sorted].object_index = object_i;
     objects_sorted[num_objects_sorted].sort_z = bsphere_center_world_view.z + bsphere_radius_scaled;
     num_objects_sorted++;
-  } /* for(uint32_t object_i = 0; object_i < num_objects; object_i++) */
+  } /* for(uint32_t object_i = 1; object_i < num_objects; object_i++) */
 
   if(num_objects_sorted > 1)
-    object_quicksort(objects_sorted + 1, num_objects_sorted - 1);
+    object_quicksort(objects_sorted, num_objects_sorted);
 
-  objects_sorted[0].object_index = 0; /* set the first object to be the skybox */
-  /* end ofsort */
+  objects_sorted[num_objects_sorted].object_index = 0; /* set the last sorted object to be the skybox */
+  /* end of sort */
 
   total_triangles_rendered = 0;
   /* transform each mesh, and rasterize */
-  for(uint32_t object_i = 0; object_i < num_objects_sorted; object_i++){
+  for(uint32_t object_i = 0; object_i < num_objects_sorted + 1; object_i++){
     uint32_t object_index = objects_sorted[object_i].object_index;
     object_t *object = &objects[object_index];
     
@@ -1123,28 +1218,36 @@ void update_and_render_color_buffer(void) {
         }
 
         /* TRIANGLE RASTERIZATION */
-        rasterize_triangle(
-          &projected_triangle, 
-          object->texture, 
-          object->texture_width, object->texture_height, 
-          object->blend_mode, object->alpha_cutoff,
-          object->solid_color,
-          object->opacity,
-          object->reflective,
-          object->emissive_color,
-          object->emissive_intensity
-        );
+        if(object_index == 0){ /* if object is skybox (always index 0), then render without zbuffer writing */
+          rasterize_triangle_no_zbuffer_write(
+            &projected_triangle, 
+            object->texture, 
+            object->texture_width, object->texture_height, 
+            object->blend_mode, object->alpha_cutoff,
+            object->solid_color,
+            object->opacity,
+            object->reflective,
+            object->emissive_color,
+            object->emissive_intensity
+          );
+        }
+        else{
+          rasterize_triangle(
+            &projected_triangle, 
+            object->texture, 
+            object->texture_width, object->texture_height, 
+            object->blend_mode, object->alpha_cutoff,
+            object->solid_color,
+            object->opacity,
+            object->reflective,
+            object->emissive_color,
+            object->emissive_intensity
+          );
+        }
 
         total_triangles_rendered++;
       } /* for(int t = 0; t < polygon.num_vertices - 2; t++) */
     } /* for(uint32_t i = 0; i < num_mesh_faces; i++) */
-
-    /* if object just rendered was a skybox, then paint sun over it */
-    if(object->object_type == OBJECT_TYPE_SKYBOX){
-      /* skybox MUST be the first object/mesh rendered.  after that we reset all zbuffer values to 0.0 so anything can be rendered on top of the skybox */
-      memset(zbuffer, 0x00, total_buffer_pixels * sizeof(uint32_t)); /* zbuffer is made of floats and 0x00000000 = 0.0 */
-      render_sun();
-    }
 
     if(projection_options.object_render_debug){
       object_render_debug();

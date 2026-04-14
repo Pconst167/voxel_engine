@@ -76,6 +76,15 @@ void draw_filled_triangle(
   bool reflective,
   bool dither
 );
+void draw_filled_triangle_no_zbuffer_write(
+  vector4_t *v0, vector4_t *v1, vector4_t *v2, 
+  color_t color, 
+  float *light_intensities,
+  color_t emissive_color,
+  float emissive_intensity,
+  bool reflective,
+  bool dither
+);
 
 void draw_textured_triangle_opaque(
   vector4_t *v0, tex2_t v0_uv,
@@ -88,7 +97,30 @@ void draw_textured_triangle_opaque(
   bool reflective,
   bool dither
 );
+void draw_textured_triangle_opaque_no_zbuffer_write(
+  vector4_t *v0, tex2_t v0_uv,
+  vector4_t *v1, tex2_t v1_uv,
+  vector4_t *v2, tex2_t v2_uv,
+  color_t *texture, int texture_width, int texture_height,
+  float *light_intensities,
+  color_t emissive_color,
+  float emissive_intensity,
+  bool reflective,
+  bool dither
+);
 void draw_textured_triangle_alpha_test(
+  vector4_t *v0, tex2_t v0_uv,
+  vector4_t *v1, tex2_t v1_uv,
+  vector4_t *v2, tex2_t v2_uv,
+  color_t *texture, int texture_width, int texture_height,
+  float *light_intensities,
+  color_t emissive_color,
+  float emissive_intensity,
+  bool reflective,
+  bool dither,
+  uint8_t alpha_cutoff
+);
+void draw_textured_triangle_alpha_test_no_zbuffer_write(
   vector4_t *v0, tex2_t v0_uv,
   vector4_t *v1, tex2_t v1_uv,
   vector4_t *v2, tex2_t v2_uv,
