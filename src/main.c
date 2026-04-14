@@ -219,7 +219,7 @@ void setup(void) {
   // 4
   mesh = load_mesh("./assets/obj/water2.obj");
   water1 = create_object(mesh, OBJECT_TYPE_NORMAL, false, 
-                (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFF20FF20}, 1.0f, 
+                (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFF60}, 1.0f, 
                 0.5f, false, false, false,
                 BLEND_MODE_OPAQUE, 0x01, 
                 (vector3_t){0.5, 1, 0.5}, (vector3_t){0, 0, 0}, (vector3_t){-490, -50, 0}, 
@@ -518,7 +518,23 @@ void setup(void) {
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF00FFFF}, 0.0f,
                 1.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){10, 10, 10}, (vector3_t){0, M_PI_2, 0}, (vector3_t){-1550, -70, -600}, 
+                (vector3_t){10, 10, 10}, (vector3_t){0, M_PI_2, 0}, (vector3_t){-1650, -40, -800}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/plants/cactus.png"
+  );
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF00FFFF}, 0.0f,
+                1.0f, false, true, false,
+                BLEND_MODE_OPAQUE, 0x00, 
+                (vector3_t){12, 15, 12}, (vector3_t){0, M_PI_2, 0}, (vector3_t){-1950, -30, -700}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/plants/cactus.png"
+  );
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF00FFFF}, 0.0f,
+                1.0f, false, true, false,
+                BLEND_MODE_OPAQUE, 0x00, 
+                (vector3_t){15, 15, 15}, (vector3_t){0, M_PI_2, 0}, (vector3_t){-900, -40, -700}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 "./assets/textures/plants/cactus.png"
   );
