@@ -508,16 +508,16 @@ void setup(void) {
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF00FFFF}, 0.2f,
                 1.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){200, 200, 200}, (vector3_t){0, M_PI_2, 0}, (vector3_t){-1550, -60, -500}, 
+                (vector3_t){300, 300, 300}, (vector3_t){0, M_PI_2, 0}, (vector3_t){-1550, -70, -500}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                "./assets/textures/walls/pyramid.png"
+                "./assets/textures/walls/.png"
   );
   mesh = load_mesh("./assets/obj/pyramid2.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF00FFFF}, 0.2f,
                 1.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){200, 200, 200}, (vector3_t){0, M_PI_2, 0}, (vector3_t){-2200, -60, -700}, 
+                (vector3_t){200, 200, 200}, (vector3_t){0, M_PI_2, 0}, (vector3_t){-2200, -40, -700}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 "./assets/textures/walls/pyramid.png"
   );
