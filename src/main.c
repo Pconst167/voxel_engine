@@ -159,10 +159,10 @@ void setup(void) {
 
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
   
-  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,   .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFF0000}, 0.1f);
+  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,   .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFF4040}, 0.1f);
   create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,   .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
   create_light_source(LIGHT_POINT,       (vector3_t){.x = 0.0f,   .y = 60.0f, .z = -90.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 2000.0f);
-  create_light_source(LIGHT_POINT,       (vector3_t){.x = -1540.0f,   .y = 170.0f, .z = -500.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFF40FFFF}, 30000.0f);
+  create_light_source(LIGHT_POINT,       (vector3_t){.x = -1540.0f,   .y = 190.0f, .z = -500.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFF40FFFF}, 30000.0f);
 
   /* normalize all light direction vectors to unity */
   initialize_lights();
@@ -505,19 +505,10 @@ void setup(void) {
   );
   mesh = load_mesh("./assets/obj/pyramid.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
-                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF00FFFF}, 0.2f,
+                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF00FFFF}, 0.0f,
                 1.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
                 (vector3_t){300, 300, 300}, (vector3_t){0, M_PI_2, 0}, (vector3_t){-1550, -70, -500}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                "./assets/textures/walls/.png"
-  );
-  mesh = load_mesh("./assets/obj/pyramid2.obj");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
-                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF00FFFF}, 0.2f,
-                1.0f, false, true, false,
-                BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){200, 200, 200}, (vector3_t){0, M_PI_2, 0}, (vector3_t){-2200, -40, -700}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 "./assets/textures/walls/pyramid.png"
   );
