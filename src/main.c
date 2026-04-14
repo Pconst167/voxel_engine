@@ -512,6 +512,16 @@ void setup(void) {
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 "./assets/textures/walls/pyramid.png"
   );
+
+  mesh = load_mesh("./assets/obj/cactus.obj");
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF00FFFF}, 0.0f,
+                1.0f, false, true, false,
+                BLEND_MODE_OPAQUE, 0x00, 
+                (vector3_t){10, 10, 10}, (vector3_t){0, M_PI_2, 0}, (vector3_t){-1550, -70, -600}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/plants/cactus.png"
+  );
 }
 
 void process_input(void){
