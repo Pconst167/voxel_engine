@@ -12,6 +12,8 @@ typedef struct{
   /* geometry */
   vector3_t *vertices; /* dynamic array */
   face_t *faces;       /* dynamic array */
+  uint32_t num_vertices;
+  uint32_t num_faces;
   /* bounding box/sphere */
   vector3_t bbox_min;
   vector3_t bbox_max;

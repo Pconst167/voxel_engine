@@ -185,16 +185,16 @@ void setup(void) {
   );
 
   // 1
-  mesh = load_mesh("./assets/obj/voxels.obj");
-  create_object(mesh, OBJECT_TYPE_NORMAL, false, 
-                (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
-                0.0f, false, true, false,
-                BLEND_MODE_OPAQUE, 0x01, 
-                (vector3_t){100, 100, 100}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                "./assets/textures/ground/mountain.png"
-  );
-  return;
+  //mesh = load_mesh("./assets/obj/voxels3.obj");
+  //create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  //              (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
+  //              0.0f, false, true, false,
+  //              BLEND_MODE_OPAQUE, 0x01, 
+  //              (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+  //              (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+  //              "./assets/textures/ground/mountain.png"
+  //);
+  //return;
   // 1
   mesh = load_mesh("./assets/obj/mountain.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
@@ -1117,7 +1117,7 @@ void update_and_render_color_buffer(void) {
     /* generate the final combined world/view matrix */
     matrix4_t world_view_matrix = matrix4_gen_world_view(object, &view_matrix);
 
-    uint32_t num_mesh_faces = array_length(object->mesh->faces);
+    uint32_t num_mesh_faces = object->mesh->num_faces;
     for(uint32_t i = 0; i < num_mesh_faces; i++){
       face_t mesh_face = object->mesh->faces[i];
 

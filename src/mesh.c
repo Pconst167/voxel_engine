@@ -112,6 +112,9 @@ void load_obj_file(char* filename) {
     }
   }
 
+  meshes[num_meshes].num_vertices = array_length(meshes[num_meshes].vertices);
+  meshes[num_meshes].num_faces    = array_length(meshes[num_meshes].faces);
+
   num_meshes++;
   array_free(texture_coords);
   fclose(file);
@@ -127,7 +130,7 @@ mesh_t *load_mesh(
   mesh = &meshes[num_meshes - 1];
 
   /* compute a bounding box around the mesh */
-  int num_vertices = array_length(mesh->vertices);
+  int num_vertices = mesh->num_vertices;
   vector3_t bbox_min = mesh->vertices[0];
   vector3_t bbox_max = mesh->vertices[0];
   for(int i = 0; i < num_vertices; i++){
