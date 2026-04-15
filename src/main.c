@@ -1037,7 +1037,7 @@ inline void object_quicksort(object_sort_key_t *array, int count){
 
 void update_and_render_color_buffer(void) {
   /* reset color_buffer */
-  memset(color_buffer, 0x00, total_buffer_pixels * sizeof(uint32_t));
+  memset(color_buffer, 0x80, total_buffer_pixels * sizeof(uint32_t));
   /* reset zbuffer - it needs to be reset here as well in case skybox object does not exist */
   memset(zbuffer, 0x00, total_buffer_pixels * sizeof(uint32_t)); /* zbuffer is made of floats and 0x00000000 = 0.0 */
 

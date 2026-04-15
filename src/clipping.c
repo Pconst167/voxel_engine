@@ -184,7 +184,7 @@ void clip_polygon_against_plane2(polygon_t *polygon, frustrum_plane_t plane){
   }
 }
 
-static inline void clip_polygon_against_plane(polygon_t *polygon, frustrum_plane_t plane){
+inline void clip_polygon_against_plane(polygon_t *polygon, frustrum_plane_t plane){
   vector3_t *vertices  = polygon->vertices;
   tex2_t *text_coords  = polygon->text_coords;
   uint8_t num_vertices = polygon->num_vertices;
