@@ -1101,6 +1101,9 @@ void update_and_render_color_buffer(void) {
   objects_sorted[num_objects_sorted].object_index = 0; /* set the last sorted object to be the skybox */
   /* end of sort */
 
+  /* triangles list for clipped triangles */
+  triangle_t triangles_after_clipping[MAX_NUM_POLYGON_VERTICES - 2]; /* for a polygon with N vertices, the number of nested triangles is always N-2 */
+
   total_triangles_rendered = 0;
   /* transform each mesh, and rasterize */
   for(uint32_t object_i = 0; object_i < num_objects_sorted + 1; object_i++){
@@ -1147,23 +1150,20 @@ void update_and_render_color_buffer(void) {
         if(dot_face_normal_cam_ray < 0) continue;
       }
 
-      // FRUSTRUM CLIPPING
-      /* create a polygon from current triangle face */
-      polygon_t polygon = create_polygon_from_triangle(
+      /* FRUSTRUM CLIPPING */
+      /* this function creates a polygon from the current face, clips against all frustrum planes,
+         then re-triangularizes the polygon - it returns the number of generated triangles from the polygon */
+      int num_triangles_from_polygon = frustrum_clip_triangle_and_re_triangularize(
         (vector3_t){transformed_vertices[0].x, transformed_vertices[0].y, transformed_vertices[0].z},
         (vector3_t){transformed_vertices[1].x, transformed_vertices[1].y, transformed_vertices[1].z},
         (vector3_t){transformed_vertices[2].x, transformed_vertices[2].y, transformed_vertices[2].z},
         mesh_face.uv[0],
         mesh_face.uv[1],
-        mesh_face.uv[2]
+        mesh_face.uv[2],
+        triangles_after_clipping
       );
-      frustrum_clip_polygon(&polygon);
 
-      /* break polygon apart into triangles */
-      triangle_t triangles_after_clipping[MAX_NUM_POLYGON_VERTICES - 2]; /* for a polygon with N vertices, the number of nested triangles is always N-2 */
-      create_triangles_from_polygon(&polygon, triangles_after_clipping);
-
-      for(int t = 0; t < polygon.num_vertices - 2; t++){
+      for(int t = 0; t < num_triangles_from_polygon; t++){
         triangle_t *triangle_after_clipping = &triangles_after_clipping[t];
 
         /* PROJECTION MATRIX / PERSPECTIVE DIVIDE */

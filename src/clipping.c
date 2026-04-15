@@ -303,3 +303,138 @@ inline bool frustrum_cull_object(vector4_t *bsphere_center, float bsphere_radius
 
   return false;
 }
+
+inline int frustrum_clip_triangle_and_re_triangularize(
+  vector3_t v0, 
+  vector3_t v1, 
+  vector3_t v2, 
+  tex2_t t0, 
+  tex2_t t1, 
+  tex2_t t2,
+  triangle_t *triangles_after_clipping
+){
+  /* create a polygon from the original triangle */
+  polygon_t polygon = {
+    .vertices     = {v0, v1, v2},
+    .text_coords  = {t0, t1, t2},
+    .num_vertices = 3
+  };
+
+  /* apply frustrum clipping with early exit */
+  clip_polygon_against_plane(&polygon, FRUSTRUM_LEFT);
+  if (polygon.num_vertices < 3) return 0;
+
+  clip_polygon_against_plane(&polygon, FRUSTRUM_RIGHT);
+  if (polygon.num_vertices < 3) return 0;
+
+  clip_polygon_against_plane(&polygon, FRUSTRUM_BOTTOM);
+  if (polygon.num_vertices < 3) return 0;
+
+  clip_polygon_against_plane(&polygon, FRUSTRUM_TOP);
+  if (polygon.num_vertices < 3) return 0;
+
+  clip_polygon_against_plane(&polygon, FRUSTRUM_NEAR);
+  if (polygon.num_vertices < 3) return 0;
+
+  clip_polygon_against_plane(&polygon, FRUSTRUM_FAR);
+  if (polygon.num_vertices < 3) return 0;
+
+  /* break polygon apart back into triangles */
+  int num_polygon_vertices = polygon.num_vertices;
+  int num_triangles_after_clipping = num_polygon_vertices - 2;
+
+  vector3_t *polygon_vertices = polygon.vertices;
+  tex2_t *polygon_text_coords = polygon.text_coords;
+
+  /* cache base vertex and uv */
+  vector4_t base_point = (vector4_t){
+    .x = polygon_vertices[0].x,
+    .y = polygon_vertices[0].y,
+    .z = polygon_vertices[0].z,
+    .w = 1.0f
+  };
+
+  tex2_t base_text_coord = polygon_text_coords[0];
+
+  for (int i = 0; i < num_triangles_after_clipping; i++){
+    triangle_t *triangle = &triangles_after_clipping[i];
+
+    triangle->points[0] = base_point;
+    triangle->points[1] = (vector4_t){
+      .x = polygon_vertices[i + 1].x,
+      .y = polygon_vertices[i + 1].y,
+      .z = polygon_vertices[i + 1].z,
+      .w = 1.0f
+    };
+    triangle->points[2] = (vector4_t){
+      .x = polygon_vertices[i + 2].x,
+      .y = polygon_vertices[i + 2].y,
+      .z = polygon_vertices[i + 2].z,
+      .w = 1.0f
+    };
+
+    triangle->uv[0] = base_text_coord;
+    triangle->uv[1] = polygon_text_coords[i + 1];
+    triangle->uv[2] = polygon_text_coords[i + 2];
+  }
+
+  return num_triangles_after_clipping;
+}
+
+/* old version */
+inline int frustrum_clip_triangle_and_re_triangularize2(
+  vector3_t v0, 
+  vector3_t v1, 
+  vector3_t v2, 
+  tex2_t t0, 
+  tex2_t t1, 
+  tex2_t t2,
+  triangle_t *triangles_after_clipping
+){
+
+  /* create a polygon from the original triangle */
+  polygon_t polygon = {
+    .vertices     = {v0, v1, v2},
+    .text_coords  = {t0, t1, t2},
+    .num_vertices = 3
+  };
+
+  /* apply frustrum clipping against all the frustrum planes */
+  clip_polygon_against_plane(&polygon, FRUSTRUM_LEFT);
+  clip_polygon_against_plane(&polygon, FRUSTRUM_RIGHT);
+  clip_polygon_against_plane(&polygon, FRUSTRUM_BOTTOM);
+  clip_polygon_against_plane(&polygon, FRUSTRUM_TOP);
+  clip_polygon_against_plane(&polygon, FRUSTRUM_NEAR);
+  clip_polygon_against_plane(&polygon, FRUSTRUM_FAR);
+
+  /* break polygon apart back into triangles */
+  int num_polygon_vertices = polygon.num_vertices;
+
+  /* the number of triangles generated from a polygon is always the number of vertices - 2 */
+  for(int i = 0; i < num_polygon_vertices - 2; i++){
+    triangles_after_clipping[i].points[0] = (vector4_t){
+      .x = polygon.vertices[0].x,
+      .y = polygon.vertices[0].y,
+      .z = polygon.vertices[0].z,
+      .w = 1.0f
+    };
+    triangles_after_clipping[i].points[1] = (vector4_t){
+      .x = polygon.vertices[i + 1].x,
+      .y = polygon.vertices[i + 1].y,
+      .z = polygon.vertices[i + 1].z,
+      .w = 1.0f
+    };
+    triangles_after_clipping[i].points[2] = (vector4_t){
+      .x = polygon.vertices[i + 2].x,
+      .y = polygon.vertices[i + 2].y,
+      .z = polygon.vertices[i + 2].z,
+      .w = 1.0f
+    };
+    triangles_after_clipping[i].uv[0] = polygon.text_coords[0];
+    triangles_after_clipping[i].uv[1] = polygon.text_coords[i + 1];
+    triangles_after_clipping[i].uv[2] = polygon.text_coords[i + 2];
+  }
+
+  /* the number of triangles generated from a polygon is always the number of vertices - 2 */
+  return num_polygon_vertices - 2;
+}
