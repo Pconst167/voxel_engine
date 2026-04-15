@@ -22,6 +22,7 @@ typedef struct{
   bool backface_culling;
   bool dither;
   bool object_render_debug;
+  bool opengl;
 } projection_options_t;
 
 extern int fps;

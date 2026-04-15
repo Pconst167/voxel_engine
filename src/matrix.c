@@ -198,7 +198,7 @@ vector4_t matrix4_mul_vector4_project(matrix4_t *projection_matrix, vector4_t v)
   if(result.w != 0.0){
     result.x /= result.w;
     result.y /= result.w;
-    result.z /= result.w;
+    //result.z /= result.w;
   }
 
   return result;

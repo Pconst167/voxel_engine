@@ -25,6 +25,7 @@
       textures should be bound to objects not meshes
 
     TODO:
+      TRY AN EARLY ZBUFFER REJECTIOM BEFORE EVEN ENTERING THE RASTERIZER??
 
       specular needs to have its own intensity variable. it needs to be added to the color instead of multiplied by the pixel value. as it is it takes on the texel color and thats wrong.
       also, for two sided lighting, there is no specular, might want to add it?
@@ -136,7 +137,7 @@ vector3_t up = {.x = 0, .y = 1, .z = 0}; /* up direction vector for view matrix 
 /* sun/sky data */
 object_t *skybox;
 vector3_t sun_direction; /* world-space sun direction vector */
-float sun_eta = (M_PI/6.0f); /* sun's eta angle, start sun on horizon */
+float sun_eta = (M_PI_2); /* sun's eta angle, start sun on horizon */
 
 /* objects */
 object_t *ufo;
@@ -159,7 +160,7 @@ void setup(void) {
 
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
   
-  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,   .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFF4040}, 0.1f);
+  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,   .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.5f);
   create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,   .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
   create_light_source(LIGHT_POINT,       (vector3_t){.x = 0.0f,   .y = 60.0f, .z = -90.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 2000.0f);
   create_light_source(LIGHT_POINT,       (vector3_t){.x = -1540.0f,   .y = 190.0f, .z = -500.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFF40FFFF}, 30000.0f);
@@ -183,6 +184,17 @@ void setup(void) {
                          "./assets/textures/sky/sky.png"
   );
 
+  // 1
+  mesh = load_mesh("./assets/obj/voxels.obj");
+  create_object(mesh, OBJECT_TYPE_NORMAL, false, 
+                (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
+                0.0f, false, true, false,
+                BLEND_MODE_OPAQUE, 0x01, 
+                (vector3_t){100, 100, 100}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                "./assets/textures/ground/mountain.png"
+  );
+  return;
   // 1
   mesh = load_mesh("./assets/obj/mountain.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
@@ -697,21 +709,21 @@ void update_light(void){
   /* obj 0 is skybox */
   skybox->emissive_intensity = sin_eta < MIN_SKYBOX_INTENSITY ? MIN_SKYBOX_INTENSITY : sin_eta; /* sky luminosity as a function of time */
 
-  light_sources[1].intensity = sin_eta;
+  //light_sources[1].intensity = sin_eta;
   /* as sun sets or rises, ambient light should get bluer, and oranger towards noon */
   //light_sources[0].color = skybox->emissive_color; 
-  light_sources[0].intensity = MIN_AMBIENT_LIGHT_INTENSITY + AMBIENT_LIGHT_MAX_FACTOR * sin_eta;
+  //light_sources[0].intensity = MIN_AMBIENT_LIGHT_INTENSITY + AMBIENT_LIGHT_MAX_FACTOR * sin_eta;
 }
 
 void update_state(void){
   update_light();
 
-  ufo->velocity.x = 25 * cosf(0.1 * time_of_day);
-  ufo->velocity.z = 25 * sinf(0.1 * time_of_day);
+  //ufo->velocity.x = 25 * cosf(0.1 * time_of_day);
+  //ufo->velocity.z = 25 * sinf(0.1 * time_of_day);
 
-  baloon->velocity.x = 10 * cosf(0.1f * time_of_day);
+  //baloon->velocity.x = 10 * cosf(0.1f * time_of_day);
 
-  water1->scale.y = 0.4f + 0.2f * sinf(0.5f * M_2_PI * time_of_day);
+  //water1->scale.y = 0.4f + 0.2f * sinf(0.5f * M_2_PI * time_of_day);
 }
 
 inline void rasterize_triangle(
@@ -1157,7 +1169,15 @@ void update_and_render_color_buffer(void) {
         /* PROJECTION MATRIX / PERSPECTIVE DIVIDE */
         triangle_t projected_triangle = {0};
         for(int j = 0; j < 3; j++){
-          vector4_t projected_vertex = matrix4_mul_vector4_project(&projection_matrix, triangle_after_clipping->points[j]);
+          //vector4_t projected_vertex = matrix4_mul_vector4_project(&projection_matrix, triangle_after_clipping->points[j]);
+          vector4_t projected_vertex = matrix4_mul_vector4(&projection_matrix, triangle_after_clipping->points[j]);
+
+          /* w stores old z, so divide by w to create perspective divide */
+          if(projected_vertex.w != 0.0){
+            projected_vertex.x /= projected_vertex.w;
+            projected_vertex.y /= projected_vertex.w;
+            projected_vertex.z /= projected_vertex.w;
+          }
 
           /* scale vertices by screen width and translate to middle of the screen */
           projected_vertex.x =  projected_vertex.x * (window_width  * 0.5) + (window_width  * 0.5);
