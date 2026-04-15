@@ -279,6 +279,7 @@ void draw_filled_triangle(
         }
       }
       else if(was_inside) break;
+
       w0 += delta_w0_col;
       w1 += delta_w1_col;
       w2 += delta_w2_col;
@@ -438,6 +439,7 @@ void draw_filled_triangle_no_zbuffer_write(
         }
       }
       else if(was_inside) break;
+
       w0 += delta_w0_col;
       w1 += delta_w1_col;
       w2 += delta_w2_col;

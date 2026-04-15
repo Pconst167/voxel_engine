@@ -87,7 +87,7 @@
 #include "object.h"
 
 
-#define CAMERA_SPEED_SHIFT_KEY_FACTOR 5.0f
+#define CAMERA_SPEED_SHIFT_KEY_FACTOR 8.0f
 #define CAMERA_ETA_DIRECTION 1.0f /* +1: mouse back looks up, -1: mouse back looks down */
 #define MOUSE_SENSITIVITY 0.3f
 #define DAY_LENGTH (1.01f * 60.0f * 60.0f / 0.016f) /* hours */
@@ -185,7 +185,7 @@ void setup(void) {
   );
 
   // 1
-  //mesh = load_mesh("./assets/obj/voxels3.obj");
+  //mesh = load_mesh("./assets/obj/voxels.obj");
   //create_object(mesh, OBJECT_TYPE_NORMAL, true, 
   //              (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
   //              0.0f, false, true, false,
@@ -497,15 +497,15 @@ void setup(void) {
   );
 
   // 29
-  mesh = load_mesh("./assets/obj/volcano1.obj");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
-                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f,
-                1.0f, false, true, false,
-                BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){0.2, 0.3, 0.1}, (vector3_t){0, 0, 0}, (vector3_t){0, -50, 1300}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                "./assets/textures/misc/volcano.png"
-  );
+  //mesh = load_mesh("./assets/obj/volcano1.obj");
+  //create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  //              (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f,
+  //              1.0f, false, true, false,
+  //              BLEND_MODE_OPAQUE, 0x00, 
+  //              (vector3_t){0.2, 0.3, 0.1}, (vector3_t){0, 0, 0}, (vector3_t){0, -50, 1300}, 
+  //              (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+  //              "./assets/textures/misc/volcano.png"
+  //);
   mesh = load_mesh("./assets/obj/dunes.obj");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f,
@@ -1063,7 +1063,6 @@ void update_and_render_color_buffer(void) {
      render list of sorted objects
 
     need to translate center also by velocities!
-     skybox w/z key set to infinity for sorting function
   */
 
   object_sort_key_t objects_sorted[MAX_NUM_OBJECTS]; /* list of objects to be sorted */
@@ -1093,7 +1092,7 @@ void update_and_render_color_buffer(void) {
     objects_sorted[num_objects_sorted].object_index = object_i;
     objects_sorted[num_objects_sorted].sort_z = bsphere_center_world_view.z + bsphere_radius_scaled;
     num_objects_sorted++;
-  } /* for(uint32_t object_i = 1; object_i < num_objects; object_i++) */
+  }
 
   if(num_objects_sorted > 1)
     object_quicksort(objects_sorted, num_objects_sorted);

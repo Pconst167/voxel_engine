@@ -1,5 +1,20 @@
 #include "object.h"
 
+#define NUM_CHUNK_DIVISIONS 10 /* 10 along x, and 10 along z */
+
+typedef struct{
+  uint32_t object_id;
+  uint32_t *faces;
+} chunk_object_faces_t;
+
+typedef struct{
+  float x_min, x_max;
+  float z_min, z_max;
+  chunk_object_faces_t *object_faces;
+} chunk_t;
+
+chunk_t chunks[NUM_CHUNK_DIVISIONS][NUM_CHUNK_DIVISIONS];
+
 object_t objects[MAX_NUM_OBJECTS];
 uint32_t num_objects;
 
@@ -119,3 +134,4 @@ object_t *create_object(
 
   return &objects[num_objects - 1];
 }
+
