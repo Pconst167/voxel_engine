@@ -25,7 +25,10 @@
       textures should be bound to objects not meshes
 
     TODO:
-      TRY AN EARLY ZBUFFER REJECTIOM BEFORE EVEN ENTERING THE RASTERIZER??
+      IMPLEMENT OCCLUSION CULLING: for each object, project its bounding box AABB 8 vertices to world_view space and from the 8 vertices, form rectangle by taking min/max x/y
+      then form a grid inside rectangle. for each grid point, we replace its own depth with the nearest object depth, and test that vs zbuffer.
+      only if all points are farther than zbuffer values, skip/cull object completely.
+      when forming rectangle, clamp it against screen edges if it goes over.
 
       specular needs to have its own intensity variable. it needs to be added to the color instead of multiplied by the pixel value. as it is it takes on the texel color and thats wrong.
       also, for two sided lighting, there is no specular, might want to add it?
@@ -616,34 +619,7 @@ void object_render_debug(){
   }
 }
 
-void qs_triangle(triangle_t *array, int left, int right){
-  int i = left;
-  int j = right;
-  float pivot = array[(left + right) / 2].avg_w;
-
-  while(i <= j){
-    while(array[i].avg_w < pivot) i++;
-    while(array[j].avg_w > pivot) j--;
-
-    if(i <= j){
-      triangle_t tmp = array[i];
-      array[i] = array[j];
-      array[j] = tmp;
-      i++;
-      j--;
-    }
-  }
-
-  if(left < j) qs_triangle(array, left, j);
-  if(i < right) qs_triangle(array, i, right);
-}
-
-inline void triangle_quicksort(triangle_t *array, int count){
-  if(count > 1)
-    qs_triangle(array, 0, count - 1);
-}
-
-void qs_object(object_sort_key_t *array, int left, int right){
+void qs(object_sort_key_t *array, int left, int right){
   int i = left;
   int j = right;
   float pivot = array[(left + right) / 2].sort_z;
@@ -661,13 +637,13 @@ void qs_object(object_sort_key_t *array, int left, int right){
     }
   }
 
-  if(left < j) qs_object(array, left, j);
-  if(i < right) qs_object(array, i, right);
+  if(left < j) qs(array, left, j);
+  if(i < right) qs(array, i, right);
 }
 
 inline void object_quicksort(object_sort_key_t *array, int count){
   if(count > 1)
-    qs_object(array, 0, count - 1);
+    qs(array, 0, count - 1);
 }
 
 void update_and_render_color_buffer(void) {
