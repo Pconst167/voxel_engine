@@ -199,7 +199,7 @@ void setup(void) {
   // 1
 
   mesh = load_mesh("./assets/obj/grass.obj");
-  texture = create_texture("./assets/textures/ground/grass7.png");
+  texture = create_texture("./assets/textures/ground/grass8.png");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF40FF40}, 0.0f, 
                 0.0f, false, true, false,
