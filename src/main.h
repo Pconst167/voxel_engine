@@ -61,4 +61,9 @@ inline void rasterize_triangle_no_zbuffer_write(
   float emissive_intensity
 );
 
+void load_skybox();
+void load_world1(void);
+void load_voxel_world();
+void load_server_room();
+
 #endif
