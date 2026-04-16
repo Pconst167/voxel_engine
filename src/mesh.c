@@ -1,9 +1,4 @@
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include "array.h"
 #include "mesh.h"
-#include "material.h"
 
 mesh_t meshes[MAX_MESHES];
 uint32_t num_meshes;

@@ -65,27 +65,7 @@
      2) skybox MUST be the first object/mesh rendered.  after that we reset all zbuffer values to 0.0 so anything can be rendered on top of the skybox
 */
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
-#include <SDL2/SDL.h>
-#include <math.h>
 #include "main.h"
-#include "display.h"
-#include "vector.h"
-#include "mesh.h"
-#include "triangle.h"
-#include "array.h"
-#include "matrix.h"
-#include "light.h"
-#include "misc.h"
-#include "upng.h"
-#include "camera.h"
-#include "text.h"
-#include "clipping.h"
-#include "object.h"
-
 
 #define CAMERA_SPEED_SHIFT_KEY_FACTOR 4.0f
 #define CAMERA_ETA_DIRECTION 1.0f /* +1: mouse back looks up, -1: mouse back looks down */
@@ -142,6 +122,10 @@ float sun_eta = (M_PI_2); /* sun's eta angle, start sun on horizon */
 /* objects */
 object_t *baloon;
 object_t *water1;
+object_t *moon;
+
+texture_t *tex_moon1;
+texture_t *tex_moon2;
 
 void setup(void) {
   init_font("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 20);
@@ -175,7 +159,7 @@ void setup(void) {
  
   // 0
   mesh = load_mesh("./assets/obj/skybox_cube.obj");
-  texture = create_texture("./assets/textures/sky/sky.png");
+  texture = load_texture("./assets/textures/sky/sky.png");
   skybox = create_object(mesh, OBJECT_TYPE_SKYBOX, false, 
                          (color_t){.uint32 = 0xFF000000}, (color_t){.uint32 = 0xFF20FFFF}, 1.0f,
                          1.0f, false, false, false, 
@@ -199,7 +183,7 @@ void setup(void) {
   // 1
 
   mesh = load_mesh("./assets/obj/grass.obj");
-  texture = create_texture("./assets/textures/ground/grass8.png");
+  texture = load_texture("./assets/textures/ground/grass7.png");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF40FF40}, 0.0f, 
                 0.0f, false, true, false,
@@ -211,7 +195,7 @@ void setup(void) {
   
   // 5
   mesh = load_mesh("./assets/obj/rocks/rock2.obj");
-  texture = create_texture("./assets/textures/stone/rock2.png");
+  texture = load_texture("./assets/textures/stone/rock2.png");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF40FF40}, 0.4f, 
                 0.0f, false, true, false,
@@ -223,19 +207,20 @@ void setup(void) {
 
   // 6
   mesh = load_mesh("./assets/obj/sphere.obj");
-  texture = create_texture("./assets/textures/misc/moon.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  tex_moon1 = load_texture("./assets/textures/misc/moon.png");
+  tex_moon2 = load_texture("./assets/textures/misc/jupiter.png");
+  moon = create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                 (color_t){.uint32 = 0xFFFFA0A0}, (color_t){.uint32 = 0xFFFFFFFF}, 0.5f,
                 1.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x01, 
                 (vector3_t){30, 30, 30}, (vector3_t){0, 0, 0}, (vector3_t){0, 100, 0}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0.5, 0},
-                texture
+                tex_moon1
   );
     
 
   mesh = load_mesh("./assets/obj/cabin.obj");
-  texture = create_texture("./assets/textures/buildings/cabin.png");
+  texture = load_texture("./assets/textures/buildings/cabin.png");
   create_object(mesh, OBJECT_TYPE_NORMAL, false, 
                 (color_t){.uint32 = 0xFF8080A0}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, false, true, false,
@@ -246,12 +231,12 @@ void setup(void) {
   );
 
   mesh = load_mesh("./assets/obj/baloon.obj");
-  texture = create_texture("./assets/textures/misc/baloon.png");
+  texture = load_texture("./assets/textures/misc/baloon.png");
   baloon = create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                          (color_t){.uint32 = 0xFFFF80FF}, (color_t){.uint32 = 0xFFFF0000}, 0.5f, 
                          1.0f, false, true, true,
                          BLEND_MODE_OPAQUE, 0x00, 
-                         (vector3_t){10, 10, 10}, (vector3_t){0, 0, 0},    (vector3_t){150,  350, -100}, 
+                         (vector3_t){10, 10, 10}, (vector3_t){0, 0, 0},    (vector3_t){150,  100, -100}, 
                          (vector3_t){10, 0, 0}, (vector3_t){0, 0, 0},
                          texture
   );
@@ -422,11 +407,24 @@ void update_light(void){
 }
 
 void update_state(void){
+  static int swap = 0;
+
   update_light();
 
   baloon->velocity.x = 10 * cosf(0.1f * time_of_day);
 
   //water1->scale.y = 0.4f + 0.2f * sinf(0.5f * M_2_PI * time_of_day);
+
+  if(time_count % 100 == 0){
+    if(swap == 1){
+      swap = 0;
+      bind_texture_to_object(moon, tex_moon1);
+    }
+    else{
+      swap = 1;
+      bind_texture_to_object(moon, tex_moon2);
+    }
+  }
 }
 
 inline void rasterize_triangle(

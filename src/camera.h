@@ -2,6 +2,7 @@
 #define CAMERA_H
 
 #include "vector.h"
+#include "misc.h"
 
 #define ETA_MAX (M_PI_2 - 0.001)
 

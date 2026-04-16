@@ -5,7 +5,8 @@
 #include <stdlib.h>
 #include "mesh.h"
 #include "vector.h"
-#include "material.h"
+#include "color.h"
+#include "texture.h"
 
 #define MAX_NUM_OBJECTS 1000
 
@@ -76,5 +77,7 @@ object_t *create_object(
 
   texture_t *texture
 );
+
+void bind_texture_to_object(object_t *object, texture_t *texture);
 
 #endif

@@ -5,7 +5,8 @@
 #include <stdbool.h>
 #include "vector.h"
 #include "light.h"
-#include "material.h"
+#include "color.h"
+#include "display.h"
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))

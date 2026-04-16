@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <string.h>
+#include "misc.h"
 
 float fmax2(float f0, float f1){
   if(f0 >= f1)

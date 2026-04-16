@@ -1,6 +1,8 @@
 #ifndef CLIPPINH_H
 #define CLIPPINH_H
 
+#include <math.h>
+#include <stdint.h>
 #include "vector.h"
 #include "triangle.h"
 

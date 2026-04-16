@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <SDL2/SDL.h>
-#include "material.h"
+#include "color.h"
 
 #define FPS 100
 #define FRAME_TARGET_TIME (1000 / FPS)

@@ -1,6 +1,26 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
+#include <SDL2/SDL.h>
+#include <math.h>
+#include "display.h"
+#include "vector.h"
+#include "mesh.h"
+#include "triangle.h"
+#include "array.h"
+#include "matrix.h"
+#include "light.h"
+#include "misc.h"
+#include "upng.h"
+#include "camera.h"
+#include "text.h"
+#include "clipping.h"
+#include "object.h"
+#include "color.h"
 #include "object.h"
 
 void render_text();

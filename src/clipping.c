@@ -1,5 +1,3 @@
-#include <math.h>
-#include <stdint.h>
 #include "clipping.h"
 
 #define NUM_VIEW_FRUSTRUM_PLANES 6

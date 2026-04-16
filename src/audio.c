@@ -1,6 +1,4 @@
 #include "audio.h"
-#include <stdio.h>
-#include <SDL2/SDL.h>
 
 static Mix_Music *background_music = NULL;
 

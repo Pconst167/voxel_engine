@@ -1,6 +1,5 @@
 #include <stdint.h>
 #include "light.h"
-#include "misc.h"
 
 /*
   NOTE ABOUT POINT LIGHTS:

@@ -1,6 +1,4 @@
-#include "vector.h"
 #include "camera.h"
-#include "misc.h"
 
 camera_t camera = {
   .position  = {0, 6, -100}, 

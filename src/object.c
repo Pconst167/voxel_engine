@@ -1,5 +1,4 @@
 #include "object.h"
-#include "material.h"
 
 #define NUM_CHUNK_DIVISIONS 10 /* 10 along x, and 10 along z */
 
@@ -71,3 +70,7 @@ object_t *create_object(
   return &objects[num_objects - 1];
 }
 
+
+void bind_texture_to_object(object_t *object, texture_t *texture){
+  object->texture = texture;
+}

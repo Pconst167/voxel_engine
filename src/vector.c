@@ -1,6 +1,5 @@
 #include <math.h>
 #include "vector.h"
-#include "misc.h"
 
 vector2_t vector2_neg(vector2_t v){
   vector2_t result = {

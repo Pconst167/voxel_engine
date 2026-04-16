@@ -1,8 +1,4 @@
-#include <stdint.h>
 #include "triangle.h"
-#include "display.h"
-#include "vector.h"
-#include "light.h"
 
 /*
   TODO:
