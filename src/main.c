@@ -153,23 +153,18 @@ void setup(void) {
 
   mesh_t *mesh;
   texture_t *texture;
-  //mesh = load_mesh("./assets/obj/quake/e1m3.obj", "./assets/textures/wall.png", BLEND_MODE_OPAQUE, 0x01);
-  //create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 0.8f, 1.0f, (vector3_t){3, 3, 3},       (vector3_t){0, 0, 0},    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0});
-  //return;
  
-  // 0
-  mesh = load_mesh("./assets/obj/skybox_cube.obj");
-  texture = load_texture("./assets/textures/sky/sky.png");
-  skybox = create_object(mesh, OBJECT_TYPE_SKYBOX, false, 
-                         (color_t){.uint32 = 0xFF000000}, (color_t){.uint32 = 0xFF20FFFF}, 1.0f,
-                         1.0f, false, false, false, 
-                         BLEND_MODE_OPAQUE, 0x01, 
-                         (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
-                         (vector3_t){0, 0, 0}, (vector3_t){0, 0.01, 0},
-                         texture
-  );
+  //mesh = load_mesh("./assets/obj/skybox_cube.obj");
+  //texture = load_texture("./assets/textures/sky/sky.png");
+  //skybox = create_object(mesh, OBJECT_TYPE_SKYBOX, false, 
+  //                       (color_t){.uint32 = 0xFF000000}, (color_t){.uint32 = 0xFF20FFFF}, 1.0f,
+  //                       1.0f, false, false, false, 
+  //                       BLEND_MODE_OPAQUE, 0x01, 
+  //                       (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+  //                       (vector3_t){0, 0, 0}, (vector3_t){0, 0.01, 0},
+  //                       texture
+  //);
 
-  // 1
   //mesh = load_mesh("./assets/obj/voxels.obj");
   //create_object(mesh, OBJECT_TYPE_NORMAL, true, 
   //              (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
@@ -180,10 +175,22 @@ void setup(void) {
   //              "./assets/textures/ground/mountain.png"
   //);
   //return;
-  // 1
+
+  mesh = load_mesh("./assets/obj/room/server.obj");
+  texture = load_texture("./assets/textures/room/server.png");
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF40FF40}, 0.0f, 
+                0.0f, false, true, false,
+                BLEND_MODE_OPAQUE, 0x00, 
+                (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                texture
+  );
+
+  return;
 
   mesh = load_mesh("./assets/obj/grass.obj");
-  texture = load_texture("./assets/textures/ground/grass7.png");
+  texture = load_texture("./assets/textures/ground/grass.png");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF40FF40}, 0.0f, 
                 0.0f, false, true, false,
@@ -193,7 +200,6 @@ void setup(void) {
                 texture
   );
   
-  // 5
   mesh = load_mesh("./assets/obj/rocks/rock2.obj");
   texture = load_texture("./assets/textures/stone/rock2.png");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, 
@@ -205,7 +211,6 @@ void setup(void) {
                 texture
   );
 
-  // 6
   mesh = load_mesh("./assets/obj/sphere.obj");
   tex_moon1 = load_texture("./assets/textures/misc/moon.png");
   tex_moon2 = load_texture("./assets/textures/misc/jupiter.png");
@@ -218,7 +223,6 @@ void setup(void) {
                 tex_moon1
   );
     
-
   mesh = load_mesh("./assets/obj/cabin.obj");
   texture = load_texture("./assets/textures/buildings/cabin.png");
   create_object(mesh, OBJECT_TYPE_NORMAL, false, 
@@ -389,16 +393,16 @@ void update_light(void){
   light_sources[1].direction = (vector3_t){sun_direction.x, -sun_direction.y, -sun_direction.z};
 
   /* skybox is a special case and needs to always track camera position */
-  skybox->translation.x  = camera.position.x; 
-  skybox->translation.y  = camera.position.y;
-  skybox->translation.z  = camera.position.z;
+  //skybox->translation.x  = camera.position.x; 
+  //skybox->translation.y  = camera.position.y;
+  //skybox->translation.z  = camera.position.z;
 
-  skybox->emissive_color.rgb.red = light_sources[1].color.rgb.red = 200 + 55 * (1.0f - sin_eta);
-  skybox->emissive_color.rgb.green = light_sources[1].color.rgb.green = 100 + 155 * sin_eta;
-  skybox->emissive_color.rgb.blue = light_sources[1].color.rgb.blue = 255 * sin_eta;
+  //skybox->emissive_color.rgb.red = light_sources[1].color.rgb.red = 200 + 55 * (1.0f - sin_eta);
+  //skybox->emissive_color.rgb.green = light_sources[1].color.rgb.green = 100 + 155 * sin_eta;
+  //skybox->emissive_color.rgb.blue = light_sources[1].color.rgb.blue = 255 * sin_eta;
 
-  /* obj 0 is skybox */
-  skybox->emissive_intensity = sin_eta < MIN_SKYBOX_INTENSITY ? MIN_SKYBOX_INTENSITY : sin_eta; /* sky luminosity as a function of time */
+  ///* obj 0 is skybox */
+  //skybox->emissive_intensity = sin_eta < MIN_SKYBOX_INTENSITY ? MIN_SKYBOX_INTENSITY : sin_eta; /* sky luminosity as a function of time */
 
   //light_sources[1].intensity = sin_eta;
   /* as sun sets or rises, ambient light should get bluer, and oranger towards noon */
@@ -411,20 +415,20 @@ void update_state(void){
 
   update_light();
 
-  baloon->velocity.x = 10 * cosf(0.1f * time_of_day);
+  //baloon->velocity.x = 10 * cosf(0.1f * time_of_day);
 
   //water1->scale.y = 0.4f + 0.2f * sinf(0.5f * M_2_PI * time_of_day);
 
-  if(time_count % 100 == 0){
-    if(swap == 1){
-      swap = 0;
-      bind_texture_to_object(moon, tex_moon1);
-    }
-    else{
-      swap = 1;
-      bind_texture_to_object(moon, tex_moon2);
-    }
-  }
+  //if(time_count % 100 == 0){
+  //  if(swap == 1){
+  //    swap = 0;
+  //    bind_texture_to_object(moon, tex_moon1);
+  //  }
+  //  else{
+  //    swap = 1;
+  //    bind_texture_to_object(moon, tex_moon2);
+  //  }
+  //}
 }
 
 inline void rasterize_triangle(
@@ -738,7 +742,7 @@ inline void object_quicksort(object_sort_key_t *array, int count){
 
 void update_and_render_color_buffer(void) {
   /* reset color_buffer */
-  memset(color_buffer, 0x80, total_buffer_pixels * sizeof(uint32_t));
+  memset(color_buffer, 0x00, total_buffer_pixels * sizeof(uint32_t));
   /* reset zbuffer - it needs to be reset here as well in case skybox object does not exist */
   memset(zbuffer, 0x00, total_buffer_pixels * sizeof(uint32_t)); /* zbuffer is made of floats and 0x00000000 = 0.0 */
 
@@ -986,7 +990,7 @@ void update_and_render_color_buffer(void) {
         }
 
         /* TRIANGLE RASTERIZATION */
-        if(object_index == 0){ /* if object is skybox (always index 0), then render without zbuffer writing */
+        if(object->object_type == OBJECT_TYPE_SKYBOX){ /* if object is skybox (always index 0), then render without zbuffer writing */
           rasterize_triangle_no_zbuffer_write(
             &projected_triangle, 
             object->texture->texture, 
