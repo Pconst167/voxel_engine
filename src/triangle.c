@@ -117,7 +117,7 @@ vector3_t get_triangle_face_normal(vector4_t vertices[3]){
     .y = v_ab.z * v_ac.x - v_ab.x * v_ac.z,
     .z = v_ab.x * v_ac.y - v_ab.y * v_ac.x
   };
-  vector3_normalize_fast_approx(&v_face_normal);
+  vector3_normalize(&v_face_normal);
 
   return v_face_normal;
 }
@@ -457,9 +457,9 @@ void draw_filled_triangle_no_zbuffer_write(
 
 __attribute__((optimize("Ofast")))
 void draw_textured_triangle_opaque(
-  vector4_t *v0, tex2_t v0_uv,
-  vector4_t *v1, tex2_t v1_uv,
-  vector4_t *v2, tex2_t v2_uv,
+  vector4_t *v0, uv_t v0_uv,
+  vector4_t *v1, uv_t v1_uv,
+  vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
   float *light_intensities,
   color_t emissive_color,
@@ -497,7 +497,7 @@ void draw_textured_triangle_opaque(
     v1 = v2;
     v2 = tmp_v;
 
-    tex2_t tmp_uv = v1_uv;
+    uv_t tmp_uv = v1_uv;
     v1_uv = v2_uv;
     v2_uv = tmp_uv;
 
@@ -650,9 +650,9 @@ void draw_textured_triangle_opaque(
 
 __attribute__((optimize("Ofast")))
 void draw_textured_triangle_opaque_no_zbuffer_write(
-  vector4_t *v0, tex2_t v0_uv,
-  vector4_t *v1, tex2_t v1_uv,
-  vector4_t *v2, tex2_t v2_uv,
+  vector4_t *v0, uv_t v0_uv,
+  vector4_t *v1, uv_t v1_uv,
+  vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
   float *light_intensities,
   color_t emissive_color,
@@ -690,7 +690,7 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
     v1 = v2;
     v2 = tmp_v;
 
-    tex2_t tmp_uv = v1_uv;
+    uv_t tmp_uv = v1_uv;
     v1_uv = v2_uv;
     v2_uv = tmp_uv;
 
@@ -841,9 +841,9 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
 
 __attribute__((optimize("Ofast")))
 void draw_textured_triangle_alpha_test(
-  vector4_t *v0, tex2_t v0_uv,
-  vector4_t *v1, tex2_t v1_uv,
-  vector4_t *v2, tex2_t v2_uv,
+  vector4_t *v0, uv_t v0_uv,
+  vector4_t *v1, uv_t v1_uv,
+  vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
   float *light_intensities,
   color_t emissive_color,
@@ -882,7 +882,7 @@ void draw_textured_triangle_alpha_test(
     v1 = v2;
     v2 = tmp_v;
 
-    tex2_t tmp_uv = v1_uv;
+    uv_t tmp_uv = v1_uv;
     v1_uv = v2_uv;
     v2_uv = tmp_uv;
 
@@ -1036,9 +1036,9 @@ void draw_textured_triangle_alpha_test(
 
 __attribute__((optimize("Ofast")))
 void draw_textured_triangle_alpha_test_no_zbuffer_write(
-  vector4_t *v0, tex2_t v0_uv,
-  vector4_t *v1, tex2_t v1_uv,
-  vector4_t *v2, tex2_t v2_uv,
+  vector4_t *v0, uv_t v0_uv,
+  vector4_t *v1, uv_t v1_uv,
+  vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
   float *light_intensities,
   color_t emissive_color,
@@ -1077,7 +1077,7 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
     v1 = v2;
     v2 = tmp_v;
 
-    tex2_t tmp_uv = v1_uv;
+    uv_t tmp_uv = v1_uv;
     v1_uv = v2_uv;
     v2_uv = tmp_uv;
 
@@ -1229,9 +1229,9 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
 
 __attribute__((optimize("Ofast")))
 void draw_textured_triangle_alpha_blend(
-  vector4_t *v0, tex2_t v0_uv,
-  vector4_t *v1, tex2_t v1_uv,
-  vector4_t *v2, tex2_t v2_uv,
+  vector4_t *v0, uv_t v0_uv,
+  vector4_t *v1, uv_t v1_uv,
+  vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
   float *light_intensities,
   color_t emissive_color,
@@ -1270,7 +1270,7 @@ void draw_textured_triangle_alpha_blend(
     v1 = v2;
     v2 = tmp_v;
 
-    tex2_t tmp_uv = v1_uv;
+    uv_t tmp_uv = v1_uv;
     v1_uv = v2_uv;
     v2_uv = tmp_uv;
 
@@ -1419,9 +1419,9 @@ void draw_textured_triangle_alpha_blend(
 
 __attribute__((optimize("Ofast")))
 void draw_textured_triangle(
-  vector4_t *v0, tex2_t v0_uv,
-  vector4_t *v1, tex2_t v1_uv,
-  vector4_t *v2, tex2_t v2_uv,
+  vector4_t *v0, uv_t v0_uv,
+  vector4_t *v1, uv_t v1_uv,
+  vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
   float *light_intensities,
   color_t emissive_color,
@@ -1462,7 +1462,7 @@ void draw_textured_triangle(
     v1 = v2;
     v2 = tmp_v;
 
-    tex2_t tmp_uv = v1_uv;
+    uv_t tmp_uv = v1_uv;
     v1_uv = v2_uv;
     v2_uv = tmp_uv;
 
@@ -1611,9 +1611,9 @@ void draw_textured_triangle(
 
 __attribute__((optimize("Ofast")))
 void draw_textured_triangle_affine(
-  vector4_t *v0, tex2_t v0_uv,
-  vector4_t *v1, tex2_t v1_uv,
-  vector4_t *v2, tex2_t v2_uv,
+  vector4_t *v0, uv_t v0_uv,
+  vector4_t *v1, uv_t v1_uv,
+  vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
   float *light_intensities,
   bool dither,
@@ -1651,7 +1651,7 @@ void draw_textured_triangle_affine(
     v1 = v2;
     v2 = tmp_v;
 
-    tex2_t tmp_uv = v1_uv;
+    uv_t tmp_uv = v1_uv;
     v1_uv = v2_uv;
     v2_uv = tmp_uv;
 
@@ -1973,9 +1973,9 @@ void draw_line(float x0, float y0, float x1, float y1, color_t color){
 
 
 void draw_textured_triangle_opaque(
-  vector4_t *v0, tex2_t v0_uv,
-  vector4_t *v1, tex2_t v1_uv,
-  vector4_t *v2, tex2_t v2_uv,
+  vector4_t *v0, uv_t v0_uv,
+  vector4_t *v1, uv_t v1_uv,
+  vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
   float *light_intensities,
   color_t emissive_color,
@@ -2004,7 +2004,7 @@ void draw_textured_triangle_opaque(
     v1 = v2;
     v2 = tmp_v;
 
-    tex2_t tmp_uv = v1_uv;
+    uv_t tmp_uv = v1_uv;
     v1_uv = v2_uv;
     v2_uv = tmp_uv;
 

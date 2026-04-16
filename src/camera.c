@@ -3,7 +3,7 @@
 #include "misc.h"
 
 camera_t camera = {
-  .position  = {0, 40, -100}, 
+  .position  = {0, 6, -100}, 
   .direction = {0, 0, 1},
   .theta     = M_PI_2,
   .eta       = 0.0

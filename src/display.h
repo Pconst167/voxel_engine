@@ -22,9 +22,9 @@ typedef struct{
   bool backface_culling;
   bool dither;
   bool object_render_debug;
-  bool opengl;
+  float ortho_half_width;
+  float ortho_half_height;
 } projection_options_t;
-
 extern int fps;
 extern projection_options_t projection_options;
 

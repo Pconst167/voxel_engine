@@ -73,9 +73,9 @@ polygon_t create_polygon_from_triangle(
   vector3_t v0, 
   vector3_t v1, 
   vector3_t v2, 
-  tex2_t t0, 
-  tex2_t t1, 
-  tex2_t t2
+  uv_t t0, 
+  uv_t t1, 
+  uv_t t2
 ){
   polygon_t polygon = {
     .vertices     = {v0, v1, v2},
@@ -123,13 +123,13 @@ void clip_polygon_against_plane2(polygon_t *polygon, frustrum_plane_t plane){
   vector3_t plane_normal = view_frustrum_planes[plane].normal;
 
   vector3_t inside_vertices[MAX_NUM_POLYGON_VERTICES];
-  tex2_t inside_text_coords[MAX_NUM_POLYGON_VERTICES];
+  uv_t inside_text_coords[MAX_NUM_POLYGON_VERTICES];
   uint8_t num_inside_vertices = 0;
 
   vector3_t *curr_vertex     = &(polygon->vertices[0]);
-  tex2_t    *curr_text_coord = &(polygon->text_coords[0]);
+  uv_t    *curr_text_coord = &(polygon->text_coords[0]);
   vector3_t *prev_vertex     = &(polygon->vertices[polygon->num_vertices - 1]);
-  tex2_t    *prev_text_coord = &(polygon->text_coords[polygon->num_vertices - 1]);
+  uv_t    *prev_text_coord = &(polygon->text_coords[polygon->num_vertices - 1]);
 
   float curr_dot;
   /* dot product between vector from P to previous vertex, and the plane's normal */
@@ -147,7 +147,7 @@ void clip_polygon_against_plane2(polygon_t *polygon, frustrum_plane_t plane){
         .y = prev_vertex->y + t * (curr_vertex->y - prev_vertex->y), 
         .z = prev_vertex->z + t * (curr_vertex->z - prev_vertex->z)
       }; 
-      tex2_t T = (tex2_t){
+      uv_t T = (uv_t){
         .u = prev_text_coord->u + t * (curr_text_coord->u - prev_text_coord->u), 
         .v = prev_text_coord->v + t * (curr_text_coord->v - prev_text_coord->v)
       }; 
@@ -186,7 +186,7 @@ void clip_polygon_against_plane2(polygon_t *polygon, frustrum_plane_t plane){
 
 inline void clip_polygon_against_plane(polygon_t *polygon, frustrum_plane_t plane){
   vector3_t *vertices  = polygon->vertices;
-  tex2_t *text_coords  = polygon->text_coords;
+  uv_t *text_coords  = polygon->text_coords;
   uint8_t num_vertices = polygon->num_vertices;
 
   float px = view_frustrum_planes[plane].p.x;
@@ -198,7 +198,7 @@ inline void clip_polygon_against_plane(polygon_t *polygon, frustrum_plane_t plan
   float nz = view_frustrum_planes[plane].normal.z;
 
   vector3_t inside_vertices[MAX_NUM_POLYGON_VERTICES];
-  tex2_t inside_text_coords[MAX_NUM_POLYGON_VERTICES];
+  uv_t inside_text_coords[MAX_NUM_POLYGON_VERTICES];
   uint8_t num_inside_vertices = 0;
 
   uint8_t prev_i = num_vertices - 1;
@@ -308,9 +308,9 @@ inline int frustrum_clip_triangle_and_re_triangularize(
   vector3_t v0, 
   vector3_t v1, 
   vector3_t v2, 
-  tex2_t t0, 
-  tex2_t t1, 
-  tex2_t t2,
+  uv_t t0, 
+  uv_t t1, 
+  uv_t t2,
   triangle_t *triangles_after_clipping
 ){
   /* create a polygon from the original triangle */
@@ -344,7 +344,7 @@ inline int frustrum_clip_triangle_and_re_triangularize(
   int num_triangles_after_clipping = num_polygon_vertices - 2;
 
   vector3_t *polygon_vertices = polygon.vertices;
-  tex2_t *polygon_text_coords = polygon.text_coords;
+  uv_t *polygon_text_coords = polygon.text_coords;
 
   /* cache base vertex and uv */
   vector4_t base_point = (vector4_t){
@@ -354,7 +354,7 @@ inline int frustrum_clip_triangle_and_re_triangularize(
     .w = 1.0f
   };
 
-  tex2_t base_text_coord = polygon_text_coords[0];
+  uv_t base_text_coord = polygon_text_coords[0];
 
   for (int i = 0; i < num_triangles_after_clipping; i++){
     triangle_t *triangle = &triangles_after_clipping[i];
@@ -386,9 +386,9 @@ inline int frustrum_clip_triangle_and_re_triangularize2(
   vector3_t v0, 
   vector3_t v1, 
   vector3_t v2, 
-  tex2_t t0, 
-  tex2_t t1, 
-  tex2_t t2,
+  uv_t t0, 
+  uv_t t1, 
+  uv_t t2,
   triangle_t *triangles_after_clipping
 ){
 

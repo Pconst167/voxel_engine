@@ -2,7 +2,11 @@ game where you are in a kind of room with computers and servers. perhaps vintage
 you program the computers etc
 programming the computer(s) may have consequences in the real world from simple control light changing lights
 to perhaps changing the parameters of the world itself.
-
+make a thing where the player can find the solutions or tips for the puzzles, but only if they slowly hack the files in the server etc
+add graphs and statistics etc
+make it also an educational game where one learns to program and learns maths!
+add sol-1 emulator, c compiler maybe, assembler
+player can write and run programs
 
 
 game where you can grow plants, buy seeds, grow, sell etc

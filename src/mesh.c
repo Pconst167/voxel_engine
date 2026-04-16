@@ -12,7 +12,7 @@ void load_obj_file(char* filename) {
   FILE* file = fopen(filename, "r");
   char line[1024];
   color_t color;
-  tex2_t *texture_coords = NULL;
+  uv_t *texture_coords = NULL;
 
   if (file == NULL) {
     fprintf(stderr, "ERROR: could not open OBJ file: %s\n", filename);
@@ -36,7 +36,7 @@ void load_obj_file(char* filename) {
     }
     /* texture */
     else if (strncmp(line, "vt ", 3) == 0) {
-      tex2_t texture;
+      uv_t texture;
       if (sscanf(line, "vt %f %f", &texture.u, &texture.v) == 2) {
         texture.v = 1.0f - texture.v;
         array_push(texture_coords, texture);

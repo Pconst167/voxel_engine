@@ -18,17 +18,17 @@ typedef enum{
 
 typedef struct{
   float u, v;
-} tex2_t;
+} uv_t;
 
 typedef struct{
   uint32_t vertex_indices[3];
-  tex2_t uv[3];
+  uv_t uv[3];
   color_t color;
 } face_t;
 
 typedef struct{
   vector4_t points[3];
-  tex2_t uv[3];
+  uv_t uv[3];
   float light_intensities[MAX_NUM_LIGHT_SOURCES];
 } triangle_t;
 
@@ -87,9 +87,9 @@ void draw_filled_triangle_no_zbuffer_write(
 );
 
 void draw_textured_triangle_opaque(
-  vector4_t *v0, tex2_t v0_uv,
-  vector4_t *v1, tex2_t v1_uv,
-  vector4_t *v2, tex2_t v2_uv,
+  vector4_t *v0, uv_t v0_uv,
+  vector4_t *v1, uv_t v1_uv,
+  vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
   float *light_intensities,
   color_t emissive_color,
@@ -98,9 +98,9 @@ void draw_textured_triangle_opaque(
   bool dither
 );
 void draw_textured_triangle_opaque_no_zbuffer_write(
-  vector4_t *v0, tex2_t v0_uv,
-  vector4_t *v1, tex2_t v1_uv,
-  vector4_t *v2, tex2_t v2_uv,
+  vector4_t *v0, uv_t v0_uv,
+  vector4_t *v1, uv_t v1_uv,
+  vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
   float *light_intensities,
   color_t emissive_color,
@@ -109,9 +109,9 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
   bool dither
 );
 void draw_textured_triangle_alpha_test(
-  vector4_t *v0, tex2_t v0_uv,
-  vector4_t *v1, tex2_t v1_uv,
-  vector4_t *v2, tex2_t v2_uv,
+  vector4_t *v0, uv_t v0_uv,
+  vector4_t *v1, uv_t v1_uv,
+  vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
   float *light_intensities,
   color_t emissive_color,
@@ -121,9 +121,9 @@ void draw_textured_triangle_alpha_test(
   uint8_t alpha_cutoff
 );
 void draw_textured_triangle_alpha_test_no_zbuffer_write(
-  vector4_t *v0, tex2_t v0_uv,
-  vector4_t *v1, tex2_t v1_uv,
-  vector4_t *v2, tex2_t v2_uv,
+  vector4_t *v0, uv_t v0_uv,
+  vector4_t *v1, uv_t v1_uv,
+  vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
   float *light_intensities,
   color_t emissive_color,
@@ -133,9 +133,9 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
   uint8_t alpha_cutoff
 );
 void draw_textured_triangle_alpha_blend(
-  vector4_t *v0, tex2_t v0_uv,
-  vector4_t *v1, tex2_t v1_uv,
-  vector4_t *v2, tex2_t v2_uv,
+  vector4_t *v0, uv_t v0_uv,
+  vector4_t *v1, uv_t v1_uv,
+  vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
   float *light_intensities,
   color_t emissive_color,
@@ -146,9 +146,9 @@ void draw_textured_triangle_alpha_blend(
 );
 
 void draw_textured_triangle(
-  vector4_t *v0, tex2_t v0_uv,
-  vector4_t *v1, tex2_t v1_uv,
-  vector4_t *v2, tex2_t v2_uv,
+  vector4_t *v0, uv_t v0_uv,
+  vector4_t *v1, uv_t v1_uv,
+  vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
   float *light_intensities,
   color_t emissive_color,
@@ -161,9 +161,9 @@ void draw_textured_triangle(
 );
 
 void draw_textured_triangle_affine(
-  vector4_t *v0, tex2_t v0_uv,
-  vector4_t *v1, tex2_t v1_uv,
-  vector4_t *v2, tex2_t v2_uv,
+  vector4_t *v0, uv_t v0_uv,
+  vector4_t *v1, uv_t v1_uv,
+  vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
   float *light_intensities,
   bool dither,

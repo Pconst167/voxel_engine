@@ -36,9 +36,7 @@ typedef struct{
   vector3_t velocity;
   vector3_t angular_velocity;
   /* texture data */
-  color_t *texture;
-  uint32_t texture_width;
-  uint32_t texture_height;
+  texture_t *texture;
 } object_t;
 
 typedef struct{
@@ -53,8 +51,6 @@ typedef struct{
 
 extern object_t objects[MAX_NUM_OBJECTS];
 extern uint32_t num_objects;
-
-void load_png_texture_data(object_t *object, char* filename);
 
 object_t *create_object(
   mesh_t *mesh,
@@ -78,7 +74,7 @@ object_t *create_object(
   vector3_t velocity,
   vector3_t angular_velocity,
 
-  char *texture_filename
+  texture_t *texture
 );
 
 #endif

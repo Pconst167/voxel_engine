@@ -51,10 +51,10 @@ float vector2_dot(vector2_t a, vector2_t b){
 }
 
 void vector2_normalize(vector2_t *v){
-  float len = sqrtf(v->x * v->x + v->y * v->y);
+  float len = 1.0f / sqrtf(v->x * v->x + v->y * v->y);
 
-  v->x /= len;
-  v->y /= len;
+  v->x *= len;
+  v->y *= len;
 }
 
 /* vector3 functions */
