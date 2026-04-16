@@ -117,7 +117,7 @@ vector3_t up = {.x = 0, .y = 1, .z = 0}; /* up direction vector for view matrix 
 /* sun/sky data */
 object_t *skybox;
 vector3_t sun_direction; /* world-space sun direction vector */
-float sun_eta = (M_PI_2); /* sun's eta angle, start sun on horizon */
+float sun_eta = (M_PI/4.0f); /* sun's eta angle, start sun on horizon */
 
 /* objects */
 object_t *baloon;
@@ -520,7 +520,7 @@ void render_sun(void){
   float sun_blue_shift  = 0.00f + 1.00f * sun_elev_abs;    /* blue weakest at horizon, strongest at poles */
 
   /* generate view matrix for rotating the sun vector into camera space */
-  matrix4_t view_matrix = matrix4_gen_view(camera.position, camera.direction, up);
+  matrix4_t view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
 
   /* world -> camera rotation only(no translation, meaning w = 0) */
   vector4_t vec4_sun_cam = matrix4_mul_vector4(&view_matrix, (vector4_t){sun_direction.x, sun_direction.y, sun_direction.z, 0.0f});
@@ -616,7 +616,34 @@ void object_render_debug(){
   }
 }
 
-void qs(object_sort_key_t *array, int left, int right){
+void qs_triangle(triangle_t *array, int left, int right){
+  int i = left;
+  int j = right;
+  float pivot = array[(left + right) / 2].avg_w;
+
+  while(i <= j){
+    while(array[i].avg_w < pivot) i++;
+    while(array[j].avg_w > pivot) j--;
+
+    if(i <= j){
+      triangle_t tmp = array[i];
+      array[i] = array[j];
+      array[j] = tmp;
+      i++;
+      j--;
+    }
+  }
+
+  if(left < j) qs_triangle(array, left, j);
+  if(i < right) qs_triangle(array, i, right);
+}
+
+inline void triangle_quicksort(triangle_t *array, int count){
+  if(count > 1)
+    qs_triangle(array, 0, count - 1);
+}
+
+void qs_object(object_sort_key_t *array, int left, int right){
   int i = left;
   int j = right;
   float pivot = array[(left + right) / 2].sort_z;
@@ -634,13 +661,13 @@ void qs(object_sort_key_t *array, int left, int right){
     }
   }
 
-  if(left < j) qs(array, left, j);
-  if(i < right) qs(array, i, right);
+  if(left < j) qs_object(array, left, j);
+  if(i < right) qs_object(array, i, right);
 }
 
 inline void object_quicksort(object_sort_key_t *array, int count){
   if(count > 1)
-    qs(array, 0, count - 1);
+    qs_object(array, 0, count - 1);
 }
 
 void update_and_render_color_buffer(void) {
@@ -663,7 +690,7 @@ void update_and_render_color_buffer(void) {
     .z = camera.direction.x * up.y - camera.direction.y * up.x
   };
   
-  matrix4_t view_matrix = matrix4_gen_view(camera.position, camera.direction, up);
+  matrix4_t view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
 
   /* for each object, apply frustrum culling to entire object : apply world_view to center coord
      if not culled, then add to objects-to-be-sorted list
@@ -680,15 +707,26 @@ void update_and_render_color_buffer(void) {
   for(uint32_t object_i = 1; object_i < num_objects; object_i++){
     object_t object = objects[object_i];
 
-    /* generate the final combined world/view matrix */
-    matrix4_t world_view_matrix = matrix4_gen_world_view_matrix(&object, &view_matrix);
-
     /* frustrum culling for entire objects at once */
-    vector4_t bsphere_center_world_view = matrix4_mul_vector3(&world_view_matrix, (vector3_t){object.mesh->bounding_center.x, object.mesh->bounding_center.y, object.mesh->bounding_center.z}); /* affine transform so can use this faster multiply */
-    float scale_max = object.scale.x;
-    if(object.scale.y > scale_max) scale_max = object.scale.y;
-    if(object.scale.z > scale_max) scale_max = object.scale.z;
-    float bsphere_radius_scaled = object.mesh->bsphere_radius * scale_max; /* scale sphere radius according to object's scale */
+    matrix4_t world_view_matrix;
+    vector4_t bsphere_center_world_view; /* affine transform so can use this faster multiply */
+    float scale_max;
+    float bsphere_radius_scaled;
+    if(object.fixed == false){
+      /* generate the final combined world/view matrix */
+      world_view_matrix = matrix4_gen_world_view_matrix(&object, &view_matrix);
+
+      bsphere_center_world_view = matrix4_mul_vector3(&world_view_matrix, (vector3_t){object.mesh->bounding_center.x, object.mesh->bounding_center.y, object.mesh->bounding_center.z}); /* affine transform so can use this faster multiply */
+      scale_max = object.scale.x;
+      if(object.scale.y > scale_max) scale_max = object.scale.y;
+      if(object.scale.z > scale_max) scale_max = object.scale.z;
+      bsphere_radius_scaled = object.mesh->bsphere_radius * scale_max; /* scale sphere radius according to object's scale */
+    }
+    else{
+      bsphere_center_world_view = matrix4_mul_vector3(&view_matrix, (vector3_t){object.bounding_center.x, object.bounding_center.y, object.bounding_center.z}); /* affine transform so can use this faster multiply */
+      bsphere_radius_scaled = object.bsphere_radius; /* pre baked scaled sphere radius according to object's scale */
+    }
+
     bool should_frustrum_cull_object = frustrum_cull_object(&bsphere_center_world_view, bsphere_radius_scaled, znear, zfar);
     if(should_frustrum_cull_object) continue;
 
@@ -697,7 +735,7 @@ void update_and_render_color_buffer(void) {
     objects_sorted[num_objects_sorted].sort_z = bsphere_center_world_view.z + bsphere_radius_scaled;
     num_objects_sorted++;
   }
-
+  /* sort objects front to back */
   if(num_objects_sorted > 1)
     object_quicksort(objects_sorted, num_objects_sorted);
 
@@ -713,30 +751,46 @@ void update_and_render_color_buffer(void) {
     uint32_t object_index = objects_sorted[object_i].object_index;
     object_t *object = &objects[object_index];
     
-    object->translation.x += object->velocity.x * delta_time;
-    object->translation.y += object->velocity.y * delta_time;
-    object->translation.z += object->velocity.z * delta_time;
-    object->rotation.x    += object->angular_velocity.x * delta_time;
-    object->rotation.y    += object->angular_velocity.y * delta_time;
-    object->rotation.z    += object->angular_velocity.z * delta_time;
+    matrix4_t world_view_matrix;
+    if(object->fixed == false){
+      object->translation.x += object->velocity.x * delta_time;
+      object->translation.y += object->velocity.y * delta_time;
+      object->translation.z += object->velocity.z * delta_time;
+      object->rotation.x    += object->angular_velocity.x * delta_time;
+      object->rotation.y    += object->angular_velocity.y * delta_time;
+      object->rotation.z    += object->angular_velocity.z * delta_time;
 
-    /* generate the final combined world/view matrix */
-    matrix4_t world_view_matrix = matrix4_gen_world_view_matrix(object, &view_matrix);
+      /* if object is dynamic, generate the final combined world/view matrix */
+      world_view_matrix = matrix4_gen_world_view_matrix(object, &view_matrix);
+    }
 
     uint32_t num_mesh_faces = object->mesh->num_faces;
     for(uint32_t i = 0; i < num_mesh_faces; i++){
       face_t mesh_face = object->mesh->faces[i];
 
-      vector3_t face_vertices[3];
-      face_vertices[0] = object->mesh->vertices[mesh_face.vertex_indices[0]];
-      face_vertices[1] = object->mesh->vertices[mesh_face.vertex_indices[1]];
-      face_vertices[2] = object->mesh->vertices[mesh_face.vertex_indices[2]];
-
       /* WORLD MATRIX / VIEW MATRIX TRANSFORM */
+      vector3_t face_vertices[3];
       vector4_t transformed_vertices[3];
-      transformed_vertices[0] = matrix4_mul_vector3(&world_view_matrix, (vector3_t){face_vertices[0].x, face_vertices[0].y, face_vertices[0].z}); /* affine transform so can use this faster multiply */
-      transformed_vertices[1] = matrix4_mul_vector3(&world_view_matrix, (vector3_t){face_vertices[1].x, face_vertices[1].y, face_vertices[1].z}); /* affine transform so can use this faster multiply */
-      transformed_vertices[2] = matrix4_mul_vector3(&world_view_matrix, (vector3_t){face_vertices[2].x, face_vertices[2].y, face_vertices[2].z}); /* affine transform so can use this faster multiply */
+      if(object->fixed){
+        /* object is static, fetch object's baked transformed vertices and apply view transform only */
+        face_vertices[0] = object->transformed_vertices[mesh_face.vertex_indices[0]];
+        face_vertices[1] = object->transformed_vertices[mesh_face.vertex_indices[1]];
+        face_vertices[2] = object->transformed_vertices[mesh_face.vertex_indices[2]];
+
+        transformed_vertices[0] = matrix4_mul_vector3(&view_matrix, (vector3_t){face_vertices[0].x, face_vertices[0].y, face_vertices[0].z}); /* affine transform so can use this faster multiply */
+        transformed_vertices[1] = matrix4_mul_vector3(&view_matrix, (vector3_t){face_vertices[1].x, face_vertices[1].y, face_vertices[1].z}); /* affine transform so can use this faster multiply */
+        transformed_vertices[2] = matrix4_mul_vector3(&view_matrix, (vector3_t){face_vertices[2].x, face_vertices[2].y, face_vertices[2].z}); /* affine transform so can use this faster multiply */
+      }
+      else{
+        /* object is dynamic, fetch mesh vertices and apply world_view transforms */
+        face_vertices[0] = object->mesh->vertices[mesh_face.vertex_indices[0]];
+        face_vertices[1] = object->mesh->vertices[mesh_face.vertex_indices[1]];
+        face_vertices[2] = object->mesh->vertices[mesh_face.vertex_indices[2]];
+
+        transformed_vertices[0] = matrix4_mul_vector3(&world_view_matrix, (vector3_t){face_vertices[0].x, face_vertices[0].y, face_vertices[0].z}); /* affine transform so can use this faster multiply */
+        transformed_vertices[1] = matrix4_mul_vector3(&world_view_matrix, (vector3_t){face_vertices[1].x, face_vertices[1].y, face_vertices[1].z}); /* affine transform so can use this faster multiply */
+        transformed_vertices[2] = matrix4_mul_vector3(&world_view_matrix, (vector3_t){face_vertices[2].x, face_vertices[2].y, face_vertices[2].z}); /* affine transform so can use this faster multiply */
+      }
 
       /* BACKFACE CULLING */
       /* calculate face normals for backface culling and lighting */
@@ -1027,7 +1081,7 @@ void load_world1(void){
                 (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 0.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x01, 
-                (vector3_t){0.5, 0.5, 0.528}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+                (vector3_t){0.5, 0.5, 0.5}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );

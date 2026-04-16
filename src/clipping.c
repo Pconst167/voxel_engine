@@ -267,6 +267,7 @@ __attribute__((optimize("Ofast")))
 inline bool frustrum_cull_object(vector4_t *bsphere_center, float bsphere_radius, float znear, float zfar){
   float distance;
 
+  /* NEAR / FAR */
   if(bsphere_center->z + bsphere_radius < znear) return true;
   if(bsphere_center->z - bsphere_radius > zfar)  return true;
 

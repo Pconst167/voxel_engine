@@ -1944,14 +1944,14 @@ void draw_line(float x0, float y0, float x1, float y1, color_t color){
   float delta_x = x1 - x0;
   float delta_y = y1 - y0;
 
-  float longest_side_length = (fabs(delta_x) >= fabs(delta_y)) ? fabs(delta_x) : fabs(delta_y);
+  float longest_side_length = (fabsf(delta_x) >= fabsf(delta_y)) ? fabsf(delta_x) : fabsf(delta_y);
 
   float x_inc = delta_x / longest_side_length;
   float y_inc = delta_y / longest_side_length;
 
   float curr_x = x0;
   float curr_y = y0;
-  for(int i = 0; i <= longest_side_length; i++){
+  for(int i = 0; i <= roundf(longest_side_length); i++){
     draw_pixel_absolute(lroundf(curr_x), lroundf(curr_y), color);
     curr_x += x_inc;
     curr_y += y_inc;

@@ -35,7 +35,7 @@ matrix4_t matrix4_gen_orthographic(float aspect_ratio_y);
 
 vector4_t matrix4_mul_vector4_project(const matrix4_t *projection_matrix, const vector4_t v);
 
-matrix4_t matrix4_gen_view(const vector3_t camera_position, const vector3_t camera_direction, const vector3_t up);
+matrix4_t matrix4_gen_view_matrix(const vector3_t camera_position, const vector3_t camera_direction, const vector3_t up);
 
 matrix4_t matrix4_gen_world_matrix(const object_t *object);
 

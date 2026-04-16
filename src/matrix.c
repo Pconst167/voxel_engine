@@ -245,7 +245,7 @@ vector4_t matrix4_mul_vector4_project(const matrix4_t *projection_matrix, const 
   xr = x "right" axis
   yu = y "up" axis
 */
-matrix4_t matrix4_gen_view(const vector3_t camera_position, const vector3_t camera_direction, const vector3_t up){
+matrix4_t matrix4_gen_view_matrix(const vector3_t camera_position, const vector3_t camera_direction, const vector3_t up){
   vector3_t zf = camera_direction;
   /* up cross zf */
   vector3_t xr = {

@@ -22,6 +22,9 @@ typedef struct{
   object_type_t object_type;
   bool fixed; /* object is static and does not change */
   bool backface_culling;
+  /* bounding box/sphere - for static objects with baked in transforms (bbox not present for now) */
+  vector3_t bounding_center;
+  float bsphere_radius;
   /* color and light */
   color_t solid_color;
   color_t emissive_color; /* object's own emission color */
