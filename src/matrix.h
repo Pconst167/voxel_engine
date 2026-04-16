@@ -39,6 +39,6 @@ matrix4_t matrix4_gen_view(const vector3_t camera_position, const vector3_t came
 
 matrix4_t matrix4_gen_world_matrix(const object_t *object);
 
-matrix4_t matrix4_gen_world_view(const object_t *object, const matrix4_t *view_matrix);
+matrix4_t matrix4_gen_world_view_matrix(const object_t *object, const matrix4_t *view_matrix);
 
 #endif

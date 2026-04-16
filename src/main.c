@@ -152,9 +152,7 @@ void setup(void) {
   /* normalize all light direction vectors to unity */
   initialize_lights();
 
-  load_server_room();
-
-  return;
+  //load_server_room();
 
   load_skybox();
 
@@ -683,7 +681,7 @@ void update_and_render_color_buffer(void) {
     object_t object = objects[object_i];
 
     /* generate the final combined world/view matrix */
-    matrix4_t world_view_matrix = matrix4_gen_world_view(&object, &view_matrix);
+    matrix4_t world_view_matrix = matrix4_gen_world_view_matrix(&object, &view_matrix);
 
     /* frustrum culling for entire objects at once */
     vector4_t bsphere_center_world_view = matrix4_mul_vector3(&world_view_matrix, (vector3_t){object.mesh->bounding_center.x, object.mesh->bounding_center.y, object.mesh->bounding_center.z}); /* affine transform so can use this faster multiply */
@@ -723,7 +721,7 @@ void update_and_render_color_buffer(void) {
     object->rotation.z    += object->angular_velocity.z * delta_time;
 
     /* generate the final combined world/view matrix */
-    matrix4_t world_view_matrix = matrix4_gen_world_view(object, &view_matrix);
+    matrix4_t world_view_matrix = matrix4_gen_world_view_matrix(object, &view_matrix);
 
     uint32_t num_mesh_faces = object->mesh->num_faces;
     for(uint32_t i = 0; i < num_mesh_faces; i++){
@@ -1025,7 +1023,7 @@ void load_world1(void){
 
   mesh = load_mesh("./assets/obj/mountain.obj");
   texture = load_texture("./assets/textures/ground/grass3.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                 (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 0.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x01, 
@@ -1036,7 +1034,7 @@ void load_world1(void){
 
   mesh = load_mesh("./assets/obj/spires.obj");
   texture = load_texture("./assets/textures/ground/mountain.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                (color_t){.uint32 = 0xFFFF9090}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                0.0f, false, true, true,
                BLEND_MODE_OPAQUE, 0x01, 
@@ -1047,7 +1045,7 @@ void load_world1(void){
 
   mesh = load_mesh("./assets/obj/river.obj");
   texture = load_texture("./assets/textures/ground/mountain.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                 (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 0.0f, false, true, true,
                 BLEND_MODE_OPAQUE, 0x01, 
@@ -1058,7 +1056,7 @@ void load_world1(void){
 
   mesh = load_mesh("./assets/obj/water2.obj");
   texture = load_texture("./assets/textures/water/water.png");
-  water1 = create_object(mesh, OBJECT_TYPE_NORMAL, false, 
+  water1 = create_object(mesh, OBJECT_TYPE_NORMAL, true, false, 
                 (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFF80}, 1.0f, 
                 0.5f, false, false, false,
                 BLEND_MODE_OPAQUE, 0x01, 
@@ -1069,7 +1067,7 @@ void load_world1(void){
   
   mesh = load_mesh("./assets/obj/sphere.obj");
   texture = load_texture("./assets/textures/misc/moon.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, false, true, 
                 (color_t){.uint32 = 0xFFFFA0A0}, (color_t){.uint32 = 0xFFFFFFFF}, 0.5f,
                 1.0f, false, true, false,
                 BLEND_MODE_ALPHA_BLEND, 0x01, 
@@ -1080,7 +1078,7 @@ void load_world1(void){
     
   mesh = load_mesh("./assets/obj/tree_trunk.obj");
   texture = load_texture("./assets/textures/plants/bark3.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                (color_t){.uint32 = 0xFF606090}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                1.0f, false, true, false,
                BLEND_MODE_OPAQUE, 0x01, 
@@ -1089,7 +1087,7 @@ void load_world1(void){
                 texture
   );
 
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                 (color_t){.uint32 = 0xFF606070}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x01, 
@@ -1098,7 +1096,7 @@ void load_world1(void){
                 texture
   );
 
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                 (color_t){.uint32 = 0xFF606040}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x01, 
@@ -1109,7 +1107,7 @@ void load_world1(void){
 
   mesh = load_mesh("./assets/obj/tree_leaves.obj");
   texture = load_texture("./assets/textures/plants/leaves2.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, false, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, false, 
                 (color_t){.uint32 = 0xFF90F030}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, true, true, false,
                 BLEND_MODE_ALPHA_TEST, 0x01, 
@@ -1118,7 +1116,7 @@ void load_world1(void){
                 texture
   );
 
-  create_object(mesh, OBJECT_TYPE_NORMAL, false, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, false, 
                 (color_t){.uint32 = 0xFFFFA030}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, true, true, false,
                 BLEND_MODE_ALPHA_TEST, 0x01, 
@@ -1127,7 +1125,7 @@ void load_world1(void){
                 texture
   );
 
-  create_object(mesh, OBJECT_TYPE_NORMAL, false, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, false, 
                 (color_t){.uint32 = 0xFF5FA020}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, true, true, false,
                 BLEND_MODE_ALPHA_TEST, 0x01, 
@@ -1138,7 +1136,7 @@ void load_world1(void){
   
   mesh = load_mesh("./assets/obj/sakura_trunk.obj");
   texture = load_texture("./assets/textures/plants/bark2.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                 (color_t){.uint32 = 0xFF808090}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
@@ -1149,18 +1147,18 @@ void load_world1(void){
 
   mesh = load_mesh("./assets/obj/sakura_leaves.obj");
   texture = load_texture("./assets/textures/plants/sakura_leaves.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, false, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, false, 
                (color_t){.uint32 = 0xFFFF60FF}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                1.0f, true, true, false,
                BLEND_MODE_ALPHA_TEST, 0x01, 
-               (vector3_t){1.2, 1.2, 1.2},          (vector3_t){0, 0, 0},    (vector3_t){150,  45, -60}, 
+               (vector3_t){1.2, 1.2, 1.2}, (vector3_t){0, 0, 0},    (vector3_t){150,  45, -60}, 
                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
 
   mesh = load_mesh("./assets/obj/cabin.obj");
   texture = load_texture("./assets/textures/buildings/cabin.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, false, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, false, 
                 (color_t){.uint32 = 0xFF8080A0}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
@@ -1171,7 +1169,7 @@ void load_world1(void){
 
   mesh = load_mesh("./assets/obj/ufo.obj");
   texture = load_texture("./assets/textures/misc/ufo.png");
-  ufo = create_object(mesh, OBJECT_TYPE_NORMAL, false, 
+  ufo = create_object(mesh, OBJECT_TYPE_NORMAL, false, false, 
                       (color_t){.uint32 = 0xFFFFFFFF}, (color_t){.uint32 = 0xFFFFFFFF}, 0.5f, 
                       1.0f, false, true, true,
                       BLEND_MODE_OPAQUE, 0x00, 
@@ -1182,7 +1180,7 @@ void load_world1(void){
 
   mesh = load_mesh("./assets/obj/baloon.obj");
   texture = load_texture("./assets/textures/misc/baloon.png");
-  baloon = create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  baloon = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                          (color_t){.uint32 = 0xFFFF80FF}, (color_t){.uint32 = 0xFFFF0000}, 0.5f, 
                          1.0f, false, true, true,
                          BLEND_MODE_OPAQUE, 0x00, 
@@ -1194,7 +1192,7 @@ void load_world1(void){
   // 18
   mesh = load_mesh("./assets/obj/rocks/rock1.obj");
   texture = load_texture("./assets/textures/stone/rock1.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, false, true, 
                           (color_t){.uint32 = 0xFF80FFFF}, (color_t){.uint32 = 0xFF00FFFF}, 0.5f, 
                           1.0f, false, true, true,
                           BLEND_MODE_OPAQUE, 0x00, 
@@ -1205,7 +1203,7 @@ void load_world1(void){
 
 
   // 20
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, false, true, 
                           (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF00FFFF}, 0.8f, 
                           1.0f, false, true, false,
                           BLEND_MODE_OPAQUE, 0x00, 
@@ -1215,7 +1213,7 @@ void load_world1(void){
   );
 
   // 21
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, false, true, 
                           (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF0080FF}, 0.9f, 
                           1.0f, false, true, true,
                           BLEND_MODE_OPAQUE, 0x00, 
@@ -1225,7 +1223,7 @@ void load_world1(void){
   );
 
   // 22
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, false, true, 
                           (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF00FF80}, 0.4f, 
                           1.0f, false, true, false,
                           BLEND_MODE_OPAQUE, 0x00, 
@@ -1235,17 +1233,17 @@ void load_world1(void){
   );
 
   // 23
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, false, true, 
                           (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFF80}, 0.9f, 
                           1.0f, false, true, false,
                           BLEND_MODE_OPAQUE, 0x00, 
                           (vector3_t){45, 45, 45}, (vector3_t){0, 0, 0},    (vector3_t){-40, 360, 30}, 
                           (vector3_t){0, 0, 0}, (vector3_t){0.8, 0.5, 0},
-                texture
+                          texture
   );
 
   texture = load_texture("./assets/textures/stone/rock1.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, false, true, true,
                 BLEND_MODE_OPAQUE, 0x00, 
@@ -1256,7 +1254,7 @@ void load_world1(void){
 
   mesh = load_mesh("./assets/obj/rocks/rock2.obj");
   texture = load_texture("./assets/textures/stone/rock3.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, false, true, true,
                 BLEND_MODE_OPAQUE, 0x00, 
@@ -1267,7 +1265,7 @@ void load_world1(void){
 
   mesh = load_mesh("./assets/obj/rocks/rock2.obj");
   texture = load_texture("./assets/textures/stone/rock2.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, false, true, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF40FF40}, 0.4f, 
                 0.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
@@ -1275,7 +1273,7 @@ void load_world1(void){
                 (vector3_t){0, 0, 0}, (vector3_t){0.5, 0.5, 0},
                 texture
   );
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, false, true, true,
                 BLEND_MODE_OPAQUE, 0x00, 
@@ -1283,7 +1281,7 @@ void load_world1(void){
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, false, true, 
                           (color_t){.uint32 = 0xFFFF8080}, (color_t){.uint32 = 0xFF00FF40}, 0.5f, 
                           1.0f, false, true, true,
                           BLEND_MODE_OPAQUE, 0x00, 
@@ -1291,7 +1289,7 @@ void load_world1(void){
                           (vector3_t){0, 0, 0}, (vector3_t){0.4, 0.3, 0},
                 texture
   );
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, false, true, true,
                 BLEND_MODE_OPAQUE, 0x00, 
@@ -1302,7 +1300,7 @@ void load_world1(void){
 
   mesh = load_mesh("./assets/obj/castle.obj");
   texture = load_texture("./assets/textures/walls/castle.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, false, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, false, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f,
                 1.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
@@ -1318,7 +1316,7 @@ void load_voxel_world(){
 
   mesh = load_mesh("./assets/obj/voxels.obj");
   texture = load_texture("./assets/textures/ground/mountain.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                 (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 0.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x01, 
@@ -1334,7 +1332,7 @@ void load_skybox(){
 
   mesh = load_mesh("./assets/obj/skybox_cube.obj");
   texture = load_texture("./assets/textures/sky/sky.png");
-  skybox = create_object(mesh, OBJECT_TYPE_SKYBOX, false, 
+  skybox = create_object(mesh, OBJECT_TYPE_SKYBOX, false, false, 
                          (color_t){.uint32 = 0xFF000000}, (color_t){.uint32 = 0xFF20FFFF}, 1.0f,
                          1.0f, false, false, false, 
                          BLEND_MODE_OPAQUE, 0x01, 
@@ -1350,7 +1348,7 @@ void load_server_room(){
 
   mesh = load_mesh("./assets/obj/server_room/server.obj");
   texture = load_texture("./assets/textures/server_room/server.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF40FF40}, 0.0f, 
                 0.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
@@ -1361,7 +1359,7 @@ void load_server_room(){
 
   mesh = load_mesh("./assets/obj/server_room/server2.obj");
   texture = load_texture("./assets/textures/server_room/server2.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF40FF40}, 0.0f, 
                 0.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
@@ -1372,7 +1370,7 @@ void load_server_room(){
 
   mesh = load_mesh("./assets/obj/server_room/floor.obj");
   texture = load_texture("./assets/textures/server_room/floor2.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF40FF40}, 0.0f, 
                 0.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 

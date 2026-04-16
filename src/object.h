@@ -18,8 +18,11 @@ typedef enum{
 /* for now one object maps to one mesh. */
 typedef struct{
   mesh_t *mesh;
+  vector3_t *transformed_vertices; /* if object is fixed, then we hold a copy of the original vertices here, only with baked transformations */
   object_type_t object_type;
+  bool fixed; /* object is static and does not change */
   bool backface_culling;
+  /* color and light */
   color_t solid_color;
   color_t emissive_color; /* object's own emission color */
   float emissive_intensity; /* if object is self-luminous, how emissive? */
@@ -56,6 +59,7 @@ extern uint32_t num_objects;
 object_t *create_object(
   mesh_t *mesh,
   object_type_t object_type,
+  bool fixed,
   bool backface_culling,
 
   color_t solid_color,

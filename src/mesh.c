@@ -166,7 +166,7 @@ mesh_t *load_mesh(
   mesh->bounding_center.x = bbox_center.x;
   mesh->bounding_center.y = bbox_center.y;
   mesh->bounding_center.z = bbox_center.z;
-  mesh->bsphere_radius  = sqrtf(radius_sq);
+  mesh->bsphere_radius    = sqrtf(radius_sq);
 
   /* return pointer to mesh */
   return mesh;

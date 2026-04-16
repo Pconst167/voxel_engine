@@ -1,4 +1,6 @@
 #include "object.h"
+#include "array.h"
+#include "matrix.h"
 
 #define NUM_CHUNK_DIVISIONS 10 /* 10 along x, and 10 along z */
 
@@ -21,6 +23,7 @@ uint32_t num_objects;
 object_t *create_object(
   mesh_t *mesh,
   object_type_t object_type,
+  bool fixed,
   bool backface_culling,
 
   color_t solid_color,
@@ -42,32 +45,50 @@ object_t *create_object(
 
   texture_t *texture
 ){
-  objects[num_objects].mesh               = mesh;
-  objects[num_objects].object_type        = object_type;
-  objects[num_objects].backface_culling   = backface_culling;
-                                          
-  objects[num_objects].solid_color        = solid_color;
-  objects[num_objects].emissive_color     = emissive_color;
-  objects[num_objects].emissive_intensity = emissive_intensity;
-  objects[num_objects].opacity            = opacity;
-  objects[num_objects].two_sided_lighting = two_sided_lighting;
-  objects[num_objects].reflective         = reflective;
-  objects[num_objects].specular           = specular;
+  object_t *object = &objects[num_objects];
 
-  objects[num_objects].blend_mode         = blend_mode;
-  objects[num_objects].alpha_cutoff       = alpha_cutoff;
-                                          
-  objects[num_objects].scale              = scale;
-  objects[num_objects].rotation           = rotation;
-  objects[num_objects].translation        = translation;
-  objects[num_objects].velocity           = velocity;
-  objects[num_objects].angular_velocity   = angular_velocity;
+  object->mesh               = mesh;
+  object->object_type        = object_type;
+  object->fixed              = fixed;
+  object->backface_culling   = backface_culling;
+  
+  object->solid_color        = solid_color;
+  object->emissive_color     = emissive_color;
+  object->emissive_intensity = emissive_intensity;
+  object->opacity            = opacity;
+  object->two_sided_lighting = two_sided_lighting;
+  object->reflective         = reflective;
+  object->specular           = specular;
+  
+  object->blend_mode         = blend_mode;
+  object->alpha_cutoff       = alpha_cutoff;
+  
+  object->scale              = scale;
+  object->rotation           = rotation;
+  object->translation        = translation;
+  object->velocity           = velocity;
+  object->angular_velocity   = angular_velocity;
+  
+  object->texture            = texture;
 
-  objects[num_objects].texture            = texture;
+  /* if object is fixed/static, we bake in all the transformations beforehand! */
+  if(fixed){
+    matrix4_t world_matrix = matrix4_gen_world_matrix(object);
+
+    for(uint32_t i = 0; i < mesh->num_vertices; i++){
+      vector4_t transformed_vertex = matrix4_mul_vector3(&world_matrix, (vector3_t){mesh->vertices[i].x, mesh->vertices[i].y, mesh->vertices[i].z}); /* affine transform so can use this faster multiply */
+      vector3_t vec3_transformed_vertex = {
+        .x = transformed_vertex.x,
+        .y = transformed_vertex.y,
+        .z = transformed_vertex.z
+      };
+      array_push(object->transformed_vertices, vec3_transformed_vertex);
+    }
+  }  
 
   num_objects++;
 
-  return &objects[num_objects - 1];
+  return object;
 }
 
 
