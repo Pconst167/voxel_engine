@@ -11,8 +11,6 @@ int window_width;
 int window_height;
 int total_buffer_pixels;
 
-uint8_t color_buffer_reset = 0x00; /* repeat byte for color buffer reset */
-
 int fps;
 
 bool initialize_window(void){

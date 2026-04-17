@@ -25,10 +25,12 @@
       textures should be bound to objects not meshes
 
     TODO:
-      IMPLEMENT OCCLUSION CULLING: for each object, project its bounding box AABB 8 vertices to world_view space and from the 8 vertices, form rectangle by taking min/max x/y
+      IMPLEMENT OCCLUSION CULLING: for each object, project its bounding box AABB 8 vertices to world_view->space->screen and from the 8 vertices form rectangle with min/max of x/y
       then form a grid inside rectangle. for each grid point, we replace its own depth with the nearest object depth, and test that vs zbuffer.
       only if all points are farther than zbuffer values, skip/cull object completely.
       when forming rectangle, clamp it against screen edges if it goes over.
+      NOTE: after transforming to world_view, then find the nearest depth of BBOX. AFTER that we project to screen to form rectangle.
+      but to find nearest depth, do not project yet.
 
       specular needs to have its own intensity variable. it needs to be added to the color instead of multiplied by the pixel value. as it is it takes on the texel color and thats wrong.
       also, for two sided lighting, there is no specular, might want to add it?
@@ -76,7 +78,7 @@
 #define DAY_LENGTH (1.01f * 60.0f * 60.0f / 0.016f) /* hours */
 
 #define ZNEAR 0.1f
-#define ZFAR  5000.0f
+#define ZFAR  3000.0f
 
 /* parameters for controlling the absolute ambient light */
 #define MIN_AMBIENT_LIGHT_INTENSITY 0.1f
@@ -97,6 +99,8 @@ float move_speed = 10.0f;
 float turn_speed = 1.5f;
 bool quit = false;
 bool is_paused = false;
+
+uint8_t color_buffer_reset = 0x80; /* repeat byte for color buffer reset */
 
 /* perspective and camera */
 matrix4_t projection_matrix;
@@ -120,7 +124,7 @@ vector3_t up = {.x = 0, .y = 1, .z = 0}; /* up direction vector for view matrix 
 /* sun/sky data */
 object_t *skybox;
 vector3_t sun_direction; /* world-space sun direction vector */
-float sun_eta = (M_PI/4.0f); /* sun's eta angle, start sun on horizon */
+float sun_eta = (M_PI_2); /* sun's eta angle, start sun on horizon */
 
 /* objects */
 object_t *baloon;
@@ -160,10 +164,6 @@ void setup(void) {
   load_skybox();
 
   load_world1();
-
-
-
-
 }
 
 void process_input(void){
@@ -253,15 +253,23 @@ void process_input(void){
   /* turning left-right */
   if(keys[SDL_SCANCODE_LEFT] || keys[SDL_SCANCODE_H])
     camera.theta += _turn_speed;
-  if(keys[SDL_SCANCODE_RIGHT] || keys[SDL_SCANCODE_L])
+  else if(keys[SDL_SCANCODE_RIGHT] || keys[SDL_SCANCODE_L])
     camera.theta -= _turn_speed;
 
   /* turning up-down */
-  if(keys[SDL_SCANCODE_UP]|| keys[SDL_SCANCODE_K]){
+  if(keys[SDL_SCANCODE_UP]){
+    camera.eta -= _turn_speed;
+    if(camera.eta < -ETA_MAX) camera.eta = -ETA_MAX;
+  }
+  else if(keys[SDL_SCANCODE_DOWN]){
     camera.eta += _turn_speed;
     if(camera.eta > ETA_MAX) camera.eta = ETA_MAX;
   }
-  if(keys[SDL_SCANCODE_DOWN] || keys[SDL_SCANCODE_J]){
+  if(keys[SDL_SCANCODE_K]){
+    camera.eta += _turn_speed;
+    if(camera.eta > ETA_MAX) camera.eta = ETA_MAX;
+  }
+  else if(keys[SDL_SCANCODE_J]){
     camera.eta -= _turn_speed;
     if(camera.eta < -ETA_MAX) camera.eta = -ETA_MAX;
   }
@@ -269,7 +277,7 @@ void process_input(void){
   /* up-down */
   if(keys[SDL_SCANCODE_A])
     camera.position.y -= move_speed_delta_time;
-  if(keys[SDL_SCANCODE_D])
+  else if(keys[SDL_SCANCODE_D])
     camera.position.y += move_speed_delta_time;
 
   /* strafe left-right */
@@ -278,7 +286,7 @@ void process_input(void){
     camera.position.y += camera_direction_orthogonal_left_right.y * 1.5 * move_speed_delta_time;
     camera.position.z += camera_direction_orthogonal_left_right.z * 1.5 * move_speed_delta_time;
   }
-  if(keys[SDL_SCANCODE_E]){
+  else if(keys[SDL_SCANCODE_E]){
     camera.position.x -= camera_direction_orthogonal_left_right.x * 1.5 * move_speed_delta_time;
     camera.position.y -= camera_direction_orthogonal_left_right.y * 1.5 * move_speed_delta_time;
     camera.position.z -= camera_direction_orthogonal_left_right.z * 1.5 * move_speed_delta_time;
@@ -290,7 +298,7 @@ void process_input(void){
     camera.position.y += camera.direction.y * move_speed_delta_time;
     camera.position.z += camera.direction.z * move_speed_delta_time;
   }
-  if(keys[SDL_SCANCODE_S]){
+  else if(keys[SDL_SCANCODE_S]){
     camera.position.x -= camera.direction.x * move_speed_delta_time;
     camera.position.y -= camera.direction.y * move_speed_delta_time;
     camera.position.z -= camera.direction.z * move_speed_delta_time;
@@ -328,6 +336,9 @@ void update_light(void){
     /* as sun sets or rises, ambient light should get bluer, and oranger towards noon */
     light_sources[0].color = skybox->emissive_color; 
     light_sources[0].intensity = MIN_AMBIENT_LIGHT_INTENSITY + AMBIENT_LIGHT_MAX_FACTOR * sin_eta;
+
+    /* hack to hide ramdom background leaking pixels at triangle edges */
+    color_buffer_reset = (uint8_t)(skybox->emissive_intensity * 100.0f);
   }
 }
 
@@ -648,7 +659,7 @@ inline void object_quicksort(object_sort_key_t *array, int count){
 
 void update_and_render_color_buffer(void) {
   /* reset color_buffer */
-  memset(color_buffer, 0x00, total_buffer_pixels * sizeof(uint32_t));
+  memset(color_buffer, color_buffer_reset, total_buffer_pixels * sizeof(uint32_t));
   /* reset zbuffer - it needs to be reset here as well in case skybox object does not exist */
   memset(zbuffer, 0x00, total_buffer_pixels * sizeof(uint32_t)); /* zbuffer is made of floats and 0x00000000 = 0.0 */
 
@@ -961,9 +972,9 @@ void update_and_render_color_buffer(void) {
   } /* for(uint32_t object_i = 0; object_i < num_objects_sorted; object_i++) */
   
   if((time_count & 0x0F) == 0)
-    snprintf(text, 128, "%u, %d, %d:%d, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2frd %.2frd)", 
+    snprintf(text, 128, "%u, %d, %dr:%dt, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
       total_triangles_rendered, fps, 
-      num_objects, num_objects_sorted,
+      num_objects_sorted, num_objects,
       camera.position.x, camera.position.y, camera.position.z,
       camera.direction.x, camera.direction.y, camera.direction.z,
       camera.theta, camera.eta
