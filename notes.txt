@@ -7,6 +7,8 @@ add graphs and statistics etc
 make it also an educational game where one learns to program and learns maths!
 add sol-1 emulator, c compiler maybe, assembler
 player can write and run programs
+have a computer mainframe with a panel.
+maybe build circuits
 
 
 game where you can grow plants, buy seeds, grow, sell etc
