@@ -1063,12 +1063,21 @@ void load_world1(void){
   texture_t *texture;
 
   mesh = load_mesh("./assets/obj/mountain.obj");
-  texture = load_texture("./assets/textures/ground/grass3.png");
+  texture = load_texture("./assets/textures/ground/grass9.png");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                 (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 0.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x01, 
                 (vector3_t){0.5, 0.5, 0.5}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                texture
+  );
+  mesh = load_mesh("./assets/obj/river.obj");
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
+                (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
+                0.0f, false, true, true,
+                BLEND_MODE_OPAQUE, 0x01, 
+                (vector3_t){0.5, 0.5, 0.5}, (vector3_t){0, 0, 0}, (vector3_t){-490, 0, 0}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
@@ -1079,21 +1088,11 @@ void load_world1(void){
                (color_t){.uint32 = 0xFFFF9090}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                0.0f, false, true, true,
                BLEND_MODE_OPAQUE, 0x01, 
-               (vector3_t){0.5, 0.5, 0.5}, (vector3_t){0, 0, 0}, (vector3_t){490, 0, 0}, 
+               (vector3_t){0.5, 0.5, 0.5}, (vector3_t){0, 0, 0}, (vector3_t){490, 0, 13.5}, 
                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
 
-  mesh = load_mesh("./assets/obj/river.obj");
-  texture = load_texture("./assets/textures/ground/mountain.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
-                (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
-                0.0f, false, true, true,
-                BLEND_MODE_OPAQUE, 0x01, 
-                (vector3_t){0.5, 0.5, 0.5}, (vector3_t){0, 0, 0}, (vector3_t){-490, 0, 0}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
 
   mesh = load_mesh("./assets/obj/water2.obj");
   texture = load_texture("./assets/textures/water/water.png");
@@ -1134,7 +1133,7 @@ void load_world1(void){
                (color_t){.uint32 = 0xFF606090}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                1.0f, false, true, false,
                BLEND_MODE_OPAQUE, 0x01, 
-               (vector3_t){4, 6, 4}, (vector3_t){0, 0, 0}, (vector3_t){260,  80, 180}, 
+               (vector3_t){8, 8, 8}, (vector3_t){0, 0, 0}, (vector3_t){260,  80, 180}, 
                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
@@ -1143,7 +1142,7 @@ void load_world1(void){
                 (color_t){.uint32 = 0xFF606070}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x01, 
-                (vector3_t){4, 6, 4}, (vector3_t){0, 0, 0}, (vector3_t){-60,  150, 200}, 
+                (vector3_t){8, 8, 8}, (vector3_t){0, 0, 0}, (vector3_t){-60,  150, 200}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
@@ -1152,7 +1151,7 @@ void load_world1(void){
                 (color_t){.uint32 = 0xFF606040}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x01, 
-                (vector3_t){4, 6, 4}, (vector3_t){0, 0, 0}, (vector3_t){-160,  0, -200}, 
+                (vector3_t){8, 8, 8}, (vector3_t){0, 0, 0}, (vector3_t){-160,  0, -200}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
@@ -1163,7 +1162,7 @@ void load_world1(void){
                 (color_t){.uint32 = 0xFF90F030}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, true, true, false,
                 BLEND_MODE_ALPHA_TEST, 0x01, 
-                (vector3_t){4, 6, 4}, (vector3_t){0, 0, 0}, (vector3_t){260,  80, 180}, 
+                (vector3_t){8, 8, 8}, (vector3_t){0, 0, 0}, (vector3_t){260,  80, 180}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
@@ -1172,7 +1171,7 @@ void load_world1(void){
                 (color_t){.uint32 = 0xFFFFA030}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, true, true, false,
                 BLEND_MODE_ALPHA_TEST, 0x01, 
-                (vector3_t){4, 6, 4}, (vector3_t){0, 0, 0}, (vector3_t){-60,  150, 200}, 
+                (vector3_t){8, 8, 8}, (vector3_t){0, 0, 0}, (vector3_t){-60,  150, 200}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
@@ -1181,7 +1180,7 @@ void load_world1(void){
                 (color_t){.uint32 = 0xFF5FA020}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, true, true, false,
                 BLEND_MODE_ALPHA_TEST, 0x01, 
-                (vector3_t){4, 6, 4}, (vector3_t){0, 0, 0}, (vector3_t){-160,  0, -200}, 
+                (vector3_t){8, 8, 8}, (vector3_t){0, 0, 0}, (vector3_t){-160,  0, -200}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
@@ -1299,7 +1298,7 @@ void load_world1(void){
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, false, true, true,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){25, 25, 25}, (vector3_t){0, 0, 0},    (vector3_t){-50, 2, -50}, 
+                (vector3_t){25, 25, 25}, (vector3_t){0, 0, 0},    (vector3_t){-50, 10, -50}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
@@ -1310,7 +1309,7 @@ void load_world1(void){
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 1.0f, false, true, true,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){15, 15, 15}, (vector3_t){M_PI_2, 0, 0},    (vector3_t){-80, 18, -90}, 
+                (vector3_t){15, 15, 15}, (vector3_t){M_PI_2, 0, 0},    (vector3_t){-80, 24, -90}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
