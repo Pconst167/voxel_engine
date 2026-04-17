@@ -1,8 +1,6 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
-#include <stdio.h>
-#include <stdlib.h>
 #include "mesh.h"
 #include "vector.h"
 #include "color.h"

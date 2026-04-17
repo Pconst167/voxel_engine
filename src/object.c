@@ -1,3 +1,5 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include "object.h"
 #include "array.h"
 #include "matrix.h"

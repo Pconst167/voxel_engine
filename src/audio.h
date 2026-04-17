@@ -3,8 +3,6 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_mixer.h>
 
 bool audio_init(void);
 void audio_shutdown(void);

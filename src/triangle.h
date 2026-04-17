@@ -31,7 +31,6 @@ typedef struct{
   vector4_t points[3];
   uv_t uv[3];
   float light_intensities[MAX_NUM_LIGHT_SOURCES];
-  float avg_w;
 } triangle_t;
 
 typedef struct{

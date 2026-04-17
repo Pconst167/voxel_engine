@@ -1,9 +1,6 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include "upng.h"
 #include "color.h"
 
 #define MAX_NUM_TEXTURES 100

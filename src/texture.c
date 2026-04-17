@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "upng.h"
 #include "texture.h"
 
 texture_t texture_list[MAX_NUM_TEXTURES];

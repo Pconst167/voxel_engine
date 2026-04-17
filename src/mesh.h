@@ -1,14 +1,8 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <stdlib.h>
 #include "vector.h"
 #include "triangle.h"
-#include "array.h"
-#include "color.h"
 
 #define MAX_MESHES 5000
 

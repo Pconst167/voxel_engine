@@ -1,4 +1,3 @@
-#include <math.h>
 #include "vector.h"
 
 vector2_t vector2_neg(vector2_t v){

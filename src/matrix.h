@@ -3,7 +3,6 @@
 
 #include "vector.h"
 #include "object.h"
-#include "camera.h"
 
 #define MAT4_IDENTITY {{{1.0,0.0,0.0,0.0}, {0.0,1.0,0.0,0.0}, {0.0,0.0,1.0,0.0}, {0.0,0.0,0.0,1.0}}}
 

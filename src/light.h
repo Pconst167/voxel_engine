@@ -3,7 +3,6 @@
 
 #include "vector.h"
 #include "color.h"
-#include "misc.h"
 
 #define MAX_NUM_LIGHT_SOURCES 100
 

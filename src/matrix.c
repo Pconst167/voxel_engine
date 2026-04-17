@@ -1,5 +1,6 @@
 #include <math.h>
 #include "matrix.h"
+#include "camera.h"
 
 vector3_t matrix3_mul_vector3(const matrix3_t *m, const vector3_t v){
   return (vector3_t){

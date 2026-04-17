@@ -1116,6 +1116,17 @@ void load_world1(void){
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0.5, 0},
                 texture
   );
+
+  mesh = load_mesh("./assets/obj/fir.obj");
+  texture = load_texture("./assets/textures/plants/branch.png");
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, false,
+               (color_t){.uint32 = 0xFF606090}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
+               1.0f, false, true, false,
+               BLEND_MODE_ALPHA_TEST, 0x01, 
+               (vector3_t){5, 5, 5}, (vector3_t){0, 0, 0}, (vector3_t){10,  10, 0}, 
+               (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                texture
+  );
     
   mesh = load_mesh("./assets/obj/tree_trunk.obj");
   texture = load_texture("./assets/textures/plants/bark3.png");
@@ -1210,18 +1221,18 @@ void load_world1(void){
 
   mesh = load_mesh("./assets/obj/ufo.obj");
   texture = load_texture("./assets/textures/misc/ufo.png");
-  ufo = create_object(mesh, OBJECT_TYPE_NORMAL, false, false, 
+  ufo = create_object(mesh, OBJECT_TYPE_NORMAL, false, false,
                       (color_t){.uint32 = 0xFFFFFFFF}, (color_t){.uint32 = 0xFFFFFFFF}, 0.5f, 
                       1.0f, false, true, true,
                       BLEND_MODE_OPAQUE, 0x00, 
                       (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0},    (vector3_t){0,  300, 200}, 
                       (vector3_t){0, 0, 0}, (vector3_t){0, 0.8, 0},
-                texture
+                      texture
   );
 
   mesh = load_mesh("./assets/obj/baloon.obj");
   texture = load_texture("./assets/textures/misc/baloon.png");
-  baloon = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
+  baloon = create_object(mesh, OBJECT_TYPE_NORMAL, false, true, 
                          (color_t){.uint32 = 0xFFFF80FF}, (color_t){.uint32 = 0xFFFF0000}, 0.5f, 
                          1.0f, false, true, true,
                          BLEND_MODE_OPAQUE, 0x00, 
