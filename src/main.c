@@ -32,6 +32,8 @@
       NOTE: after transforming to world_view, then find the nearest depth of BBOX. AFTER that we project to screen to form rectangle.
       but to find nearest depth, do not project yet.
 
+      apply LOD? backface cull trees etc when avg_z > some distance
+
       specular needs to have its own intensity variable. it needs to be added to the color instead of multiplied by the pixel value. as it is it takes on the texel color and thats wrong.
       also, for two sided lighting, there is no specular, might want to add it?
 
@@ -95,12 +97,12 @@ char text3[256];
 
 /* game control */
 float delta_time;
-float move_speed = 10.0f;
+float move_speed = 30.0f;
 float turn_speed = 1.5f;
 bool quit = false;
 bool is_paused = false;
 
-uint8_t color_buffer_reset = 0x80; /* repeat byte for color buffer reset */
+uint8_t color_buffer_reset = 0x00; /* repeat byte for color buffer reset */
 
 /* perspective and camera */
 matrix4_t projection_matrix;
@@ -136,6 +138,7 @@ texture_t *tex_moon1;
 texture_t *tex_moon2;
 
 void setup(void) {
+  
   init_font("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 20);
 
   aspect_ratio_x = (float)window_width  / (float)window_height;
@@ -150,34 +153,15 @@ void setup(void) {
   memset(zbuffer, 0x00, total_buffer_pixels * sizeof(uint32_t)); /* zbuffer is made of floats and 0x00000000 = 0.0 */
 
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
-  
-  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,   .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.5f);
-  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,   .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
-  create_light_source(LIGHT_POINT,       (vector3_t){.x = 0.0f,   .y = 60.0f, .z = -90.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 2000.0f);
-  create_light_source(LIGHT_POINT,       (vector3_t){.x = -1540.0f,   .y = 190.0f, .z = -500.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFF40FFFF}, 30000.0f);
 
-  /* normalize all light direction vectors to unity */
-  initialize_lights();
-
-  load_skybox();
-
-  mesh_t *mesh = load_mesh("./assets/obj/cube.obj");
-  texture_t *texture = load_texture("./assets/textures/ground/grass.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
-                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF40FF40}, 0.0f, 
-                0.0f, false, true, false,
-                BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){2, 2, 2}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
-
-  //load_server_room();
+  load_server_room();
 
   //load_world1();
 
   calculate_world_bounds();
 
+  /* normalize all light direction vectors to unity */
+  initialize_lights();
 
 }
 
@@ -322,20 +306,20 @@ void process_input(void){
 
 void update_light(void){
   float sin_eta;
-  
-  sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
-  sin_eta  = sinf(sun_eta);
-
-  sun_direction.x = 0.0f;
-  sun_direction.y = sin_eta;
-  sun_direction.z = cosf(sun_eta);
-
-  if(sin_eta < 0.0f) sin_eta = 0.0f;
-
-  light_sources[1].direction = (vector3_t){sun_direction.x, -sun_direction.y, -sun_direction.z};
 
   /* skybox is a special case and needs to always track camera position */
   if(skybox != NULL){
+    sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
+    sin_eta  = sinf(sun_eta);
+
+    sun_direction.x = 0.0f;
+    sun_direction.y = sin_eta;
+    sun_direction.z = cosf(sun_eta);
+
+    if(sin_eta < 0.0f) sin_eta = 0.0f;
+
+    light_sources[1].direction = (vector3_t){sun_direction.x, -sun_direction.y, -sun_direction.z};
+
     skybox->translation.x  = camera.position.x; 
     skybox->translation.y  = camera.position.y;
     skybox->translation.z  = camera.position.z;
@@ -984,7 +968,7 @@ void update_and_render_color_buffer(void) {
                         projected_triangle.points[1].y, 
                         projected_triangle.points[2].x, 
                         projected_triangle.points[2].y, 
-                        (color_t){.uint32 = 0xffffffff}
+                        (color_t){.uint32 = 0xffffff00}
           );
         }
 
@@ -1089,13 +1073,18 @@ void load_world1(void){
   mesh_t *mesh;
   texture_t *texture;
 
+  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.05f);
+  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
+
+  load_skybox();
+
   mesh = load_mesh("./assets/obj/mountain.obj");
-  texture = load_texture("./assets/textures/ground/grass9.png");
+  texture = load_texture("./assets/textures/ground/grass3.png");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                 (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 0.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x01, 
-                (vector3_t){0.5, 0.5, 0.5}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+                (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
@@ -1104,7 +1093,7 @@ void load_world1(void){
                 (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 0.0f, false, true, true,
                 BLEND_MODE_OPAQUE, 0x01, 
-                (vector3_t){0.5, 0.5, 0.5}, (vector3_t){0, 0, 0}, (vector3_t){-490, 0, 0}, 
+                (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){-1000, 0, 0}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
@@ -1115,7 +1104,7 @@ void load_world1(void){
                (color_t){.uint32 = 0xFFFF9090}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                0.0f, false, true, true,
                BLEND_MODE_OPAQUE, 0x01, 
-               (vector3_t){0.5, 0.5, 0.5}, (vector3_t){0, 0, 0}, (vector3_t){490, 0, 13.5}, 
+               (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){1000, 0, 13.5}, 
                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
@@ -1127,7 +1116,7 @@ void load_world1(void){
                 (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFF80}, 1.0f, 
                 0.5f, false, false, false,
                 BLEND_MODE_OPAQUE, 0x01, 
-                (vector3_t){0.5, 1, 0.5}, (vector3_t){0, 0, 0}, (vector3_t){-490, -50, 0}, 
+                (vector3_t){1, 2, 1}, (vector3_t){0, 0, 0}, (vector3_t){-1000, -50, 0}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
@@ -1153,61 +1142,35 @@ void load_world1(void){
                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
-    
-  mesh = load_mesh("./assets/obj/tree_trunk.obj");
-  texture = load_texture("./assets/textures/plants/bark3.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, false,
                (color_t){.uint32 = 0xFF606090}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                1.0f, false, true, false,
-               BLEND_MODE_OPAQUE, 0x01, 
-               (vector3_t){8, 8, 8}, (vector3_t){0, 0, 0}, (vector3_t){260,  80, 180}, 
+               BLEND_MODE_ALPHA_TEST, 0x01, 
+               (vector3_t){8, 8, 8}, (vector3_t){0, 0, 0}, (vector3_t){260,  60, 180}, 
                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
-
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
-                (color_t){.uint32 = 0xFF606070}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
-                1.0f, false, true, false,
-                BLEND_MODE_OPAQUE, 0x01, 
-                (vector3_t){8, 8, 8}, (vector3_t){0, 0, 0}, (vector3_t){-60,  150, 200}, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, false,
+               (color_t){.uint32 = 0xFF606090}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
+               1.0f, false, true, false,
+               BLEND_MODE_ALPHA_TEST, 0x01, 
+                (vector3_t){6, 6, 6}, (vector3_t){0, 0, 0}, (vector3_t){-60,  130, 200}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
-
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
-                (color_t){.uint32 = 0xFF606040}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
-                1.0f, false, true, false,
-                BLEND_MODE_OPAQUE, 0x01, 
-                (vector3_t){8, 8, 8}, (vector3_t){0, 0, 0}, (vector3_t){-160,  0, -200}, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, false,
+               (color_t){.uint32 = 0xFF606090}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
+               1.0f, false, true, false,
+               BLEND_MODE_ALPHA_TEST, 0x01, 
+                (vector3_t){7, 8, 7}, (vector3_t){0, 0, 0}, (vector3_t){-160,  -15, -200}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
-
-  mesh = load_mesh("./assets/obj/tree_leaves.obj");
-  texture = load_texture("./assets/textures/plants/leaves2.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, false, 
-                (color_t){.uint32 = 0xFF90F030}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
-                1.0f, true, true, false,
-                BLEND_MODE_ALPHA_TEST, 0x01, 
-                (vector3_t){8, 8, 8}, (vector3_t){0, 0, 0}, (vector3_t){260,  80, 180}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
-
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, false, 
-                (color_t){.uint32 = 0xFFFFA030}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
-                1.0f, true, true, false,
-                BLEND_MODE_ALPHA_TEST, 0x01, 
-                (vector3_t){8, 8, 8}, (vector3_t){0, 0, 0}, (vector3_t){-60,  150, 200}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
-
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, false, 
-                (color_t){.uint32 = 0xFF5FA020}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
-                1.0f, true, true, false,
-                BLEND_MODE_ALPHA_TEST, 0x01, 
-                (vector3_t){8, 8, 8}, (vector3_t){0, 0, 0}, (vector3_t){-160,  0, -200}, 
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, false,
+               (color_t){.uint32 = 0xFF606090}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
+               1.0f, false, true, false,
+               BLEND_MODE_ALPHA_TEST, 0x01, 
+                (vector3_t){6, 7, 6}, (vector3_t){0, 0, 0}, (vector3_t){-170,  -15, -50}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
@@ -1382,7 +1345,7 @@ void load_world1(void){
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f,
                 1.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){10, 10, 10}, (vector3_t){0, -M_PI_2, 0},    (vector3_t){1100, 0, 40}, 
+                (vector3_t){10, 10, 10}, (vector3_t){0, M_PI, 0},    (vector3_t){500, 0, 600}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
@@ -1424,13 +1387,19 @@ void load_server_room(){
   mesh_t *mesh;
   texture_t *texture;
 
+  create_light_source(LIGHT_POINT,       (vector3_t){.x = -200.0f,  .y = 50.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFF00FF00}, 3000.0f);
+  create_light_source(LIGHT_POINT,       (vector3_t){.x = -200.0f,  .y = 50.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFF0000}, 3000.0f);
+  create_light_source(LIGHT_POINT,       (vector3_t){.x = 200.0f,   .y = 50.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFF0000}, 3000.0f);
+  create_light_source(LIGHT_POINT,       (vector3_t){.x = 200.0f,   .y = 50.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFF00FF00}, 3000.0f);
+  create_light_source(LIGHT_POINT,       (vector3_t){.x = 0.0f,     .y = 50.0f, .z = 0.0f},    (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFF0000}, 3000.0f);
+
   mesh = load_mesh("./assets/obj/server_room/server.obj");
   texture = load_texture("./assets/textures/server_room/server.png");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF40FF40}, 0.0f, 
                 0.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){1, 1, 1}, (vector3_t){0, M_PI_2, 0}, (vector3_t){0, 0, 0}, 
+                (vector3_t){2, 2, 2}, (vector3_t){0, M_PI, 0}, (vector3_t){0, 0, 160}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
@@ -1441,18 +1410,18 @@ void load_server_room(){
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF40FF40}, 0.0f, 
                 0.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){6, 6, 6}, (vector3_t){0, M_PI_2, 0}, (vector3_t){20, 0, 0}, 
+                (vector3_t){10, 10, 10}, (vector3_t){0, M_PI_2, 0}, (vector3_t){20, 0, 160}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
 
-  mesh = load_mesh("./assets/obj/server_room/floor.obj");
-  texture = load_texture("./assets/textures/server_room/floor2.png");
+  mesh = load_mesh("./assets/obj/server_room/room2.obj");
+  texture = load_texture("./assets/textures/server_room/room.png");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF40FF40}, 0.0f, 
                 0.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){20, 20, 20}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+                (vector3_t){15, 25, 15}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
