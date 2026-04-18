@@ -638,10 +638,6 @@ void draw_textured_triangle_opaque(
     w1_row += delta_w1_row;
     w2_row += delta_w2_row;
   }
-
-  if(projection_options.wireframe_overlay){
-    draw_triangle(v0->x, v0->y, v1->x, v1->y, v2->x, v2->y, (color_t){.uint32 = 0xFFFFFFFF});
-  }
 }
 
 __attribute__((optimize("Ofast")))
@@ -828,10 +824,6 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
     w0_row += delta_w0_row;
     w1_row += delta_w1_row;
     w2_row += delta_w2_row;
-  }
-
-  if(projection_options.wireframe_overlay){
-    draw_triangle(v0->x, v0->y, v1->x, v1->y, v2->x, v2->y, (color_t){.uint32 = 0xFFFFFFFF});
   }
 }
 
@@ -1024,10 +1016,6 @@ void draw_textured_triangle_alpha_test(
     w1_row += delta_w1_row;
     w2_row += delta_w2_row;
   }
-
-  if(projection_options.wireframe_overlay){
-    draw_triangle(v0->x, v0->y, v1->x, v1->y, v2->x, v2->y, (color_t){.uint32 = 0xFFFFFFFF});
-  }
 }
 
 __attribute__((optimize("Ofast")))
@@ -1217,10 +1205,6 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
     w1_row += delta_w1_row;
     w2_row += delta_w2_row;
   }
-
-  if(projection_options.wireframe_overlay){
-    draw_triangle(v0->x, v0->y, v1->x, v1->y, v2->x, v2->y, (color_t){.uint32 = 0xFFFFFFFF});
-  }
 }
 
 __attribute__((optimize("Ofast")))
@@ -1406,10 +1390,6 @@ void draw_textured_triangle_alpha_blend(
     w0_row += delta_w0_row;
     w1_row += delta_w1_row;
     w2_row += delta_w2_row;
-  }
-
-  if(projection_options.wireframe_overlay){
-    draw_triangle(v0->x, v0->y, v1->x, v1->y, v2->x, v2->y, (color_t){.uint32 = 0xFFFFFFFF});
   }
 }
 
@@ -1599,10 +1579,6 @@ void draw_textured_triangle(
     w1_row += delta_w1_row;
     w2_row += delta_w2_row;
   }
-
-  if(projection_options.wireframe_overlay){
-    draw_triangle(v0->x, v0->y, v1->x, v1->y, v2->x, v2->y, (color_t){.uint32 = 0xFFFFFFFF});
-  }
 }
 
 __attribute__((optimize("Ofast")))
@@ -1770,10 +1746,6 @@ void draw_textured_triangle_affine(
     w0_row += delta_w0_row;
     w1_row += delta_w1_row;
     w2_row += delta_w2_row;
-  }
-
-  if(projection_options.wireframe_overlay){
-    draw_triangle(v0->x, v0->y, v1->x, v1->y, v2->x, v2->y, (color_t){.uint32 = 0xFFFFFFFF});
   }
 }
 
@@ -2189,10 +2161,6 @@ void draw_textured_triangle_opaque(
     w0_row += delta_w0_row;
     w1_row += delta_w1_row;
     w2_row += delta_w2_row;
-  }
-
-  if(projection_options.wireframe_overlay){
-    draw_triangle(v0->x, v0->y, v1->x, v1->y, v2->x, v2->y, (color_t){.uint32 = 0xFFFFFFFF});
   }
 }
 */

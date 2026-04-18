@@ -22,6 +22,7 @@
 #include "object.h"
 #include "color.h"
 #include "object.h"
+#include "chunk.h"
 
 void render_text();
 void free_resources(void);

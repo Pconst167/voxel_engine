@@ -159,11 +159,26 @@ void setup(void) {
   /* normalize all light direction vectors to unity */
   initialize_lights();
 
-  //load_server_room();
-
   load_skybox();
 
-  load_world1();
+  mesh_t *mesh = load_mesh("./assets/obj/cube.obj");
+  texture_t *texture = load_texture("./assets/textures/ground/grass.png");
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
+                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF40FF40}, 0.0f, 
+                0.0f, false, true, false,
+                BLEND_MODE_OPAQUE, 0x00, 
+                (vector3_t){2, 2, 2}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                texture
+  );
+
+  //load_server_room();
+
+  //load_world1();
+
+  calculate_world_bounds();
+
+
 }
 
 void process_input(void){
@@ -699,7 +714,7 @@ void update_and_render_color_buffer(void) {
     vector4_t bsphere_center_world_view; /* affine transform so can use this faster multiply */
     float scale_max;
     float bsphere_radius_scaled;
-    if(object.fixed == false){
+    if(!object.fixed){
       /* generate the final combined world/view matrix */
       world_view_matrix = matrix4_gen_world_view_matrix(&object, &view_matrix);
 
@@ -719,7 +734,7 @@ void update_and_render_color_buffer(void) {
 
     /* if not culled, then add to list */
     objects_sorted[num_objects_sorted].object_index = object_i;
-    objects_sorted[num_objects_sorted].sort_z = bsphere_center_world_view.z + bsphere_radius_scaled;
+    objects_sorted[num_objects_sorted].sort_z       = bsphere_center_world_view.z + bsphere_radius_scaled;
     num_objects_sorted++;
   }
   /* sort objects front to back */
@@ -739,7 +754,7 @@ void update_and_render_color_buffer(void) {
     object_t *object = &objects[object_index];
     
     matrix4_t world_view_matrix;
-    if(object->fixed == false){
+    if(!object->fixed){
       object->translation.x += object->velocity.x * delta_time;
       object->translation.y += object->velocity.y * delta_time;
       object->translation.z += object->velocity.z * delta_time;
@@ -794,7 +809,6 @@ void update_and_render_color_buffer(void) {
         .y = v_ab.z * v_ac.x - v_ab.x * v_ac.z,
         .z = v_ab.x * v_ac.y - v_ab.y * v_ac.x
       };
-      vector3_normalize(&v_face_normal);
 
       /* Backface culling */
       if((object->backface_culling && !projection_options.backface_culling_override) || 
@@ -824,7 +838,7 @@ void update_and_render_color_buffer(void) {
         triangle_t *triangle_after_clipping = &triangles_after_clipping[t];
 
         /* PROJECTION MATRIX / PERSPECTIVE DIVIDE */
-        triangle_t projected_triangle = {0};
+        triangle_t projected_triangle = {0}; /* all fields initialized to zero - so that the light_intensities field is all 0 in case object not reflective */
         for(int j = 0; j < 3; j++){
           //vector4_t projected_vertex = matrix4_mul_vector4_project(&projection_matrix, triangle_after_clipping->points[j]);
           vector4_t projected_vertex = matrix4_mul_vector4(&projection_matrix, triangle_after_clipping->points[j]);
@@ -857,8 +871,11 @@ void update_and_render_color_buffer(void) {
           if camera is on same side as light, then we want the light to shine on the face regardeless of the face normal's direction.
           hence we test: sgn((camera - v_a) dot normal) == sgn((light - v_a) dot normal) and the final dot product intensity needs to be absolute value after that
           but if object is translucent to light, then we want to light both sides of a face regardless of the camera position, or the face's normal
+
+          light_intensities field is initialized to zero above in declaration - so that the light_intensities field is all 0 in case object not reflective
         */
         if(object->reflective){
+          vector3_normalize(&v_face_normal); /* normalize here for use below */
           for(uint32_t light_index = 0; light_index < num_light_sources; light_index++){
             if(light_sources[light_index].type == LIGHT_DIRECTIONAL){
               vector4_t light_direction_view = matrix4_mul_vector4(&view_matrix, (vector4_t){light_sources[light_index].direction.x, light_sources[light_index].direction.y, light_sources[light_index].direction.z, 0});
@@ -958,6 +975,16 @@ void update_and_render_color_buffer(void) {
             object->reflective,
             object->emissive_color,
             object->emissive_intensity
+          );
+        }
+        if(projection_options.wireframe_overlay){
+          draw_triangle(projected_triangle.points[0].x,
+                        projected_triangle.points[0].y, 
+                        projected_triangle.points[1].x, 
+                        projected_triangle.points[1].y, 
+                        projected_triangle.points[2].x, 
+                        projected_triangle.points[2].y, 
+                        (color_t){.uint32 = 0xffffffff}
           );
         }
 
@@ -1383,7 +1410,7 @@ void load_skybox(){
 
   mesh = load_mesh("./assets/obj/skybox_cube.obj");
   texture = load_texture("./assets/textures/sky/sky.png");
-  skybox = create_object(mesh, OBJECT_TYPE_SKYBOX, false, false, 
+  skybox = create_object(mesh, OBJECT_TYPE_SKYBOX, false, false,
                          (color_t){.uint32 = 0xFF000000}, (color_t){.uint32 = 0xFF20FFFF}, 1.0f,
                          1.0f, false, false, false, 
                          BLEND_MODE_OPAQUE, 0x01, 
