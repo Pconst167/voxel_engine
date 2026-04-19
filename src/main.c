@@ -97,7 +97,7 @@ char text3[256];
 
 /* game control */
 float delta_time;
-float move_speed = 70.0f;
+float move_speed = 170.0f;
 float turn_speed = 3.0f;
 bool quit = false;
 bool is_paused = false;
@@ -158,7 +158,7 @@ void setup(void) {
 
   //load_server_room();
 
-  load_voxel_world();
+  //load_voxel_world();
 
   load_world1();
 
@@ -1492,8 +1492,8 @@ void load_voxel_world(){
   mesh_t *mesh;
   texture_t *texture;
 
-  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.9f);
-  //create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.2f);
+  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.4f);
+  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
 
   mesh = load_mesh("./assets/obj/voxels2.obj");
   texture = load_texture("./assets/textures/ground/mountain.png");
