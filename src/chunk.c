@@ -1,11 +1,18 @@
 #include "chunk.h"
+#include "array.h"
 
-chunk_t chunks[NUM_CHUNK_DIVISIONS][NUM_CHUNK_DIVISIONS];
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
-float world_x_min;
-float world_x_max;
-float world_z_min;
-float world_z_max;
+chunk_t chunks[NUM_CHUNK_DIVISIONS][NUM_CHUNK_DIVISIONS] = {0};
+
+double world_x_min;
+double world_x_max;
+double world_z_min;
+double world_z_max;
+
+double chunk_dx;
+double chunk_dz;
 
 /*
             /----/----/----/----/               /----/
@@ -30,7 +37,7 @@ LOAD/BUILD STAGE:
     use transformed world coordinates (these were pre-computed when loading object)
     compute AABB for each face (using the transformed vertices)
     test overlap with each chunk and add face/object to chunk
-    NOTE: compute the chunk the face possibly overlaps with by using:
+    NOTE: compute the chunk that the face possibly overlaps with by using:
       cx_min = (tri_x_min - world_x_min) / chunk_size;
       cx_max = (tri_x_max - world_x_min) / chunk_size;
 
@@ -62,8 +69,8 @@ RENDER STAGE
 /* go through all static/chunkable objects in the world, for each object, get the face vertices
    and keep track of minimum and maximum x, and z.  use those as the world bounds */
 void calculate_world_bounds(void){
-  float x_min = 0.0f, x_max = 0.0f;
-  float z_min = 0.0f, z_max = 0.0f;
+  double x_min = 0.0f, x_max = 0.0f;
+  double z_min = 0.0f, z_max = 0.0f;
 
   for(uint32_t i = 0; i < num_objects; i++){
     object_t *object = &objects[i];
@@ -86,8 +93,166 @@ void calculate_world_bounds(void){
   world_x_max = x_max;
   world_z_min = z_min;
   world_z_max = z_max;
-  
 
-  printf("\nxmin: %f, xmax: %f\n", x_min, x_max);
+  printf("\nxmin: %f, xmax: %f", x_min, x_max);
   printf("\nzmin: %f, zmax: %f\n", z_min, z_max);
+}
+
+/* split the world into chunks */
+void create_chunks(void){
+  /* calculate chunk deltas */
+  chunk_dx = (world_x_max - world_x_min) / NUM_CHUNK_DIVISIONS;
+  chunk_dz = (world_z_max - world_z_min) / NUM_CHUNK_DIVISIONS;
+
+  /* set the boundary of each chunk */
+  for(uint32_t z_row = 0; z_row < NUM_CHUNK_DIVISIONS; z_row++){
+    for(uint32_t x_col = 0; x_col < NUM_CHUNK_DIVISIONS; x_col++){
+      chunks[z_row][x_col].empty = true;
+      chunks[z_row][x_col].x_min = world_x_min + x_col * chunk_dx;     
+      chunks[z_row][x_col].x_max = world_x_min + (x_col + 1) * chunk_dx;     
+      chunks[z_row][x_col].z_min = world_z_min + z_row * chunk_dz;     
+      chunks[z_row][x_col].z_max = world_z_min + (z_row + 1) * chunk_dz;     
+
+      //printf("xstart: %f, xend: %f, zstart: %f, zend: %f\n", 
+      //  chunks[z_row][x_col].x_min, 
+      //  chunks[z_row][x_col].x_max, 
+      //  chunks[z_row][x_col].z_min, 
+      //  chunks[z_row][x_col].z_max 
+      //);
+    }
+  }
+
+  printf("\nchunk_dx: %f\n", chunk_dx);
+  printf("chunk_dz: %f\n", chunk_dz);
+}
+
+/*
+  loop through all static objects, and for each of the object's faces:
+    use transformed world coordinates (these were pre-computed when loading object)
+    compute AABB for each face (using the transformed vertices)
+    test overlap with each chunk and add face/object to chunk
+    NOTE: compute the chunk that the face possibly overlaps with by using:
+      cx_min = (tri_x_min - world_x_min) / chunk_size;
+      cx_max = (tri_x_max - world_x_min) / chunk_size;
+
+      cz_min = ...
+      cz_max = ...
+
+      this gives a smaller range of chunks we loop through to test against, instead of looping thru all chunks.
+  if there is overlap:  
+    add object_id, and face index to chunk
+    update/expand chunk's ymin/ymax based on that face 
+    mark chunk non empty
+*/
+void populate_chunks(void){
+  for(uint32_t object_id = 0; object_id < num_objects; object_id++){
+    object_t *object = &objects[object_id];
+    if(object->fixed){
+      for(uint32_t face_i = 0; face_i < object->mesh->num_faces; face_i++){
+        face_t face = object->mesh->faces[face_i];
+        /* obtain the face's 3 vertices */
+        vector3_t v_a = object->transformed_vertices[face.vertex_indices[0]];
+        vector3_t v_b = object->transformed_vertices[face.vertex_indices[1]];
+        vector3_t v_c = object->transformed_vertices[face.vertex_indices[2]];
+        /* form face's 2d AABB */
+        aabb_3d_t face_aabb = calculate_3d_aabb(v_a, v_b, v_c);
+        /* compute the range of chunks that span across the aabb - these are the chunks that intersect with the face */
+        int chunk_xcol_min = (face_aabb.x_min - world_x_min) / chunk_dx;
+        int chunk_xcol_max = (face_aabb.x_max - world_x_min) / chunk_dx;
+        int chunk_zrow_min = (face_aabb.z_min - world_z_min) / chunk_dz;
+        int chunk_zrow_max = (face_aabb.z_max - world_z_min) / chunk_dz;
+
+        /* clamp boundaries because a triangle on the boundary can give a chunk index out of range */
+        chunk_xcol_min = MAX(0, chunk_xcol_min);
+        chunk_xcol_max = MIN(NUM_CHUNK_DIVISIONS - 1, chunk_xcol_max);
+        chunk_zrow_min = MAX(0, chunk_zrow_min);
+        chunk_zrow_max = MIN(NUM_CHUNK_DIVISIONS - 1, chunk_zrow_max);
+
+        /* now add reference to object and face to the chunks */
+        for(int z_row = chunk_zrow_min; z_row <= chunk_zrow_max; z_row++){
+          for(int x_col = chunk_xcol_min; x_col <= chunk_xcol_max; x_col++){
+            chunks[z_row][x_col].empty = false;
+            /* check if chunk already has reference to this object - if not, then create object entry */
+            int chunk_object_idx = chunk_has_object_entry(z_row, x_col, object_id);
+            if(chunk_object_idx == -1){ /* object does not exist in table */
+              /* create new object slot in chunk */
+              chunk_object_faces_t chunk_object_faces = {
+                .object_id    = object_id,
+                .face_indices = NULL,
+                .num_faces    = 0
+              };
+              /* insert object reference into chunk */
+              array_push(chunks[z_row][x_col].chunk_object_faces, chunk_object_faces);
+              /* increment number of objects in chunk */
+              chunks[z_row][x_col].num_chunk_objects++;
+              chunk_object_idx = chunks[z_row][x_col].num_chunk_objects - 1;
+            }
+
+            /* insert face index into chunk's object reference */
+            array_push(chunks[z_row][x_col].chunk_object_faces[chunk_object_idx].face_indices, face_i);
+            /* increment number of faces for that object in chunk */
+            chunks[z_row][x_col].chunk_object_faces[chunk_object_idx].num_faces++;
+
+            /* update chunk's y-bounds with new face aabb's max/min height */
+            if(face_aabb.y_min < chunks[z_row][x_col].y_min) chunks[z_row][x_col].y_min = face_aabb.y_min;
+            if(face_aabb.y_max > chunks[z_row][x_col].y_max) chunks[z_row][x_col].y_max = face_aabb.y_max;
+          }
+        }
+      }
+    }
+  }
+}
+
+/* search for object_id inside a chunk's object table, and return object's position in the table if it exists
+   if object doesn't exist, return -1 */
+int chunk_has_object_entry(int z_row, int x_col, uint32_t object_id){
+  for(uint32_t chunk_object_faces_idx = 0; chunk_object_faces_idx < chunks[z_row][x_col].num_chunk_objects; chunk_object_faces_idx++)
+    if(chunks[z_row][x_col].chunk_object_faces[chunk_object_faces_idx].object_id == object_id)
+      return chunk_object_faces_idx;
+    
+  return -1;
+}
+
+aabb_3d_t calculate_3d_aabb(
+  vector3_t v_a,
+  vector3_t v_b,
+  vector3_t v_c
+){
+  double x_min = fmin(fmin(v_a.x, v_b.x), v_c.x);
+  double y_min = fmin(fmin(v_a.y, v_b.y), v_c.y);
+  double z_min = fmin(fmin(v_a.z, v_b.z), v_c.z);
+  double x_max = fmax(fmax(v_a.x, v_b.x), v_c.x);
+  double y_max = fmax(fmax(v_a.y, v_b.y), v_c.y);
+  double z_max = fmax(fmax(v_a.z, v_b.z), v_c.z);
+
+  aabb_3d_t aabb = {
+    .x_min = x_min,
+    .y_min = y_min,
+    .z_min = z_min,
+    .x_max = x_max,
+    .y_max = y_max,
+    .z_max = z_max
+  };
+
+  return aabb;
+}
+
+aabb_2d_t calculate_2d_aabb(
+  vector3_t v_a,
+  vector3_t v_b,
+  vector3_t v_c
+){
+  double x_min = fmin(fmin(v_a.x, v_b.x), v_c.x);
+  double z_min = fmin(fmin(v_a.z, v_b.z), v_c.z);
+  double x_max = fmax(fmax(v_a.x, v_b.x), v_c.x);
+  double z_max = fmax(fmax(v_a.z, v_b.z), v_c.z);
+
+  aabb_2d_t aabb = {
+    .x_min = x_min,
+    .z_min = z_min,
+    .x_max = x_max,
+    .z_max = z_max
+  };
+
+  return aabb;
 }

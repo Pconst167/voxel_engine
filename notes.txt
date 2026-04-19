@@ -20,6 +20,9 @@ make a meme game kinda like megabonk but with meme bosses like stonks head, vanc
 
 
 
+
+
+
     /* if object just rendered was a skybox, then paint sun over it */
     if(object->object_type == OBJECT_TYPE_SKYBOX){
       /* skybox MUST be the first object/mesh rendered.  after that we reset all zbuffer values to 0.0 so anything can be rendered on top of the skybox */

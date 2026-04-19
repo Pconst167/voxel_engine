@@ -76,11 +76,11 @@
 
 #define CAMERA_SPEED_SHIFT_KEY_FACTOR 4.0f
 #define CAMERA_ETA_DIRECTION 1.0f /* +1: mouse back looks up, -1: mouse back looks down */
-#define MOUSE_SENSITIVITY 0.3f
+#define MOUSE_SENSITIVITY 0.5f
 #define DAY_LENGTH (1.01f * 60.0f * 60.0f / 0.016f) /* hours */
 
 #define ZNEAR 0.1f
-#define ZFAR  3000.0f
+#define ZFAR  10000.0f
 
 /* parameters for controlling the absolute ambient light */
 #define MIN_AMBIENT_LIGHT_INTENSITY 0.1f
@@ -97,8 +97,8 @@ char text3[256];
 
 /* game control */
 float delta_time;
-float move_speed = 30.0f;
-float turn_speed = 1.5f;
+float move_speed = 70.0f;
+float turn_speed = 3.0f;
 bool quit = false;
 bool is_paused = false;
 
@@ -106,6 +106,8 @@ uint8_t color_buffer_reset = 0x00; /* repeat byte for color buffer reset */
 
 /* perspective and camera */
 matrix4_t projection_matrix;
+matrix4_t view_matrix;
+
 projection_options_t projection_options = {
   .wireframe_overlay         = false, 
   .projection_mode           = TEXT_PERSPECTIVE_CORRECT,
@@ -154,14 +156,32 @@ void setup(void) {
 
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
 
-  //load_server_room();
+  load_server_room();
 
-  load_world1();
+  //load_voxel_world();
 
-  calculate_world_bounds();
+  //load_world1();
 
   /* normalize all light direction vectors to unity */
   initialize_lights();
+
+
+  calculate_world_bounds();
+  create_chunks();
+  populate_chunks();
+
+
+  for(int row = 0; row < NUM_CHUNK_DIVISIONS; row++){
+    for(int col = 0; col < NUM_CHUNK_DIVISIONS; col++){
+      if(chunks[row][col].empty == false){
+        printf("chunk: %d %d\n", row, col);
+        for(uint32_t obj = 0; obj < chunks[row][col].num_chunk_objects; obj++){
+          printf("object idx %d, object id: %d\n", obj, chunks[row][col].chunk_object_faces[obj].object_id);
+
+        }
+      }
+    }
+  }
 
 }
 
@@ -173,7 +193,7 @@ void process_input(void){
   bool _C = keys[SDL_SCANCODE_C];
 
   float move_speed_delta_time = ((shift || _C )? CAMERA_SPEED_SHIFT_KEY_FACTOR * move_speed : move_speed) * delta_time;
-  float _turn_speed = turn_speed * delta_time;
+  float _turn_speed_delta_time = turn_speed * delta_time;
 
   while(SDL_PollEvent(&event)){
     switch(event.type){
@@ -251,25 +271,25 @@ void process_input(void){
 
   /* turning left-right */
   if(keys[SDL_SCANCODE_LEFT] || keys[SDL_SCANCODE_H])
-    camera.theta += _turn_speed;
+    camera.theta += _turn_speed_delta_time;
   else if(keys[SDL_SCANCODE_RIGHT] || keys[SDL_SCANCODE_L])
-    camera.theta -= _turn_speed;
+    camera.theta -= _turn_speed_delta_time;
 
   /* turning up-down */
   if(keys[SDL_SCANCODE_UP]){
-    camera.eta -= _turn_speed;
-    if(camera.eta < -ETA_MAX) camera.eta = -ETA_MAX;
-  }
-  else if(keys[SDL_SCANCODE_DOWN]){
-    camera.eta += _turn_speed;
+    camera.eta += _turn_speed_delta_time;
     if(camera.eta > ETA_MAX) camera.eta = ETA_MAX;
   }
+  else if(keys[SDL_SCANCODE_DOWN]){
+    camera.eta -= _turn_speed_delta_time;
+    if(camera.eta < -ETA_MAX) camera.eta = -ETA_MAX;
+  }
   if(keys[SDL_SCANCODE_K]){
-    camera.eta += _turn_speed;
+    camera.eta += _turn_speed_delta_time;
     if(camera.eta > ETA_MAX) camera.eta = ETA_MAX;
   }
   else if(keys[SDL_SCANCODE_J]){
-    camera.eta -= _turn_speed;
+    camera.eta -= _turn_speed_delta_time;
     if(camera.eta < -ETA_MAX) camera.eta = -ETA_MAX;
   }
 
@@ -532,9 +552,6 @@ void render_sun(void){
   float sun_green_shift = 0.35f + 0.65f * sun_elev_abs;    /* green rises toward white */
   float sun_blue_shift  = 0.00f + 1.00f * sun_elev_abs;    /* blue weakest at horizon, strongest at poles */
 
-  /* generate view matrix for rotating the sun vector into camera space */
-  matrix4_t view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
-
   /* world -> camera rotation only(no translation, meaning w = 0) */
   vector4_t vec4_sun_cam = matrix4_mul_vector4(&view_matrix, (vector4_t){sun_direction.x, sun_direction.y, sun_direction.z, 0.0f});
   vector3_t sun_cam = {vec4_sun_cam.x, vec4_sun_cam.y, vec4_sun_cam.z};
@@ -676,7 +693,7 @@ void update_and_render_color_buffer(void) {
     .z = camera.direction.x * up.y - camera.direction.y * up.x
   };
   
-  matrix4_t view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
+  view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
 
   /* for each object, apply frustrum culling to entire object : apply world_view to center coord
      if not culled, then add to objects-to-be-sorted list
@@ -982,6 +999,126 @@ void update_and_render_color_buffer(void) {
 
   } /* for(uint32_t object_i = 0; object_i < num_objects_sorted; object_i++) */
   
+  
+  for(uint32_t row = 0; row < NUM_CHUNK_DIVISIONS; row++){
+    for(uint32_t col = 0; col < NUM_CHUNK_DIVISIONS; col++){
+      vector4_t p000 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_min, .y = chunks[row][col].y_min, .z = chunks[row][col].z_min});
+      vector4_t p010 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_min, .y = chunks[row][col].y_min, .z = chunks[row][col].z_max});
+      vector4_t p100 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_max, .y = chunks[row][col].y_min, .z = chunks[row][col].z_min});
+      vector4_t p110 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_max, .y = chunks[row][col].y_min, .z = chunks[row][col].z_max});
+
+      vector4_t p001 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_min, .y = chunks[row][col].y_max, .z = chunks[row][col].z_min});
+      vector4_t p011 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_min, .y = chunks[row][col].y_max, .z = chunks[row][col].z_max});
+      vector4_t p101 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_max, .y = chunks[row][col].y_max, .z = chunks[row][col].z_min});
+      vector4_t p111 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_max, .y = chunks[row][col].y_max, .z = chunks[row][col].z_max});
+
+      vector4_t projected_p000 = matrix4_mul_vector4(&projection_matrix, p000);
+      vector4_t projected_p010 = matrix4_mul_vector4(&projection_matrix, p010);
+      vector4_t projected_p100 = matrix4_mul_vector4(&projection_matrix, p100);
+      vector4_t projected_p110 = matrix4_mul_vector4(&projection_matrix, p110);
+
+      vector4_t projected_p001 = matrix4_mul_vector4(&projection_matrix, p001);
+      vector4_t projected_p011 = matrix4_mul_vector4(&projection_matrix, p011);
+      vector4_t projected_p101 = matrix4_mul_vector4(&projection_matrix, p101);
+      vector4_t projected_p111 = matrix4_mul_vector4(&projection_matrix, p111);
+
+      if(projected_p000.w != 0.0){
+        projected_p000.x /= projected_p000.w;
+        projected_p000.y /= projected_p000.w;
+        projected_p000.z /= projected_p000.w;
+      }
+      if(projected_p010.w != 0.0){
+        projected_p010.x /= projected_p010.w;
+        projected_p010.y /= projected_p010.w;
+        projected_p010.z /= projected_p010.w;
+      }
+      if(projected_p100.w != 0.0){
+        projected_p100.x /= projected_p100.w;
+        projected_p100.y /= projected_p100.w;
+        projected_p100.z /= projected_p100.w;
+      }
+      if(projected_p110.w != 0.0){
+        projected_p110.x /= projected_p110.w;
+        projected_p110.y /= projected_p110.w;
+        projected_p110.z /= projected_p110.w;
+      }
+
+      if(projected_p001.w != 0.0){
+        projected_p001.x /= projected_p001.w;
+        projected_p001.y /= projected_p001.w;
+        projected_p001.z /= projected_p001.w;
+      }
+      if(projected_p011.w != 0.0){
+        projected_p011.x /= projected_p011.w;
+        projected_p011.y /= projected_p011.w;
+        projected_p011.z /= projected_p011.w;
+      }
+      if(projected_p101.w != 0.0){
+        projected_p101.x /= projected_p101.w;
+        projected_p101.y /= projected_p101.w;
+        projected_p101.z /= projected_p101.w;
+      }
+      if(projected_p111.w != 0.0){
+        projected_p111.x /= projected_p111.w;
+        projected_p111.y /= projected_p111.w;
+        projected_p111.z /= projected_p111.w;
+      }
+      
+      if(
+        projected_p000.x < -1.0f || projected_p010.x < -1.0f || projected_p100.x < -1.0f || projected_p110.x < -1.0f ||
+        projected_p000.x > 1.0f || projected_p010.x > 1.0f || projected_p100.x > 1.0f || projected_p110.x > 1.0f ||
+        projected_p000.y < -1.0f || projected_p010.y < -1.0f || projected_p100.y < -1.0f || projected_p110.y < -1.0f ||
+        projected_p000.y > 1.0f || projected_p010.y > 1.0f || projected_p100.y > 1.0f || projected_p110.y > 1.0f ||
+        projected_p000.z < 0.0f || projected_p010.z < 0.0f || projected_p100.z < 0.0f || projected_p110.z < 0.0f ||
+        projected_p000.z > 1.0f || projected_p010.z > 1.0f || projected_p100.z > 1.0f || projected_p110.z > 1.0f ||
+
+        projected_p001.x < -1.0f || projected_p011.x < -1.0f || projected_p101.x < -1.0f || projected_p111.x < -1.0f ||
+        projected_p001.x > 1.0f  || projected_p011.x > 1.0f  || projected_p101.x > 1.0f  || projected_p111.x > 1.0f  ||
+        projected_p001.y < -1.0f || projected_p011.y < -1.0f || projected_p101.y < -1.0f || projected_p111.y < -1.0f ||
+        projected_p001.y > 1.0f  || projected_p011.y > 1.0f  || projected_p101.y > 1.0f  || projected_p111.y > 1.0f  ||
+        projected_p001.z < 0.0f  || projected_p011.z < 0.0f  || projected_p101.z < 0.0f  || projected_p111.z < 0.0f  ||
+        projected_p001.z > 1.0f  || projected_p011.z > 1.0f  || projected_p101.z > 1.0f  || projected_p111.z > 1.0f
+      ) continue;
+
+      projected_p000.x =  projected_p000.x * (window_width  * 0.5) + (window_width  * 0.5);
+      projected_p000.y = -projected_p000.y * (window_height * 0.5) + (window_height * 0.5); 
+      projected_p010.x =  projected_p010.x * (window_width  * 0.5) + (window_width  * 0.5);
+      projected_p010.y = -projected_p010.y * (window_height * 0.5) + (window_height * 0.5); 
+      projected_p100.x =  projected_p100.x * (window_width  * 0.5) + (window_width  * 0.5);
+      projected_p100.y = -projected_p100.y * (window_height * 0.5) + (window_height * 0.5); 
+      projected_p110.x =  projected_p110.x * (window_width  * 0.5) + (window_width  * 0.5);
+      projected_p110.y = -projected_p110.y * (window_height * 0.5) + (window_height * 0.5); 
+
+      projected_p001.x =  projected_p001.x * (window_width  * 0.5) + (window_width  * 0.5);
+      projected_p001.y = -projected_p001.y * (window_height * 0.5) + (window_height * 0.5); 
+      projected_p011.x =  projected_p011.x * (window_width  * 0.5) + (window_width  * 0.5);
+      projected_p011.y = -projected_p011.y * (window_height * 0.5) + (window_height * 0.5); 
+      projected_p101.x =  projected_p101.x * (window_width  * 0.5) + (window_width  * 0.5);
+      projected_p101.y = -projected_p101.y * (window_height * 0.5) + (window_height * 0.5); 
+      projected_p111.x =  projected_p111.x * (window_width  * 0.5) + (window_width  * 0.5);
+      projected_p111.y = -projected_p111.y * (window_height * 0.5) + (window_height * 0.5); 
+
+      /* bottom */
+      draw_line(projected_p000.x, projected_p000.y, projected_p010.x, projected_p010.y, (color_t){.uint32 = 0xFFFFFFFF});
+      draw_line(projected_p010.x, projected_p010.y, projected_p110.x, projected_p110.y, (color_t){.uint32 = 0xFFFFFFFF});
+      draw_line(projected_p110.x, projected_p110.y, projected_p100.x, projected_p100.y, (color_t){.uint32 = 0xFFFFFFFF});
+      draw_line(projected_p100.x, projected_p100.y, projected_p000.x, projected_p000.y, (color_t){.uint32 = 0xFFFFFFFF});
+
+      /* top */
+      draw_line(projected_p001.x, projected_p001.y, projected_p011.x, projected_p011.y, (color_t){.uint32 = 0xFFFFFFFF});
+      draw_line(projected_p011.x, projected_p011.y, projected_p111.x, projected_p111.y, (color_t){.uint32 = 0xFFFFFFFF});
+      draw_line(projected_p111.x, projected_p111.y, projected_p101.x, projected_p101.y, (color_t){.uint32 = 0xFFFFFFFF});
+      draw_line(projected_p101.x, projected_p101.y, projected_p001.x, projected_p001.y, (color_t){.uint32 = 0xFFFFFFFF});
+
+      /* sides */
+      draw_line(projected_p000.x, projected_p000.y, projected_p001.x, projected_p001.y, (color_t){.uint32 = 0xFFFFFFFF});
+      draw_line(projected_p100.x, projected_p100.y, projected_p101.x, projected_p101.y, (color_t){.uint32 = 0xFFFFFFFF});
+      draw_line(projected_p010.x, projected_p010.y, projected_p011.x, projected_p011.y, (color_t){.uint32 = 0xFFFFFFFF});
+      draw_line(projected_p110.x, projected_p110.y, projected_p111.x, projected_p111.y, (color_t){.uint32 = 0xFFFFFFFF});
+    }
+  }
+  
+
   if((time_count & 0x0F) == 0)
     snprintf(text, 128, "%u, %d, %dr:%dt, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
       total_triangles_rendered, fps, 
@@ -1355,13 +1492,16 @@ void load_voxel_world(){
   mesh_t *mesh;
   texture_t *texture;
 
-  mesh = load_mesh("./assets/obj/voxels.obj");
+  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.9f);
+  //create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.2f);
+
+  mesh = load_mesh("./assets/obj/voxels2.obj");
   texture = load_texture("./assets/textures/ground/mountain.png");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                 (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 0.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x01, 
-                (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+                (vector3_t){6, 6, 6}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
@@ -1387,19 +1527,20 @@ void load_server_room(){
   mesh_t *mesh;
   texture_t *texture;
 
-  create_light_source(LIGHT_POINT,       (vector3_t){.x = -200.0f,  .y = 50.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFF00FF00}, 3000.0f);
-  create_light_source(LIGHT_POINT,       (vector3_t){.x = -200.0f,  .y = 50.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFF0000}, 3000.0f);
-  create_light_source(LIGHT_POINT,       (vector3_t){.x = 200.0f,   .y = 50.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFF0000}, 3000.0f);
-  create_light_source(LIGHT_POINT,       (vector3_t){.x = 200.0f,   .y = 50.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFF00FF00}, 3000.0f);
-  create_light_source(LIGHT_POINT,       (vector3_t){.x = 0.0f,     .y = 50.0f, .z = 0.0f},    (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFF0000}, 3000.0f);
+  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFF0060FF}, 0.1f);
+  create_light_source(LIGHT_POINT,       (vector3_t){.x = -200.0f,  .y = 50.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFF00}, 3000.0f);
+  create_light_source(LIGHT_POINT,       (vector3_t){.x = -200.0f,  .y = 50.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 3000.0f);
+  create_light_source(LIGHT_POINT,       (vector3_t){.x = 200.0f,   .y = 50.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 3000.0f);
+  create_light_source(LIGHT_POINT,       (vector3_t){.x = 200.0f,   .y = 50.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFF00}, 3000.0f);
+  create_light_source(LIGHT_POINT,       (vector3_t){.x = 0.0f,     .y = 50.0f, .z = 0.0f},    (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 3000.0f);
 
   mesh = load_mesh("./assets/obj/server_room/server.obj");
   texture = load_texture("./assets/textures/server_room/server.png");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
-                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF40FF40}, 0.0f, 
+                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFF8080}, 1.0f, 
                 0.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){2, 2, 2}, (vector3_t){0, M_PI, 0}, (vector3_t){0, 0, 160}, 
+                (vector3_t){3, 2, 2}, (vector3_t){0, M_PI, 0}, (vector3_t){-8, 0, 178}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
@@ -1407,10 +1548,18 @@ void load_server_room(){
   mesh = load_mesh("./assets/obj/server_room/server2.obj");
   texture = load_texture("./assets/textures/server_room/server2.png");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
-                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF40FF40}, 0.0f, 
+                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFF8080}, 0.5f, 
                 0.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){10, 10, 10}, (vector3_t){0, M_PI_2, 0}, (vector3_t){20, 0, 160}, 
+                (vector3_t){14, 12, 14}, (vector3_t){0, M_PI_2, 0}, (vector3_t){25, 0, 178}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                texture
+  );
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
+                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFF8080}, 0.5f, 
+                0.0f, false, true, false,
+                BLEND_MODE_OPAQUE, 0x00, 
+                (vector3_t){14, 12, 14}, (vector3_t){0, M_PI_2, 0}, (vector3_t){80, 0, 178}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
@@ -1421,7 +1570,7 @@ void load_server_room(){
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF40FF40}, 0.0f, 
                 0.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){15, 25, 15}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+                (vector3_t){15, 12, 15}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
