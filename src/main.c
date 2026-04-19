@@ -156,11 +156,11 @@ void setup(void) {
 
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
 
-  load_server_room();
+  //load_server_room();
 
-  //load_voxel_world();
+  load_voxel_world();
 
-  //load_world1();
+  load_world1();
 
   /* normalize all light direction vectors to unity */
   initialize_lights();
