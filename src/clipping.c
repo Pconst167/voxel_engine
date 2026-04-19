@@ -1,6 +1,5 @@
 #include "clipping.h"
 
-#define NUM_VIEW_FRUSTRUM_PLANES 6
 plane_t view_frustrum_planes[NUM_VIEW_FRUSTRUM_PLANES];
 
 void initialize_view_frustrum_planes(float fov_x, float fov_y, float znear, float zfar){
@@ -263,9 +262,14 @@ void frustrum_clip_polygon(polygon_t *polygon){
   clip_polygon_against_plane(polygon, FRUSTRUM_FAR);
 }
 
+/* TODO: check which components of frustrum plane normals are 0, many are ! */
 __attribute__((optimize("Ofast")))
 inline bool frustrum_cull_object(vector4_t *bsphere_center, float bsphere_radius, float znear, float zfar){
   float distance;
+
+  /* all these planes except znear/zfar pass through the origin
+     so there's no need to subtract the sphere center from a point in the plane
+     for the dot product! */
 
   /* NEAR / FAR */
   if(bsphere_center->z + bsphere_radius < znear) return true;

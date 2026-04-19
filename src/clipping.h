@@ -7,6 +7,7 @@
 #include "triangle.h"
 
 #define MAX_NUM_POLYGON_VERTICES 10
+#define NUM_VIEW_FRUSTRUM_PLANES 6
 
 typedef enum{
   FRUSTRUM_LEFT,
@@ -27,6 +28,8 @@ typedef struct{
   uv_t text_coords[MAX_NUM_POLYGON_VERTICES];
   int num_vertices;
 } polygon_t;
+
+extern plane_t view_frustrum_planes[NUM_VIEW_FRUSTRUM_PLANES];
 
 void initialize_view_frustrum_planes(float fov_x, float fov_y, float znear, float zfar);
 polygon_t create_polygon_from_triangle(vector3_t v0, vector3_t v1, vector3_t v2, uv_t t0, uv_t t1, uv_t t2);

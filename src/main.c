@@ -25,6 +25,8 @@
       textures should be bound to objects not meshes
 
     TODO:
+      >>>> check which components of frustrum plane normals are 0, many are ! in frustrum_cull_object function
+
       IMPLEMENT OCCLUSION CULLING: for each object, project its bounding box AABB 8 vertices to world_view->space->screen and from the 8 vertices form rectangle with min/max of x/y
       then form a grid inside rectangle. for each grid point, we replace its own depth with the nearest object depth, and test that vs zbuffer.
       only if all points are farther than zbuffer values, skip/cull object completely.
@@ -159,8 +161,9 @@ void setup(void) {
   //load_server_room();
 
   //load_voxel_world();
+  load_quake_world();
 
-  load_world1();
+  //load_world1();
 
   /* normalize all light direction vectors to unity */
   initialize_lights();
@@ -620,32 +623,6 @@ void render_sun(void){
   }
 }
 
-void object_render_debug(){
-  SDL_Event event;
-
-  sdl_render();
-  render_text();
-  SDL_RenderPresent(renderer);
-
-  while(1){
-    SDL_WaitEvent(&event);
-
-    if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_9){
-      projection_options.object_render_debug = !projection_options.object_render_debug;
-    }
-
-    if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_o){
-      return;
-    }
-    
-    if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE){
-      exit(0);
-    }
-
-    if(!projection_options.object_render_debug) return;
-  }
-}
-
 void qs(object_sort_key_t *array, int left, int right){
   int i = left;
   int j = right;
@@ -673,7 +650,525 @@ inline void object_quicksort(object_sort_key_t *array, int count){
     qs(array, 0, count - 1);
 }
 
+/*
+RENDER STAGE
+  Render sparse/dynamic objects the normal way.
+  For each non-empty chunk:
+    check for intersection of chunk's 3d dimensional AABB with frustrum:
+
+    classify chunk AABB vs frustum as:
+      outside
+      intersecting
+      inside
+      If outside: skip.
+      If intersecting:
+        render stored faces with normal triangle clipping.
+      If inside:
+        render stored faces without triangle clipping.
+  ** Use a per-frame face stamp to avoid drawing duplicated overlap faces more than once.
+  
+  ** after all intersecting chunks are found, sort them front to back before rendering.
+
+*/
 void update_and_render_color_buffer(void) {
+  /* reset color_buffer */
+  memset(color_buffer, color_buffer_reset, total_buffer_pixels * sizeof(uint32_t));
+  /* reset zbuffer - it needs to be reset here as well in case skybox object does not exist */
+  memset(zbuffer, 0x00, total_buffer_pixels * sizeof(uint32_t)); /* zbuffer is made of floats and 0x00000000 = 0.0 */
+
+  /* view matrix */
+  /* build spherical coordinates unit vector for camera direction */
+  camera.direction = (vector3_t){
+    .x = cosf(camera.eta) * cosf(camera.theta),
+    .y = sinf(camera.eta),
+    .z = cosf(camera.eta) * sinf(camera.theta)
+  };
+  /* vector orthogonal to camera direction: camera.direction cross up */
+  camera_direction_orthogonal_left_right = (vector3_t){
+    .x = camera.direction.y * up.z - camera.direction.z * up.y,
+    .y = camera.direction.z * up.x - camera.direction.x * up.z,
+    .z = camera.direction.x * up.y - camera.direction.y * up.x
+  };
+  
+  view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
+
+  /* loop through all chunks 
+     for each chunk, classify it into: intersecting, inside, and add each to a list
+     for inside list, render directly
+     for intersecting list, apply clipping and render
+  */
+  for(int z_row = 0; z_row < NUM_CHUNK_DIVISIONS; z_row++){
+    for(int x_col = 0; x_col < NUM_CHUNK_DIVISIONS; x_col++){
+      if(!chunks[z_row][x_col].empty){ /* if chunk is not empty, then render objects contained in chunk */
+        if(num_chunk_points_inside_frustrum(&chunks[z_row][x_col]) == 8){
+          /* render without clipping */
+          render_chunk(&chunks[z_row][x_col], false);       
+        }
+        else if(num_chunk_points_inside_frustrum(&chunks[z_row][x_col]) > 0){
+          // apply clipping to each face and render
+          render_chunk(&chunks[z_row][x_col], true);
+        }
+      }
+    }
+  }
+}
+
+/* for a point to be inside, the dot product of it and all frustrum planes must be positive */
+int num_chunk_points_inside_frustrum(chunk_t *chunk){
+  double x_min = chunk->x_min;
+  double x_max = chunk->x_max;
+  double y_min = chunk->y_min;
+  double y_max = chunk->y_max;
+  double z_min = chunk->z_min;
+  double z_max = chunk->z_max;
+
+  /* nnn = xzy */
+  vector3_t chunk_vert_000 = {.x = x_min, .y = y_min, .z = z_min}; /* bottom plane */
+  vector3_t chunk_vert_100 = {.x = x_max, .y = y_min, .z = z_min};
+  vector3_t chunk_vert_010 = {.x = x_min, .y = y_min, .z = z_max};
+  vector3_t chunk_vert_110 = {.x = x_max, .y = y_min, .z = z_max};
+  vector3_t chunk_vert_001 = {.x = x_min, .y = y_max, .z = z_min}; /* top plane */
+  vector3_t chunk_vert_101 = {.x = x_max, .y = y_max, .z = z_min};
+  vector3_t chunk_vert_011 = {.x = x_min, .y = y_max, .z = z_max};
+  vector3_t chunk_vert_111 = {.x = x_max, .y = y_max, .z = z_max};
+
+  /* now we have all points forming the chunk, transform them into view */
+  chunk_vert_000 = matrix4_mul_vector3(&view_matrix, chunk_vert_000);
+  chunk_vert_100 = matrix4_mul_vector3(&view_matrix, chunk_vert_100);
+  chunk_vert_010 = matrix4_mul_vector3(&view_matrix, chunk_vert_010);
+  chunk_vert_110 = matrix4_mul_vector3(&view_matrix, chunk_vert_110);
+  chunk_vert_001 = matrix4_mul_vector3(&view_matrix, chunk_vert_001);
+  chunk_vert_101 = matrix4_mul_vector3(&view_matrix, chunk_vert_101);
+  chunk_vert_011 = matrix4_mul_vector3(&view_matrix, chunk_vert_011);
+  chunk_vert_111 = matrix4_mul_vector3(&view_matrix, chunk_vert_111);
+
+  /* here we have all chunk vertices transformed into view */
+  int num_inside = 0;
+  /* take dot product of each vertex with each frustrum plane */
+  bool is_inside;
+  is_inside = chunk_vertex_inside_frustrum(chunk_vert_000);
+  num_inside += is_inside ? 1 : 0;
+  is_inside = chunk_vertex_inside_frustrum(chunk_vert_100);
+  num_inside += is_inside ? 1 : 0;
+  is_inside = chunk_vertex_inside_frustrum(chunk_vert_010);
+  num_inside += is_inside ? 1 : 0;
+  is_inside = chunk_vertex_inside_frustrum(chunk_vert_110);
+  num_inside += is_inside ? 1 : 0;
+  is_inside = chunk_vertex_inside_frustrum(chunk_vert_001);
+  num_inside += is_inside ? 1 : 0;
+  is_inside = chunk_vertex_inside_frustrum(chunk_vert_101);
+  num_inside += is_inside ? 1 : 0;
+  is_inside = chunk_vertex_inside_frustrum(chunk_vert_011);
+  num_inside += is_inside ? 1 : 0;
+  is_inside = chunk_vertex_inside_frustrum(chunk_vert_111);
+  num_inside += is_inside ? 1 : 0;
+
+  return num_inside;
+}
+
+bool chunk_vertex_inside_frustrum(vector3_t vertex){
+  /* dot product of vertex with all frustrum planes - vertex is inside if all results are positive */
+
+  /* NEAR/FAR */
+  if(vertex.z < znear) return false;
+  if(vertex.z >  zfar) return false;
+  
+  /* LEFT */
+  double distance = vertex.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
+                    vertex.y * view_frustrum_planes[FRUSTRUM_LEFT].normal.y +
+                    vertex.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z;
+  if(distance < 0.0) return false;
+
+  /* RIGHT */
+  double distance = vertex.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
+                    vertex.y * view_frustrum_planes[FRUSTRUM_RIGHT].normal.y +
+                    vertex.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z;
+  if(distance < 0.0) return false;
+
+  /* BOTTOM */
+  double distance = vertex.x * view_frustrum_planes[FRUSTRUM_TOP].normal.x +
+                    vertex.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
+                    vertex.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z;
+  if(distance < 0.0) return false;
+
+  /* TOP */
+  double distance = vertex.x * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.x +
+                    vertex.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
+                    vertex.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z;
+  if(distance < 0.0) return false;
+
+  /* if vertex inside all planes, return true */
+  return true;
+}
+
+void render_chunk(chunk_t *chunk, bool clip){
+  /* triangles list for clipped triangles */
+  triangle_t triangles_after_clipping[MAX_NUM_POLYGON_VERTICES - 2]; /* for a polygon with N vertices, the number of nested triangles is always N-2 */
+
+  total_triangles_rendered = 0;
+
+  /* loop through all objects in chunk */
+  uint32_t num_chunk_objects = chunk->num_chunk_objects;
+  for(int chunk_object_idx = 0; chunk_object_idx < num_chunk_objects; chunk_object_ix++){
+    chunk_object_faces_t chunk_object_faces = chunk->chunk_object_faces[chunk_object_idx];
+    object_t *object = &objects[chunk_object_faces.object_id]; /* get pointer to object in chunk */
+
+    /* loop through all faces in the face list for object */
+    for(uint32_t face_idx = 0; face_idx < chunk_object_faces.num_faces; face_idx++){
+      uint32_t face_id = chunk_object_faces.face_indices[face_idx]; /* get face id from face list */
+      face_t face = object->mesh->faces[face_id];
+
+      /* WORLD MATRIX / VIEW MATRIX TRANSFORM */
+      vector3_t face_vertices[3];
+      vector4_t transformed_vertices[3];
+      
+      /* object is static, fetch object's baked transformed vertices and apply view transform only */
+      face_vertices[0] = object->transformed_vertices[face.vertex_indices[0]];
+      face_vertices[1] = object->transformed_vertices[face.vertex_indices[1]];
+      face_vertices[2] = object->transformed_vertices[face.vertex_indices[2]];
+
+      transformed_vertices[0] = matrix4_mul_vector3(&view_matrix, (vector3_t){face_vertices[0].x, face_vertices[0].y, face_vertices[0].z}); /* affine transform so can use this faster multiply */
+      transformed_vertices[1] = matrix4_mul_vector3(&view_matrix, (vector3_t){face_vertices[1].x, face_vertices[1].y, face_vertices[1].z}); /* affine transform so can use this faster multiply */
+      transformed_vertices[2] = matrix4_mul_vector3(&view_matrix, (vector3_t){face_vertices[2].x, face_vertices[2].y, face_vertices[2].z}); /* affine transform so can use this faster multiply */
+
+      /* BACKFACE CULLING */
+      /* calculate face normals for backface culling and lighting */
+      vector3_t v_a = {transformed_vertices[0].x, transformed_vertices[0].y, transformed_vertices[0].z};  /*   A               */
+      vector3_t v_b = {transformed_vertices[1].x, transformed_vertices[1].y, transformed_vertices[1].z};  /*  / \    Clockwise */
+      vector3_t v_c = {transformed_vertices[2].x, transformed_vertices[2].y, transformed_vertices[2].z};  /* C---B             */
+      /* vectors for cross product */
+      vector3_t v_ab = {.x = v_b.x - v_a.x, .y = v_b.y - v_a.y, .z = v_b.z - v_a.z};
+      vector3_t v_ac = {.x = v_c.x - v_a.x, .y = v_c.y - v_a.y, .z = v_c.z - v_a.z};
+      /* face normal
+        cross product between v_ab and v_ac */
+      vector3_t v_face_normal = {
+        .x = v_ab.y * v_ac.z - v_ab.z * v_ac.y,
+        .y = v_ab.z * v_ac.x - v_ab.x * v_ac.z,
+        .z = v_ab.x * v_ac.y - v_ab.y * v_ac.x
+      };
+
+      /* Backface culling */
+      if((object->backface_culling && !projection_options.backface_culling_override) || 
+         (projection_options.backface_culling_override && projection_options.backface_culling)
+      ){
+        /* camera - v_a ray
+          after view_matrix transform, camera position is always at 0, 0, 0 */
+        /* calculate dot product between camera ray and orthogonal to find alignment */
+        float dot_face_normal_cam_ray = -(v_face_normal.x * v_a.x + v_face_normal.y * v_a.y + v_face_normal.z * v_a.z);
+        if(dot_face_normal_cam_ray < 0) continue;
+      }
+
+      /* FRUSTRUM CLIPPING */
+      int num_triangles_from_polygon;
+      if(clip){
+        /* this function creates a polygon from the current face, clips against all frustrum planes,
+          then re-triangularizes the polygon - it returns the number of generated triangles from the polygon */
+        num_triangles_from_polygon = frustrum_clip_triangle_and_re_triangularize(
+          (vector3_t){transformed_vertices[0].x, transformed_vertices[0].y, transformed_vertices[0].z},
+          (vector3_t){transformed_vertices[1].x, transformed_vertices[1].y, transformed_vertices[1].z},
+          (vector3_t){transformed_vertices[2].x, transformed_vertices[2].y, transformed_vertices[2].z},
+          face.uv[0],
+          face.uv[1],
+          face.uv[2],
+          triangles_after_clipping
+        );
+      }
+      else{
+        /* no clipping, create single triangle from transformed vertices */
+        num_triangles_from_polygon = 1;
+        triangles_after_clipping[0].points[0].x = transformed_vertices[0].x;
+        triangles_after_clipping[0].points[0].y = transformed_vertices[0].y;
+        triangles_after_clipping[0].points[0].z = transformed_vertices[0].z;
+        triangles_after_clipping[0].points[0].w = 1.0f;
+        triangles_after_clipping[0].points[1].x = transformed_vertices[1].x;
+        triangles_after_clipping[0].points[1].y = transformed_vertices[1].y;
+        triangles_after_clipping[0].points[1].z = transformed_vertices[1].z;
+        triangles_after_clipping[0].points[1].w = 1.0f;
+        triangles_after_clipping[0].points[2].x = transformed_vertices[2].x;
+        triangles_after_clipping[0].points[2].y = transformed_vertices[2].y;
+        triangles_after_clipping[0].points[2].z = transformed_vertices[2].z;
+        triangles_after_clipping[0].points[2].w = 1.0f;
+        triangles_after_clipping[0].uv[0] = face.uv[0];
+        triangles_after_clipping[0].uv[1] = face.uv[1];
+        triangles_after_clipping[0].uv[2] = face.uv[2];
+      }
+
+      for(int t = 0; t < num_triangles_from_polygon; t++){
+        triangle_t *triangle_after_clipping = &triangles_after_clipping[t];
+
+        /* PROJECTION MATRIX / PERSPECTIVE DIVIDE */
+        triangle_t projected_triangle = {0}; /* all fields initialized to zero - so that the light_intensities field is all 0 in case object not reflective */
+        for(int j = 0; j < 3; j++){
+          //vector4_t projected_vertex = matrix4_mul_vector4_project(&projection_matrix, triangle_after_clipping->points[j]);
+          vector4_t projected_vertex = matrix4_mul_vector4(&projection_matrix, triangle_after_clipping->points[j]);
+
+          /* w stores old z, so divide by w to create perspective divide */
+          if(projected_vertex.w != 0.0){
+            projected_vertex.x /= projected_vertex.w;
+            projected_vertex.y /= projected_vertex.w;
+            projected_vertex.z /= projected_vertex.w;
+          }
+
+          /* scale vertices by screen width and translate to middle of the screen */
+          projected_vertex.x =  projected_vertex.x * (window_width  * 0.5) + (window_width  * 0.5);
+          projected_vertex.y = -projected_vertex.y * (window_height * 0.5) + (window_height * 0.5); /* invert y coordinate to account for inverse screen y (screen y grows downward) */
+
+          projected_triangle.points[j] = projected_vertex;
+          projected_triangle.uv[j]     = triangle_after_clipping->uv[j];
+        }
+        
+        /* LIGHT CALCULATIONS */
+        /*
+          find light intensity to face based on dot product between face orthogonal and light direction
+          result needs minus sign because the light direction vector is written as the opposite of the actual light direction we need to see (i.e y = 1 would mean shining up, but we actually want shine from above for the case y = 1)
+          also, most importantly, because all vertices are transformed by the view_matrix, the light direction vector also needs to be transformed
+          this is because a transformation by view_matrix amounts to a rotation(plus translation) of all vertices, which changes the face normals
+          ** BUT changing normals due to camera transforms should not affect how the light behaves, and so the light direction vector must track any rotation.
+          the view_matrix translation part should be ignored, and hence why the w component of vector in the multiplication below is be 0 to nulify any translations.
+          ** BUT for point light its the opposite and w must be 1 because point light DOES have a position and that position must also be transformed by the view matrix.
+
+          if camera is on same side as light, then we want the light to shine on the face regardeless of the face normal's direction.
+          hence we test: sgn((camera - v_a) dot normal) == sgn((light - v_a) dot normal) and the final dot product intensity needs to be absolute value after that
+          but if object is translucent to light, then we want to light both sides of a face regardless of the camera position, or the face's normal
+
+          light_intensities field is initialized to zero above in declaration - so that the light_intensities field is all 0 in case object not reflective
+        */
+        if(object->reflective){
+          vector3_normalize(&v_face_normal); /* normalize here for use below */
+          for(uint32_t light_index = 0; light_index < num_light_sources; light_index++){
+            if(light_sources[light_index].type == LIGHT_DIRECTIONAL){
+              vector4_t light_direction_view = matrix4_mul_vector4(&view_matrix, (vector4_t){light_sources[light_index].direction.x, light_sources[light_index].direction.y, light_sources[light_index].direction.z, 0});
+              if(object->two_sided_lighting)
+                projected_triangle.light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
+              else{
+                /* if not translucent, then face only lights up if sgn(cam_ray dot normal) == sgn (light_direction dot normal) */
+                vector3_t cam_ray = {.x = 0 - v_a.x, .y = 0 - v_a.y, .z = 0 - v_a.z}; 
+                float camera_v_a_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
+                float light_direction_v_a_dot_normal  = -(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
+                if((light_direction_v_a_dot_normal > 0.0f && camera_v_a_dot_normal > 0.0f) || (light_direction_v_a_dot_normal < 0.0f && camera_v_a_dot_normal < 0.0f)){
+                  projected_triangle.light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
+
+                  if(object->specular){
+                    vector3_t light_direction_view_vec3 = (vector3_t){-light_direction_view.x, -light_direction_view.y, -light_direction_view.z};
+                    vector3_normalize_fast_approx(&cam_ray);
+                    vector3_normalize_fast_approx(&light_direction_view_vec3);
+                    vector3_t H = vector3_add(light_direction_view_vec3, cam_ray);
+                    vector3_normalize_fast_approx(&H);
+                    float d = fmax(vector3_dot(v_face_normal, H), 0.0f);
+                    float spec = 0.0f;
+                    if(d > 0.0f) spec = 5 * powf(d, SPECULAR_POWER);
+                    projected_triangle.light_intensities[light_index] += spec;
+                  }
+                }
+                else projected_triangle.light_intensities[light_index] = 0.0f;
+              }
+              projected_triangle.light_intensities[light_index] *= light_sources[light_index].intensity;
+            }
+            else if(light_sources[light_index].type == LIGHT_POINT){
+              /* the 1/r^2 relation can be done without a square root.  since r = vector length, and the relation uses r^2, we don't need to first find square root and then square it.
+                we can simply find the "semi" vector length by skipping the square root (using the _squarred function).  this gives 1/r^2 without a square root.
+                for dot product also, instead of finding the ray len, we use the len squared and then use fast inv square root.
+              */
+              vector4_t light_position_view = matrix4_mul_vector3(&view_matrix, (vector3_t){light_sources[light_index].position.x, light_sources[light_index].position.y, light_sources[light_index].position.z});
+              vector3_t lightpos_to_v_a_ray = (vector3_t){light_position_view.x - v_a.x, light_position_view.y - v_a.y, light_position_view.z - v_a.z};
+              float lightpos_to_v_a_ray_length_squarred = vector3_length_squarred(lightpos_to_v_a_ray);
+              
+              if(object->two_sided_lighting){
+                projected_triangle.light_intensities[light_index] = fabsf(v_face_normal.x * lightpos_to_v_a_ray.x + v_face_normal.y * lightpos_to_v_a_ray.y + v_face_normal.z * lightpos_to_v_a_ray.z) * q_rsqrt(lightpos_to_v_a_ray_length_squarred);
+                projected_triangle.light_intensities[light_index] /= 1.0f + lightpos_to_v_a_ray_length_squarred;
+                projected_triangle.light_intensities[light_index] *= light_sources[light_index].intensity;
+              }
+              else{
+                vector3_t cam_ray = {.x = 0 - v_a.x, .y = 0 - v_a.y, .z = 0 - v_a.z}; 
+                float light_v_a_dot_normal  = v_face_normal.x * lightpos_to_v_a_ray.x + v_face_normal.y * lightpos_to_v_a_ray.y + v_face_normal.z * lightpos_to_v_a_ray.z;
+                float camera_v_a_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
+                float spec = 0.0f;
+                if(object->specular){
+                  vector3_normalize_fast_approx(&lightpos_to_v_a_ray);
+                  vector3_normalize_fast_approx(&cam_ray);
+                  vector3_t H = vector3_add(lightpos_to_v_a_ray, cam_ray);
+                  vector3_normalize_fast_approx(&H);
+                  float d = fmax(vector3_dot(v_face_normal, H), 0.0f);
+                  if(d > 0.0f) spec = 5 * powf(d, SPECULAR_POWER);
+                }
+                if((light_v_a_dot_normal > 0.0f && camera_v_a_dot_normal > 0.0f) || (light_v_a_dot_normal < 0.0f && camera_v_a_dot_normal < 0.0f)){
+                  projected_triangle.light_intensities[light_index] = spec + fabsf(light_v_a_dot_normal) * q_rsqrt(lightpos_to_v_a_ray_length_squarred);
+                  projected_triangle.light_intensities[light_index] /= 1.0f + lightpos_to_v_a_ray_length_squarred;
+                  projected_triangle.light_intensities[light_index] *= light_sources[light_index].intensity;
+                }
+                else
+                  projected_triangle.light_intensities[light_index] = 0.0f;
+              } 
+            }
+            else if(light_sources[light_index].type == LIGHT_AMBIENT){
+              projected_triangle.light_intensities[light_index] = light_sources[light_index].intensity;
+            }
+            /* clamp to [0.0, 1.0] */
+            if(projected_triangle.light_intensities[light_index] < 0.0f) projected_triangle.light_intensities[light_index] = 0.0f;
+            else if(projected_triangle.light_intensities[light_index] > 1.0f) projected_triangle.light_intensities[light_index] = 1.0f;
+          }
+        }
+
+        /* TRIANGLE RASTERIZATION */
+        rasterize_triangle(
+          &projected_triangle, 
+          object->texture->texture, 
+          object->texture->texture_width, object->texture->texture_height, 
+          object->blend_mode, object->alpha_cutoff,
+          object->solid_color,
+          object->opacity,
+          object->reflective,
+          object->emissive_color,
+          object->emissive_intensity
+        );
+
+        if(projection_options.wireframe_overlay){
+          draw_triangle(projected_triangle.points[0].x,
+                        projected_triangle.points[0].y, 
+                        projected_triangle.points[1].x, 
+                        projected_triangle.points[1].y, 
+                        projected_triangle.points[2].x, 
+                        projected_triangle.points[2].y, 
+                        (color_t){.uint32 = 0xffffff00}
+          );
+        }
+
+        total_triangles_rendered++;
+      } /* for(int t = 0; t < polygon.num_vertices - 2; t++) */
+    } /* for(uint32_t i = 0; i < num_faces; i++) */
+  } /* for(uint32_t object_i = 0; object_i < num_objects_sorted; object_i++) */
+  
+  
+  for(uint32_t row = 0; row < NUM_CHUNK_DIVISIONS; row++){
+    for(uint32_t col = 0; col < NUM_CHUNK_DIVISIONS; col++){
+      /* nnn = xzy */
+      vector4_t p000 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_min, .y = chunks[row][col].y_min, .z = chunks[row][col].z_min});
+      vector4_t p010 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_min, .y = chunks[row][col].y_min, .z = chunks[row][col].z_max});
+      vector4_t p100 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_max, .y = chunks[row][col].y_min, .z = chunks[row][col].z_min});
+      vector4_t p110 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_max, .y = chunks[row][col].y_min, .z = chunks[row][col].z_max});
+
+      vector4_t p001 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_min, .y = chunks[row][col].y_max, .z = chunks[row][col].z_min});
+      vector4_t p011 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_min, .y = chunks[row][col].y_max, .z = chunks[row][col].z_max});
+      vector4_t p101 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_max, .y = chunks[row][col].y_max, .z = chunks[row][col].z_min});
+      vector4_t p111 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_max, .y = chunks[row][col].y_max, .z = chunks[row][col].z_max});
+
+      vector4_t projected_p000 = matrix4_mul_vector4(&projection_matrix, p000);
+      vector4_t projected_p010 = matrix4_mul_vector4(&projection_matrix, p010);
+      vector4_t projected_p100 = matrix4_mul_vector4(&projection_matrix, p100);
+      vector4_t projected_p110 = matrix4_mul_vector4(&projection_matrix, p110);
+
+      vector4_t projected_p001 = matrix4_mul_vector4(&projection_matrix, p001);
+      vector4_t projected_p011 = matrix4_mul_vector4(&projection_matrix, p011);
+      vector4_t projected_p101 = matrix4_mul_vector4(&projection_matrix, p101);
+      vector4_t projected_p111 = matrix4_mul_vector4(&projection_matrix, p111);
+
+      if(projected_p000.w != 0.0){
+        projected_p000.x /= projected_p000.w;
+        projected_p000.y /= projected_p000.w;
+        projected_p000.z /= projected_p000.w;
+      }
+      if(projected_p010.w != 0.0){
+        projected_p010.x /= projected_p010.w;
+        projected_p010.y /= projected_p010.w;
+        projected_p010.z /= projected_p010.w;
+      }
+      if(projected_p100.w != 0.0){
+        projected_p100.x /= projected_p100.w;
+        projected_p100.y /= projected_p100.w;
+        projected_p100.z /= projected_p100.w;
+      }
+      if(projected_p110.w != 0.0){
+        projected_p110.x /= projected_p110.w;
+        projected_p110.y /= projected_p110.w;
+        projected_p110.z /= projected_p110.w;
+      }
+
+      if(projected_p001.w != 0.0){
+        projected_p001.x /= projected_p001.w;
+        projected_p001.y /= projected_p001.w;
+        projected_p001.z /= projected_p001.w;
+      }
+      if(projected_p011.w != 0.0){
+        projected_p011.x /= projected_p011.w;
+        projected_p011.y /= projected_p011.w;
+        projected_p011.z /= projected_p011.w;
+      }
+      if(projected_p101.w != 0.0){
+        projected_p101.x /= projected_p101.w;
+        projected_p101.y /= projected_p101.w;
+        projected_p101.z /= projected_p101.w;
+      }
+      if(projected_p111.w != 0.0){
+        projected_p111.x /= projected_p111.w;
+        projected_p111.y /= projected_p111.w;
+        projected_p111.z /= projected_p111.w;
+      }
+      
+      if(
+        projected_p000.x < -1.0f || projected_p010.x < -1.0f || projected_p100.x < -1.0f || projected_p110.x < -1.0f ||
+        projected_p000.x > 1.0f || projected_p010.x > 1.0f || projected_p100.x > 1.0f || projected_p110.x > 1.0f ||
+        projected_p000.y < -1.0f || projected_p010.y < -1.0f || projected_p100.y < -1.0f || projected_p110.y < -1.0f ||
+        projected_p000.y > 1.0f || projected_p010.y > 1.0f || projected_p100.y > 1.0f || projected_p110.y > 1.0f ||
+        projected_p000.z < 0.0f || projected_p010.z < 0.0f || projected_p100.z < 0.0f || projected_p110.z < 0.0f ||
+        projected_p000.z > 1.0f || projected_p010.z > 1.0f || projected_p100.z > 1.0f || projected_p110.z > 1.0f ||
+
+        projected_p001.x < -1.0f || projected_p011.x < -1.0f || projected_p101.x < -1.0f || projected_p111.x < -1.0f ||
+        projected_p001.x > 1.0f  || projected_p011.x > 1.0f  || projected_p101.x > 1.0f  || projected_p111.x > 1.0f  ||
+        projected_p001.y < -1.0f || projected_p011.y < -1.0f || projected_p101.y < -1.0f || projected_p111.y < -1.0f ||
+        projected_p001.y > 1.0f  || projected_p011.y > 1.0f  || projected_p101.y > 1.0f  || projected_p111.y > 1.0f  ||
+        projected_p001.z < 0.0f  || projected_p011.z < 0.0f  || projected_p101.z < 0.0f  || projected_p111.z < 0.0f  ||
+        projected_p001.z > 1.0f  || projected_p011.z > 1.0f  || projected_p101.z > 1.0f  || projected_p111.z > 1.0f
+      ) continue;
+
+      projected_p000.x =  projected_p000.x * (window_width  * 0.5) + (window_width  * 0.5);
+      projected_p000.y = -projected_p000.y * (window_height * 0.5) + (window_height * 0.5); 
+      projected_p010.x =  projected_p010.x * (window_width  * 0.5) + (window_width  * 0.5);
+      projected_p010.y = -projected_p010.y * (window_height * 0.5) + (window_height * 0.5); 
+      projected_p100.x =  projected_p100.x * (window_width  * 0.5) + (window_width  * 0.5);
+      projected_p100.y = -projected_p100.y * (window_height * 0.5) + (window_height * 0.5); 
+      projected_p110.x =  projected_p110.x * (window_width  * 0.5) + (window_width  * 0.5);
+      projected_p110.y = -projected_p110.y * (window_height * 0.5) + (window_height * 0.5); 
+
+      projected_p001.x =  projected_p001.x * (window_width  * 0.5) + (window_width  * 0.5);
+      projected_p001.y = -projected_p001.y * (window_height * 0.5) + (window_height * 0.5); 
+      projected_p011.x =  projected_p011.x * (window_width  * 0.5) + (window_width  * 0.5);
+      projected_p011.y = -projected_p011.y * (window_height * 0.5) + (window_height * 0.5); 
+      projected_p101.x =  projected_p101.x * (window_width  * 0.5) + (window_width  * 0.5);
+      projected_p101.y = -projected_p101.y * (window_height * 0.5) + (window_height * 0.5); 
+      projected_p111.x =  projected_p111.x * (window_width  * 0.5) + (window_width  * 0.5);
+      projected_p111.y = -projected_p111.y * (window_height * 0.5) + (window_height * 0.5); 
+
+      /* bottom */
+      draw_line(projected_p000.x, projected_p000.y, projected_p010.x, projected_p010.y, (color_t){.uint32 = 0xFFFFFFFF});
+      draw_line(projected_p010.x, projected_p010.y, projected_p110.x, projected_p110.y, (color_t){.uint32 = 0xFFFFFFFF});
+      draw_line(projected_p110.x, projected_p110.y, projected_p100.x, projected_p100.y, (color_t){.uint32 = 0xFFFFFFFF});
+      draw_line(projected_p100.x, projected_p100.y, projected_p000.x, projected_p000.y, (color_t){.uint32 = 0xFFFFFFFF});
+
+      /* top */
+      draw_line(projected_p001.x, projected_p001.y, projected_p011.x, projected_p011.y, (color_t){.uint32 = 0xFFFFFFFF});
+      draw_line(projected_p011.x, projected_p011.y, projected_p111.x, projected_p111.y, (color_t){.uint32 = 0xFFFFFFFF});
+      draw_line(projected_p111.x, projected_p111.y, projected_p101.x, projected_p101.y, (color_t){.uint32 = 0xFFFFFFFF});
+      draw_line(projected_p101.x, projected_p101.y, projected_p001.x, projected_p001.y, (color_t){.uint32 = 0xFFFFFFFF});
+
+      /* sides */
+      draw_line(projected_p000.x, projected_p000.y, projected_p001.x, projected_p001.y, (color_t){.uint32 = 0xFFFFFFFF});
+      draw_line(projected_p100.x, projected_p100.y, projected_p101.x, projected_p101.y, (color_t){.uint32 = 0xFFFFFFFF});
+      draw_line(projected_p010.x, projected_p010.y, projected_p011.x, projected_p011.y, (color_t){.uint32 = 0xFFFFFFFF});
+      draw_line(projected_p110.x, projected_p110.y, projected_p111.x, projected_p111.y, (color_t){.uint32 = 0xFFFFFFFF});
+    }
+  }
+
+  if((time_count & 0x0F) == 0)
+    snprintf(text, 128, "%u, %d, %dr:%dt, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
+      total_triangles_rendered, fps, 
+      num_objects_sorted, num_objects,
+      camera.position.x, camera.position.y, camera.position.z,
+      camera.direction.x, camera.direction.y, camera.direction.z,
+      camera.theta, camera.eta
+    );
+}
+
+void update_and_render_color_buffer2(void) {
   /* reset color_buffer */
   memset(color_buffer, color_buffer_reset, total_buffer_pixels * sizeof(uint32_t));
   /* reset zbuffer - it needs to be reset here as well in case skybox object does not exist */
@@ -1000,123 +1495,123 @@ void update_and_render_color_buffer(void) {
   } /* for(uint32_t object_i = 0; object_i < num_objects_sorted; object_i++) */
   
   
-  for(uint32_t row = 0; row < NUM_CHUNK_DIVISIONS; row++){
-    for(uint32_t col = 0; col < NUM_CHUNK_DIVISIONS; col++){
-      vector4_t p000 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_min, .y = chunks[row][col].y_min, .z = chunks[row][col].z_min});
-      vector4_t p010 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_min, .y = chunks[row][col].y_min, .z = chunks[row][col].z_max});
-      vector4_t p100 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_max, .y = chunks[row][col].y_min, .z = chunks[row][col].z_min});
-      vector4_t p110 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_max, .y = chunks[row][col].y_min, .z = chunks[row][col].z_max});
-
-      vector4_t p001 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_min, .y = chunks[row][col].y_max, .z = chunks[row][col].z_min});
-      vector4_t p011 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_min, .y = chunks[row][col].y_max, .z = chunks[row][col].z_max});
-      vector4_t p101 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_max, .y = chunks[row][col].y_max, .z = chunks[row][col].z_min});
-      vector4_t p111 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_max, .y = chunks[row][col].y_max, .z = chunks[row][col].z_max});
-
-      vector4_t projected_p000 = matrix4_mul_vector4(&projection_matrix, p000);
-      vector4_t projected_p010 = matrix4_mul_vector4(&projection_matrix, p010);
-      vector4_t projected_p100 = matrix4_mul_vector4(&projection_matrix, p100);
-      vector4_t projected_p110 = matrix4_mul_vector4(&projection_matrix, p110);
-
-      vector4_t projected_p001 = matrix4_mul_vector4(&projection_matrix, p001);
-      vector4_t projected_p011 = matrix4_mul_vector4(&projection_matrix, p011);
-      vector4_t projected_p101 = matrix4_mul_vector4(&projection_matrix, p101);
-      vector4_t projected_p111 = matrix4_mul_vector4(&projection_matrix, p111);
-
-      if(projected_p000.w != 0.0){
-        projected_p000.x /= projected_p000.w;
-        projected_p000.y /= projected_p000.w;
-        projected_p000.z /= projected_p000.w;
-      }
-      if(projected_p010.w != 0.0){
-        projected_p010.x /= projected_p010.w;
-        projected_p010.y /= projected_p010.w;
-        projected_p010.z /= projected_p010.w;
-      }
-      if(projected_p100.w != 0.0){
-        projected_p100.x /= projected_p100.w;
-        projected_p100.y /= projected_p100.w;
-        projected_p100.z /= projected_p100.w;
-      }
-      if(projected_p110.w != 0.0){
-        projected_p110.x /= projected_p110.w;
-        projected_p110.y /= projected_p110.w;
-        projected_p110.z /= projected_p110.w;
-      }
-
-      if(projected_p001.w != 0.0){
-        projected_p001.x /= projected_p001.w;
-        projected_p001.y /= projected_p001.w;
-        projected_p001.z /= projected_p001.w;
-      }
-      if(projected_p011.w != 0.0){
-        projected_p011.x /= projected_p011.w;
-        projected_p011.y /= projected_p011.w;
-        projected_p011.z /= projected_p011.w;
-      }
-      if(projected_p101.w != 0.0){
-        projected_p101.x /= projected_p101.w;
-        projected_p101.y /= projected_p101.w;
-        projected_p101.z /= projected_p101.w;
-      }
-      if(projected_p111.w != 0.0){
-        projected_p111.x /= projected_p111.w;
-        projected_p111.y /= projected_p111.w;
-        projected_p111.z /= projected_p111.w;
-      }
-      
-      if(
-        projected_p000.x < -1.0f || projected_p010.x < -1.0f || projected_p100.x < -1.0f || projected_p110.x < -1.0f ||
-        projected_p000.x > 1.0f || projected_p010.x > 1.0f || projected_p100.x > 1.0f || projected_p110.x > 1.0f ||
-        projected_p000.y < -1.0f || projected_p010.y < -1.0f || projected_p100.y < -1.0f || projected_p110.y < -1.0f ||
-        projected_p000.y > 1.0f || projected_p010.y > 1.0f || projected_p100.y > 1.0f || projected_p110.y > 1.0f ||
-        projected_p000.z < 0.0f || projected_p010.z < 0.0f || projected_p100.z < 0.0f || projected_p110.z < 0.0f ||
-        projected_p000.z > 1.0f || projected_p010.z > 1.0f || projected_p100.z > 1.0f || projected_p110.z > 1.0f ||
-
-        projected_p001.x < -1.0f || projected_p011.x < -1.0f || projected_p101.x < -1.0f || projected_p111.x < -1.0f ||
-        projected_p001.x > 1.0f  || projected_p011.x > 1.0f  || projected_p101.x > 1.0f  || projected_p111.x > 1.0f  ||
-        projected_p001.y < -1.0f || projected_p011.y < -1.0f || projected_p101.y < -1.0f || projected_p111.y < -1.0f ||
-        projected_p001.y > 1.0f  || projected_p011.y > 1.0f  || projected_p101.y > 1.0f  || projected_p111.y > 1.0f  ||
-        projected_p001.z < 0.0f  || projected_p011.z < 0.0f  || projected_p101.z < 0.0f  || projected_p111.z < 0.0f  ||
-        projected_p001.z > 1.0f  || projected_p011.z > 1.0f  || projected_p101.z > 1.0f  || projected_p111.z > 1.0f
-      ) continue;
-
-      projected_p000.x =  projected_p000.x * (window_width  * 0.5) + (window_width  * 0.5);
-      projected_p000.y = -projected_p000.y * (window_height * 0.5) + (window_height * 0.5); 
-      projected_p010.x =  projected_p010.x * (window_width  * 0.5) + (window_width  * 0.5);
-      projected_p010.y = -projected_p010.y * (window_height * 0.5) + (window_height * 0.5); 
-      projected_p100.x =  projected_p100.x * (window_width  * 0.5) + (window_width  * 0.5);
-      projected_p100.y = -projected_p100.y * (window_height * 0.5) + (window_height * 0.5); 
-      projected_p110.x =  projected_p110.x * (window_width  * 0.5) + (window_width  * 0.5);
-      projected_p110.y = -projected_p110.y * (window_height * 0.5) + (window_height * 0.5); 
-
-      projected_p001.x =  projected_p001.x * (window_width  * 0.5) + (window_width  * 0.5);
-      projected_p001.y = -projected_p001.y * (window_height * 0.5) + (window_height * 0.5); 
-      projected_p011.x =  projected_p011.x * (window_width  * 0.5) + (window_width  * 0.5);
-      projected_p011.y = -projected_p011.y * (window_height * 0.5) + (window_height * 0.5); 
-      projected_p101.x =  projected_p101.x * (window_width  * 0.5) + (window_width  * 0.5);
-      projected_p101.y = -projected_p101.y * (window_height * 0.5) + (window_height * 0.5); 
-      projected_p111.x =  projected_p111.x * (window_width  * 0.5) + (window_width  * 0.5);
-      projected_p111.y = -projected_p111.y * (window_height * 0.5) + (window_height * 0.5); 
-
-      /* bottom */
-      draw_line(projected_p000.x, projected_p000.y, projected_p010.x, projected_p010.y, (color_t){.uint32 = 0xFFFFFFFF});
-      draw_line(projected_p010.x, projected_p010.y, projected_p110.x, projected_p110.y, (color_t){.uint32 = 0xFFFFFFFF});
-      draw_line(projected_p110.x, projected_p110.y, projected_p100.x, projected_p100.y, (color_t){.uint32 = 0xFFFFFFFF});
-      draw_line(projected_p100.x, projected_p100.y, projected_p000.x, projected_p000.y, (color_t){.uint32 = 0xFFFFFFFF});
-
-      /* top */
-      draw_line(projected_p001.x, projected_p001.y, projected_p011.x, projected_p011.y, (color_t){.uint32 = 0xFFFFFFFF});
-      draw_line(projected_p011.x, projected_p011.y, projected_p111.x, projected_p111.y, (color_t){.uint32 = 0xFFFFFFFF});
-      draw_line(projected_p111.x, projected_p111.y, projected_p101.x, projected_p101.y, (color_t){.uint32 = 0xFFFFFFFF});
-      draw_line(projected_p101.x, projected_p101.y, projected_p001.x, projected_p001.y, (color_t){.uint32 = 0xFFFFFFFF});
-
-      /* sides */
-      draw_line(projected_p000.x, projected_p000.y, projected_p001.x, projected_p001.y, (color_t){.uint32 = 0xFFFFFFFF});
-      draw_line(projected_p100.x, projected_p100.y, projected_p101.x, projected_p101.y, (color_t){.uint32 = 0xFFFFFFFF});
-      draw_line(projected_p010.x, projected_p010.y, projected_p011.x, projected_p011.y, (color_t){.uint32 = 0xFFFFFFFF});
-      draw_line(projected_p110.x, projected_p110.y, projected_p111.x, projected_p111.y, (color_t){.uint32 = 0xFFFFFFFF});
-    }
-  }
+//  for(uint32_t row = 0; row < NUM_CHUNK_DIVISIONS; row++){
+//    for(uint32_t col = 0; col < NUM_CHUNK_DIVISIONS; col++){
+//      vector4_t p000 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_min, .y = chunks[row][col].y_min, .z = chunks[row][col].z_min});
+//      vector4_t p010 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_min, .y = chunks[row][col].y_min, .z = chunks[row][col].z_max});
+//      vector4_t p100 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_max, .y = chunks[row][col].y_min, .z = chunks[row][col].z_min});
+//      vector4_t p110 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_max, .y = chunks[row][col].y_min, .z = chunks[row][col].z_max});
+//
+//      vector4_t p001 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_min, .y = chunks[row][col].y_max, .z = chunks[row][col].z_min});
+//      vector4_t p011 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_min, .y = chunks[row][col].y_max, .z = chunks[row][col].z_max});
+//      vector4_t p101 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_max, .y = chunks[row][col].y_max, .z = chunks[row][col].z_min});
+//      vector4_t p111 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_max, .y = chunks[row][col].y_max, .z = chunks[row][col].z_max});
+//
+//      vector4_t projected_p000 = matrix4_mul_vector4(&projection_matrix, p000);
+//      vector4_t projected_p010 = matrix4_mul_vector4(&projection_matrix, p010);
+//      vector4_t projected_p100 = matrix4_mul_vector4(&projection_matrix, p100);
+//      vector4_t projected_p110 = matrix4_mul_vector4(&projection_matrix, p110);
+//
+//      vector4_t projected_p001 = matrix4_mul_vector4(&projection_matrix, p001);
+//      vector4_t projected_p011 = matrix4_mul_vector4(&projection_matrix, p011);
+//      vector4_t projected_p101 = matrix4_mul_vector4(&projection_matrix, p101);
+//      vector4_t projected_p111 = matrix4_mul_vector4(&projection_matrix, p111);
+//
+//      if(projected_p000.w != 0.0){
+//        projected_p000.x /= projected_p000.w;
+//        projected_p000.y /= projected_p000.w;
+//        projected_p000.z /= projected_p000.w;
+//      }
+//      if(projected_p010.w != 0.0){
+//        projected_p010.x /= projected_p010.w;
+//        projected_p010.y /= projected_p010.w;
+//        projected_p010.z /= projected_p010.w;
+//      }
+//      if(projected_p100.w != 0.0){
+//        projected_p100.x /= projected_p100.w;
+//        projected_p100.y /= projected_p100.w;
+//        projected_p100.z /= projected_p100.w;
+//      }
+//      if(projected_p110.w != 0.0){
+//        projected_p110.x /= projected_p110.w;
+//        projected_p110.y /= projected_p110.w;
+//        projected_p110.z /= projected_p110.w;
+//      }
+//
+//      if(projected_p001.w != 0.0){
+//        projected_p001.x /= projected_p001.w;
+//        projected_p001.y /= projected_p001.w;
+//        projected_p001.z /= projected_p001.w;
+//      }
+//      if(projected_p011.w != 0.0){
+//        projected_p011.x /= projected_p011.w;
+//        projected_p011.y /= projected_p011.w;
+//        projected_p011.z /= projected_p011.w;
+//      }
+//      if(projected_p101.w != 0.0){
+//        projected_p101.x /= projected_p101.w;
+//        projected_p101.y /= projected_p101.w;
+//        projected_p101.z /= projected_p101.w;
+//      }
+//      if(projected_p111.w != 0.0){
+//        projected_p111.x /= projected_p111.w;
+//        projected_p111.y /= projected_p111.w;
+//        projected_p111.z /= projected_p111.w;
+//      }
+//      
+//      if(
+//        projected_p000.x < -1.0f || projected_p010.x < -1.0f || projected_p100.x < -1.0f || projected_p110.x < -1.0f ||
+//        projected_p000.x > 1.0f || projected_p010.x > 1.0f || projected_p100.x > 1.0f || projected_p110.x > 1.0f ||
+//        projected_p000.y < -1.0f || projected_p010.y < -1.0f || projected_p100.y < -1.0f || projected_p110.y < -1.0f ||
+//        projected_p000.y > 1.0f || projected_p010.y > 1.0f || projected_p100.y > 1.0f || projected_p110.y > 1.0f ||
+//        projected_p000.z < 0.0f || projected_p010.z < 0.0f || projected_p100.z < 0.0f || projected_p110.z < 0.0f ||
+//        projected_p000.z > 1.0f || projected_p010.z > 1.0f || projected_p100.z > 1.0f || projected_p110.z > 1.0f ||
+//
+//        projected_p001.x < -1.0f || projected_p011.x < -1.0f || projected_p101.x < -1.0f || projected_p111.x < -1.0f ||
+//        projected_p001.x > 1.0f  || projected_p011.x > 1.0f  || projected_p101.x > 1.0f  || projected_p111.x > 1.0f  ||
+//        projected_p001.y < -1.0f || projected_p011.y < -1.0f || projected_p101.y < -1.0f || projected_p111.y < -1.0f ||
+//        projected_p001.y > 1.0f  || projected_p011.y > 1.0f  || projected_p101.y > 1.0f  || projected_p111.y > 1.0f  ||
+//        projected_p001.z < 0.0f  || projected_p011.z < 0.0f  || projected_p101.z < 0.0f  || projected_p111.z < 0.0f  ||
+//        projected_p001.z > 1.0f  || projected_p011.z > 1.0f  || projected_p101.z > 1.0f  || projected_p111.z > 1.0f
+//      ) continue;
+//
+//      projected_p000.x =  projected_p000.x * (window_width  * 0.5) + (window_width  * 0.5);
+//      projected_p000.y = -projected_p000.y * (window_height * 0.5) + (window_height * 0.5); 
+//      projected_p010.x =  projected_p010.x * (window_width  * 0.5) + (window_width  * 0.5);
+//      projected_p010.y = -projected_p010.y * (window_height * 0.5) + (window_height * 0.5); 
+//      projected_p100.x =  projected_p100.x * (window_width  * 0.5) + (window_width  * 0.5);
+//      projected_p100.y = -projected_p100.y * (window_height * 0.5) + (window_height * 0.5); 
+//      projected_p110.x =  projected_p110.x * (window_width  * 0.5) + (window_width  * 0.5);
+//      projected_p110.y = -projected_p110.y * (window_height * 0.5) + (window_height * 0.5); 
+//
+//      projected_p001.x =  projected_p001.x * (window_width  * 0.5) + (window_width  * 0.5);
+//      projected_p001.y = -projected_p001.y * (window_height * 0.5) + (window_height * 0.5); 
+//      projected_p011.x =  projected_p011.x * (window_width  * 0.5) + (window_width  * 0.5);
+//      projected_p011.y = -projected_p011.y * (window_height * 0.5) + (window_height * 0.5); 
+//      projected_p101.x =  projected_p101.x * (window_width  * 0.5) + (window_width  * 0.5);
+//      projected_p101.y = -projected_p101.y * (window_height * 0.5) + (window_height * 0.5); 
+//      projected_p111.x =  projected_p111.x * (window_width  * 0.5) + (window_width  * 0.5);
+//      projected_p111.y = -projected_p111.y * (window_height * 0.5) + (window_height * 0.5); 
+//
+//      /* bottom */
+//      draw_line(projected_p000.x, projected_p000.y, projected_p010.x, projected_p010.y, (color_t){.uint32 = 0xFFFFFFFF});
+//      draw_line(projected_p010.x, projected_p010.y, projected_p110.x, projected_p110.y, (color_t){.uint32 = 0xFFFFFFFF});
+//      draw_line(projected_p110.x, projected_p110.y, projected_p100.x, projected_p100.y, (color_t){.uint32 = 0xFFFFFFFF});
+//      draw_line(projected_p100.x, projected_p100.y, projected_p000.x, projected_p000.y, (color_t){.uint32 = 0xFFFFFFFF});
+//
+//      /* top */
+//      draw_line(projected_p001.x, projected_p001.y, projected_p011.x, projected_p011.y, (color_t){.uint32 = 0xFFFFFFFF});
+//      draw_line(projected_p011.x, projected_p011.y, projected_p111.x, projected_p111.y, (color_t){.uint32 = 0xFFFFFFFF});
+//      draw_line(projected_p111.x, projected_p111.y, projected_p101.x, projected_p101.y, (color_t){.uint32 = 0xFFFFFFFF});
+//      draw_line(projected_p101.x, projected_p101.y, projected_p001.x, projected_p001.y, (color_t){.uint32 = 0xFFFFFFFF});
+//
+//      /* sides */
+//      draw_line(projected_p000.x, projected_p000.y, projected_p001.x, projected_p001.y, (color_t){.uint32 = 0xFFFFFFFF});
+//      draw_line(projected_p100.x, projected_p100.y, projected_p101.x, projected_p101.y, (color_t){.uint32 = 0xFFFFFFFF});
+//      draw_line(projected_p010.x, projected_p010.y, projected_p011.x, projected_p011.y, (color_t){.uint32 = 0xFFFFFFFF});
+//      draw_line(projected_p110.x, projected_p110.y, projected_p111.x, projected_p111.y, (color_t){.uint32 = 0xFFFFFFFF});
+//    }
+//  }
   
 
   if((time_count & 0x0F) == 0)
@@ -1488,12 +1983,31 @@ void load_world1(void){
   );
 }
 
+void load_quake_world(){
+  mesh_t *mesh;
+  texture_t *texture;
+
+  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.9f);
+  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.1f);
+
+  mesh = load_mesh("./assets/obj/quake/e4m2.obj");
+  texture = load_texture("./assets/textures/walls/wall.png");
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
+                (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
+                0.0f, false, true, false,
+                BLEND_MODE_OPAQUE, 0x01, 
+                (vector3_t){2, 2, 2}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                texture
+  );
+}
+
 void load_voxel_world(){
   mesh_t *mesh;
   texture_t *texture;
 
-  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.4f);
-  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
+  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.9f);
+  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.1f);
 
   mesh = load_mesh("./assets/obj/voxels2.obj");
   texture = load_texture("./assets/textures/ground/mountain.png");

@@ -62,8 +62,9 @@ RENDER STAGE
     render stored faces with normal triangle clipping.
     If inside:
     render stored faces without triangle clipping.
-    Use a per-frame face stamp to avoid drawing duplicated overlap faces more than once.
+    ** Use a per-frame face stamp to avoid drawing duplicated overlap faces more than once.
 
+    after all intersecting chunks are found, sort them front to back before rendering.
 */
 
 /* go through all static/chunkable objects in the world, for each object, get the face vertices

@@ -29,7 +29,6 @@ void free_resources(void);
 void update_and_render_color_buffer(void) ;
 void object_quicksort(object_sort_key_t *array, int count);
 void qs(object_sort_key_t *array, int left, int right);
-void object_render_debug();
 void render_sun(void);
 void update_state(void);
 void update_light(void);
@@ -62,9 +61,14 @@ inline void rasterize_triangle_no_zbuffer_write(
   float emissive_intensity
 );
 
+int num_chunk_points_inside_frustrum(chunk_t *chunk);
+bool chunk_vertex_inside_frustrum(vector3_t vertex);
+void render_chunk(chunk_t *chunk, bool clip);
+
 void load_skybox();
 void load_world1(void);
 void load_voxel_world();
 void load_server_room();
+void load_quake_world();
 
 #endif
