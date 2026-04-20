@@ -95,8 +95,8 @@ void calculate_world_bounds(void){
   world_z_min = z_min;
   world_z_max = z_max;
 
-  printf("\nxmin: %f, xmax: %f", x_min, x_max);
-  printf("\nzmin: %f, zmax: %f\n", z_min, z_max);
+  printf("\nworld xmin: %f, world xmax: %f", x_min, x_max);
+  printf("\nworld zmin: %f, world zmax: %f\n", z_min, z_max);
 }
 
 /* split the world into chunks */
@@ -157,11 +157,11 @@ void populate_chunks(void){
         vector3_t v_c = object->transformed_vertices[face.vertex_indices[2]];
         /* form face's 2d AABB */
         aabb_3d_t face_aabb = calculate_3d_aabb(v_a, v_b, v_c);
-        /* compute the range of chunks that span across the aabb - these are the chunks that intersect with the face */
-        int chunk_xcol_min = (face_aabb.x_min - world_x_min) / chunk_dx;
-        int chunk_xcol_max = (face_aabb.x_max - world_x_min) / chunk_dx;
-        int chunk_zrow_min = (face_aabb.z_min - world_z_min) / chunk_dz;
-        int chunk_zrow_max = (face_aabb.z_max - world_z_min) / chunk_dz;
+        /* compute the range of chunks that span across the aabb - these are the chunks that overlap with the face */
+        int chunk_xcol_min = (int)((face_aabb.x_min - world_x_min) / chunk_dx);
+        int chunk_xcol_max = (int)((face_aabb.x_max - world_x_min) / chunk_dx);
+        int chunk_zrow_min = (int)((face_aabb.z_min - world_z_min) / chunk_dz);
+        int chunk_zrow_max = (int)((face_aabb.z_max - world_z_min) / chunk_dz);
 
         /* clamp boundaries because a triangle on the boundary can give a chunk index out of range */
         chunk_xcol_min = MAX(0, chunk_xcol_min);
@@ -172,7 +172,6 @@ void populate_chunks(void){
         /* now add reference to object and face to the chunks */
         for(int z_row = chunk_zrow_min; z_row <= chunk_zrow_max; z_row++){
           for(int x_col = chunk_xcol_min; x_col <= chunk_xcol_max; x_col++){
-            chunks[z_row][x_col].empty = false;
             /* check if chunk already has reference to this object - if not, then create object entry */
             int chunk_object_idx = chunk_has_object_entry(z_row, x_col, object_id);
             if(chunk_object_idx == -1){ /* object does not exist in table */
@@ -194,9 +193,18 @@ void populate_chunks(void){
             /* increment number of faces for that object in chunk */
             chunks[z_row][x_col].chunk_object_faces[chunk_object_idx].num_faces++;
 
-            /* update chunk's y-bounds with new face aabb's max/min height */
-            if(face_aabb.y_min < chunks[z_row][x_col].y_min) chunks[z_row][x_col].y_min = face_aabb.y_min;
-            if(face_aabb.y_max > chunks[z_row][x_col].y_max) chunks[z_row][x_col].y_max = face_aabb.y_max;
+            /* update chunk's y-bounds with new face aabb's max/min height
+               but the very first face assigned to the chunk needs to be special and set the initial size, otherwise for example a face totally above 0.0 would not update the initial value
+            */
+            if(chunks[z_row][x_col].empty){
+              chunks[z_row][x_col].y_min = face_aabb.y_min;
+              chunks[z_row][x_col].y_max = face_aabb.y_max;
+              chunks[z_row][x_col].empty = false;
+            }
+            else{
+              if(face_aabb.y_min < chunks[z_row][x_col].y_min) chunks[z_row][x_col].y_min = face_aabb.y_min;
+              if(face_aabb.y_max > chunks[z_row][x_col].y_max) chunks[z_row][x_col].y_max = face_aabb.y_max;
+            }
           }
         }
       }

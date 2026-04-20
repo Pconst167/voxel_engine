@@ -26,6 +26,11 @@
 
     TODO:
       >>>> check which components of frustrum plane normals are 0, many are ! in frustrum_cull_object function
+      for each chunk, for each object, mark a face as fully inside chunk, or not fully inside so we can skip clipping
+      OR: still only TEST for clipping, but dont clip directly. if triangle crosses frustrum boundary then clip.
+      then for fully inside, we only test for clipping, but for intersecting chunks, clip all triangles directly.
+
+      alternative: during load time, we can split triangles that cross chunks. i.e load time clipping, and separate them per chunk.
 
       IMPLEMENT OCCLUSION CULLING: for each object, project its bounding box AABB 8 vertices to world_view->space->screen and from the 8 vertices form rectangle with min/max of x/y
       then form a grid inside rectangle. for each grid point, we replace its own depth with the nearest object depth, and test that vs zbuffer.
@@ -92,6 +97,7 @@
 
 char fps_str[16];
 uint32_t total_triangles_rendered;
+uint32_t total_chunks_rendered;
 uint32_t time_count; /* keeps a count that increments every frame - used to pace events */
 float time_of_day; /* keeps time the accumulation of  each delta_time per frame */
 char text2[256];
@@ -99,7 +105,7 @@ char text3[256];
 
 /* game control */
 float delta_time;
-float move_speed = 170.0f;
+float move_speed = 50.0f;
 float turn_speed = 3.0f;
 bool quit = false;
 bool is_paused = false;
@@ -160,8 +166,7 @@ void setup(void) {
 
   //load_server_room();
 
-  //load_voxel_world();
-  load_quake_world();
+  load_voxel_world();
 
   //load_world1();
 
@@ -174,17 +179,17 @@ void setup(void) {
   populate_chunks();
 
 
-  for(int row = 0; row < NUM_CHUNK_DIVISIONS; row++){
-    for(int col = 0; col < NUM_CHUNK_DIVISIONS; col++){
-      if(chunks[row][col].empty == false){
-        printf("chunk: %d %d\n", row, col);
-        for(uint32_t obj = 0; obj < chunks[row][col].num_chunk_objects; obj++){
-          printf("object idx %d, object id: %d\n", obj, chunks[row][col].chunk_object_faces[obj].object_id);
+  //for(int row = 0; row < NUM_CHUNK_DIVISIONS; row++){
+  //  for(int col = 0; col < NUM_CHUNK_DIVISIONS; col++){
+  //    if(chunks[row][col].empty == false){
+  //      printf("chunk: %d %d\n", row, col);
+  //      for(uint32_t obj = 0; obj < chunks[row][col].num_chunk_objects; obj++){
+  //        printf("object idx %d, object id: %d\n", obj, chunks[row][col].chunk_object_faces[obj].object_id);
 
-        }
-      }
-    }
-  }
+  //      }
+  //    }
+  //  }
+  //}
 
 }
 
@@ -327,329 +332,6 @@ void process_input(void){
   }
 }
 
-void update_light(void){
-  float sin_eta;
-
-  /* skybox is a special case and needs to always track camera position */
-  if(skybox != NULL){
-    sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
-    sin_eta  = sinf(sun_eta);
-
-    sun_direction.x = 0.0f;
-    sun_direction.y = sin_eta;
-    sun_direction.z = cosf(sun_eta);
-
-    if(sin_eta < 0.0f) sin_eta = 0.0f;
-
-    light_sources[1].direction = (vector3_t){sun_direction.x, -sun_direction.y, -sun_direction.z};
-
-    skybox->translation.x  = camera.position.x; 
-    skybox->translation.y  = camera.position.y;
-    skybox->translation.z  = camera.position.z;
-
-    skybox->emissive_color.rgb.red = light_sources[1].color.rgb.red = 200 + 55 * (1.0f - sin_eta);
-    skybox->emissive_color.rgb.green = light_sources[1].color.rgb.green = 100 + 155 * sin_eta;
-    skybox->emissive_color.rgb.blue = light_sources[1].color.rgb.blue = 255 * sin_eta;
-
-    //* obj 0 is skybox */
-    skybox->emissive_intensity = sin_eta < MIN_SKYBOX_INTENSITY ? MIN_SKYBOX_INTENSITY : sin_eta; /* sky luminosity as a function of time */
-
-    light_sources[1].intensity = sin_eta;
-    /* as sun sets or rises, ambient light should get bluer, and oranger towards noon */
-    light_sources[0].color = skybox->emissive_color; 
-    light_sources[0].intensity = MIN_AMBIENT_LIGHT_INTENSITY + AMBIENT_LIGHT_MAX_FACTOR * sin_eta;
-
-    /* hack to hide ramdom background leaking pixels at triangle edges */
-    color_buffer_reset = (uint8_t)(skybox->emissive_intensity * 100.0f);
-  }
-}
-
-void update_state(void){
-
-  update_light();
-
-}
-
-inline void rasterize_triangle(
-  triangle_t *triangle, 
-  color_t *mesh_texture, 
-  uint32_t texture_width, uint32_t texture_height, 
-  blend_mode_t blend_mode,
-  uint8_t alpha_cutoff,
-  color_t solid_color,
-  float opacity,
-  bool reflective,
-  color_t emissive_color,
-  float emissive_intensity
-){
-  if(projection_options.projection_mode == TEXT_FILLED){
-    draw_filled_triangle(
-      &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, 
-      &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[0].z, triangle->points[1].w}, 
-      &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[0].z, triangle->points[2].w}, 
-      solid_color,
-      triangle->light_intensities,
-      emissive_color,
-      emissive_intensity,
-      reflective,
-      projection_options.dither
-    );
-    return;
-  }
-  else if(projection_options.projection_mode == TEXT_WIREFRAME){
-    draw_triangle(
-      triangle->points[0].x, triangle->points[0].y,
-      triangle->points[1].x, triangle->points[1].y,
-      triangle->points[2].x, triangle->points[2].y,
-      (color_t){.uint32 = 0xFFFFFFFF}
-    );
-    return;
-  }
-  else{
-    switch(blend_mode){
-      case BLEND_MODE_OPAQUE:
-        draw_textured_triangle_opaque(
-          &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, (uv_t){triangle->uv[0].u, triangle->uv[0].v},
-          &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[1].z, triangle->points[1].w}, (uv_t){triangle->uv[1].u, triangle->uv[1].v},
-          &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[2].z, triangle->points[2].w}, (uv_t){triangle->uv[2].u, triangle->uv[2].v},
-          mesh_texture, texture_width, texture_height,
-          triangle->light_intensities,
-          emissive_color,
-          emissive_intensity,
-          reflective,
-          projection_options.dither
-        );
-        return;
-
-      case BLEND_MODE_ALPHA_TEST:
-        draw_textured_triangle_alpha_test(
-          &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, (uv_t){triangle->uv[0].u, triangle->uv[0].v},
-          &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[1].z, triangle->points[1].w}, (uv_t){triangle->uv[1].u, triangle->uv[1].v},
-          &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[2].z, triangle->points[2].w}, (uv_t){triangle->uv[2].u, triangle->uv[2].v},
-          mesh_texture, texture_width, texture_height,
-          triangle->light_intensities,
-          emissive_color,
-          emissive_intensity,
-          reflective,
-          projection_options.dither,
-          alpha_cutoff
-        );
-        return;
-
-      case BLEND_MODE_ALPHA_BLEND:
-        draw_textured_triangle_alpha_blend(
-          &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, (uv_t){triangle->uv[0].u, triangle->uv[0].v},
-          &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[1].z, triangle->points[1].w}, (uv_t){triangle->uv[1].u, triangle->uv[1].v},
-          &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[2].z, triangle->points[2].w}, (uv_t){triangle->uv[2].u, triangle->uv[2].v},
-          mesh_texture, texture_width, texture_height,
-          triangle->light_intensities,
-          emissive_color,
-          emissive_intensity,
-          reflective,
-          projection_options.dither,
-          opacity
-        );
-        return;
-    }
-  }
-}
-
-inline void rasterize_triangle_no_zbuffer_write(
-  triangle_t *triangle, 
-  color_t *texture, 
-  uint32_t texture_width, uint32_t texture_height, 
-  blend_mode_t blend_mode,
-  uint8_t alpha_cutoff,
-  color_t solid_color,
-  float opacity,
-  bool reflective,
-  color_t emissive_color,
-  float emissive_intensity
-){
-  if(projection_options.projection_mode == TEXT_FILLED){
-    draw_filled_triangle_no_zbuffer_write(
-      &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, 
-      &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[0].z, triangle->points[1].w}, 
-      &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[0].z, triangle->points[2].w}, 
-      solid_color,
-      triangle->light_intensities,
-      emissive_color,
-      emissive_intensity,
-      reflective,
-      projection_options.dither
-    );
-    return;
-  }
-  else if(projection_options.projection_mode == TEXT_WIREFRAME){
-    draw_triangle(
-      triangle->points[0].x, triangle->points[0].y,
-      triangle->points[1].x, triangle->points[1].y,
-      triangle->points[2].x, triangle->points[2].y,
-      (color_t){.uint32 = 0xFFFFFFFF}
-    );
-    return;
-  }
-  else{
-    switch(blend_mode){
-      case BLEND_MODE_OPAQUE:
-        draw_textured_triangle_opaque_no_zbuffer_write(
-          &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, (uv_t){triangle->uv[0].u, triangle->uv[0].v},
-          &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[1].z, triangle->points[1].w}, (uv_t){triangle->uv[1].u, triangle->uv[1].v},
-          &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[2].z, triangle->points[2].w}, (uv_t){triangle->uv[2].u, triangle->uv[2].v},
-          texture, texture_width, texture_height,
-          triangle->light_intensities,
-          emissive_color,
-          emissive_intensity,
-          reflective,
-          projection_options.dither
-        );
-        return;
-
-      case BLEND_MODE_ALPHA_TEST:
-        draw_textured_triangle_alpha_test_no_zbuffer_write(
-          &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, (uv_t){triangle->uv[0].u, triangle->uv[0].v},
-          &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[1].z, triangle->points[1].w}, (uv_t){triangle->uv[1].u, triangle->uv[1].v},
-          &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[2].z, triangle->points[2].w}, (uv_t){triangle->uv[2].u, triangle->uv[2].v},
-          texture, texture_width, texture_height,
-          triangle->light_intensities,
-          emissive_color,
-          emissive_intensity,
-          reflective,
-          projection_options.dither,
-          alpha_cutoff
-        );
-        return;
-
-      case BLEND_MODE_ALPHA_BLEND:
-        draw_textured_triangle_alpha_blend(
-          &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, (uv_t){triangle->uv[0].u, triangle->uv[0].v},
-          &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[1].z, triangle->points[1].w}, (uv_t){triangle->uv[1].u, triangle->uv[1].v},
-          &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[2].z, triangle->points[2].w}, (uv_t){triangle->uv[2].u, triangle->uv[2].v},
-          texture, texture_width, texture_height,
-          triangle->light_intensities,
-          emissive_color,
-          emissive_intensity,
-          reflective,
-          projection_options.dither,
-          opacity
-        );
-        return;
-    }
-  }
-}
-
-/* 
-  render the base colorbuffer on top of which everything else is painted
-*/
-__attribute__((optimize("Ofast")))
-void render_sun(void){
-  float half_w = 0.5f * (float)window_width;
-  float half_h = 0.5f * (float)window_height;
-  float projection_plane_dist = half_h / tanf(fov_y * 0.5f);
-
-  /* use actual sun elevation, mirrored above/below horizon */
-  float sun_elev_abs   = fabsf(sun_direction.y);  /* 0 at horizon, 1 at poles */
-  float horizon_factor = 1.0f - sun_elev_abs;     /* 1 at horizon, 0 at poles */
-  /* phase-like color curves, but driven by mirrored elevation */
-  float sun_red_shift   = 0.65f + 0.35f * horizon_factor;  /* red stays strongest near horizon */
-  float sun_green_shift = 0.35f + 0.65f * sun_elev_abs;    /* green rises toward white */
-  float sun_blue_shift  = 0.00f + 1.00f * sun_elev_abs;    /* blue weakest at horizon, strongest at poles */
-
-  /* world -> camera rotation only(no translation, meaning w = 0) */
-  vector4_t vec4_sun_cam = matrix4_mul_vector4(&view_matrix, (vector4_t){sun_direction.x, sun_direction.y, sun_direction.z, 0.0f});
-  vector3_t sun_cam = {vec4_sun_cam.x, vec4_sun_cam.y, vec4_sun_cam.z};
-
-  for(int y = 0; y < window_height; y++){
-    float screen_y_from_center = half_h - (float)y;
-
-    for(int x = 0; x < window_width; x++){
-      float screen_x_from_center = (float)x - half_w;
-
-      /* vector for sun dot product */
-      vector3_t dir_cam = {screen_x_from_center, screen_y_from_center, projection_plane_dist};
-      vector3_normalize_fast_approx(&dir_cam);
-      /* vector for sky band dot product only */
-
-      /* dot product for sun, as we go from pixel to pixel, dot product to check for sun direction across entire projection plane */
-      float sun_dot = dir_cam.x * sun_cam.x + dir_cam.y * sun_cam.y + dir_cam.z * sun_cam.z;
-      if(sun_dot < 0.0f) sun_dot = 0.0f;
-      /* dot product for sky band, only accounts for vertical direction in projection plane */
-      float sun_dot_flat = dir_cam.y * sun_cam.y + dir_cam.z * sun_cam.z;
-      if(sun_dot_flat < 0.0f) sun_dot_flat = 0.0f;
-      
-      /* shun shimmer */
-      sun_dot *= (time_count & 1) ? 0.9992f : 1.0f;
-
-      float sun_glow = sun_dot * sun_dot;
-      sun_glow *= sun_glow;
-      sun_glow *= sun_glow;
-      sun_glow *= sun_glow;
-
-      float sun_core = sun_glow; /* smaller dot power for tighter core */
-      sun_core *= sun_core;
-      sun_core *= sun_core;
-
-      float sun_band = sun_dot_flat * sun_dot_flat;
-
-      color_t pixel = color_buffer[y * window_width + x];
-      float red_t   = (float)(pixel.rgb.red  ) / 255.0f + sun_red_shift   * (sun_core + sun_glow);
-      float green_t = (float)(pixel.rgb.green) / 255.0f + sun_green_shift * (sun_core + sun_glow); 
-      float blue_t  = (float)(pixel.rgb.blue ) / 255.0f + sun_blue_shift  * (sun_core + sun_glow); 
-
-      if(red_t   > 1.0f) red_t   = 1.0f;
-      if(green_t > 1.0f) green_t = 1.0f;
-      if(blue_t  > 1.0f) blue_t  = 1.0f;
-
-      /* for final band blend, this works by only blending where the band is strongest 
-         so instead of using constant factors for the blend, we use the strength of the band as a factor,
-         and this is better because it doesn't washout the sky everywhere, but only where the band is strong. */
-      float band_horizon_factor = 2.0f;
-      float band_mix = 0.15f * sun_band * band_horizon_factor;
-      if(band_mix > 1.0f) band_mix = 1.0f;
-
-      red_t   = (1.0f - band_mix) * red_t   + band_mix * sun_red_shift;
-      green_t = (1.0f - band_mix) * green_t + band_mix * sun_green_shift;
-      blue_t  = (1.0f - band_mix) * blue_t  + band_mix * sun_blue_shift;
-
-      color_t final_color = {
-        .rgb.alpha = 0xFF, 
-        .rgb.blue  = blue_t * 255.0f, 
-        .rgb.green = green_t * 255.0f, 
-        .rgb.red   = red_t * 255.0f
-      };
-      
-      color_buffer[y * window_width + x] = final_color;
-    }
-  }
-}
-
-void qs(object_sort_key_t *array, int left, int right){
-  int i = left;
-  int j = right;
-  float pivot = array[(left + right) / 2].sort_z;
-
-  while(i <= j){
-    while(array[i].sort_z < pivot) i++;
-    while(array[j].sort_z > pivot) j--;
-
-    if(i <= j){
-      object_sort_key_t tmp = array[i];
-      array[i] = array[j];
-      array[j] = tmp;
-      i++;
-      j--;
-    }
-  }
-
-  if(left < j) qs(array, left, j);
-  if(i < right) qs(array, i, right);
-}
-
-inline void object_quicksort(object_sort_key_t *array, int count){
-  if(count > 1)
-    qs(array, 0, count - 1);
-}
-
 /*
 RENDER STAGE
   Render sparse/dynamic objects the normal way.
@@ -670,7 +352,7 @@ RENDER STAGE
   ** after all intersecting chunks are found, sort them front to back before rendering.
 
 */
-void update_and_render_color_buffer(void) {
+void render_visible_chunks(void) {
   /* reset color_buffer */
   memset(color_buffer, color_buffer_reset, total_buffer_pixels * sizeof(uint32_t));
   /* reset zbuffer - it needs to be reset here as well in case skybox object does not exist */
@@ -694,27 +376,102 @@ void update_and_render_color_buffer(void) {
 
   /* loop through all chunks 
      for each chunk, classify it into: intersecting, inside, and add each to a list
-     for inside list, render directly
+     for inside list, render directly with clipping test only - only clip triangles that go outside frustrum
      for intersecting list, apply clipping and render
   */
+  total_triangles_rendered = 0;
+  total_chunks_rendered = 0;
   for(int z_row = 0; z_row < NUM_CHUNK_DIVISIONS; z_row++){
     for(int x_col = 0; x_col < NUM_CHUNK_DIVISIONS; x_col++){
       if(!chunks[z_row][x_col].empty){ /* if chunk is not empty, then render objects contained in chunk */
-        if(num_chunk_points_inside_frustrum(&chunks[z_row][x_col]) == 8){
-          /* render without clipping */
-          render_chunk(&chunks[z_row][x_col], false);       
-        }
-        else if(num_chunk_points_inside_frustrum(&chunks[z_row][x_col]) > 0){
-          // apply clipping to each face and render
-          render_chunk(&chunks[z_row][x_col], true);
-        }
+        int intersection_mode = get_chunk_intersection_mode(&chunks[z_row][x_col]);
+        if(intersection_mode == 1 || intersection_mode == -1)
+          render_chunk(&chunks[z_row][x_col]);
       }
     }
   }
 }
 
-/* for a point to be inside, the dot product of it and all frustrum planes must be positive */
-int num_chunk_points_inside_frustrum(chunk_t *chunk){
+/*  0 : outside
+    1 : inside
+   -1 : intersecting
+
+   check each chunk vertex whether inside all planes
+     if inside, increment counter
+   do this for all vertices
+   in the end if count == 8, its fully inside
+   if count == 0 its fully outside
+   else its intersecting
+*/
+int get_chunk_intersection_mode(chunk_t *chunk){
+  double x_min = chunk->x_min;
+  double x_max = chunk->x_max;
+  double y_min = chunk->y_min;
+  double y_max = chunk->y_max;
+  double z_min = chunk->z_min;
+  double z_max = chunk->z_max;
+
+  vector4_t corners[8];
+  corners[0] = matrix4_mul_vector3(&view_matrix, (vector3_t){x_min, y_min, z_min});
+  corners[1] = matrix4_mul_vector3(&view_matrix, (vector3_t){x_max, y_min, z_min});
+  corners[2] = matrix4_mul_vector3(&view_matrix, (vector3_t){x_min, y_min, z_max});
+  corners[3] = matrix4_mul_vector3(&view_matrix, (vector3_t){x_max, y_min, z_max});
+  corners[4] = matrix4_mul_vector3(&view_matrix, (vector3_t){x_min, y_max, z_min});
+  corners[5] = matrix4_mul_vector3(&view_matrix, (vector3_t){x_max, y_max, z_min});
+  corners[6] = matrix4_mul_vector3(&view_matrix, (vector3_t){x_min, y_max, z_max});
+  corners[7] = matrix4_mul_vector3(&view_matrix, (vector3_t){x_max, y_max, z_max});
+
+  bool fully_inside_all_planes = true;
+
+  for(frustrum_plane_t frustrum_plane = FRUSTRUM_LEFT; frustrum_plane < NUM_VIEW_FRUSTRUM_PLANES; frustrum_plane++){
+    int inside_count = 0;
+
+    for(int i = 0; i < 8; i++)
+      if(chunk_vertex_inside_plane(corners[i], frustrum_plane)) inside_count++;
+
+    if(inside_count == 0) return 0;   /* outside */
+
+    if(inside_count != 8) fully_inside_all_planes = false;
+  }
+
+  return fully_inside_all_planes ? 1 : -1;
+}
+
+bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane){
+  double distance;
+
+  switch(frustrum_plane){
+    case FRUSTRUM_NEAR:
+      return vertex.z >= znear;
+
+    case FRUSTRUM_FAR:
+      return vertex.z <= zfar;
+
+    case FRUSTRUM_LEFT:
+      distance = vertex.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
+                 vertex.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z;
+      return distance >= 0.0;
+
+    case FRUSTRUM_RIGHT:
+      distance = vertex.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
+                 vertex.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z;
+      return distance >= 0.0;
+
+    case FRUSTRUM_BOTTOM:
+      distance = vertex.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
+                 vertex.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z;
+      return distance >= 0.0;
+
+    case FRUSTRUM_TOP:
+      distance = vertex.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
+                 vertex.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z;
+      return distance >= 0.0;
+  }
+
+  return false;
+}
+
+uint32_t chunk_num_vertices_inside_plane(chunk_t *chunk, frustrum_plane_t frustrum_plane){
   double x_min = chunk->x_min;
   double x_max = chunk->x_max;
   double y_min = chunk->y_min;
@@ -723,93 +480,140 @@ int num_chunk_points_inside_frustrum(chunk_t *chunk){
   double z_max = chunk->z_max;
 
   /* nnn = xzy */
-  vector3_t chunk_vert_000 = {.x = x_min, .y = y_min, .z = z_min}; /* bottom plane */
-  vector3_t chunk_vert_100 = {.x = x_max, .y = y_min, .z = z_min};
-  vector3_t chunk_vert_010 = {.x = x_min, .y = y_min, .z = z_max};
-  vector3_t chunk_vert_110 = {.x = x_max, .y = y_min, .z = z_max};
-  vector3_t chunk_vert_001 = {.x = x_min, .y = y_max, .z = z_min}; /* top plane */
-  vector3_t chunk_vert_101 = {.x = x_max, .y = y_max, .z = z_min};
-  vector3_t chunk_vert_011 = {.x = x_min, .y = y_max, .z = z_max};
-  vector3_t chunk_vert_111 = {.x = x_max, .y = y_max, .z = z_max};
-
   /* now we have all points forming the chunk, transform them into view */
-  chunk_vert_000 = matrix4_mul_vector3(&view_matrix, chunk_vert_000);
-  chunk_vert_100 = matrix4_mul_vector3(&view_matrix, chunk_vert_100);
-  chunk_vert_010 = matrix4_mul_vector3(&view_matrix, chunk_vert_010);
-  chunk_vert_110 = matrix4_mul_vector3(&view_matrix, chunk_vert_110);
-  chunk_vert_001 = matrix4_mul_vector3(&view_matrix, chunk_vert_001);
-  chunk_vert_101 = matrix4_mul_vector3(&view_matrix, chunk_vert_101);
-  chunk_vert_011 = matrix4_mul_vector3(&view_matrix, chunk_vert_011);
-  chunk_vert_111 = matrix4_mul_vector3(&view_matrix, chunk_vert_111);
+  vector4_t chunk_vert_000_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_min, .y = y_min, .z = z_min});
+  vector4_t chunk_vert_100_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_max, .y = y_min, .z = z_min});
+  vector4_t chunk_vert_010_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_min, .y = y_min, .z = z_max});
+  vector4_t chunk_vert_110_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_max, .y = y_min, .z = z_max});
+  vector4_t chunk_vert_001_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_min, .y = y_max, .z = z_min});
+  vector4_t chunk_vert_101_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_max, .y = y_max, .z = z_min});
+  vector4_t chunk_vert_011_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_min, .y = y_max, .z = z_max});
+  vector4_t chunk_vert_111_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_max, .y = y_max, .z = z_max});
 
-  /* here we have all chunk vertices transformed into view */
-  int num_inside = 0;
-  /* take dot product of each vertex with each frustrum plane */
-  bool is_inside;
-  is_inside = chunk_vertex_inside_frustrum(chunk_vert_000);
-  num_inside += is_inside ? 1 : 0;
-  is_inside = chunk_vertex_inside_frustrum(chunk_vert_100);
-  num_inside += is_inside ? 1 : 0;
-  is_inside = chunk_vertex_inside_frustrum(chunk_vert_010);
-  num_inside += is_inside ? 1 : 0;
-  is_inside = chunk_vertex_inside_frustrum(chunk_vert_110);
-  num_inside += is_inside ? 1 : 0;
-  is_inside = chunk_vertex_inside_frustrum(chunk_vert_001);
-  num_inside += is_inside ? 1 : 0;
-  is_inside = chunk_vertex_inside_frustrum(chunk_vert_101);
-  num_inside += is_inside ? 1 : 0;
-  is_inside = chunk_vertex_inside_frustrum(chunk_vert_011);
-  num_inside += is_inside ? 1 : 0;
-  is_inside = chunk_vertex_inside_frustrum(chunk_vert_111);
-  num_inside += is_inside ? 1 : 0;
+  uint32_t num_inside = 0;
 
-  return num_inside;
-}
+  if(frustrum_plane == FRUSTRUM_NEAR){
+    if(chunk_vert_000_view.z > znear) num_inside++;
+    if(chunk_vert_100_view.z > znear) num_inside++;
+    if(chunk_vert_010_view.z > znear) num_inside++;
+    if(chunk_vert_110_view.z > znear) num_inside++;
+    if(chunk_vert_001_view.z > znear) num_inside++;
+    if(chunk_vert_101_view.z > znear) num_inside++;
+    if(chunk_vert_011_view.z > znear) num_inside++;
+    if(chunk_vert_111_view.z > znear) num_inside++;
 
-bool chunk_vertex_inside_frustrum(vector3_t vertex){
-  /* dot product of vertex with all frustrum planes - vertex is inside if all results are positive */
+    return num_inside;
+  }
 
-  /* NEAR/FAR */
-  if(vertex.z < znear) return false;
-  if(vertex.z >  zfar) return false;
+  if(frustrum_plane == FRUSTRUM_FAR){
+    if(chunk_vert_000_view.z < zfar) num_inside++;
+    if(chunk_vert_100_view.z < zfar) num_inside++;
+    if(chunk_vert_010_view.z < zfar) num_inside++;
+    if(chunk_vert_110_view.z < zfar) num_inside++;
+    if(chunk_vert_001_view.z < zfar) num_inside++;
+    if(chunk_vert_101_view.z < zfar) num_inside++;
+    if(chunk_vert_011_view.z < zfar) num_inside++;
+    if(chunk_vert_111_view.z < zfar) num_inside++;
+
+    return num_inside;
+  }
+
+  if(frustrum_plane == FRUSTRUM_LEFT){
+    if(chunk_vert_000_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
+       chunk_vert_000_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_100_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
+       chunk_vert_100_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_010_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
+       chunk_vert_010_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_110_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
+       chunk_vert_110_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_001_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
+       chunk_vert_001_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_101_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
+       chunk_vert_101_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_011_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
+       chunk_vert_011_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_111_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
+       chunk_vert_111_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;        
+
+    return num_inside;
+  }
+
+  if(frustrum_plane == FRUSTRUM_RIGHT){
+    if(chunk_vert_000_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
+       chunk_vert_000_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_100_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
+       chunk_vert_100_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_010_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
+       chunk_vert_010_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_110_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
+       chunk_vert_110_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_001_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
+       chunk_vert_001_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_101_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
+       chunk_vert_101_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_011_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
+       chunk_vert_011_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_111_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
+       chunk_vert_111_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
+
+    return num_inside;
+  }
   
-  /* LEFT */
-  double distance = vertex.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
-                    vertex.y * view_frustrum_planes[FRUSTRUM_LEFT].normal.y +
-                    vertex.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z;
-  if(distance < 0.0) return false;
+  if(frustrum_plane == FRUSTRUM_BOTTOM){
+    if(chunk_vert_000_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
+       chunk_vert_000_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
+    if(chunk_vert_100_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
+       chunk_vert_100_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
+    if(chunk_vert_010_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
+       chunk_vert_010_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
+    if(chunk_vert_110_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
+       chunk_vert_110_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
+    if(chunk_vert_001_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
+       chunk_vert_001_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
+    if(chunk_vert_101_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
+       chunk_vert_101_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
+    if(chunk_vert_011_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
+       chunk_vert_011_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
+    if(chunk_vert_111_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
+       chunk_vert_111_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
 
-  /* RIGHT */
-  double distance = vertex.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
-                    vertex.y * view_frustrum_planes[FRUSTRUM_RIGHT].normal.y +
-                    vertex.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z;
-  if(distance < 0.0) return false;
+    return num_inside;
+  }
 
-  /* BOTTOM */
-  double distance = vertex.x * view_frustrum_planes[FRUSTRUM_TOP].normal.x +
-                    vertex.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
-                    vertex.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z;
-  if(distance < 0.0) return false;
+  if(frustrum_plane == FRUSTRUM_TOP){
+    if(chunk_vert_000_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
+       chunk_vert_000_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
+    if(chunk_vert_100_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
+       chunk_vert_100_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
+    if(chunk_vert_010_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
+       chunk_vert_010_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
+    if(chunk_vert_110_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
+       chunk_vert_110_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
+    if(chunk_vert_001_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
+       chunk_vert_001_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
+    if(chunk_vert_101_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
+       chunk_vert_101_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
+    if(chunk_vert_011_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
+       chunk_vert_011_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
+    if(chunk_vert_111_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
+       chunk_vert_111_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
 
-  /* TOP */
-  double distance = vertex.x * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.x +
-                    vertex.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
-                    vertex.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z;
-  if(distance < 0.0) return false;
+    return num_inside;
+  }
 
-  /* if vertex inside all planes, return true */
-  return true;
+  return 0;
 }
 
-void render_chunk(chunk_t *chunk, bool clip){
+void render_chunk(chunk_t *chunk){
   /* triangles list for clipped triangles */
   triangle_t triangles_after_clipping[MAX_NUM_POLYGON_VERTICES - 2]; /* for a polygon with N vertices, the number of nested triangles is always N-2 */
 
-  total_triangles_rendered = 0;
+  total_chunks_rendered++;
 
   /* loop through all objects in chunk */
   uint32_t num_chunk_objects = chunk->num_chunk_objects;
-  for(int chunk_object_idx = 0; chunk_object_idx < num_chunk_objects; chunk_object_ix++){
+  for(uint32_t chunk_object_idx = 0; chunk_object_idx < num_chunk_objects; chunk_object_idx++){
     chunk_object_faces_t chunk_object_faces = chunk->chunk_object_faces[chunk_object_idx];
     object_t *object = &objects[chunk_object_faces.object_id]; /* get pointer to object in chunk */
 
@@ -860,38 +664,17 @@ void render_chunk(chunk_t *chunk, bool clip){
 
       /* FRUSTRUM CLIPPING */
       int num_triangles_from_polygon;
-      if(clip){
-        /* this function creates a polygon from the current face, clips against all frustrum planes,
-          then re-triangularizes the polygon - it returns the number of generated triangles from the polygon */
-        num_triangles_from_polygon = frustrum_clip_triangle_and_re_triangularize(
-          (vector3_t){transformed_vertices[0].x, transformed_vertices[0].y, transformed_vertices[0].z},
-          (vector3_t){transformed_vertices[1].x, transformed_vertices[1].y, transformed_vertices[1].z},
-          (vector3_t){transformed_vertices[2].x, transformed_vertices[2].y, transformed_vertices[2].z},
-          face.uv[0],
-          face.uv[1],
-          face.uv[2],
-          triangles_after_clipping
-        );
-      }
-      else{
-        /* no clipping, create single triangle from transformed vertices */
-        num_triangles_from_polygon = 1;
-        triangles_after_clipping[0].points[0].x = transformed_vertices[0].x;
-        triangles_after_clipping[0].points[0].y = transformed_vertices[0].y;
-        triangles_after_clipping[0].points[0].z = transformed_vertices[0].z;
-        triangles_after_clipping[0].points[0].w = 1.0f;
-        triangles_after_clipping[0].points[1].x = transformed_vertices[1].x;
-        triangles_after_clipping[0].points[1].y = transformed_vertices[1].y;
-        triangles_after_clipping[0].points[1].z = transformed_vertices[1].z;
-        triangles_after_clipping[0].points[1].w = 1.0f;
-        triangles_after_clipping[0].points[2].x = transformed_vertices[2].x;
-        triangles_after_clipping[0].points[2].y = transformed_vertices[2].y;
-        triangles_after_clipping[0].points[2].z = transformed_vertices[2].z;
-        triangles_after_clipping[0].points[2].w = 1.0f;
-        triangles_after_clipping[0].uv[0] = face.uv[0];
-        triangles_after_clipping[0].uv[1] = face.uv[1];
-        triangles_after_clipping[0].uv[2] = face.uv[2];
-      }
+      /* this function creates a polygon from the current face, clips against all frustrum planes,
+         then re-triangularizes the polygon - it returns the number of generated triangles from the polygon */
+      num_triangles_from_polygon = frustrum_clip_triangle_and_re_triangularize(
+        (vector3_t){transformed_vertices[0].x, transformed_vertices[0].y, transformed_vertices[0].z},
+        (vector3_t){transformed_vertices[1].x, transformed_vertices[1].y, transformed_vertices[1].z},
+        (vector3_t){transformed_vertices[2].x, transformed_vertices[2].y, transformed_vertices[2].z},
+        face.uv[0],
+        face.uv[1],
+        face.uv[2],
+        triangles_after_clipping
+      );
 
       for(int t = 0; t < num_triangles_from_polygon; t++){
         triangle_t *triangle_after_clipping = &triangles_after_clipping[t];
@@ -1159,9 +942,8 @@ void render_chunk(chunk_t *chunk, bool clip){
   }
 
   if((time_count & 0x0F) == 0)
-    snprintf(text, 128, "%u, %d, %dr:%dt, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
-      total_triangles_rendered, fps, 
-      num_objects_sorted, num_objects,
+    snprintf(text, 128, "t: %u, c: %u, %u (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
+      total_triangles_rendered, total_chunks_rendered, fps, 
       camera.position.x, camera.position.y, camera.position.z,
       camera.direction.x, camera.direction.y, camera.direction.z,
       camera.theta, camera.eta
@@ -1488,10 +1270,6 @@ void update_and_render_color_buffer2(void) {
       } /* for(int t = 0; t < polygon.num_vertices - 2; t++) */
     } /* for(uint32_t i = 0; i < num_mesh_faces; i++) */
 
-    if(projection_options.object_render_debug){
-      object_render_debug();
-    }
-
   } /* for(uint32_t object_i = 0; object_i < num_objects_sorted; object_i++) */
   
   
@@ -1624,6 +1402,329 @@ void update_and_render_color_buffer2(void) {
     );
 }
 
+void update_light(void){
+  float sin_eta;
+
+  /* skybox is a special case and needs to always track camera position */
+  if(skybox != NULL){
+    sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
+    sin_eta  = sinf(sun_eta);
+
+    sun_direction.x = 0.0f;
+    sun_direction.y = sin_eta;
+    sun_direction.z = cosf(sun_eta);
+
+    if(sin_eta < 0.0f) sin_eta = 0.0f;
+
+    light_sources[1].direction = (vector3_t){sun_direction.x, -sun_direction.y, -sun_direction.z};
+
+    skybox->translation.x  = camera.position.x; 
+    skybox->translation.y  = camera.position.y;
+    skybox->translation.z  = camera.position.z;
+
+    skybox->emissive_color.rgb.red = light_sources[1].color.rgb.red = 200 + 55 * (1.0f - sin_eta);
+    skybox->emissive_color.rgb.green = light_sources[1].color.rgb.green = 100 + 155 * sin_eta;
+    skybox->emissive_color.rgb.blue = light_sources[1].color.rgb.blue = 255 * sin_eta;
+
+    //* obj 0 is skybox */
+    skybox->emissive_intensity = sin_eta < MIN_SKYBOX_INTENSITY ? MIN_SKYBOX_INTENSITY : sin_eta; /* sky luminosity as a function of time */
+
+    light_sources[1].intensity = sin_eta;
+    /* as sun sets or rises, ambient light should get bluer, and oranger towards noon */
+    light_sources[0].color = skybox->emissive_color; 
+    light_sources[0].intensity = MIN_AMBIENT_LIGHT_INTENSITY + AMBIENT_LIGHT_MAX_FACTOR * sin_eta;
+
+    /* hack to hide ramdom background leaking pixels at triangle edges */
+    color_buffer_reset = (uint8_t)(skybox->emissive_intensity * 100.0f);
+  }
+}
+
+void update_state(void){
+
+  update_light();
+
+}
+
+inline void rasterize_triangle(
+  triangle_t *triangle, 
+  color_t *mesh_texture, 
+  uint32_t texture_width, uint32_t texture_height, 
+  blend_mode_t blend_mode,
+  uint8_t alpha_cutoff,
+  color_t solid_color,
+  float opacity,
+  bool reflective,
+  color_t emissive_color,
+  float emissive_intensity
+){
+  if(projection_options.projection_mode == TEXT_FILLED){
+    draw_filled_triangle(
+      &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, 
+      &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[0].z, triangle->points[1].w}, 
+      &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[0].z, triangle->points[2].w}, 
+      solid_color,
+      triangle->light_intensities,
+      emissive_color,
+      emissive_intensity,
+      reflective,
+      projection_options.dither
+    );
+    return;
+  }
+  else if(projection_options.projection_mode == TEXT_WIREFRAME){
+    draw_triangle(
+      triangle->points[0].x, triangle->points[0].y,
+      triangle->points[1].x, triangle->points[1].y,
+      triangle->points[2].x, triangle->points[2].y,
+      (color_t){.uint32 = 0xFFFFFFFF}
+    );
+    return;
+  }
+  else{
+    switch(blend_mode){
+      case BLEND_MODE_OPAQUE:
+        draw_textured_triangle_opaque(
+          &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, (uv_t){triangle->uv[0].u, triangle->uv[0].v},
+          &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[1].z, triangle->points[1].w}, (uv_t){triangle->uv[1].u, triangle->uv[1].v},
+          &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[2].z, triangle->points[2].w}, (uv_t){triangle->uv[2].u, triangle->uv[2].v},
+          mesh_texture, texture_width, texture_height,
+          triangle->light_intensities,
+          emissive_color,
+          emissive_intensity,
+          reflective,
+          projection_options.dither
+        );
+        return;
+
+      case BLEND_MODE_ALPHA_TEST:
+        draw_textured_triangle_alpha_test(
+          &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, (uv_t){triangle->uv[0].u, triangle->uv[0].v},
+          &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[1].z, triangle->points[1].w}, (uv_t){triangle->uv[1].u, triangle->uv[1].v},
+          &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[2].z, triangle->points[2].w}, (uv_t){triangle->uv[2].u, triangle->uv[2].v},
+          mesh_texture, texture_width, texture_height,
+          triangle->light_intensities,
+          emissive_color,
+          emissive_intensity,
+          reflective,
+          projection_options.dither,
+          alpha_cutoff
+        );
+        return;
+
+      case BLEND_MODE_ALPHA_BLEND:
+        draw_textured_triangle_alpha_blend(
+          &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, (uv_t){triangle->uv[0].u, triangle->uv[0].v},
+          &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[1].z, triangle->points[1].w}, (uv_t){triangle->uv[1].u, triangle->uv[1].v},
+          &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[2].z, triangle->points[2].w}, (uv_t){triangle->uv[2].u, triangle->uv[2].v},
+          mesh_texture, texture_width, texture_height,
+          triangle->light_intensities,
+          emissive_color,
+          emissive_intensity,
+          reflective,
+          projection_options.dither,
+          opacity
+        );
+        return;
+    }
+  }
+}
+
+inline void rasterize_triangle_no_zbuffer_write(
+  triangle_t *triangle, 
+  color_t *texture, 
+  uint32_t texture_width, uint32_t texture_height, 
+  blend_mode_t blend_mode,
+  uint8_t alpha_cutoff,
+  color_t solid_color,
+  float opacity,
+  bool reflective,
+  color_t emissive_color,
+  float emissive_intensity
+){
+  if(projection_options.projection_mode == TEXT_FILLED){
+    draw_filled_triangle_no_zbuffer_write(
+      &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, 
+      &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[0].z, triangle->points[1].w}, 
+      &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[0].z, triangle->points[2].w}, 
+      solid_color,
+      triangle->light_intensities,
+      emissive_color,
+      emissive_intensity,
+      reflective,
+      projection_options.dither
+    );
+    return;
+  }
+  else if(projection_options.projection_mode == TEXT_WIREFRAME){
+    draw_triangle(
+      triangle->points[0].x, triangle->points[0].y,
+      triangle->points[1].x, triangle->points[1].y,
+      triangle->points[2].x, triangle->points[2].y,
+      (color_t){.uint32 = 0xFFFFFFFF}
+    );
+    return;
+  }
+  else{
+    switch(blend_mode){
+      case BLEND_MODE_OPAQUE:
+        draw_textured_triangle_opaque_no_zbuffer_write(
+          &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, (uv_t){triangle->uv[0].u, triangle->uv[0].v},
+          &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[1].z, triangle->points[1].w}, (uv_t){triangle->uv[1].u, triangle->uv[1].v},
+          &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[2].z, triangle->points[2].w}, (uv_t){triangle->uv[2].u, triangle->uv[2].v},
+          texture, texture_width, texture_height,
+          triangle->light_intensities,
+          emissive_color,
+          emissive_intensity,
+          reflective,
+          projection_options.dither
+        );
+        return;
+
+      case BLEND_MODE_ALPHA_TEST:
+        draw_textured_triangle_alpha_test_no_zbuffer_write(
+          &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, (uv_t){triangle->uv[0].u, triangle->uv[0].v},
+          &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[1].z, triangle->points[1].w}, (uv_t){triangle->uv[1].u, triangle->uv[1].v},
+          &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[2].z, triangle->points[2].w}, (uv_t){triangle->uv[2].u, triangle->uv[2].v},
+          texture, texture_width, texture_height,
+          triangle->light_intensities,
+          emissive_color,
+          emissive_intensity,
+          reflective,
+          projection_options.dither,
+          alpha_cutoff
+        );
+        return;
+
+      case BLEND_MODE_ALPHA_BLEND:
+        draw_textured_triangle_alpha_blend(
+          &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, (uv_t){triangle->uv[0].u, triangle->uv[0].v},
+          &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[1].z, triangle->points[1].w}, (uv_t){triangle->uv[1].u, triangle->uv[1].v},
+          &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[2].z, triangle->points[2].w}, (uv_t){triangle->uv[2].u, triangle->uv[2].v},
+          texture, texture_width, texture_height,
+          triangle->light_intensities,
+          emissive_color,
+          emissive_intensity,
+          reflective,
+          projection_options.dither,
+          opacity
+        );
+        return;
+    }
+  }
+}
+
+/* 
+  render the base colorbuffer on top of which everything else is painted
+*/
+__attribute__((optimize("Ofast")))
+void render_sun(void){
+  float half_w = 0.5f * (float)window_width;
+  float half_h = 0.5f * (float)window_height;
+  float projection_plane_dist = half_h / tanf(fov_y * 0.5f);
+
+  /* use actual sun elevation, mirrored above/below horizon */
+  float sun_elev_abs   = fabsf(sun_direction.y);  /* 0 at horizon, 1 at poles */
+  float horizon_factor = 1.0f - sun_elev_abs;     /* 1 at horizon, 0 at poles */
+  /* phase-like color curves, but driven by mirrored elevation */
+  float sun_red_shift   = 0.65f + 0.35f * horizon_factor;  /* red stays strongest near horizon */
+  float sun_green_shift = 0.35f + 0.65f * sun_elev_abs;    /* green rises toward white */
+  float sun_blue_shift  = 0.00f + 1.00f * sun_elev_abs;    /* blue weakest at horizon, strongest at poles */
+
+  /* world -> camera rotation only(no translation, meaning w = 0) */
+  vector4_t vec4_sun_cam = matrix4_mul_vector4(&view_matrix, (vector4_t){sun_direction.x, sun_direction.y, sun_direction.z, 0.0f});
+  vector3_t sun_cam = {vec4_sun_cam.x, vec4_sun_cam.y, vec4_sun_cam.z};
+
+  for(int y = 0; y < window_height; y++){
+    float screen_y_from_center = half_h - (float)y;
+
+    for(int x = 0; x < window_width; x++){
+      float screen_x_from_center = (float)x - half_w;
+
+      /* vector for sun dot product */
+      vector3_t dir_cam = {screen_x_from_center, screen_y_from_center, projection_plane_dist};
+      vector3_normalize_fast_approx(&dir_cam);
+      /* vector for sky band dot product only */
+
+      /* dot product for sun, as we go from pixel to pixel, dot product to check for sun direction across entire projection plane */
+      float sun_dot = dir_cam.x * sun_cam.x + dir_cam.y * sun_cam.y + dir_cam.z * sun_cam.z;
+      if(sun_dot < 0.0f) sun_dot = 0.0f;
+      /* dot product for sky band, only accounts for vertical direction in projection plane */
+      float sun_dot_flat = dir_cam.y * sun_cam.y + dir_cam.z * sun_cam.z;
+      if(sun_dot_flat < 0.0f) sun_dot_flat = 0.0f;
+      
+      /* shun shimmer */
+      sun_dot *= (time_count & 1) ? 0.9992f : 1.0f;
+
+      float sun_glow = sun_dot * sun_dot;
+      sun_glow *= sun_glow;
+      sun_glow *= sun_glow;
+      sun_glow *= sun_glow;
+
+      float sun_core = sun_glow; /* smaller dot power for tighter core */
+      sun_core *= sun_core;
+      sun_core *= sun_core;
+
+      float sun_band = sun_dot_flat * sun_dot_flat;
+
+      color_t pixel = color_buffer[y * window_width + x];
+      float red_t   = (float)(pixel.rgb.red  ) / 255.0f + sun_red_shift   * (sun_core + sun_glow);
+      float green_t = (float)(pixel.rgb.green) / 255.0f + sun_green_shift * (sun_core + sun_glow); 
+      float blue_t  = (float)(pixel.rgb.blue ) / 255.0f + sun_blue_shift  * (sun_core + sun_glow); 
+
+      if(red_t   > 1.0f) red_t   = 1.0f;
+      if(green_t > 1.0f) green_t = 1.0f;
+      if(blue_t  > 1.0f) blue_t  = 1.0f;
+
+      /* for final band blend, this works by only blending where the band is strongest 
+         so instead of using constant factors for the blend, we use the strength of the band as a factor,
+         and this is better because it doesn't washout the sky everywhere, but only where the band is strong. */
+      float band_horizon_factor = 2.0f;
+      float band_mix = 0.15f * sun_band * band_horizon_factor;
+      if(band_mix > 1.0f) band_mix = 1.0f;
+
+      red_t   = (1.0f - band_mix) * red_t   + band_mix * sun_red_shift;
+      green_t = (1.0f - band_mix) * green_t + band_mix * sun_green_shift;
+      blue_t  = (1.0f - band_mix) * blue_t  + band_mix * sun_blue_shift;
+
+      color_t final_color = {
+        .rgb.alpha = 0xFF, 
+        .rgb.blue  = blue_t * 255.0f, 
+        .rgb.green = green_t * 255.0f, 
+        .rgb.red   = red_t * 255.0f
+      };
+      
+      color_buffer[y * window_width + x] = final_color;
+    }
+  }
+}
+
+void qs(object_sort_key_t *array, int left, int right){
+  int i = left;
+  int j = right;
+  float pivot = array[(left + right) / 2].sort_z;
+
+  while(i <= j){
+    while(array[i].sort_z < pivot) i++;
+    while(array[j].sort_z > pivot) j--;
+
+    if(i <= j){
+      object_sort_key_t tmp = array[i];
+      array[i] = array[j];
+      array[j] = tmp;
+      i++;
+      j--;
+    }
+  }
+
+  if(left < j) qs(array, left, j);
+  if(i < right) qs(array, i, right);
+}
+
+inline void object_quicksort(object_sort_key_t *array, int count){
+  if(count > 1)
+    qs(array, 0, count - 1);
+}
+
 void free_resources(void){
   /* free font */
   if (font) {
@@ -1685,14 +1786,13 @@ int main(void) {
       time_of_day += delta_time;
       snprintf(text3, 16, "%d:%d", (int)time_of_day / 60, (int)time_of_day % 60);
       update_state();
-      update_and_render_color_buffer();
+      render_visible_chunks();
       time_count++; /* one count per frame */
     }
 
     sdl_render();
     render_text();
     SDL_RenderPresent(renderer);
-
   }
 
   destroy_window();
@@ -2006,10 +2106,10 @@ void load_voxel_world(){
   mesh_t *mesh;
   texture_t *texture;
 
-  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.9f);
-  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.1f);
+  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.8f);
+  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.4f);
 
-  mesh = load_mesh("./assets/obj/voxels2.obj");
+  mesh = load_mesh("./assets/obj/voxels.obj");
   texture = load_texture("./assets/textures/ground/mountain.png");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                 (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 

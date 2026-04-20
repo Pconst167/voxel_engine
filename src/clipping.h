@@ -10,12 +10,12 @@
 #define NUM_VIEW_FRUSTRUM_PLANES 6
 
 typedef enum{
-  FRUSTRUM_LEFT,
-  FRUSTRUM_RIGHT,
-  FRUSTRUM_BOTTOM,
-  FRUSTRUM_TOP,
-  FRUSTRUM_NEAR,
-  FRUSTRUM_FAR
+  FRUSTRUM_LEFT   = 0,
+  FRUSTRUM_RIGHT  = 1,
+  FRUSTRUM_BOTTOM = 2,
+  FRUSTRUM_TOP    = 3,
+  FRUSTRUM_NEAR   = 4,
+  FRUSTRUM_FAR    = 5
 } frustrum_plane_t;
 
 typedef struct{
