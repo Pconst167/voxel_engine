@@ -463,140 +463,6 @@ bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane
   return false;
 }
 
-uint32_t chunk_num_vertices_inside_plane(chunk_t *chunk, frustrum_plane_t frustrum_plane){
-  double x_min = chunk->x_min;
-  double x_max = chunk->x_max;
-  double y_min = chunk->y_min;
-  double y_max = chunk->y_max;
-  double z_min = chunk->z_min;
-  double z_max = chunk->z_max;
-
-  /* nnn = xzy */
-  /* now we have all points forming the chunk, transform them into view */
-  vector4_t chunk_vert_000_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_min, .y = y_min, .z = z_min});
-  vector4_t chunk_vert_100_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_max, .y = y_min, .z = z_min});
-  vector4_t chunk_vert_010_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_min, .y = y_min, .z = z_max});
-  vector4_t chunk_vert_110_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_max, .y = y_min, .z = z_max});
-  vector4_t chunk_vert_001_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_min, .y = y_max, .z = z_min});
-  vector4_t chunk_vert_101_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_max, .y = y_max, .z = z_min});
-  vector4_t chunk_vert_011_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_min, .y = y_max, .z = z_max});
-  vector4_t chunk_vert_111_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_max, .y = y_max, .z = z_max});
-
-  uint32_t num_inside = 0;
-
-  if(frustrum_plane == FRUSTRUM_NEAR){
-    if(chunk_vert_000_view.z > znear) num_inside++;
-    if(chunk_vert_100_view.z > znear) num_inside++;
-    if(chunk_vert_010_view.z > znear) num_inside++;
-    if(chunk_vert_110_view.z > znear) num_inside++;
-    if(chunk_vert_001_view.z > znear) num_inside++;
-    if(chunk_vert_101_view.z > znear) num_inside++;
-    if(chunk_vert_011_view.z > znear) num_inside++;
-    if(chunk_vert_111_view.z > znear) num_inside++;
-
-    return num_inside;
-  }
-
-  if(frustrum_plane == FRUSTRUM_FAR){
-    if(chunk_vert_000_view.z < zfar) num_inside++;
-    if(chunk_vert_100_view.z < zfar) num_inside++;
-    if(chunk_vert_010_view.z < zfar) num_inside++;
-    if(chunk_vert_110_view.z < zfar) num_inside++;
-    if(chunk_vert_001_view.z < zfar) num_inside++;
-    if(chunk_vert_101_view.z < zfar) num_inside++;
-    if(chunk_vert_011_view.z < zfar) num_inside++;
-    if(chunk_vert_111_view.z < zfar) num_inside++;
-
-    return num_inside;
-  }
-
-  if(frustrum_plane == FRUSTRUM_LEFT){
-    if(chunk_vert_000_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
-       chunk_vert_000_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;
-    if(chunk_vert_100_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
-       chunk_vert_100_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;
-    if(chunk_vert_010_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
-       chunk_vert_010_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;
-    if(chunk_vert_110_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
-       chunk_vert_110_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;
-    if(chunk_vert_001_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
-       chunk_vert_001_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;
-    if(chunk_vert_101_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
-       chunk_vert_101_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;
-    if(chunk_vert_011_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
-       chunk_vert_011_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;
-    if(chunk_vert_111_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
-       chunk_vert_111_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;        
-
-    return num_inside;
-  }
-
-  if(frustrum_plane == FRUSTRUM_RIGHT){
-    if(chunk_vert_000_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
-       chunk_vert_000_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
-    if(chunk_vert_100_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
-       chunk_vert_100_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
-    if(chunk_vert_010_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
-       chunk_vert_010_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
-    if(chunk_vert_110_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
-       chunk_vert_110_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
-    if(chunk_vert_001_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
-       chunk_vert_001_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
-    if(chunk_vert_101_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
-       chunk_vert_101_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
-    if(chunk_vert_011_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
-       chunk_vert_011_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
-    if(chunk_vert_111_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
-       chunk_vert_111_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
-
-    return num_inside;
-  }
-  
-  if(frustrum_plane == FRUSTRUM_BOTTOM){
-    if(chunk_vert_000_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
-       chunk_vert_000_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
-    if(chunk_vert_100_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
-       chunk_vert_100_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
-    if(chunk_vert_010_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
-       chunk_vert_010_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
-    if(chunk_vert_110_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
-       chunk_vert_110_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
-    if(chunk_vert_001_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
-       chunk_vert_001_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
-    if(chunk_vert_101_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
-       chunk_vert_101_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
-    if(chunk_vert_011_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
-       chunk_vert_011_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
-    if(chunk_vert_111_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
-       chunk_vert_111_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
-
-    return num_inside;
-  }
-
-  if(frustrum_plane == FRUSTRUM_TOP){
-    if(chunk_vert_000_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
-       chunk_vert_000_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
-    if(chunk_vert_100_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
-       chunk_vert_100_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
-    if(chunk_vert_010_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
-       chunk_vert_010_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
-    if(chunk_vert_110_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
-       chunk_vert_110_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
-    if(chunk_vert_001_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
-       chunk_vert_001_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
-    if(chunk_vert_101_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
-       chunk_vert_101_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
-    if(chunk_vert_011_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
-       chunk_vert_011_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
-    if(chunk_vert_111_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
-       chunk_vert_111_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
-
-    return num_inside;
-  }
-
-  return 0;
-}
-
 void render_chunk(chunk_t *chunk){
   /* triangles list for clipped triangles */
   triangle_t triangles_after_clipping[MAX_NUM_POLYGON_VERTICES - 2]; /* for a polygon with N vertices, the number of nested triangles is always N-2 */
@@ -623,9 +489,9 @@ void render_chunk(chunk_t *chunk){
       face_vertices[1] = object->transformed_vertices[face.vertex_indices[1]];
       face_vertices[2] = object->transformed_vertices[face.vertex_indices[2]];
 
-      transformed_vertices[0] = matrix4_mul_vector3(&view_matrix, (vector3_t){face_vertices[0].x, face_vertices[0].y, face_vertices[0].z}); /* affine transform so can use this faster multiply */
-      transformed_vertices[1] = matrix4_mul_vector3(&view_matrix, (vector3_t){face_vertices[1].x, face_vertices[1].y, face_vertices[1].z}); /* affine transform so can use this faster multiply */
-      transformed_vertices[2] = matrix4_mul_vector3(&view_matrix, (vector3_t){face_vertices[2].x, face_vertices[2].y, face_vertices[2].z}); /* affine transform so can use this faster multiply */
+      transformed_vertices[0] = matrix4_mul_vector3(&view_matrix, face_vertices[0]); /* affine transform so can use this faster multiply */
+      transformed_vertices[1] = matrix4_mul_vector3(&view_matrix, face_vertices[1]); /* affine transform so can use this faster multiply */
+      transformed_vertices[2] = matrix4_mul_vector3(&view_matrix, face_vertices[2]); /* affine transform so can use this faster multiply */
 
       /* BACKFACE CULLING */
       /* calculate face normals for backface culling and lighting */
@@ -1061,9 +927,9 @@ void update_and_render_color_buffer2(void) {
         face_vertices[1] = object->transformed_vertices[mesh_face.vertex_indices[1]];
         face_vertices[2] = object->transformed_vertices[mesh_face.vertex_indices[2]];
 
-        transformed_vertices[0] = matrix4_mul_vector3(&view_matrix, (vector3_t){face_vertices[0].x, face_vertices[0].y, face_vertices[0].z}); /* affine transform so can use this faster multiply */
-        transformed_vertices[1] = matrix4_mul_vector3(&view_matrix, (vector3_t){face_vertices[1].x, face_vertices[1].y, face_vertices[1].z}); /* affine transform so can use this faster multiply */
-        transformed_vertices[2] = matrix4_mul_vector3(&view_matrix, (vector3_t){face_vertices[2].x, face_vertices[2].y, face_vertices[2].z}); /* affine transform so can use this faster multiply */
+        transformed_vertices[0] = matrix4_mul_vector3(&view_matrix, face_vertices[0]); /* affine transform so can use this faster multiply */
+        transformed_vertices[1] = matrix4_mul_vector3(&view_matrix, face_vertices[1]); /* affine transform so can use this faster multiply */
+        transformed_vertices[2] = matrix4_mul_vector3(&view_matrix, face_vertices[2]); /* affine transform so can use this faster multiply */
       }
       else{
         /* object is dynamic, fetch mesh vertices and apply world_view transforms */
@@ -1071,9 +937,9 @@ void update_and_render_color_buffer2(void) {
         face_vertices[1] = object->mesh->vertices[mesh_face.vertex_indices[1]];
         face_vertices[2] = object->mesh->vertices[mesh_face.vertex_indices[2]];
 
-        transformed_vertices[0] = matrix4_mul_vector3(&world_view_matrix, (vector3_t){face_vertices[0].x, face_vertices[0].y, face_vertices[0].z}); /* affine transform so can use this faster multiply */
-        transformed_vertices[1] = matrix4_mul_vector3(&world_view_matrix, (vector3_t){face_vertices[1].x, face_vertices[1].y, face_vertices[1].z}); /* affine transform so can use this faster multiply */
-        transformed_vertices[2] = matrix4_mul_vector3(&world_view_matrix, (vector3_t){face_vertices[2].x, face_vertices[2].y, face_vertices[2].z}); /* affine transform so can use this faster multiply */
+        transformed_vertices[0] = matrix4_mul_vector3(&world_view_matrix, face_vertices[0]); /* affine transform so can use this faster multiply */
+        transformed_vertices[1] = matrix4_mul_vector3(&world_view_matrix, face_vertices[1]); /* affine transform so can use this faster multiply */
+        transformed_vertices[2] = matrix4_mul_vector3(&world_view_matrix, face_vertices[2]); /* affine transform so can use this faster multiply */
       }
 
       /* BACKFACE CULLING */
@@ -1463,9 +1329,9 @@ inline void rasterize_triangle(
 ){
   if(projection_options.projection_mode == TEXT_FILLED){
     draw_filled_triangle(
-      &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, 
-      &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[0].z, triangle->points[1].w}, 
-      &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[0].z, triangle->points[2].w}, 
+      &triangle->points[0], 
+      &triangle->points[1], 
+      &triangle->points[2], 
       solid_color,
       triangle->light_intensities,
       emissive_color,
@@ -1488,9 +1354,9 @@ inline void rasterize_triangle(
     switch(blend_mode){
       case BLEND_MODE_OPAQUE:
         draw_textured_triangle_opaque(
-          &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, (uv_t){triangle->uv[0].u, triangle->uv[0].v},
-          &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[1].z, triangle->points[1].w}, (uv_t){triangle->uv[1].u, triangle->uv[1].v},
-          &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[2].z, triangle->points[2].w}, (uv_t){triangle->uv[2].u, triangle->uv[2].v},
+          &triangle->points[0], triangle->uv[0],
+          &triangle->points[1], triangle->uv[1],
+          &triangle->points[2], triangle->uv[2],
           mesh_texture, texture_width, texture_height,
           triangle->light_intensities,
           emissive_color,
@@ -1502,9 +1368,9 @@ inline void rasterize_triangle(
 
       case BLEND_MODE_ALPHA_TEST:
         draw_textured_triangle_alpha_test(
-          &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, (uv_t){triangle->uv[0].u, triangle->uv[0].v},
-          &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[1].z, triangle->points[1].w}, (uv_t){triangle->uv[1].u, triangle->uv[1].v},
-          &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[2].z, triangle->points[2].w}, (uv_t){triangle->uv[2].u, triangle->uv[2].v},
+          &triangle->points[0], triangle->uv[0],
+          &triangle->points[1], triangle->uv[1],
+          &triangle->points[2], triangle->uv[2],
           mesh_texture, texture_width, texture_height,
           triangle->light_intensities,
           emissive_color,
@@ -1517,9 +1383,9 @@ inline void rasterize_triangle(
 
       case BLEND_MODE_ALPHA_BLEND:
         draw_textured_triangle_alpha_blend(
-          &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, (uv_t){triangle->uv[0].u, triangle->uv[0].v},
-          &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[1].z, triangle->points[1].w}, (uv_t){triangle->uv[1].u, triangle->uv[1].v},
-          &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[2].z, triangle->points[2].w}, (uv_t){triangle->uv[2].u, triangle->uv[2].v},
+          &triangle->points[0], triangle->uv[0],
+          &triangle->points[1], triangle->uv[1],
+          &triangle->points[2], triangle->uv[2],
           mesh_texture, texture_width, texture_height,
           triangle->light_intensities,
           emissive_color,
@@ -1547,9 +1413,9 @@ inline void rasterize_triangle_no_zbuffer_write(
 ){
   if(projection_options.projection_mode == TEXT_FILLED){
     draw_filled_triangle_no_zbuffer_write(
-      &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, 
-      &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[0].z, triangle->points[1].w}, 
-      &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[0].z, triangle->points[2].w}, 
+      &triangle->points[0], 
+      &triangle->points[1], 
+      &triangle->points[2], 
       solid_color,
       triangle->light_intensities,
       emissive_color,
@@ -1572,9 +1438,9 @@ inline void rasterize_triangle_no_zbuffer_write(
     switch(blend_mode){
       case BLEND_MODE_OPAQUE:
         draw_textured_triangle_opaque_no_zbuffer_write(
-          &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, (uv_t){triangle->uv[0].u, triangle->uv[0].v},
-          &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[1].z, triangle->points[1].w}, (uv_t){triangle->uv[1].u, triangle->uv[1].v},
-          &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[2].z, triangle->points[2].w}, (uv_t){triangle->uv[2].u, triangle->uv[2].v},
+          &triangle->points[0], triangle->uv[0],
+          &triangle->points[1], triangle->uv[1],
+          &triangle->points[2], triangle->uv[2],
           texture, texture_width, texture_height,
           triangle->light_intensities,
           emissive_color,
@@ -1586,9 +1452,9 @@ inline void rasterize_triangle_no_zbuffer_write(
 
       case BLEND_MODE_ALPHA_TEST:
         draw_textured_triangle_alpha_test_no_zbuffer_write(
-          &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, (uv_t){triangle->uv[0].u, triangle->uv[0].v},
-          &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[1].z, triangle->points[1].w}, (uv_t){triangle->uv[1].u, triangle->uv[1].v},
-          &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[2].z, triangle->points[2].w}, (uv_t){triangle->uv[2].u, triangle->uv[2].v},
+          &triangle->points[0], triangle->uv[0],
+          &triangle->points[1], triangle->uv[1],
+          &triangle->points[2], triangle->uv[2],
           texture, texture_width, texture_height,
           triangle->light_intensities,
           emissive_color,
@@ -1601,9 +1467,9 @@ inline void rasterize_triangle_no_zbuffer_write(
 
       case BLEND_MODE_ALPHA_BLEND:
         draw_textured_triangle_alpha_blend(
-          &(vector4_t){triangle->points[0].x, triangle->points[0].y, triangle->points[0].z, triangle->points[0].w}, (uv_t){triangle->uv[0].u, triangle->uv[0].v},
-          &(vector4_t){triangle->points[1].x, triangle->points[1].y, triangle->points[1].z, triangle->points[1].w}, (uv_t){triangle->uv[1].u, triangle->uv[1].v},
-          &(vector4_t){triangle->points[2].x, triangle->points[2].y, triangle->points[2].z, triangle->points[2].w}, (uv_t){triangle->uv[2].u, triangle->uv[2].v},
+          &triangle->points[0], triangle->uv[0],
+          &triangle->points[1], triangle->uv[1],
+          &triangle->points[2], triangle->uv[2],
           texture, texture_width, texture_height,
           triangle->light_intensities,
           emissive_color,
@@ -2192,4 +2058,138 @@ void load_server_room(){
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
+}
+
+uint32_t chunk_num_vertices_inside_plane(chunk_t *chunk, frustrum_plane_t frustrum_plane){
+  double x_min = chunk->x_min;
+  double x_max = chunk->x_max;
+  double y_min = chunk->y_min;
+  double y_max = chunk->y_max;
+  double z_min = chunk->z_min;
+  double z_max = chunk->z_max;
+
+  /* nnn = xzy */
+  /* now we have all points forming the chunk, transform them into view */
+  vector4_t chunk_vert_000_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_min, .y = y_min, .z = z_min});
+  vector4_t chunk_vert_100_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_max, .y = y_min, .z = z_min});
+  vector4_t chunk_vert_010_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_min, .y = y_min, .z = z_max});
+  vector4_t chunk_vert_110_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_max, .y = y_min, .z = z_max});
+  vector4_t chunk_vert_001_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_min, .y = y_max, .z = z_min});
+  vector4_t chunk_vert_101_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_max, .y = y_max, .z = z_min});
+  vector4_t chunk_vert_011_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_min, .y = y_max, .z = z_max});
+  vector4_t chunk_vert_111_view = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = x_max, .y = y_max, .z = z_max});
+
+  uint32_t num_inside = 0;
+
+  if(frustrum_plane == FRUSTRUM_NEAR){
+    if(chunk_vert_000_view.z > znear) num_inside++;
+    if(chunk_vert_100_view.z > znear) num_inside++;
+    if(chunk_vert_010_view.z > znear) num_inside++;
+    if(chunk_vert_110_view.z > znear) num_inside++;
+    if(chunk_vert_001_view.z > znear) num_inside++;
+    if(chunk_vert_101_view.z > znear) num_inside++;
+    if(chunk_vert_011_view.z > znear) num_inside++;
+    if(chunk_vert_111_view.z > znear) num_inside++;
+
+    return num_inside;
+  }
+
+  if(frustrum_plane == FRUSTRUM_FAR){
+    if(chunk_vert_000_view.z < zfar) num_inside++;
+    if(chunk_vert_100_view.z < zfar) num_inside++;
+    if(chunk_vert_010_view.z < zfar) num_inside++;
+    if(chunk_vert_110_view.z < zfar) num_inside++;
+    if(chunk_vert_001_view.z < zfar) num_inside++;
+    if(chunk_vert_101_view.z < zfar) num_inside++;
+    if(chunk_vert_011_view.z < zfar) num_inside++;
+    if(chunk_vert_111_view.z < zfar) num_inside++;
+
+    return num_inside;
+  }
+
+  if(frustrum_plane == FRUSTRUM_LEFT){
+    if(chunk_vert_000_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
+       chunk_vert_000_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_100_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
+       chunk_vert_100_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_010_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
+       chunk_vert_010_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_110_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
+       chunk_vert_110_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_001_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
+       chunk_vert_001_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_101_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
+       chunk_vert_101_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_011_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
+       chunk_vert_011_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_111_view.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
+       chunk_vert_111_view.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z > 0.0) num_inside++;        
+
+    return num_inside;
+  }
+
+  if(frustrum_plane == FRUSTRUM_RIGHT){
+    if(chunk_vert_000_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
+       chunk_vert_000_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_100_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
+       chunk_vert_100_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_010_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
+       chunk_vert_010_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_110_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
+       chunk_vert_110_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_001_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
+       chunk_vert_001_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_101_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
+       chunk_vert_101_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_011_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
+       chunk_vert_011_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
+    if(chunk_vert_111_view.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
+       chunk_vert_111_view.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z > 0.0) num_inside++;
+
+    return num_inside;
+  }
+  
+  if(frustrum_plane == FRUSTRUM_BOTTOM){
+    if(chunk_vert_000_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
+       chunk_vert_000_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
+    if(chunk_vert_100_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
+       chunk_vert_100_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
+    if(chunk_vert_010_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
+       chunk_vert_010_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
+    if(chunk_vert_110_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
+       chunk_vert_110_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
+    if(chunk_vert_001_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
+       chunk_vert_001_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
+    if(chunk_vert_101_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
+       chunk_vert_101_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
+    if(chunk_vert_011_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
+       chunk_vert_011_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
+    if(chunk_vert_111_view.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
+       chunk_vert_111_view.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z > 0.0) num_inside++;
+
+    return num_inside;
+  }
+
+  if(frustrum_plane == FRUSTRUM_TOP){
+    if(chunk_vert_000_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
+       chunk_vert_000_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
+    if(chunk_vert_100_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
+       chunk_vert_100_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
+    if(chunk_vert_010_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
+       chunk_vert_010_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
+    if(chunk_vert_110_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
+       chunk_vert_110_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
+    if(chunk_vert_001_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
+       chunk_vert_001_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
+    if(chunk_vert_101_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
+       chunk_vert_101_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
+    if(chunk_vert_011_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
+       chunk_vert_011_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
+    if(chunk_vert_111_view.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
+       chunk_vert_111_view.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z > 0.0) num_inside++;
+
+    return num_inside;
+  }
+
+  return 0;
 }
