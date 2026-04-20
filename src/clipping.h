@@ -49,4 +49,6 @@ int frustrum_clip_triangle_and_re_triangularize(
   triangle_t *triangles_after_clipping
 );
 
+bool chunk_any_face_vertex_outside_frustrum(vector4_t v0, vector4_t v1, vector4_t v2, float znear, float zfar);
+
 #endif

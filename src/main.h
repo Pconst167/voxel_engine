@@ -26,7 +26,7 @@
 
 void render_text();
 void free_resources(void);
-void update_and_render_color_buffer(void) ;
+void update_and_render_color_buffer2(void) ;
 void object_quicksort(object_sort_key_t *array, int count);
 void qs(object_sort_key_t *array, int left, int right);
 void render_sun(void);
