@@ -400,9 +400,6 @@ void render_visible_chunks(void) {
   }
 }
 
-/* list of chunks to be rendered */
-chunk_t chunks_to_be_rendered[NUM_CHUNK_DIVISIONS * NUM_CHUNK_DIVISIONS];
-
 /*  0 : outside
     1 : inside
    -1 : intersecting

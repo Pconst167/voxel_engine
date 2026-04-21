@@ -27,6 +27,13 @@ typedef struct{
   uint32_t num_chunk_objects;
 } chunk_t;
 
+/* used to sort chunks for rendering */
+typedef struct{
+  uint32_t chunk_z_row;
+  uint32_t chunk_x_col;
+  float sort_z;
+} chunk_sort_key_t;
+
 extern chunk_t chunks[NUM_CHUNK_DIVISIONS][NUM_CHUNK_DIVISIONS];
 extern double world_x_min;
 extern double world_x_max;
