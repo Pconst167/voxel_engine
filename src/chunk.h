@@ -8,11 +8,6 @@
 #define NUM_CHUNK_DIVISIONS 8 /* 10 along x, and 10 along z */
 
 typedef struct{
-  double x_min, z_min;
-  double x_max, z_max;
-} aabb_2d_t;
-
-typedef struct{
   double x_min, y_min, z_min;
   double x_max, y_max, z_max;
 } aabb_3d_t;
@@ -68,12 +63,5 @@ aabb_3d_t calculate_3d_aabb(
   vector3_t v_b,
   vector3_t v_c
 );
-
-aabb_2d_t calculate_2d_aabb(
-  vector3_t v_a,
-  vector3_t v_b,
-  vector3_t v_c
-);
-
 
 #endif
