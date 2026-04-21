@@ -125,7 +125,8 @@ projection_options_t projection_options = {
   .backface_culling_override = false,
   .backface_culling          = true,
   .dither                    = false,
-  .object_render_debug       = false
+  .object_render_debug       = false,
+  .render_chunk_outlines     = false
 };
 
 float aspect_ratio_x;
@@ -167,9 +168,9 @@ void setup(void) {
 
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
 
-  load_server_room();
+  //load_server_room();
 
-  //load_voxel_world();
+  load_voxel_world();
 
   //load_world1();
 
@@ -250,6 +251,11 @@ void process_input(void){
               break;
             }
 
+            case SDLK_6:{
+              projection_options.render_chunk_outlines = !projection_options.render_chunk_outlines; 
+              snprintf(text1, sizeof(char) * 256, " chunk outlines %s", projection_options.render_chunk_outlines ? "on" : "off");
+              break;
+            }
             case SDLK_7:{
               projection_options.backface_culling_override = !projection_options.backface_culling_override; 
               snprintf(text1, sizeof(char) * 256, " bfc ovrd %s", projection_options.backface_culling_override ? "on" : "off");
@@ -693,7 +699,18 @@ void render_chunk(chunk_t *chunk){
     } /* for(uint32_t i = 0; i < num_faces; i++) */
   } /* for(uint32_t object_i = 0; object_i < num_objects_sorted; object_i++) */
   
-  
+  if(projection_options.render_chunk_outlines) draw_chunk_outlines(); 
+
+  if((time_count & 0x1F) == 0)
+    snprintf(text0, 128, "t: %u, c: %u, %u (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
+      total_triangles_rendered, total_chunks_rendered, fps, 
+      camera.position.x, camera.position.y, camera.position.z,
+      camera.direction.x, camera.direction.y, camera.direction.z,
+      camera.theta, camera.eta
+    );
+}
+
+void draw_chunk_outlines(void){
   for(uint32_t row = 0; row < NUM_CHUNK_DIVISIONS; row++){
     for(uint32_t col = 0; col < NUM_CHUNK_DIVISIONS; col++){
       /* nnn = xzy */
@@ -812,14 +829,6 @@ void render_chunk(chunk_t *chunk){
       draw_line(projected_p110.x, projected_p110.y, projected_p111.x, projected_p111.y, (color_t){.uint32 = 0xFFFFFFFF});
     }
   }
-
-  if((time_count & 0x1F) == 0)
-    snprintf(text0, 128, "t: %u, c: %u, %u (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
-      total_triangles_rendered, total_chunks_rendered, fps, 
-      camera.position.x, camera.position.y, camera.position.z,
-      camera.direction.x, camera.direction.y, camera.direction.z,
-      camera.theta, camera.eta
-    );
 }
 
 void update_and_render_color_buffer2(void) {
@@ -1143,126 +1152,6 @@ void update_and_render_color_buffer2(void) {
     } /* for(uint32_t i = 0; i < num_mesh_faces; i++) */
 
   } /* for(uint32_t object_i = 0; object_i < num_objects_sorted; object_i++) */
-  
-  
-//  for(uint32_t row = 0; row < NUM_CHUNK_DIVISIONS; row++){
-//    for(uint32_t col = 0; col < NUM_CHUNK_DIVISIONS; col++){
-//      vector4_t p000 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_min, .y = chunks[row][col].y_min, .z = chunks[row][col].z_min});
-//      vector4_t p010 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_min, .y = chunks[row][col].y_min, .z = chunks[row][col].z_max});
-//      vector4_t p100 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_max, .y = chunks[row][col].y_min, .z = chunks[row][col].z_min});
-//      vector4_t p110 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_max, .y = chunks[row][col].y_min, .z = chunks[row][col].z_max});
-//
-//      vector4_t p001 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_min, .y = chunks[row][col].y_max, .z = chunks[row][col].z_min});
-//      vector4_t p011 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_min, .y = chunks[row][col].y_max, .z = chunks[row][col].z_max});
-//      vector4_t p101 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_max, .y = chunks[row][col].y_max, .z = chunks[row][col].z_min});
-//      vector4_t p111 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = chunks[row][col].x_max, .y = chunks[row][col].y_max, .z = chunks[row][col].z_max});
-//
-//      vector4_t projected_p000 = matrix4_mul_vector4(&projection_matrix, p000);
-//      vector4_t projected_p010 = matrix4_mul_vector4(&projection_matrix, p010);
-//      vector4_t projected_p100 = matrix4_mul_vector4(&projection_matrix, p100);
-//      vector4_t projected_p110 = matrix4_mul_vector4(&projection_matrix, p110);
-//
-//      vector4_t projected_p001 = matrix4_mul_vector4(&projection_matrix, p001);
-//      vector4_t projected_p011 = matrix4_mul_vector4(&projection_matrix, p011);
-//      vector4_t projected_p101 = matrix4_mul_vector4(&projection_matrix, p101);
-//      vector4_t projected_p111 = matrix4_mul_vector4(&projection_matrix, p111);
-//
-//      if(projected_p000.w != 0.0){
-//        projected_p000.x /= projected_p000.w;
-//        projected_p000.y /= projected_p000.w;
-//        projected_p000.z /= projected_p000.w;
-//      }
-//      if(projected_p010.w != 0.0){
-//        projected_p010.x /= projected_p010.w;
-//        projected_p010.y /= projected_p010.w;
-//        projected_p010.z /= projected_p010.w;
-//      }
-//      if(projected_p100.w != 0.0){
-//        projected_p100.x /= projected_p100.w;
-//        projected_p100.y /= projected_p100.w;
-//        projected_p100.z /= projected_p100.w;
-//      }
-//      if(projected_p110.w != 0.0){
-//        projected_p110.x /= projected_p110.w;
-//        projected_p110.y /= projected_p110.w;
-//        projected_p110.z /= projected_p110.w;
-//      }
-//
-//      if(projected_p001.w != 0.0){
-//        projected_p001.x /= projected_p001.w;
-//        projected_p001.y /= projected_p001.w;
-//        projected_p001.z /= projected_p001.w;
-//      }
-//      if(projected_p011.w != 0.0){
-//        projected_p011.x /= projected_p011.w;
-//        projected_p011.y /= projected_p011.w;
-//        projected_p011.z /= projected_p011.w;
-//      }
-//      if(projected_p101.w != 0.0){
-//        projected_p101.x /= projected_p101.w;
-//        projected_p101.y /= projected_p101.w;
-//        projected_p101.z /= projected_p101.w;
-//      }
-//      if(projected_p111.w != 0.0){
-//        projected_p111.x /= projected_p111.w;
-//        projected_p111.y /= projected_p111.w;
-//        projected_p111.z /= projected_p111.w;
-//      }
-//      
-//      if(
-//        projected_p000.x < -1.0f || projected_p010.x < -1.0f || projected_p100.x < -1.0f || projected_p110.x < -1.0f ||
-//        projected_p000.x > 1.0f || projected_p010.x > 1.0f || projected_p100.x > 1.0f || projected_p110.x > 1.0f ||
-//        projected_p000.y < -1.0f || projected_p010.y < -1.0f || projected_p100.y < -1.0f || projected_p110.y < -1.0f ||
-//        projected_p000.y > 1.0f || projected_p010.y > 1.0f || projected_p100.y > 1.0f || projected_p110.y > 1.0f ||
-//        projected_p000.z < 0.0f || projected_p010.z < 0.0f || projected_p100.z < 0.0f || projected_p110.z < 0.0f ||
-//        projected_p000.z > 1.0f || projected_p010.z > 1.0f || projected_p100.z > 1.0f || projected_p110.z > 1.0f ||
-//
-//        projected_p001.x < -1.0f || projected_p011.x < -1.0f || projected_p101.x < -1.0f || projected_p111.x < -1.0f ||
-//        projected_p001.x > 1.0f  || projected_p011.x > 1.0f  || projected_p101.x > 1.0f  || projected_p111.x > 1.0f  ||
-//        projected_p001.y < -1.0f || projected_p011.y < -1.0f || projected_p101.y < -1.0f || projected_p111.y < -1.0f ||
-//        projected_p001.y > 1.0f  || projected_p011.y > 1.0f  || projected_p101.y > 1.0f  || projected_p111.y > 1.0f  ||
-//        projected_p001.z < 0.0f  || projected_p011.z < 0.0f  || projected_p101.z < 0.0f  || projected_p111.z < 0.0f  ||
-//        projected_p001.z > 1.0f  || projected_p011.z > 1.0f  || projected_p101.z > 1.0f  || projected_p111.z > 1.0f
-//      ) continue;
-//
-//      projected_p000.x =  projected_p000.x * (window_width  * 0.5) + (window_width  * 0.5);
-//      projected_p000.y = -projected_p000.y * (window_height * 0.5) + (window_height * 0.5); 
-//      projected_p010.x =  projected_p010.x * (window_width  * 0.5) + (window_width  * 0.5);
-//      projected_p010.y = -projected_p010.y * (window_height * 0.5) + (window_height * 0.5); 
-//      projected_p100.x =  projected_p100.x * (window_width  * 0.5) + (window_width  * 0.5);
-//      projected_p100.y = -projected_p100.y * (window_height * 0.5) + (window_height * 0.5); 
-//      projected_p110.x =  projected_p110.x * (window_width  * 0.5) + (window_width  * 0.5);
-//      projected_p110.y = -projected_p110.y * (window_height * 0.5) + (window_height * 0.5); 
-//
-//      projected_p001.x =  projected_p001.x * (window_width  * 0.5) + (window_width  * 0.5);
-//      projected_p001.y = -projected_p001.y * (window_height * 0.5) + (window_height * 0.5); 
-//      projected_p011.x =  projected_p011.x * (window_width  * 0.5) + (window_width  * 0.5);
-//      projected_p011.y = -projected_p011.y * (window_height * 0.5) + (window_height * 0.5); 
-//      projected_p101.x =  projected_p101.x * (window_width  * 0.5) + (window_width  * 0.5);
-//      projected_p101.y = -projected_p101.y * (window_height * 0.5) + (window_height * 0.5); 
-//      projected_p111.x =  projected_p111.x * (window_width  * 0.5) + (window_width  * 0.5);
-//      projected_p111.y = -projected_p111.y * (window_height * 0.5) + (window_height * 0.5); 
-//
-//      /* bottom */
-//      draw_line(projected_p000.x, projected_p000.y, projected_p010.x, projected_p010.y, (color_t){.uint32 = 0xFFFFFFFF});
-//      draw_line(projected_p010.x, projected_p010.y, projected_p110.x, projected_p110.y, (color_t){.uint32 = 0xFFFFFFFF});
-//      draw_line(projected_p110.x, projected_p110.y, projected_p100.x, projected_p100.y, (color_t){.uint32 = 0xFFFFFFFF});
-//      draw_line(projected_p100.x, projected_p100.y, projected_p000.x, projected_p000.y, (color_t){.uint32 = 0xFFFFFFFF});
-//
-//      /* top */
-//      draw_line(projected_p001.x, projected_p001.y, projected_p011.x, projected_p011.y, (color_t){.uint32 = 0xFFFFFFFF});
-//      draw_line(projected_p011.x, projected_p011.y, projected_p111.x, projected_p111.y, (color_t){.uint32 = 0xFFFFFFFF});
-//      draw_line(projected_p111.x, projected_p111.y, projected_p101.x, projected_p101.y, (color_t){.uint32 = 0xFFFFFFFF});
-//      draw_line(projected_p101.x, projected_p101.y, projected_p001.x, projected_p001.y, (color_t){.uint32 = 0xFFFFFFFF});
-//
-//      /* sides */
-//      draw_line(projected_p000.x, projected_p000.y, projected_p001.x, projected_p001.y, (color_t){.uint32 = 0xFFFFFFFF});
-//      draw_line(projected_p100.x, projected_p100.y, projected_p101.x, projected_p101.y, (color_t){.uint32 = 0xFFFFFFFF});
-//      draw_line(projected_p010.x, projected_p010.y, projected_p011.x, projected_p011.y, (color_t){.uint32 = 0xFFFFFFFF});
-//      draw_line(projected_p110.x, projected_p110.y, projected_p111.x, projected_p111.y, (color_t){.uint32 = 0xFFFFFFFF});
-//    }
-//  }
-  
 
   if((time_count & 0x1F) == 0)
     snprintf(text0, 128, "%u, %d, %dr:%dt, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
@@ -1665,7 +1554,7 @@ int main(void) {
 
     if(!is_paused){
       time_of_day += delta_time;
-      snprintf(text2, 16, " - %d:%d", (int)time_of_day / 60, (int)time_of_day % 60);
+      snprintf(text2, 64, " time: %d:%d", (int)time_of_day / 60, (int)time_of_day % 60);
       update_state();
       //update_and_render_color_buffer2();
       render_visible_chunks();
@@ -2031,35 +1920,35 @@ void load_server_room(){
   create_light_source(LIGHT_POINT,       (vector3_t){.x = 200.0f,   .y = 50.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFF00}, 3000.0f);
   create_light_source(LIGHT_POINT,       (vector3_t){.x = 0.0f,     .y = 50.0f, .z = 0.0f},    (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 3000.0f);
 
-//  mesh = load_mesh("./assets/obj/server_room/server.obj");
-//  texture = load_texture("./assets/textures/server_room/server.png");
-//  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
-//                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFF8080}, 1.0f, 
-//                0.0f, false, true, false,
-//                BLEND_MODE_OPAQUE, 0x00, 
-//                (vector3_t){3, 2.12, 2}, (vector3_t){0, M_PI, 0}, (vector3_t){-8, 3, 178}, 
-//                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-//                texture
-//  );
-//
-//  mesh = load_mesh("./assets/obj/server_room/server2.obj");
-//  texture = load_texture("./assets/textures/server_room/server2.png");
-//  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
-//                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFF8080}, 0.5f, 
-//                0.0f, false, true, false,
-//                BLEND_MODE_OPAQUE, 0x00, 
-//                (vector3_t){14, 12, 14}, (vector3_t){0, M_PI_2, 0}, (vector3_t){25, 3, 178}, 
-//                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-//                texture
-//  );
-//  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
-//                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFF8080}, 0.5f, 
-//                0.0f, false, true, false,
-//                BLEND_MODE_OPAQUE, 0x00, 
-//                (vector3_t){14, 12, 14}, (vector3_t){0, M_PI_2, 0}, (vector3_t){80, 3, 178}, 
-//                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-//                texture
-//  );
+  mesh = load_mesh("./assets/obj/server_room/server.obj");
+  texture = load_texture("./assets/textures/server_room/server.png");
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
+                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFF8080}, 1.0f, 
+                0.0f, false, true, false,
+                BLEND_MODE_OPAQUE, 0x00, 
+                (vector3_t){3, 2.12, 2}, (vector3_t){0, M_PI, 0}, (vector3_t){-8, 3, 178}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                texture
+  );
+
+  mesh = load_mesh("./assets/obj/server_room/server2.obj");
+  texture = load_texture("./assets/textures/server_room/server2.png");
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
+                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFF8080}, 0.5f, 
+                0.0f, false, true, false,
+                BLEND_MODE_OPAQUE, 0x00, 
+                (vector3_t){14, 12, 14}, (vector3_t){0, M_PI_2, 0}, (vector3_t){25, 3, 178}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                texture
+  );
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
+                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFF8080}, 0.5f, 
+                0.0f, false, true, false,
+                BLEND_MODE_OPAQUE, 0x00, 
+                (vector3_t){14, 12, 14}, (vector3_t){0, M_PI_2, 0}, (vector3_t){80, 3, 178}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                texture
+  );
 
   mesh = load_mesh("./assets/obj/server_room/room2.obj");
   texture = load_texture("./assets/textures/server_room/room.png");
@@ -2067,7 +1956,7 @@ void load_server_room(){
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF40FF40}, 0.0f, 
                 0.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){16, 16, 16}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+                (vector3_t){16, 20, 16}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );

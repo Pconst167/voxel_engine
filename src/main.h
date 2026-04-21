@@ -65,7 +65,8 @@ bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane
 uint32_t chunk_num_vertices_inside_plane(chunk_t *chunk, frustrum_plane_t frustrum_plane);
 int get_chunk_intersection_mode(chunk_t *chunk);
 void render_chunk(chunk_t *chunk);
-void render_visible_chunks(void) ;
+void render_visible_chunks(void);
+void draw_chunk_outlines(void);
 
 void load_skybox();
 void load_world1(void);
