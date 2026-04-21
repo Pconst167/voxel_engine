@@ -73,9 +73,9 @@ inline bool is_top_left_edge_old(vector2_t *start, vector2_t *end){
 
 __attribute__((optimize("Ofast")))
 inline float edge_cross(
-  const vector2_t *restrict a,
-  const vector2_t *restrict b,
-  const vector2_t *restrict p
+  const vector2_t *a,
+  const vector2_t *b,
+  const vector2_t *p
 ){
   float ax = a->x;
   float ay = a->y;
@@ -451,8 +451,238 @@ void draw_filled_triangle_no_zbuffer_write(
   }
 }
 
+#define FIXED_SHIFT 8
+#define FIXED_ONE   (1 << FIXED_SHIFT)
+
+static inline int32_t to_fixed(float v){
+  return (int32_t)lroundf(v * (float)FIXED_ONE);
+}
+
+static inline int64_t edge_cross_fixed(
+  int32_t ax, int32_t ay,
+  int32_t bx, int32_t by,
+  int32_t px, int32_t py
+){
+  return ((int64_t)(bx - ax) * (int64_t)(py - ay)) -
+         ((int64_t)(by - ay) * (int64_t)(px - ax));
+}
+
+static inline bool is_top_left_edge_fixed(
+  int32_t ax, int32_t ay,
+  int32_t bx, int32_t by
+){
+  int32_t dx = bx - ax;
+  int32_t dy = by - ay;
+
+  return (dy < 0) || (dy == 0 && dx > 0);
+}
+
 __attribute__((optimize("Ofast")))
 void draw_textured_triangle_opaque(
+  vector4_t *v0, uv_t v0_uv,
+  vector4_t *v1, uv_t v1_uv,
+  vector4_t *v2, uv_t v2_uv,
+  color_t *texture, int texture_width, int texture_height,
+  float *light_intensities,
+  color_t emissive_color,
+  float emissive_intensity,
+  bool reflective,
+  bool dither
+){
+  float area_float = edge_cross(
+    &(vector2_t){v0->x, v0->y},
+    &(vector2_t){v1->x, v1->y},
+    &(vector2_t){v2->x, v2->y}
+  );
+
+  if(area_float == 0.0f) return;
+
+  if(area_float < 0.0f){
+    vector4_t *tmp_v = v1;
+    v1 = v2;
+    v2 = tmp_v;
+
+    uv_t tmp_uv = v1_uv;
+    v1_uv = v2_uv;
+    v2_uv = tmp_uv;
+  }
+
+  int x_min = (int)floorf(MIN(MIN(v0->x, v1->x), v2->x));
+  int y_min = (int)floorf(MIN(MIN(v0->y, v1->y), v2->y));
+  int x_max = (int)ceilf (MAX(MAX(v0->x, v1->x), v2->x));
+  int y_max = (int)ceilf (MAX(MAX(v0->y, v1->y), v2->y));
+
+  if(x_min < 0) x_min = 0;
+  if(y_min < 0) y_min = 0;
+  if(x_max >= window_width)  x_max = window_width  - 1;
+  if(y_max >= window_height) y_max = window_height - 1;
+
+  if(x_min > x_max || y_min > y_max) return;
+
+  int32_t x0 = to_fixed(v0->x);
+  int32_t y0 = to_fixed(v0->y);
+  int32_t x1 = to_fixed(v1->x);
+  int32_t y1 = to_fixed(v1->y);
+  int32_t x2 = to_fixed(v2->x);
+  int32_t y2 = to_fixed(v2->y);
+
+  int64_t area_fixed = edge_cross_fixed(x0, y0, x1, y1, x2, y2);
+  if(area_fixed == 0) return;
+
+  /* after winding fix, inside should correspond to positive edges */
+  if(area_fixed < 0){
+    area_fixed = -area_fixed;
+  }
+
+  float area = (float)area_fixed / (float)(FIXED_ONE * FIXED_ONE);
+  float one_over_area = 1.0f / area;
+
+  int32_t start_x = ((int32_t)x_min << FIXED_SHIFT) + (FIXED_ONE >> 1);
+  int32_t start_y = ((int32_t)y_min << FIXED_SHIFT) + (FIXED_ONE >> 1);
+
+  /* edges:
+     w0 = edge(v1,v2,p)
+     w1 = edge(v2,v0,p)
+     w2 = edge(v0,v1,p)
+  */
+  bool edge0_top_left = is_top_left_edge_fixed(x1, y1, x2, y2);
+  bool edge1_top_left = is_top_left_edge_fixed(x2, y2, x0, y0);
+  bool edge2_top_left = is_top_left_edge_fixed(x0, y0, x1, y1);
+
+  int64_t w0_row_unbiased = edge_cross_fixed(x1, y1, x2, y2, start_x, start_y);
+  int64_t w1_row_unbiased = edge_cross_fixed(x2, y2, x0, y0, start_x, start_y);
+  int64_t w2_row_unbiased = edge_cross_fixed(x0, y0, x1, y1, start_x, start_y);
+
+  int64_t w0_row = w0_row_unbiased - (edge0_top_left ? 0 : 1);
+  int64_t w1_row = w1_row_unbiased - (edge1_top_left ? 0 : 1);
+  int64_t w2_row = w2_row_unbiased - (edge2_top_left ? 0 : 1);
+
+  /* correct stepping for:
+     E = dx * (py - ay) - dy * (px - ax)
+
+     move right by 1 pixel  => px += FIXED_ONE => E -= dy * FIXED_ONE
+     move down  by 1 pixel  => py += FIXED_ONE => E += dx * FIXED_ONE
+  */
+  int64_t delta_w0_col = -(int64_t)(y2 - y1) * FIXED_ONE;
+  int64_t delta_w1_col = -(int64_t)(y0 - y2) * FIXED_ONE;
+  int64_t delta_w2_col = -(int64_t)(y1 - y0) * FIXED_ONE;
+
+  int64_t delta_w0_row =  (int64_t)(x2 - x1) * FIXED_ONE;
+  int64_t delta_w1_row =  (int64_t)(x0 - x2) * FIXED_ONE;
+  int64_t delta_w2_row =  (int64_t)(x1 - x0) * FIXED_ONE;
+
+  float one_over_v0_w = 1.0f / v0->w;
+  float one_over_v1_w = 1.0f / v1->w;
+  float one_over_v2_w = 1.0f / v2->w;
+
+  float v0_u_over_w = v0_uv.u * one_over_v0_w;
+  float v1_u_over_w = v1_uv.u * one_over_v1_w;
+  float v2_u_over_w = v2_uv.u * one_over_v2_w;
+
+  float v0_v_over_w = v0_uv.v * one_over_v0_w;
+  float v1_v_over_w = v1_uv.v * one_over_v1_w;
+  float v2_v_over_w = v2_uv.v * one_over_v2_w;
+
+  light_intensity_rgb_t intensity = find_total_light_intensity(light_intensities);
+
+  for(int y = y_min; y <= y_max; y++){
+    int64_t w0 = w0_row;
+    int64_t w1 = w1_row;
+    int64_t w2 = w2_row;
+
+    int64_t w0_unbiased = w0_row_unbiased;
+    int64_t w1_unbiased = w1_row_unbiased;
+    int64_t w2_unbiased = w2_row_unbiased;
+
+    bool was_inside = false;
+
+    for(int x = x_min; x <= x_max; x++){
+      bool inside = (w0 >= 0) && (w1 >= 0) && (w2 >= 0);
+
+      if(inside){
+        was_inside = true;
+
+        float alpha = ((float)w0_unbiased / (float)(FIXED_ONE * FIXED_ONE)) * one_over_area;
+        float beta  = ((float)w1_unbiased / (float)(FIXED_ONE * FIXED_ONE)) * one_over_area;
+        float gamma = ((float)w2_unbiased / (float)(FIXED_ONE * FIXED_ONE)) * one_over_area;
+
+        float interpolated_reciprocal_w = (alpha * one_over_v0_w) + (beta * one_over_v1_w) + (gamma * one_over_v2_w);
+
+        if(interpolated_reciprocal_w > zbuffer[y * window_width + x]){
+          float interpolated_u = (alpha * v0_u_over_w) + (beta * v1_u_over_w) + (gamma * v2_u_over_w);
+          float interpolated_v = (alpha * v0_v_over_w) + (beta * v1_v_over_w) + (gamma * v2_v_over_w);
+
+          interpolated_u /= interpolated_reciprocal_w;
+          interpolated_v /= interpolated_reciprocal_w;
+
+          int texture_u = (int)(interpolated_u * texture_width);
+          int texture_v = (int)(interpolated_v * texture_height);
+
+          if(texture_u < 0) texture_u = 0;
+          if(texture_v < 0) texture_v = 0;
+          if(texture_u >= texture_width)  texture_u = texture_width  - 1;
+          if(texture_v >= texture_height) texture_v = texture_height - 1;
+
+          color_t texel = texture[texture_v * texture_width + texture_u];
+
+          uint32_t red_total   = 0;
+          uint32_t green_total = 0;
+          uint32_t blue_total  = 0;
+
+          if(reflective){
+            red_total   = (uint32_t)(texel.rgb.red   * intensity.red);
+            green_total = (uint32_t)(texel.rgb.green * intensity.green);
+            blue_total  = (uint32_t)(texel.rgb.blue  * intensity.blue);
+          }
+
+          if(emissive_intensity > 0.0f){
+            red_total   += (uint32_t)(texel.rgb.red   * emissive_color.rgb.red   / 255.0f * emissive_intensity);
+            green_total += (uint32_t)(texel.rgb.green * emissive_color.rgb.green / 255.0f * emissive_intensity);
+            blue_total  += (uint32_t)(texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f * emissive_intensity);
+          }
+
+          if(red_total   > 255) red_total   = 255;
+          if(green_total > 255) green_total = 255;
+          if(blue_total  > 255) blue_total  = 255;
+
+          color_t final_color = {
+            .rgb.alpha = texel.rgb.alpha,
+            .rgb.blue  = blue_total,
+            .rgb.green = green_total,
+            .rgb.red   = red_total
+          };
+
+          if(dither){
+            final_color = temporal_dither(final_color, x, y);
+          }
+
+          color_buffer[y * window_width + x] = final_color;
+          zbuffer[y * window_width + x] = interpolated_reciprocal_w;
+        }
+      }
+      else if(was_inside) break;
+
+      w0 += delta_w0_col;
+      w1 += delta_w1_col;
+      w2 += delta_w2_col;
+
+      w0_unbiased += delta_w0_col;
+      w1_unbiased += delta_w1_col;
+      w2_unbiased += delta_w2_col;
+    }
+
+    w0_row += delta_w0_row;
+    w1_row += delta_w1_row;
+    w2_row += delta_w2_row;
+
+    w0_row_unbiased += delta_w0_row;
+    w1_row_unbiased += delta_w1_row;
+    w2_row_unbiased += delta_w2_row;
+  }
+}
+
+__attribute__((optimize("Ofast")))
+void draw_textured_triangle_opaque_float(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,

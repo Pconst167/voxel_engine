@@ -25,7 +25,6 @@
       textures should be bound to objects not meshes
 
     TODO:
-      >>>> check which components of frustrum plane normals are 0, many are ! in frustrum_cull_object function
       for each chunk, for each object, mark a face as fully inside chunk, or not fully inside so we can skip clipping
       OR: still only TEST for clipping, but dont clip directly. if triangle crosses frustrum boundary then clip.
       then for fully inside, we only test for clipping, but for intersecting chunks, clip all triangles directly.
@@ -89,7 +88,7 @@
 #define DAY_LENGTH (1.01f * 60.0f * 60.0f / 0.016f) /* hours */
 
 #define ZNEAR 0.1f
-#define ZFAR  3400.0f
+#define ZFAR  5000.0f
 
 /* parameters for controlling the absolute ambient light */
 #define MIN_AMBIENT_LIGHT_INTENSITY 0.1f
@@ -109,7 +108,7 @@ char text2[256];
 
 /* game control */
 float delta_time;
-float move_speed = 50.0f;
+float move_speed = 400.0f;
 float turn_speed = 3.0f;
 bool quit = false;
 bool is_paused = false;
@@ -1990,11 +1989,11 @@ void load_voxel_world(){
   mesh_t *mesh;
   texture_t *texture;
 
-  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFE0E0FF}, 1.0f);
-  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.1f);
+  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
+  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
 
   mesh = load_mesh("./assets/obj/voxels.obj");
-  texture = load_texture("./assets/textures/ground/mountain.png");
+  texture = load_texture("./assets/textures/ground/grass9.png");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                 (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 0.0f, false, true, false,

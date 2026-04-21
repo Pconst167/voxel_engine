@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include "object.h"
 
-#define NUM_CHUNK_DIVISIONS 16 /* 10 along x, and 10 along z */
+#define NUM_CHUNK_DIVISIONS 8 /* 10 along x, and 10 along z */
 
 typedef struct{
   double x_min, y_min, z_min;
