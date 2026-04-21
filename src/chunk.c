@@ -162,13 +162,13 @@ void populate_chunks(void){
         int chunk_xcol_max = (int)((face_aabb.x_max - world_x_min) / chunk_dx);
         int chunk_zrow_min = (int)((face_aabb.z_min - world_z_min) / chunk_dz);
         int chunk_zrow_max = (int)((face_aabb.z_max - world_z_min) / chunk_dz);
-
-        /* clamp boundaries because a triangle on the boundary can give a chunk index out of range */
-        chunk_xcol_min = MAX(0, chunk_xcol_min);
-        chunk_xcol_max = MIN(NUM_CHUNK_DIVISIONS - 1, chunk_xcol_max);
-        chunk_zrow_min = MAX(0, chunk_zrow_min);
-        chunk_zrow_max = MIN(NUM_CHUNK_DIVISIONS - 1, chunk_zrow_max);
-
+        
+        /* clamp boundaries on both ends because a triangle on the boundary can give a chunk index out of range */
+        chunk_xcol_min = MAX(0, MIN(NUM_CHUNK_DIVISIONS - 1, chunk_xcol_min));
+        chunk_xcol_max = MAX(0, MIN(NUM_CHUNK_DIVISIONS - 1, chunk_xcol_max));
+        chunk_zrow_min = MAX(0, MIN(NUM_CHUNK_DIVISIONS - 1, chunk_zrow_min));
+        chunk_zrow_max = MAX(0, MIN(NUM_CHUNK_DIVISIONS - 1, chunk_zrow_max));
+        
         /* now add reference to object and face to the chunks */
         for(int z_row = chunk_zrow_min; z_row <= chunk_zrow_max; z_row++){
           for(int x_col = chunk_xcol_min; x_col <= chunk_xcol_max; x_col++){
