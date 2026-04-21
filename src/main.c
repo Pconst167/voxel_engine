@@ -102,8 +102,9 @@ uint32_t total_triangles_rendered;
 uint32_t total_chunks_rendered;
 uint32_t time_count; /* keeps a count that increments every frame - used to pace events */
 float time_of_day; /* keeps time the accumulation of  each delta_time per frame */
+char text0[256];
+char text1[256];
 char text2[256];
-char text3[256];
 
 /* game control */
 float delta_time;
@@ -230,33 +231,33 @@ void process_input(void){
 
             case SDLK_1:{
               projection_options.projection_mode = TEXT_PERSPECTIVE_CORRECT; 
-              snprintf(text2, sizeof(char) * 256, "perspective");
+              snprintf(text1, sizeof(char) * 256, " perspective");
               break;
             }
             case SDLK_2:{
               projection_options.projection_mode = TEXT_AFFINE; 
-              snprintf(text2, sizeof(char) * 256, "affine");
+              snprintf(text1, sizeof(char) * 256, " affine");
               break;
             }
             case SDLK_3:{
               projection_options.projection_mode = TEXT_FILLED; 
-              snprintf(text2, sizeof(char) * 256, "filled");
+              snprintf(text1, sizeof(char) * 256, " filled");
               break;
             }
             case SDLK_4:{
               projection_options.projection_mode = TEXT_WIREFRAME; 
-              snprintf(text2, sizeof(char) * 256, "wireframe");
+              snprintf(text1, sizeof(char) * 256, " wireframe");
               break;
             }
 
             case SDLK_7:{
               projection_options.backface_culling_override = !projection_options.backface_culling_override; 
-              snprintf(text2, sizeof(char) * 256, "bfc ovrd %s", projection_options.backface_culling_override ? "on" : "off");
+              snprintf(text1, sizeof(char) * 256, " bfc ovrd %s", projection_options.backface_culling_override ? "on" : "off");
               break;
             }
             case SDLK_8:{
               projection_options.backface_culling = !projection_options.backface_culling; 
-              snprintf(text2, sizeof(char) * 256, "%s", projection_options.backface_culling ? "culled" : "not culled");
+              snprintf(text1, sizeof(char) * 256, " %s", projection_options.backface_culling ? "culled" : "not culled");
               break;
             }
             case SDLK_9:{
@@ -811,8 +812,8 @@ void render_chunk(chunk_t *chunk){
 //    }
 //  }
 
-  if((time_count & 0x0F) == 0)
-    snprintf(text, 128, "t: %u, c: %u, %u (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
+  if((time_count & 0x1F) == 0)
+    snprintf(text0, 128, "t: %u, c: %u, %u (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
       total_triangles_rendered, total_chunks_rendered, fps, 
       camera.position.x, camera.position.y, camera.position.z,
       camera.direction.x, camera.direction.y, camera.direction.z,
@@ -1262,8 +1263,8 @@ void update_and_render_color_buffer2(void) {
 //  }
   
 
-  if((time_count & 0x0F) == 0)
-    snprintf(text, 128, "%u, %d, %dr:%dt, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
+  if((time_count & 0x1F) == 0)
+    snprintf(text0, 128, "%u, %d, %dr:%dt, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
       total_triangles_rendered, fps, 
       num_objects_sorted, num_objects,
       camera.position.x, camera.position.y, camera.position.z,
@@ -1631,16 +1632,25 @@ void process_frame_rate(void) {
   if (frame_time <= 0) frame_time = 1;
 
   fps = (int)(1000.0 / (double)frame_time);
-  if((time_count & 0x0F) == 0) snprintf(fps_str, sizeof(fps_str), "fps: %d", fps);
+  if((time_count & 0x1F) == 0) snprintf(fps_str, sizeof(fps_str), "fps: %d", fps);
 
   delta_time = frame_time / 1000.0f;
   previous_frame_time = end_time;
 }
 
+void set_title(void){
+  char string[256] = {0};
+  if(*text0 != '\0') strcpy(string, text0);
+  if(*text1 != '\0') strcat(string, text1);
+  if(*text2 != '\0') strcat(string, text2);
+
+  SDL_SetWindowTitle(window, string);
+}
+
 void render_text(){
-  if(*text  != '\0')  draw_text(renderer, 0, 0, text);
-  if(*text2 != '\0') draw_text(renderer, 0, 20, text2);
-  if(*text3 != '\0') draw_text(renderer, 0, 40, text3);
+  if(*text0 != '\0') draw_text(renderer, 0, 0, text0);
+  if(*text1 != '\0') draw_text(renderer, 0, 20, text1);
+  if(*text2 != '\0') draw_text(renderer, 0, 40, text2);
 }
 
 int main(void) {
@@ -1654,14 +1664,15 @@ int main(void) {
 
     if(!is_paused){
       time_of_day += delta_time;
-      snprintf(text3, 16, "%d:%d", (int)time_of_day / 60, (int)time_of_day % 60);
+      snprintf(text2, 16, " - %d:%d", (int)time_of_day / 60, (int)time_of_day % 60);
       update_state();
       render_visible_chunks();
       time_count++; /* one count per frame */
     }
 
     sdl_render();
-    render_text();
+    set_title();
+    //render_text();
     SDL_RenderPresent(renderer);
   }
 

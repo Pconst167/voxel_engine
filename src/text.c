@@ -1,7 +1,6 @@
 #include "text.h"
 
 TTF_Font *font;
-char text[MAX_TEXT_LEN];
 
 /* initialize font */
 void init_font(char *font_name, int size){
@@ -18,11 +17,6 @@ void init_font(char *font_name, int size){
 }
 
 void draw_text(SDL_Renderer* renderer, int x, int y, char* text) {
-  if (!font) {
-    fprintf(stderr, "draw_text: font is NULL\n");
-    return;
-  }
-
   SDL_Color color = {255, 255, 255, 255};
 
   SDL_Surface* surface = TTF_RenderText_Solid(font, text, color);
