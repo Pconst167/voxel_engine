@@ -169,9 +169,8 @@ void setup(void) {
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
 
   //load_server_room();
-
   load_voxel_world();
-
+  //load_cave_world();
   //load_world1();
 
   /* normalize all light direction vectors to unity */
@@ -393,7 +392,7 @@ void render_visible_chunks(void) {
   for(int z_row = 0; z_row < NUM_CHUNK_DIVISIONS; z_row++){
     for(int x_col = 0; x_col < NUM_CHUNK_DIVISIONS; x_col++){
       if(!chunks[z_row][x_col].empty){ /* if chunk is not empty, then render objects contained in chunk */
-        int intersection_mode = get_chunk_intersection_mode(&chunks[z_row][x_col]);
+        int intersection_mode = get_chunk_intersection_mode_fast(&chunks[z_row][x_col]);
         if(intersection_mode == 1 || intersection_mode == -1)
           render_chunk(&chunks[z_row][x_col]);
       }
@@ -412,6 +411,94 @@ void render_visible_chunks(void) {
    if count == 0 its fully outside
    else its intersecting
 */
+int get_chunk_intersection_mode_fast(chunk_t *chunk){
+  float x_min = chunk->x_min;
+  float x_max = chunk->x_max;
+  float y_min = chunk->y_min;
+  float y_max = chunk->y_max;
+  float z_min = chunk->z_min;
+  float z_max = chunk->z_max;
+
+  /* AABB center in world space */
+  vector3_t center_world = {
+    .x = 0.5f * (x_min + x_max),
+    .y = 0.5f * (y_min + y_max),
+    .z = 0.5f * (z_min + z_max)
+  };
+
+  /* AABB half extents in world space */
+  vector3_t extents_world = {
+    .x = 0.5f * (x_max - x_min),
+    .y = 0.5f * (y_max - y_min),
+    .z = 0.5f * (z_max - z_min)
+  };
+
+  /* center transformed to view space */
+  vector4_t center_view4 = matrix4_mul_vector3(&view_matrix, center_world);
+  vector3_t center_view = {
+    .x = center_view4.x,
+    .y = center_view4.y,
+    .z = center_view4.z
+  };
+
+  /* transform AABB local axes into view space using only linear 3x3 part */
+  vector3_t axis_x_view = {
+    .x = view_matrix.element[0][0],
+    .y = view_matrix.element[1][0],
+    .z = view_matrix.element[2][0]
+  };
+
+  vector3_t axis_y_view = {
+    .x = view_matrix.element[0][1],
+    .y = view_matrix.element[1][1],
+    .z = view_matrix.element[2][1]
+  };
+
+  vector3_t axis_z_view = {
+    .x = view_matrix.element[0][2],
+    .y = view_matrix.element[1][2],
+    .z = view_matrix.element[2][2]
+  };
+
+  bool fully_inside_all_planes = true;
+
+  for(frustrum_plane_t frustrum_plane = FRUSTRUM_LEFT; frustrum_plane < NUM_VIEW_FRUSTRUM_PLANES; frustrum_plane++){
+    float s, r;
+
+    if(frustrum_plane == FRUSTRUM_NEAR){
+      /* inside if z >= znear */
+      s = center_view.z - znear;
+      r = fabsf(axis_x_view.z) * extents_world.x +
+          fabsf(axis_y_view.z) * extents_world.y +
+          fabsf(axis_z_view.z) * extents_world.z;
+    }
+    else if(frustrum_plane == FRUSTRUM_FAR){
+      /* inside if z <= zfar  =>  zfar - z >= 0 */
+      s = zfar - center_view.z;
+      r = fabsf(axis_x_view.z) * extents_world.x +
+          fabsf(axis_y_view.z) * extents_world.y +
+          fabsf(axis_z_view.z) * extents_world.z;
+    }
+    else{
+      vector3_t n = view_frustrum_planes[frustrum_plane].normal;
+
+      s = center_view.x * n.x + 
+          center_view.y * n.y + 
+          center_view.z * n.z;
+
+      r = fabsf(n.x * axis_x_view.x + n.y * axis_x_view.y + n.z * axis_x_view.z) * extents_world.x +
+          fabsf(n.x * axis_y_view.x + n.y * axis_y_view.y + n.z * axis_y_view.z) * extents_world.y +
+          fabsf(n.x * axis_z_view.x + n.y * axis_z_view.y + n.z * axis_z_view.z) * extents_world.z;
+    }
+
+    if(s + r < 0.0f) return 0;   /* outside */
+
+    if(s - r < 0.0f) fully_inside_all_planes = false;
+  }
+
+  return fully_inside_all_planes ? 1 : -1;
+}
+
 int get_chunk_intersection_mode(chunk_t *chunk){
   double x_min = chunk->x_min;
   double x_max = chunk->x_max;
@@ -1874,11 +1961,30 @@ void load_quake_world(){
   );
 }
 
+void load_cave_world(){
+  mesh_t *mesh;
+  texture_t *texture;
+
+  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFF4080FF}, 0.6f);
+  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.9f);
+
+  mesh = load_mesh("./assets/obj/cave.obj");
+  texture = load_texture("./assets/textures/ground/mountain.png");
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
+                (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
+                0.0f, false, true, false,
+                BLEND_MODE_OPAQUE, 0x01, 
+                (vector3_t){10, 10, 10}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                texture
+  );
+}
+
 void load_voxel_world(){
   mesh_t *mesh;
   texture_t *texture;
 
-  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.5f);
+  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFF4080FF}, 0.6f);
   create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.9f);
 
   mesh = load_mesh("./assets/obj/voxels.obj");

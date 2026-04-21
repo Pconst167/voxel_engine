@@ -64,6 +64,7 @@ inline void rasterize_triangle_no_zbuffer_write(
 bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane);
 uint32_t chunk_num_vertices_inside_plane(chunk_t *chunk, frustrum_plane_t frustrum_plane);
 int get_chunk_intersection_mode(chunk_t *chunk);
+int get_chunk_intersection_mode_fast(chunk_t *chunk);
 void render_chunk(chunk_t *chunk);
 void render_visible_chunks(void);
 void draw_chunk_outlines(void);
@@ -73,5 +74,6 @@ void load_world1(void);
 void load_voxel_world();
 void load_server_room();
 void load_quake_world();
+void load_cave_world();
 
 #endif
