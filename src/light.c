@@ -20,14 +20,10 @@ void initialize_lights(){
 }
 
 uint32_t create_light_source(light_type_t type, vector3_t position, vector3_t direction, color_t color, float intensity){
-  light_sources[num_light_sources].type = type;
-  light_sources[num_light_sources].position.x = position.x;
-  light_sources[num_light_sources].position.y = position.y;
-  light_sources[num_light_sources].position.z = position.z;
-  light_sources[num_light_sources].direction.x = direction.x;
-  light_sources[num_light_sources].direction.y = direction.y;
-  light_sources[num_light_sources].direction.z = direction.z;
-  light_sources[num_light_sources].color = color;
+  light_sources[num_light_sources].type      = type;
+  light_sources[num_light_sources].position  = position;
+  light_sources[num_light_sources].direction = direction;
+  light_sources[num_light_sources].color     = color;
   light_sources[num_light_sources].intensity = intensity;
 
   num_light_sources++;

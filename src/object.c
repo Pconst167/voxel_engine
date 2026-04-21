@@ -73,7 +73,7 @@ object_t *create_object(
     }
 
     /* transform bbox/bsphere center and radius */
-    vector4_t transformed_bounding_center = matrix4_mul_vector3(&world_matrix, (vector3_t){mesh->bounding_center.x, mesh->bounding_center.y, mesh->bounding_center.z});
+    vector4_t transformed_bounding_center = matrix4_mul_vector3(&world_matrix, mesh->bounding_center);
     object->bounding_center.x = transformed_bounding_center.x;
     object->bounding_center.y = transformed_bounding_center.y;
     object->bounding_center.z = transformed_bounding_center.z;

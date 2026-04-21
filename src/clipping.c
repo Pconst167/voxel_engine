@@ -123,10 +123,10 @@ void clip_polygon_against_plane2(polygon_t *polygon, frustrum_plane_t plane){
   uv_t inside_text_coords[MAX_NUM_POLYGON_VERTICES];
   uint8_t num_inside_vertices = 0;
 
-  vector3_t *curr_vertex     = &(polygon->vertices[0]);
-  uv_t    *curr_text_coord = &(polygon->text_coords[0]);
-  vector3_t *prev_vertex     = &(polygon->vertices[polygon->num_vertices - 1]);
-  uv_t    *prev_text_coord = &(polygon->text_coords[polygon->num_vertices - 1]);
+  vector3_t *curr_vertex = &(polygon->vertices[0]);
+  uv_t *curr_text_coord  = &(polygon->text_coords[0]);
+  vector3_t *prev_vertex = &(polygon->vertices[polygon->num_vertices - 1]);
+  uv_t *prev_text_coord  = &(polygon->text_coords[polygon->num_vertices - 1]);
 
   float curr_dot;
   /* dot product between vector from P to previous vertex, and the plane's normal */
@@ -277,28 +277,24 @@ inline bool frustrum_cull_object(vector4_t *bsphere_center, float bsphere_radius
 
   /* LEFT */
   distance = bsphere_center->x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x +
-             bsphere_center->y * view_frustrum_planes[FRUSTRUM_LEFT].normal.y +
              bsphere_center->z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z;
 
   if(distance < -bsphere_radius) return true;
 
   /* RIGHT */
   distance = bsphere_center->x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x +
-             bsphere_center->y * view_frustrum_planes[FRUSTRUM_RIGHT].normal.y +
              bsphere_center->z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z;
 
   if(distance < -bsphere_radius) return true;
 
   /* BOTTOM */
-  distance = bsphere_center->x * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.x +
-             bsphere_center->y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
+  distance = bsphere_center->y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y +
              bsphere_center->z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z;
 
   if(distance < -bsphere_radius) return true;
 
   /* TOP */
-  distance = bsphere_center->x * view_frustrum_planes[FRUSTRUM_TOP].normal.x +
-             bsphere_center->y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
+  distance = bsphere_center->y * view_frustrum_planes[FRUSTRUM_TOP].normal.y +
              bsphere_center->z * view_frustrum_planes[FRUSTRUM_TOP].normal.z;
 
   if(distance < -bsphere_radius) return true;
