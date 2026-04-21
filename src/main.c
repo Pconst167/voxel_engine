@@ -89,7 +89,7 @@
 #define DAY_LENGTH (1.01f * 60.0f * 60.0f / 0.016f) /* hours */
 
 #define ZNEAR 0.1f
-#define ZFAR  10000.0f
+#define ZFAR  3400.0f
 
 /* parameters for controlling the absolute ambient light */
 #define MIN_AMBIENT_LIGHT_INTENSITY 0.1f
@@ -97,6 +97,7 @@
 #define MIN_SKYBOX_INTENSITY 0.03f
 #define SPECULAR_POWER 16.0f
 
+uint32_t frame_id = 1; /* start at 1, because all face_draw_stamp values are reset to 0 at object creation time */
 char fps_str[16];
 uint32_t total_triangles_rendered;
 uint32_t total_chunks_rendered;
@@ -574,6 +575,10 @@ void render_chunk(chunk_t *chunk){
     for(uint32_t face_idx = 0; face_idx < num_chunk_object_faces; face_idx++){
       uint32_t face_id = chunk_object_faces.face_indices[face_idx]; /* get face id from face list */
       face_t face = object->mesh->faces[face_id];
+
+      /* only draw a face if it has not been drawn already by any chunks */
+      if(object->face_draw_stamp[face_id] == frame_id) continue;
+      object->face_draw_stamp[face_id] = frame_id;
 
       /* WORLD MATRIX / VIEW MATRIX TRANSFORM */
       vector3_t face_vertices[3];
@@ -1636,6 +1641,7 @@ int main(void) {
   setup();
   
   while(!quit){
+    frame_id++;
     process_input();
     process_frame_rate();
 
@@ -1984,8 +1990,8 @@ void load_voxel_world(){
   mesh_t *mesh;
   texture_t *texture;
 
-  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFF4080FF}, 0.6f);
-  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.9f);
+  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFE0E0FF}, 1.0f);
+  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.1f);
 
   mesh = load_mesh("./assets/obj/voxels.obj");
   texture = load_texture("./assets/textures/ground/mountain.png");

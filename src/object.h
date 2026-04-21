@@ -42,6 +42,8 @@ typedef struct{
   vector3_t angular_velocity;
   /* texture data */
   texture_t *texture;
+  /* an array indicating the frame id where each object face was last drawn - used to avoid redrawing the same face in different chunks */
+  uint32_t *face_draw_stamp;
 } object_t;
 
 typedef struct{

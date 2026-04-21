@@ -84,6 +84,9 @@ object_t *create_object(
     object->bsphere_radius = mesh->bsphere_radius * scale_max;
   }
 
+  /* create face draw stamp array */
+  object->face_draw_stamp = calloc(object->mesh->num_faces, sizeof(uint32_t));
+
   num_objects++;
 
   return object;
