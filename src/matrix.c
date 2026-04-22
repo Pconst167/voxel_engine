@@ -114,7 +114,7 @@ matrix4_t matrix4_gen_rot_z(float rz){
   return m;
 }
 
-vector4_t matrix4_mul_vector3(const matrix4_t *m, const vector3_t v){
+inline vector4_t matrix4_mul_vector3(const matrix4_t *m, const vector3_t v){
   return (vector4_t){
     .x = m->element[0][0] * v.x + m->element[0][1] * v.y + m->element[0][2] * v.z + m->element[0][3],
     .y = m->element[1][0] * v.x + m->element[1][1] * v.y + m->element[1][2] * v.z + m->element[1][3],
@@ -123,7 +123,7 @@ vector4_t matrix4_mul_vector3(const matrix4_t *m, const vector3_t v){
   };
 }
 
-vector4_t matrix4_mul_vector4(const matrix4_t *m, const vector4_t v){
+inline vector4_t matrix4_mul_vector4(const matrix4_t *m, const vector4_t v){
   return (vector4_t){
     .x = m->element[0][0] * v.x + m->element[0][1] * v.y + m->element[0][2] * v.z + m->element[0][3] * v.w,
     .y = m->element[1][0] * v.x + m->element[1][1] * v.y + m->element[1][2] * v.z + m->element[1][3] * v.w,
@@ -132,7 +132,7 @@ vector4_t matrix4_mul_vector4(const matrix4_t *m, const vector4_t v){
   };
 }
 
-matrix4_t matrix4_mul_mat4(const matrix4_t *m1, const matrix4_t *m2){
+inline matrix4_t matrix4_mul_mat4(const matrix4_t *m1, const matrix4_t *m2){
   matrix4_t result;
 
   for(int row = 0; row < 4; row++){
@@ -178,7 +178,7 @@ matrix4_t matrix4_gen_orthographic(float aspect_ratio_y){
   and the maximum values of x/y are for when z = 1 (at zfar), and so if the bounds on x/y are -1 to 1, 
   then smaller x's are between those bounds.
 */
-matrix4_t matrix4_gen_perspective(float fov_y, float aspect_ratio_y, float znear, float zfar){
+inline matrix4_t matrix4_gen_perspective(float fov_y, float aspect_ratio_y, float znear, float zfar){
   float one_over_tan_fov_y = 1.0 / tanf(fov_y / 2.0);
   
   return (matrix4_t){{
@@ -190,7 +190,7 @@ matrix4_t matrix4_gen_perspective(float fov_y, float aspect_ratio_y, float znear
 }
 
 /* optimized projection matrix/vector multiply - removed multiplications by matrix elements that are 0 */
-vector4_t matrix4_projection_mul_vector4(const matrix4_t *m, const vector4_t v){
+inline vector4_t matrix4_projection_mul_vector4(const matrix4_t *m, const vector4_t v){
   return (vector4_t){
     .x = m->element[0][0] * v.x,
     .y = m->element[1][1] * v.y,
@@ -202,7 +202,7 @@ vector4_t matrix4_projection_mul_vector4(const matrix4_t *m, const vector4_t v){
 /*
   multiplying x and y by 1/tan(fov_y/2) means that if x = z*tan(fov_y/2), then x/(z*tan(fov_y/2)) = 1, and thus it means that inside the frustrum x is between -1 and 1 (same for y)
 */
-vector4_t matrix4_mul_vector4_project(const matrix4_t *projection_matrix, const vector4_t v){
+inline vector4_t matrix4_mul_vector4_project(const matrix4_t *projection_matrix, const vector4_t v){
   vector4_t result = matrix4_mul_vector4(projection_matrix, v);
 
   /* w stores old z, so divide by w to create perspective divide */
@@ -256,7 +256,7 @@ vector4_t matrix4_mul_vector4_project(const matrix4_t *projection_matrix, const 
   xr = x "right" axis
   yu = y "up" axis
 */
-matrix4_t matrix4_gen_view_matrix(const vector3_t camera_position, const vector3_t camera_direction, const vector3_t up){
+inline matrix4_t matrix4_gen_view_matrix(const vector3_t camera_position, const vector3_t camera_direction, const vector3_t up){
   vector3_t zf = camera_direction;
   /* up cross zf */
   vector3_t xr = {
@@ -281,7 +281,7 @@ matrix4_t matrix4_gen_view_matrix(const vector3_t camera_position, const vector3
 }
 
 /* optimized matrix multiply when multiplying by view matrix only */
-vector4_t matrix4_view_mul_vector4(const matrix4_t *m, const vector4_t v){
+inline vector4_t matrix4_view_mul_vector4(const matrix4_t *m, const vector4_t v){
   return (vector4_t){
     .x = m->element[0][0] * v.x + m->element[0][1] * v.y + m->element[0][2] * v.z + m->element[0][3] * v.w,
     .y = m->element[1][0] * v.x + m->element[1][1] * v.y + m->element[1][2] * v.z + m->element[1][3] * v.w,
@@ -296,7 +296,7 @@ vector4_t matrix4_view_mul_vector4(const matrix4_t *m, const vector4_t v){
   we generate the final world matrix at once, as below, and finally just multiply by the view matrix.
   the view matrix could also be combined into the world matrix and we'd save another multiplication
 */
-matrix4_t matrix4_gen_world_matrix(const object_t *object){
+inline matrix4_t matrix4_gen_world_matrix(const object_t *object){
   float cosx = cosf(object->rotation.x);
   float sinx = sinf(object->rotation.x);
   float cosy = cosf(object->rotation.y);
@@ -321,7 +321,7 @@ matrix4_t matrix4_gen_world_matrix(const object_t *object){
   }};
 }
 
-matrix4_t matrix4_gen_world_view_matrix(const object_t *object, const matrix4_t *view_matrix){
+inline matrix4_t matrix4_gen_world_view_matrix(const object_t *object, const matrix4_t *view_matrix){
   /* -------- WORLD -------- */
   float cosx = cosf(object->rotation.x);
   float sinx = sinf(object->rotation.x);
