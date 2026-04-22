@@ -9,6 +9,10 @@
   }
 */
 
+#define FIXED_SHIFT 8
+#define FIXED_ONE   (1 << FIXED_SHIFT)
+
+
 __attribute__((optimize("Ofast")))
 static inline uint8_t quantize_dither_u8(uint8_t c, int x, int y){
   static const uint8_t bayer4x4[4][4] = {
@@ -451,9 +455,6 @@ void draw_filled_triangle_no_zbuffer_write(
   }
 }
 
-#define FIXED_SHIFT 8
-#define FIXED_ONE   (1 << FIXED_SHIFT)
-
 static inline int32_t to_fixed(float v){
   return (int32_t)lroundf(v * (float)FIXED_ONE);
 }
@@ -478,7 +479,7 @@ static inline bool is_top_left_edge_fixed(
 }
 
 __attribute__((optimize("Ofast")))
-void draw_textured_triangle_opaque(
+inline void draw_textured_triangle_opaque(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
@@ -489,24 +490,6 @@ void draw_textured_triangle_opaque(
   bool reflective,
   bool dither
 ){
-  float area_float = edge_cross(
-    &(vector2_t){v0->x, v0->y},
-    &(vector2_t){v1->x, v1->y},
-    &(vector2_t){v2->x, v2->y}
-  );
-
-  if(area_float == 0.0f) return;
-
-  if(area_float < 0.0f){
-    vector4_t *tmp_v = v1;
-    v1 = v2;
-    v2 = tmp_v;
-
-    uv_t tmp_uv = v1_uv;
-    v1_uv = v2_uv;
-    v2_uv = tmp_uv;
-  }
-
   int x_min = (int)floorf(MIN(MIN(v0->x, v1->x), v2->x));
   int y_min = (int)floorf(MIN(MIN(v0->y, v1->y), v2->y));
   int x_max = (int)ceilf (MAX(MAX(v0->x, v1->x), v2->x));
@@ -529,22 +512,31 @@ void draw_textured_triangle_opaque(
   int64_t area_fixed = edge_cross_fixed(x0, y0, x1, y1, x2, y2);
   if(area_fixed == 0) return;
 
-  /* after winding fix, inside should correspond to positive edges */
   if(area_fixed < 0){
+    vector4_t *tmp_v = v1;
+    v1 = v2;
+    v2 = tmp_v;
+
+    uv_t tmp_uv = v1_uv;
+    v1_uv = v2_uv;
+    v2_uv = tmp_uv;
+
+    int32_t tmp_x = x1;
+    int32_t tmp_y = y1;
+    x1 = x2;
+    y1 = y2;
+    x2 = tmp_x;
+    y2 = tmp_y;
+
     area_fixed = -area_fixed;
   }
 
-  float area = (float)area_fixed / (float)(FIXED_ONE * FIXED_ONE);
-  float one_over_area = 1.0f / area;
+  float one_over_area = (float)(FIXED_ONE * FIXED_ONE) / (float)area_fixed;
 
+  /* start_x/start_y are x_min/y_min plus 0.5 in fixed point */
   int32_t start_x = ((int32_t)x_min << FIXED_SHIFT) + (FIXED_ONE >> 1);
   int32_t start_y = ((int32_t)y_min << FIXED_SHIFT) + (FIXED_ONE >> 1);
 
-  /* edges:
-     w0 = edge(v1,v2,p)
-     w1 = edge(v2,v0,p)
-     w2 = edge(v0,v1,p)
-  */
   bool edge0_top_left = is_top_left_edge_fixed(x1, y1, x2, y2);
   bool edge1_top_left = is_top_left_edge_fixed(x2, y2, x0, y0);
   bool edge2_top_left = is_top_left_edge_fixed(x0, y0, x1, y1);
@@ -557,12 +549,6 @@ void draw_textured_triangle_opaque(
   int64_t w1_row = w1_row_unbiased - (edge1_top_left ? 0 : 1);
   int64_t w2_row = w2_row_unbiased - (edge2_top_left ? 0 : 1);
 
-  /* correct stepping for:
-     E = dx * (py - ay) - dy * (px - ax)
-
-     move right by 1 pixel  => px += FIXED_ONE => E -= dy * FIXED_ONE
-     move down  by 1 pixel  => py += FIXED_ONE => E += dx * FIXED_ONE
-  */
   int64_t delta_w0_col = -(int64_t)(y2 - y1) * FIXED_ONE;
   int64_t delta_w1_col = -(int64_t)(y0 - y2) * FIXED_ONE;
   int64_t delta_w2_col = -(int64_t)(y1 - y0) * FIXED_ONE;
@@ -602,9 +588,9 @@ void draw_textured_triangle_opaque(
       if(inside){
         was_inside = true;
 
-        float alpha = ((float)w0_unbiased / (float)(FIXED_ONE * FIXED_ONE)) * one_over_area;
-        float beta  = ((float)w1_unbiased / (float)(FIXED_ONE * FIXED_ONE)) * one_over_area;
-        float gamma = ((float)w2_unbiased / (float)(FIXED_ONE * FIXED_ONE)) * one_over_area;
+        float alpha = (float)w0_unbiased * one_over_area;
+        float beta  = (float)w1_unbiased * one_over_area;
+        float gamma = (float)w2_unbiased * one_over_area;
 
         float interpolated_reciprocal_w = (alpha * one_over_v0_w) + (beta * one_over_v1_w) + (gamma * one_over_v2_w);
 
