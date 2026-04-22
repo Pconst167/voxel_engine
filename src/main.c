@@ -24,12 +24,17 @@
 
       textures should be bound to objects not meshes
 
-    TODO:
       for each chunk, for each object, mark a face as fully inside chunk, or not fully inside so we can skip clipping
       OR: still only TEST for clipping, but dont clip directly. if triangle crosses frustrum boundary then clip.
       then for fully inside, we only test for clipping, but for intersecting chunks, clip all triangles directly.
 
-      alternative: during load time, we can split triangles that cross chunks. i.e load time clipping, and separate them per chunk.
+    TODO:
+      about lighting: we can interpolate the 3d x y z coordinates in a triangle per pixel, and use that to calculate the per pixel light values.
+      for point light we can interpolate the real per pixel brightness with 1/r^2 law.
+      but probably expensive.
+
+      chunking etc:
+        alternative: during load time, we can split triangles that cross chunks. i.e load time clipping, and separate them per chunk.
 
       specular light has a bug when the angle is 100% parallel to the face.  value gets unstable
 
@@ -77,7 +82,6 @@
 
     NOTES:
      1) after the view transform, the camera direction vector is always (0, 0, 1)
-     2) skybox MUST be the first object/mesh rendered.  after that we reset all zbuffer values to 0.0 so anything can be rendered on top of the skybox
 */
 
 #include "main.h"
