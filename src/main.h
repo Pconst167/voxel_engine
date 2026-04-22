@@ -23,6 +23,7 @@
 #include "color.h"
 #include "object.h"
 #include "chunk.h"
+#include "player.h"
 
 void render_text();
 void free_resources(void);
