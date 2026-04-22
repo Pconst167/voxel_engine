@@ -923,7 +923,7 @@ void draw_chunk_outlines(void){
   }
 }
 
-void update_and_render_color_buffer2(void) {
+void update_and_render_color_buffer(void) {
   /* reset color_buffer */
   memset(color_buffer, color_buffer_reset, total_buffer_pixels * sizeof(uint32_t));
   /* reset zbuffer - it needs to be reset here as well in case skybox object does not exist */
@@ -1129,7 +1129,7 @@ void update_and_render_color_buffer2(void) {
           vector3_normalize(&v_face_normal); /* normalize here for use below */
           for(uint32_t light_index = 0; light_index < num_light_sources; light_index++){
             if(light_sources[light_index].type == LIGHT_DIRECTIONAL){
-              vector4_t light_direction_view = matrix4_mul_vector4(&view_matrix, (vector4_t){light_sources[light_index].direction.x, light_sources[light_index].direction.y, light_sources[light_index].direction.z, 0});
+              vector4_t light_direction_view = matrix4_view_mul_vector4(&view_matrix, (vector4_t){light_sources[light_index].direction.x, light_sources[light_index].direction.y, light_sources[light_index].direction.z, 0});
               if(object->two_sided_lighting)
                 projected_triangle.light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
               else{
@@ -1484,7 +1484,8 @@ void render_sun(void){
   float sun_blue_shift  = 0.00f + 1.00f * sun_elev_abs;    /* blue weakest at horizon, strongest at poles */
 
   /* world -> camera rotation only(no translation, meaning w = 0) */
-  vector4_t vec4_sun_cam = matrix4_mul_vector4(&view_matrix, (vector4_t){sun_direction.x, sun_direction.y, sun_direction.z, 0.0f});
+  /* NOTE: using optimized version of multiply */
+  vector4_t vec4_sun_cam = matrix4_view_mul_vector4(&view_matrix, (vector4_t){sun_direction.x, sun_direction.y, sun_direction.z, 0.0f});
   vector3_t sun_cam = {vec4_sun_cam.x, vec4_sun_cam.y, vec4_sun_cam.z};
 
   for(int y = 0; y < window_height; y++){
@@ -1649,7 +1650,7 @@ int main(void) {
       time_of_day += delta_time;
       snprintf(text2, 64, " time: %d:%d", (int)time_of_day / 60, (int)time_of_day % 60);
       update_state();
-      //update_and_render_color_buffer2();
+      //update_and_render_color_buffer();
       render_visible_chunks();
       time_count++; /* one count per frame */
     }

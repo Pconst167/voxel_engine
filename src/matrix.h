@@ -27,6 +27,7 @@ matrix4_t matrix4_gen_rot_z(float rz);
 vector4_t matrix4_mul_vector3(const matrix4_t *m, const vector3_t v);
 vector4_t matrix4_mul_vector4(const matrix4_t *m, const vector4_t v);
 vector4_t matrix4_projection_mul_vector4(const matrix4_t *m, const vector4_t v);
+vector4_t matrix4_view_mul_vector4(const matrix4_t *m, const vector4_t v);
 matrix4_t matrix4_mul_mat4(const matrix4_t *m1, const matrix4_t *m2);
 
 matrix4_t matrix4_gen_perspective(float fov_y, float aspect_ratio_y, float znear, float zfar);
