@@ -82,11 +82,12 @@
 
 #include "main.h"
 
-#define CAMERA_SPEED_SHIFT_KEY_FACTOR 4.0f
+#define CAMERA_SPEED_SHIFT_KEY_FACTOR 5.0f
 #define CAMERA_ETA_DIRECTION 1.0f /* +1: mouse back looks up, -1: mouse back looks down */
 #define MOUSE_SENSITIVITY 0.5f
 #define DAY_LENGTH (1.01f * 60.0f * 60.0f / 0.016f) /* hours */
 
+#define FOV_Y M_PI_2
 #define ZNEAR 0.1f
 #define ZFAR  5000.0f
 
@@ -108,7 +109,7 @@ char text2[256];
 
 /* game control */
 float delta_time;
-float move_speed = 400.0f;
+float move_speed = 100.0f;
 float turn_speed = 3.0f;
 bool quit = false;
 bool is_paused = false;
@@ -157,7 +158,7 @@ void setup(void) {
 
   aspect_ratio_x = (float)window_width  / (float)window_height;
   aspect_ratio_y = (float)window_height / (float)window_width;
-  fov_y = M_PI_2;
+  fov_y = FOV_Y;
   fov_x = 2 * atanf(tanf(fov_y / 2.0f) * aspect_ratio_x);
   znear = ZNEAR;
   zfar  = ZFAR;
@@ -651,8 +652,8 @@ void render_chunk(chunk_t *chunk){
         /* PROJECTION MATRIX / PERSPECTIVE DIVIDE */
         triangle_t projected_triangle = {0}; /* all fields initialized to zero - so that the light_intensities field is all 0 in case object not reflective */
         for(int j = 0; j < 3; j++){
-          //vector4_t projected_vertex = matrix4_mul_vector4_project(&projection_matrix, triangle_after_clipping->points[j]);
-          vector4_t projected_vertex = matrix4_mul_vector4(&projection_matrix, triangle_after_clipping->points[j]);
+          /* optimized multiplication - removed multiplications where matrix elements are 0 */
+          vector4_t projected_vertex = matrix4_projection_mul_vector4(&projection_matrix, triangle_after_clipping->points[j]);
 
           /* w stores old z, so divide by w to create perspective divide */
           if(projected_vertex.w != 0.0){
@@ -1989,16 +1990,16 @@ void load_voxel_world(){
   mesh_t *mesh;
   texture_t *texture;
 
-  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
-  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
+  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.9f);
+  //create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
 
-  mesh = load_mesh("./assets/obj/voxels.obj");
+  mesh = load_mesh("./assets/obj/voxel_cave.obj");
   texture = load_texture("./assets/textures/ground/grass9.png");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                 (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                 0.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x01, 
-                (vector3_t){6, 6, 6}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+                (vector3_t){50, 50, 50}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );
@@ -2068,6 +2069,17 @@ void load_server_room(){
                 0.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
                 (vector3_t){16, 20, 16}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                texture
+  );
+
+  mesh = load_mesh("./assets/obj/cube.obj");
+  texture = load_texture("./assets/textures/ground/grass.png");
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
+                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFF8080}, 0.5f, 
+                0.0f, false, true, false,
+                BLEND_MODE_OPAQUE, 0x00, 
+                (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );

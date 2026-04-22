@@ -173,8 +173,8 @@ matrix4_t matrix4_gen_orthographic(float aspect_ratio_y){
   (0                        0                1                    0                       )
 
   note: for x/y, basically any vertices inside the frustrum are mapped to -1 to 1 because 
-  z gets mapped to 0 to 1, and x = z*tanf(+-fov/2) and so x/tanf(+-fov/2) = z which is in 0 to 1.
-  same goes for y.  so the reason x/y get mapped to -1 to 1 is because they are divided by tanf(fov/2),
+  z gets mapped to 0 to 1, and x = z*tan(+-fov/2) and so x/tan(+-fov/2) = z which is in 0 to 1.
+  same goes for y.  so the reason x/y get mapped to -1 to 1 is because they are divided by tan(fov/2),
   and the maximum values of x/y are for when z = 1 (at zfar), and so if the bounds on x/y are -1 to 1, 
   then smaller x's are between those bounds.
 */
@@ -187,6 +187,16 @@ matrix4_t matrix4_gen_perspective(float fov_y, float aspect_ratio_y, float znear
     {                                0,                   0,  zfar/(zfar-znear),  -zfar*znear/(zfar-znear)},
     {                                0,                   0,                  1,                         0}
   }};
+}
+
+/* optimized projection matrix/vector multiply - removed multiplications by matrix elements that are 0 */
+vector4_t matrix4_projection_mul_vector4(const matrix4_t *m, const vector4_t v){
+  return (vector4_t){
+    .x = m->element[0][0] * v.x,
+    .y = m->element[1][1] * v.y,
+    .z = m->element[2][2] * v.z + m->element[2][3] * v.w,
+    .w = v.z
+  };
 }
 
 /*
