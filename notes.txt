@@ -10,6 +10,10 @@ player can write and run programs
 have a computer mainframe with a panel.
 maybe build circuits
 
+ADD TIC-80 OPEN SOURCE CONSOLE TO ONE OF THE COMPUTERS?
+OR PERHAPS CREATE A FANTASY CONSOLE INSIDE THE GAME? MY OWN?
+in either case we need a screen where players can code a game!
+
 
 game where you can grow plants, buy seeds, grow, sell etc
 and be able to import or create new plants into the game!  plants the game doesnt have but you love.
