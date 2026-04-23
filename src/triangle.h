@@ -99,6 +99,17 @@ void draw_textured_triangle_opaque(
   bool reflective,
   bool dither
 );
+void draw_textured_triangle_opaque_float(
+  vector4_t *v0, uv_t v0_uv,
+  vector4_t *v1, uv_t v1_uv,
+  vector4_t *v2, uv_t v2_uv,
+  color_t *texture, int texture_width, int texture_height,
+  float *light_intensities,
+  color_t emissive_color,
+  float emissive_intensity,
+  bool reflective,
+  bool dither
+);
 void draw_textured_triangle_opaque_no_zbuffer_write(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
