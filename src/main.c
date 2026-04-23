@@ -88,12 +88,13 @@
 
 #define CAMERA_SPEED_SHIFT_KEY_FACTOR 5.0f
 #define CAMERA_ETA_DIRECTION 1.0f /* +1: mouse back looks up, -1: mouse back looks down */
-#define MOUSE_SENSITIVITY 0.5f
+#define MOUSE_SENSITIVITY 0.2f
 #define DAY_LENGTH (1.01f * 60.0f * 60.0f / 0.016f) /* hours */
 
-#define FOV_Y M_PI_2
+#define FOV_Y_DEG 90.0
+#define FOV_Y (FOV_Y_DEG * M_PI / 180.0)
 #define ZNEAR 0.1f
-#define ZFAR 15000.0f
+#define ZFAR 8000.0f
 
 /* parameters for controlling the absolute ambient light */
 #define MIN_AMBIENT_LIGHT_INTENSITY 0.1f
@@ -114,7 +115,7 @@ char text2[256];
 /* game control */
 float delta_time;
 float move_speed = 100.0f;
-float turn_speed = 3.0f;
+float turn_speed = 2.0f;
 bool quit = false;
 bool is_paused = false;
 
@@ -173,8 +174,8 @@ void setup(void) {
 
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
 
-  //load_server_room();
-  load_voxel_world();
+  load_server_room();
+  //load_voxel_world();
   //load_cave_world();
   //load_world1();
 
@@ -1995,8 +1996,8 @@ void load_voxel_world(){
   mesh_t *mesh;
   texture_t *texture;
 
-  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.9f);
-  //create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
+  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.8f);
+  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.4f);
 
   mesh = load_mesh("./assets/obj/voxels.obj");
   texture = load_texture("./assets/textures/ground/mountain.png");
