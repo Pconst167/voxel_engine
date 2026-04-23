@@ -5,6 +5,7 @@
 #include "vector.h"
 #include "color.h"
 #include "texture.h"
+#include "aabb.h"
 
 #define MAX_NUM_OBJECTS 1000
 
@@ -21,6 +22,7 @@ typedef struct{
   bool fixed; /* object is static and does not change */
   bool backface_culling;
   /* bounding box/sphere - for static objects with baked in transforms (bbox not present for now) */
+  aabb_3d_t bbox_aabb; /* object's bounding box aabb */
   vector3_t bounding_center;
   float bsphere_radius;
   /* color and light */

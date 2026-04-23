@@ -15,7 +15,7 @@ void load_obj_file(char* filename) {
   color_t color;
   uv_t *texture_coords = NULL;
 
-  if (file == NULL) {
+  if(file == NULL) {
     fprintf(stderr, "ERROR: could not open OBJ file: %s\n", filename);
     exit(1);
   }
@@ -116,7 +116,16 @@ void load_obj_file(char* filename) {
   meshes[num_meshes].num_vertices = array_length(meshes[num_meshes].vertices);
   meshes[num_meshes].num_faces    = array_length(meshes[num_meshes].faces);
 
-  num_meshes++;
+  if(meshes[num_meshes].num_vertices == 0){
+    fprintf(stderr, "ERROR: 0 vertices in OBJ file: %s\n", filename);
+    exit(1);
+  }
+
+  if(meshes[num_meshes].num_faces == 0){
+    fprintf(stderr, "ERROR: 0 faces in OBJ file: %s\n", filename);
+    exit(1);
+  }
+
   array_free(texture_coords);
   fclose(file);
 }
@@ -128,10 +137,11 @@ mesh_t *load_mesh(
   load_obj_file(obj_filename);
 
   /* grab pointer to last created mesh */
-  mesh = &meshes[num_meshes - 1];
+  mesh = &meshes[num_meshes];
 
   /* compute a bounding box around the mesh */
   int num_vertices = mesh->num_vertices;
+
   vector3_t bbox_min = mesh->vertices[0];
   vector3_t bbox_max = mesh->vertices[0];
   for(int i = 0; i < num_vertices; i++){
@@ -144,35 +154,35 @@ mesh_t *load_mesh(
     if(mesh->vertices[i].z > bbox_max.z) bbox_max.z = mesh->vertices[i].z;
   }
 
-  /* bounding box center*/
-  vector3_t bbox_center = {
-    0.5f * (bbox_min.x + bbox_max.x),
-    0.5f * (bbox_min.y + bbox_max.y),
-    0.5f * (bbox_min.z + bbox_max.z)
-  };
+  /* bounding box center */
+  double bbox_center_x = 0.5 * ((double)bbox_min.x + (double)bbox_max.x);
+  double bbox_center_y = 0.5 * ((double)bbox_min.y + (double)bbox_max.y);
+  double bbox_center_z = 0.5 * ((double)bbox_min.z + (double)bbox_max.z);
 
   /* compute a bounding sphere around the mesh */
-  float radius_sq = 0.0f;
+  double radius_sq = 0.0f;
   for(int i = 0; i < num_vertices; i++){
-    vector3_t d = {
-      mesh->vertices[i].x - bbox_center.x,
-      mesh->vertices[i].y - bbox_center.y,
-      mesh->vertices[i].z - bbox_center.z
-    };
-    float dist_sq = d.x * d.x + d.y * d.y + d.z * d.z;
+    double dx = (double)mesh->vertices[i].x - bbox_center_x;
+    double dy = (double)mesh->vertices[i].y - bbox_center_y;
+    double dz = (double)mesh->vertices[i].z - bbox_center_z;
+    
+    double dist_sq = dx*dx + dy*dy + dz*dz;
     if(dist_sq > radius_sq) radius_sq = dist_sq;
   }
 
-  mesh->bbox_min.x        = bbox_min.x;
-  mesh->bbox_min.y        = bbox_min.y;
-  mesh->bbox_min.z        = bbox_min.z;
-  mesh->bbox_max.x        = bbox_max.x;
-  mesh->bbox_max.y        = bbox_max.y;
-  mesh->bbox_max.z        = bbox_max.z;
-  mesh->bounding_center.x = bbox_center.x;
-  mesh->bounding_center.y = bbox_center.y;
-  mesh->bounding_center.z = bbox_center.z;
-  mesh->bsphere_radius    = sqrtf(radius_sq);
+  mesh->bbox_aabb.x_min   = bbox_min.x;
+  mesh->bbox_aabb.x_max   = bbox_max.x;
+  mesh->bbox_aabb.y_min   = bbox_min.y;
+  mesh->bbox_aabb.y_max   = bbox_max.y;
+  mesh->bbox_aabb.z_min   = bbox_min.z;
+  mesh->bbox_aabb.z_max   = bbox_max.z;
+
+  mesh->bounding_center.x = (float)bbox_center_x;
+  mesh->bounding_center.y = (float)bbox_center_y;
+  mesh->bounding_center.z = (float)bbox_center_z;
+  mesh->bsphere_radius    = (float)sqrt(radius_sq);
+
+  num_meshes++;
 
   /* return pointer to mesh */
   return mesh;

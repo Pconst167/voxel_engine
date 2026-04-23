@@ -3,6 +3,7 @@
 
 #include "vector.h"
 #include "triangle.h"
+#include "aabb.h"
 
 #define MAX_MESHES 5000
 
@@ -13,8 +14,7 @@ typedef struct{
   uint32_t num_vertices;
   uint32_t num_faces;
   /* bounding box/sphere */
-  vector3_t bbox_min;
-  vector3_t bbox_max;
+  aabb_3d_t bbox_aabb;
   vector3_t bounding_center;
   float bsphere_radius;
 } mesh_t;
