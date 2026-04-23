@@ -531,7 +531,7 @@ inline void draw_textured_triangle_opaque(
     area_fixed = -area_fixed;
   }
 
-  float one_over_area = (float)(FIXED_ONE * FIXED_ONE) / (float)area_fixed;
+  float one_over_area = 1.0f / (float)area_fixed;
 
   /* start_x/start_y are x_min/y_min plus 0.5 in fixed point */
   int32_t start_x = ((int32_t)x_min << FIXED_SHIFT) + (FIXED_ONE >> 1);
