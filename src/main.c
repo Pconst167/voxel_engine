@@ -173,8 +173,8 @@ void setup(void) {
 
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
 
-  load_server_room();
-  //load_voxel_world();
+  //load_server_room();
+  load_voxel_world();
   //load_cave_world();
   //load_world1();
 
@@ -691,7 +691,7 @@ void render_chunk(chunk_t *chunk){
           light_intensities field is initialized to zero above in declaration - so that the light_intensities field is all 0 in case object not reflective
         */
         if(object->reflective){
-          vector3_normalize(&v_face_normal); /* normalize here for use below */
+          vector3_normalize_fast_approx(&v_face_normal); /* normalize here for use below */
           for(uint32_t light_index = 0; light_index < num_light_sources; light_index++){
             if(light_sources[light_index].type == LIGHT_DIRECTIONAL){
               vector4_t light_direction_view = matrix4_mul_vector4(&view_matrix, (vector4_t){light_sources[light_index].direction.x, light_sources[light_index].direction.y, light_sources[light_index].direction.z, 0});
@@ -2076,7 +2076,7 @@ void load_server_room(){
                 (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.2f, 
                 0.0f, false, true, false,
                 BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){20, 14, 20}, (vector3_t){0, M_PI_2, 0}, (vector3_t){100, 3, 178}, 
+                (vector3_t){20, 14, 20}, (vector3_t){0, 0.4, 0}, (vector3_t){100, 3, 178}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                 texture
   );

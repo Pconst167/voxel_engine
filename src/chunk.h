@@ -3,14 +3,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "object.h"
+#include "vector.h"
 
 #define NUM_CHUNK_DIVISIONS 8 /* 10 along x, and 10 along z */
-
-typedef struct{
-  double x_min, y_min, z_min;
-  double x_max, y_max, z_max;
-} aabb_3d_t;
 
 typedef struct{
   uint32_t object_id;
@@ -23,8 +18,12 @@ typedef struct{
   double y_min, y_max;
   double z_min, z_max;
   bool empty;
+  /* object data */
   chunk_object_faces_t *chunk_object_faces;
   uint32_t num_chunk_objects;
+  /* collision data */
+  uint32_t *collision_aabbs; /* list of collision aabb ids */
+  uint32_t num_collision_aabbs;
 } chunk_t;
 
 /* used to sort chunks for rendering */
@@ -64,11 +63,5 @@ void calculate_world_bounds(void);
 void create_chunks(void);
 void populate_chunks(void);
 int chunk_has_object_entry(int z_row, int x_col, uint32_t object_id);
-
-aabb_3d_t calculate_3d_aabb(
-  vector3_t v_a,
-  vector3_t v_b,
-  vector3_t v_c
-);
 
 #endif

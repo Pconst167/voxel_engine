@@ -58,7 +58,7 @@ object_t *create_object(
   
   object->texture            = texture;
 
-  /* if object is fixed/static, we bake in all the transformations beforehand! */
+  /* if object is fixed/static, bake in all the transformations beforehand! */
   if(fixed){
     matrix4_t world_matrix = matrix4_gen_world_matrix(object);
 
