@@ -217,7 +217,10 @@ void populate_chunks(void){
 /* search for object_id inside a chunk's object table, and return object's position in the table if it exists
    if object doesn't exist, return -1 */
 int chunk_has_object_entry(int z_row, int x_col, uint32_t object_id){
-  for(uint32_t chunk_object_faces_idx = 0; chunk_object_faces_idx < chunks[z_row][x_col].num_chunk_objects; chunk_object_faces_idx++)
+  for(uint32_t chunk_object_faces_idx = 0; 
+      chunk_object_faces_idx < chunks[z_row][x_col].num_chunk_objects; 
+      chunk_object_faces_idx++
+  )
     if(chunks[z_row][x_col].chunk_object_faces[chunk_object_faces_idx].object_id == object_id)
       return chunk_object_faces_idx;
     
