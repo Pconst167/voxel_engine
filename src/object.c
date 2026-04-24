@@ -7,7 +7,7 @@
 object_t objects[MAX_NUM_OBJECTS];
 uint32_t num_objects;
 
-object_t *create_object(
+uint32_t create_object(
   mesh_t *mesh,
   object_type_t object_type,
   bool fixed,
@@ -82,6 +82,25 @@ object_t *create_object(
     if(object->scale.y > scale_max) scale_max = object->scale.y;
     if(object->scale.z > scale_max) scale_max = object->scale.z;
     object->bsphere_radius = mesh->bsphere_radius * scale_max;
+
+    /* recompute aabb bounding box after transformations */
+    vector3_t bbox_min = object->transformed_vertices[0];
+    vector3_t bbox_max = object->transformed_vertices[0];
+    for(uint32_t i = 0; i < mesh->num_vertices; i++){
+      if(object->transformed_vertices[i].x < bbox_min.x) bbox_min.x = object->transformed_vertices[i].x;
+      if(object->transformed_vertices[i].y < bbox_min.y) bbox_min.y = object->transformed_vertices[i].y;
+      if(object->transformed_vertices[i].z < bbox_min.z) bbox_min.z = object->transformed_vertices[i].z;
+      
+      if(object->transformed_vertices[i].x > bbox_max.x) bbox_max.x = object->transformed_vertices[i].x;
+      if(object->transformed_vertices[i].y > bbox_max.y) bbox_max.y = object->transformed_vertices[i].y;
+      if(object->transformed_vertices[i].z > bbox_max.z) bbox_max.z = object->transformed_vertices[i].z;
+    }
+    object->bbox_aabb.x_min = bbox_min.x;
+    object->bbox_aabb.x_max = bbox_max.x;
+    object->bbox_aabb.y_min = bbox_min.y;
+    object->bbox_aabb.y_max = bbox_max.y;
+    object->bbox_aabb.z_min = bbox_min.z;
+    object->bbox_aabb.z_max = bbox_max.z;
   }
 
   /* create face draw stamp array */
@@ -89,7 +108,7 @@ object_t *create_object(
 
   num_objects++;
 
-  return object;
+  return num_objects - 1;
 }
 
 

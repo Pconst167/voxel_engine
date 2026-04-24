@@ -61,7 +61,7 @@ typedef struct{
 extern object_t objects[MAX_NUM_OBJECTS];
 extern uint32_t num_objects;
 
-object_t *create_object(
+uint32_t create_object(
   mesh_t *mesh,
   object_type_t object_type,
   bool fixed,
