@@ -14,5 +14,4 @@ aabb_3d_t calculate_3d_aabb(
   vector3_t v_c
 );
 
-
 #endif

@@ -84,10 +84,23 @@
      1) after the view transform, the camera direction vector is always (0, 0, 1)
 */
 
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
 #include "main.h"
+#include "mesh.h"
+#include "display.h"
+#include "array.h"
+#include "matrix.h"
+#include "light.h"
+#include "upng.h"
+#include "camera.h"
+#include "player.h"
+#include "misc.h"
+#include "text.h"
 
-#define CAMERA_SPEED_SHIFT_KEY_FACTOR 5.0f
-#define CAMERA_ETA_DIRECTION 1.0f /* +1: mouse back looks up, -1: mouse back looks down */
+#define PLAYER_SPEED_SHIFT_KEY_FACTOR 5.0f
+#define PLAYER_ETA_DIRECTION 1.0f /* +1: mouse back looks up, -1: mouse back looks down */
 #define MOUSE_SENSITIVITY 0.2f
 #define DAY_LENGTH (1.01f * 60.0f * 60.0f / 0.016f) /* hours */
 
@@ -110,7 +123,6 @@ uint32_t time_count; /* keeps a count that increments every frame - used to pace
 float time_of_day; /* keeps time the accumulation of  each delta_time per frame */
 char text0[256];
 char text1[256];
-char text2[256];
 
 /* game control */
 float delta_time;
@@ -126,13 +138,14 @@ matrix4_t projection_matrix;
 matrix4_t view_matrix;
 
 projection_options_t projection_options = {
-  .wireframe_overlay         = false, 
-  .projection_mode           = TEXT_PERSPECTIVE_CORRECT,
-  .backface_culling_override = false,
-  .backface_culling          = true,
-  .dither                    = false,
-  .object_render_debug       = false,
-  .render_chunk_outlines     = false
+  .wireframe_overlay              = false, 
+  .projection_mode                = TEXT_PERSPECTIVE_CORRECT,
+  .backface_culling_override      = false,
+  .backface_culling               = true,
+  .dither                         = false,
+  .object_render_debug            = false,
+  .render_chunk_outlines          = false,
+  .render_collision_aabb_outlines = false,
 };
 
 float aspect_ratio_x;
@@ -200,26 +213,12 @@ void setup(void) {
 void process_input(void){
   SDL_Event event;
 
-  const uint8_t *keys = SDL_GetKeyboardState(NULL);
-  bool shift = keys[SDL_SCANCODE_LSHIFT] || keys[SDL_SCANCODE_RSHIFT];
-  bool _C = keys[SDL_SCANCODE_C];
-
-  float move_speed_delta_time = ((shift || _C )? CAMERA_SPEED_SHIFT_KEY_FACTOR * move_speed : move_speed) * delta_time;
-  float _turn_speed_delta_time = turn_speed * delta_time;
-
   while(SDL_PollEvent(&event)){
     switch(event.type){
       case SDL_QUIT:
         quit = true;
         break;
 
-      case SDL_MOUSEMOTION:
-        camera.theta  -= MOUSE_SENSITIVITY                        * event.motion.xrel * delta_time;
-        camera.eta    += MOUSE_SENSITIVITY * CAMERA_ETA_DIRECTION * event.motion.yrel * delta_time;
-        if(camera.eta  >  ETA_MAX) camera.eta =  ETA_MAX;
-        if(camera.eta  < -ETA_MAX) camera.eta = -ETA_MAX;
-        break;
-      
       case SDL_KEYDOWN:
         if(event.key.repeat == 0){
           switch (event.key.keysym.sym){
@@ -251,6 +250,11 @@ void process_input(void){
               break;
             }
 
+            case SDLK_5:{
+              projection_options.render_collision_aabb_outlines = !projection_options.render_collision_aabb_outlines; 
+              snprintf(text1, sizeof(char) * 256, " collision aabb outlines %s", projection_options.render_collision_aabb_outlines ? "on" : "off");
+              break;
+            }
             case SDLK_6:{
               projection_options.render_chunk_outlines = !projection_options.render_chunk_outlines; 
               snprintf(text1, sizeof(char) * 256, " chunk outlines %s", projection_options.render_chunk_outlines ? "on" : "off");
@@ -280,64 +284,162 @@ void process_input(void){
               break;
             }
           }
-
         }
-        break;
+    }
+  }
+}
+
+void move_player(void){
+  SDL_Event event;
+
+  const uint8_t *keys = SDL_GetKeyboardState(NULL);
+  bool shift = keys[SDL_SCANCODE_LSHIFT] || keys[SDL_SCANCODE_RSHIFT];
+
+  float move_speed_delta_time = ((shift)? PLAYER_SPEED_SHIFT_KEY_FACTOR * move_speed : move_speed) * delta_time;
+  float _turn_speed_delta_time = turn_speed * delta_time;
+
+  while(SDL_PollEvent(&event)){
+    if(event.type == SDL_MOUSEMOTION){
+      player.theta  -= MOUSE_SENSITIVITY                        * event.motion.xrel * delta_time;
+      player.eta    += MOUSE_SENSITIVITY * PLAYER_ETA_DIRECTION * event.motion.yrel * delta_time;
+      if(player.eta  >  ETA_MAX) player.eta =  ETA_MAX;
+      if(player.eta  < -ETA_MAX) player.eta = -ETA_MAX;
     }
   }
 
   /* turning left-right */
-  if(keys[SDL_SCANCODE_LEFT] || keys[SDL_SCANCODE_H])
-    camera.theta += _turn_speed_delta_time;
-  else if(keys[SDL_SCANCODE_RIGHT] || keys[SDL_SCANCODE_L])
-    camera.theta -= _turn_speed_delta_time;
+  if(keys[SDL_SCANCODE_LEFT])
+    player.theta += _turn_speed_delta_time;
+  else if(keys[SDL_SCANCODE_RIGHT])
+    player.theta -= _turn_speed_delta_time;
 
   /* turning up-down */
   if(keys[SDL_SCANCODE_UP]){
-    camera.eta += _turn_speed_delta_time;
-    if(camera.eta > ETA_MAX) camera.eta = ETA_MAX;
+    player.eta += _turn_speed_delta_time;
+    if(player.eta > ETA_MAX) player.eta = ETA_MAX;
   }
   else if(keys[SDL_SCANCODE_DOWN]){
-    camera.eta -= _turn_speed_delta_time;
-    if(camera.eta < -ETA_MAX) camera.eta = -ETA_MAX;
+    player.eta -= _turn_speed_delta_time;
+    if(player.eta < -ETA_MAX) player.eta = -ETA_MAX;
   }
-  if(keys[SDL_SCANCODE_K]){
-    camera.eta += _turn_speed_delta_time;
-    if(camera.eta > ETA_MAX) camera.eta = ETA_MAX;
-  }
-  else if(keys[SDL_SCANCODE_J]){
-    camera.eta -= _turn_speed_delta_time;
-    if(camera.eta < -ETA_MAX) camera.eta = -ETA_MAX;
-  }
-
-  /* up-down */
-  if(keys[SDL_SCANCODE_A])
-    camera.position.y -= move_speed_delta_time;
-  else if(keys[SDL_SCANCODE_D])
-    camera.position.y += move_speed_delta_time;
 
   /* strafe left-right */
   if(keys[SDL_SCANCODE_Q]){
-    camera.position.x += camera_direction_orthogonal_left_right.x * 1.5 * move_speed_delta_time;
-    camera.position.y += camera_direction_orthogonal_left_right.y * 1.5 * move_speed_delta_time;
-    camera.position.z += camera_direction_orthogonal_left_right.z * 1.5 * move_speed_delta_time;
+    player.position.x += player_direction_orthogonal_left_right.x * move_speed_delta_time;
+    player.position.z += player_direction_orthogonal_left_right.z * move_speed_delta_time;
   }
   else if(keys[SDL_SCANCODE_E]){
-    camera.position.x -= camera_direction_orthogonal_left_right.x * 1.5 * move_speed_delta_time;
-    camera.position.y -= camera_direction_orthogonal_left_right.y * 1.5 * move_speed_delta_time;
-    camera.position.z -= camera_direction_orthogonal_left_right.z * 1.5 * move_speed_delta_time;
+    player.position.x -= player_direction_orthogonal_left_right.x * move_speed_delta_time;
+    player.position.z -= player_direction_orthogonal_left_right.z * move_speed_delta_time;
   }
 
   /* forwards-backwards */
   if(keys[SDL_SCANCODE_W]){
-    camera.position.x += camera.direction.x * move_speed_delta_time;
-    camera.position.y += camera.direction.y * move_speed_delta_time;
-    camera.position.z += camera.direction.z * move_speed_delta_time;
+    player.position.x += player.direction.x * move_speed_delta_time;
+    player.position.z += player.direction.z * move_speed_delta_time;
   }
   else if(keys[SDL_SCANCODE_S]){
-    camera.position.x -= camera.direction.x * move_speed_delta_time;
-    camera.position.y -= camera.direction.y * move_speed_delta_time;
-    camera.position.z -= camera.direction.z * move_speed_delta_time;
+    player.position.x -= player.direction.x * move_speed_delta_time;
+    player.position.z -= player.direction.z * move_speed_delta_time;
+  }
+}
+
+void move_player_with_collision(vector3_t move){
+  player.position.x += move.x;
+  resolve_player_collisions();
+
+  player.position.z += move.z;
+  resolve_player_collisions();
+
+  player.position.y += move.y;
+}
+
+inline float clampf(float x, float min, float max){
+  if(x < min) return min;
+  if(x > max) return max;
+  return x;
+}
+
+inline bool ranges_overlap(float a0, float a1, float b0, float b1){
+  return a1 > b0 && a0 < b1;
+}
+
+bool resolve_player_against_aabb_xz(const collision_aabb_t *box){
+  float player_bottom = player.position.y;
+  float player_top = player.position.y + player.height;
+
+  if(!ranges_overlap(player_bottom, player_top, box->aabb.y_min, box->aabb.y_max)) return false;
+
+  float nearest_x = clampf(player.position.x, box->aabb.x_min, box->aabb.x_max);
+  float nearest_z = clampf(player.position.z, box->aabb.z_min, box->aabb.z_max);
+
+  float dx = player.position.x - nearest_x;
+  float dz = player.position.z - nearest_z;
+
+  float dist_sq = dx * dx + dz * dz;
+  float radius_sq = player.radius * player.radius;
+
+  if(dist_sq >= radius_sq) return false;
+
+  if(dist_sq > 0.000001f){
+    float dist = sqrtf(dist_sq);
+    float push = player.radius - dist;
+
+    player.position.x += (dx / dist) * push;
+    player.position.z += (dz / dist) * push;
+  }
+  else{
+    /* Player center is inside the AABB XZ rectangle. Push out nearest side. */
+    float pen_left  = fabs(player.position.x - box->aabb.x_min);
+    float pen_right = fabs(box->aabb.x_max - player.position.x);
+    float pen_front = fabs(player.position.z - box->aabb.z_min);
+    float pen_back  = fabs(box->aabb.z_max - player.position.z);
+
+    float min_pen = pen_left;
+    int side = 0;
+
+    if(pen_right < min_pen){ min_pen = pen_right; side = 1; }
+    if(pen_front < min_pen){ min_pen = pen_front; side = 2; }
+    if(pen_back  < min_pen){ min_pen = pen_back;  side = 3; }
+
+    switch(side){
+      case 0: player.position.x = box->aabb.x_min - player.radius; break;
+      case 1: player.position.x = box->aabb.x_max + player.radius; break;
+      case 2: player.position.z = box->aabb.z_min - player.radius; break;
+      case 3: player.position.z = box->aabb.z_max + player.radius; break;
+    }
+  }
+
+  return true;
+}
+
+void resolve_player_collisions(){
+  collision_step++;
+
+  int player_chunk_x = (player.position.x - world_x_min) / chunk_dx;
+  int player_chunk_z = (player.position.z - world_z_min) / chunk_dz;
+
+  for(int dz = -1; dz <= 1; dz++){
+    for(int dx = -1; dx <= 1; dx++){
+      int chunk_x = player_chunk_x + dx;
+      int chunk_z = player_chunk_z + dz;
+
+      if(chunk_x < 0 || chunk_x >= NUM_CHUNK_DIVISIONS) continue;
+      if(chunk_z < 0 || chunk_z >= NUM_CHUNK_DIVISIONS) continue;
+
+      chunk_t *chunk = &chunks[chunk_z][chunk_x];
+
+      for(uint32_t i = 0; i < chunk->num_collision_aabbs; i++){
+        uint32_t aabb_id = chunk->collision_aabbs[i];
+        collision_aabb_t *box = &collision_aabbs[aabb_id];
+
+        if(box->collision_step == collision_step) continue;
+
+        box->collision_step = collision_step;
+
+        resolve_player_against_aabb_xz(box);
+      }
+    }
   }
 }
 
@@ -367,20 +469,6 @@ void render_visible_chunks(void) {
   /* reset zbuffer - it needs to be reset here as well in case skybox object does not exist */
   memset(zbuffer, 0x00, total_buffer_pixels * sizeof(uint32_t)); /* zbuffer is made of floats and 0x00000000 = 0.0 */
 
-  /* view matrix */
-  /* build spherical coordinates unit vector for camera direction */
-  camera.direction = (vector3_t){
-    .x = cosf(camera.eta) * cosf(camera.theta),
-    .y = sinf(camera.eta),
-    .z = cosf(camera.eta) * sinf(camera.theta)
-  };
-  /* vector orthogonal to camera direction: camera.direction cross up */
-  camera_direction_orthogonal_left_right = (vector3_t){
-    .x = camera.direction.y * up.z - camera.direction.z * up.y,
-    .y = camera.direction.z * up.x - camera.direction.x * up.z,
-    .z = camera.direction.x * up.y - camera.direction.y * up.x
-  };
-  
   view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
 
   /* loop through all chunks 
@@ -399,6 +487,9 @@ void render_visible_chunks(void) {
       }
     }
   }
+
+  if(projection_options.render_chunk_outlines) draw_chunk_outlines(); 
+  if(projection_options.render_collision_aabb_outlines) draw_collision_aabb_outlines(); 
 }
 
 /*  0 : outside
@@ -791,14 +882,12 @@ void render_chunk(chunk_t *chunk){
     } /* for(uint32_t i = 0; i < num_faces; i++) */
   } /* for(uint32_t object_i = 0; object_i < num_objects_sorted; object_i++) */
   
-  if(projection_options.render_chunk_outlines) draw_chunk_outlines(); 
-
   if((time_count & 0x1F) == 0)
     snprintf(text0, 128, "t: %u, c: %u, %u (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
       total_triangles_rendered, total_chunks_rendered, fps, 
-      camera.position.x, camera.position.y, camera.position.z,
-      camera.direction.x, camera.direction.y, camera.direction.z,
-      camera.theta, camera.eta
+      player.position.x, player.position.y, player.position.z,
+      player.direction.x, player.direction.y, player.direction.z,
+      player.theta, player.eta
     );
 }
 
@@ -923,336 +1012,121 @@ void draw_chunk_outlines(void){
   }
 }
 
-void update_and_render_color_buffer(void) {
-  /* reset color_buffer */
-  memset(color_buffer, color_buffer_reset, total_buffer_pixels * sizeof(uint32_t));
-  /* reset zbuffer - it needs to be reset here as well in case skybox object does not exist */
-  memset(zbuffer, 0x00, total_buffer_pixels * sizeof(uint32_t)); /* zbuffer is made of floats and 0x00000000 = 0.0 */
+void draw_collision_aabb_outlines(void){
+  for(uint32_t aabb_id = 0; aabb_id < num_collision_aabbs; aabb_id++){
+    /* nnn = xzy */
+    vector4_t p000 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = collision_aabbs[aabb_id].aabb.x_min, .y = collision_aabbs[aabb_id].aabb.y_min, .z = collision_aabbs[aabb_id].aabb.z_min});
+    vector4_t p010 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = collision_aabbs[aabb_id].aabb.x_min, .y = collision_aabbs[aabb_id].aabb.y_min, .z = collision_aabbs[aabb_id].aabb.z_max});
+    vector4_t p100 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = collision_aabbs[aabb_id].aabb.x_max, .y = collision_aabbs[aabb_id].aabb.y_min, .z = collision_aabbs[aabb_id].aabb.z_min});
+    vector4_t p110 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = collision_aabbs[aabb_id].aabb.x_max, .y = collision_aabbs[aabb_id].aabb.y_min, .z = collision_aabbs[aabb_id].aabb.z_max});
+    vector4_t p001 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = collision_aabbs[aabb_id].aabb.x_min, .y = collision_aabbs[aabb_id].aabb.y_max, .z = collision_aabbs[aabb_id].aabb.z_min});
+    vector4_t p011 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = collision_aabbs[aabb_id].aabb.x_min, .y = collision_aabbs[aabb_id].aabb.y_max, .z = collision_aabbs[aabb_id].aabb.z_max});
+    vector4_t p101 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = collision_aabbs[aabb_id].aabb.x_max, .y = collision_aabbs[aabb_id].aabb.y_max, .z = collision_aabbs[aabb_id].aabb.z_min});
+    vector4_t p111 = matrix4_mul_vector3(&view_matrix, (vector3_t){.x = collision_aabbs[aabb_id].aabb.x_max, .y = collision_aabbs[aabb_id].aabb.y_max, .z = collision_aabbs[aabb_id].aabb.z_max});
 
-  /* view matrix */
-  /* build spherical coordinates unit vector for camera direction */
-  camera.direction = (vector3_t){
-    .x = cosf(camera.eta) * cosf(camera.theta),
-    .y = sinf(camera.eta),
-    .z = cosf(camera.eta) * sinf(camera.theta)
-  };
-  /* vector orthogonal to camera direction: camera.direction cross up */
-  camera_direction_orthogonal_left_right = (vector3_t){
-    .x = camera.direction.y * up.z - camera.direction.z * up.y,
-    .y = camera.direction.z * up.x - camera.direction.x * up.z,
-    .z = camera.direction.x * up.y - camera.direction.y * up.x
-  };
-  
-  view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
+    vector4_t projected_p000 = matrix4_mul_vector4(&projection_matrix, p000);
+    vector4_t projected_p010 = matrix4_mul_vector4(&projection_matrix, p010);
+    vector4_t projected_p100 = matrix4_mul_vector4(&projection_matrix, p100);
+    vector4_t projected_p110 = matrix4_mul_vector4(&projection_matrix, p110);
+    vector4_t projected_p001 = matrix4_mul_vector4(&projection_matrix, p001);
+    vector4_t projected_p011 = matrix4_mul_vector4(&projection_matrix, p011);
+    vector4_t projected_p101 = matrix4_mul_vector4(&projection_matrix, p101);
+    vector4_t projected_p111 = matrix4_mul_vector4(&projection_matrix, p111);
 
-  /* for each object, apply frustrum culling to entire object : apply world_view to center coord
-     if not culled, then add to objects-to-be-sorted list
-     sort objects by furthest z/w value
-     render list of sorted objects
-
-    need to translate center also by velocities!
-  */
-
-  object_sort_key_t objects_sorted[MAX_NUM_OBJECTS]; /* list of objects to be sorted */
-  uint32_t num_objects_sorted = 0;
-
-  /* skip skybox object by starting at 1 */
-  for(uint32_t object_i = 1; object_i < num_objects; object_i++){
-    object_t object = objects[object_i];
-
-    /* frustrum culling for entire objects at once */
-    matrix4_t world_view_matrix;
-    vector4_t bsphere_center_world_view; /* affine transform so can use this faster multiply */
-    float scale_max;
-    float bsphere_radius_scaled;
-    if(!object.fixed){
-      /* generate the final combined world/view matrix */
-      world_view_matrix = matrix4_gen_world_view_matrix(&object, &view_matrix);
-
-      bsphere_center_world_view = matrix4_mul_vector3(&world_view_matrix, (vector3_t){object.mesh->bounding_center.x, object.mesh->bounding_center.y, object.mesh->bounding_center.z}); /* affine transform so can use this faster multiply */
-      scale_max = object.scale.x;
-      if(object.scale.y > scale_max) scale_max = object.scale.y;
-      if(object.scale.z > scale_max) scale_max = object.scale.z;
-      bsphere_radius_scaled = object.mesh->bsphere_radius * scale_max; /* scale sphere radius according to object's scale */
+    if(projected_p000.w != 0.0){
+      projected_p000.x /= projected_p000.w;
+      projected_p000.y /= projected_p000.w;
+      projected_p000.z /= projected_p000.w;
     }
-    else{
-      bsphere_center_world_view = matrix4_mul_vector3(&view_matrix, (vector3_t){object.bounding_center.x, object.bounding_center.y, object.bounding_center.z}); /* affine transform so can use this faster multiply */
-      bsphere_radius_scaled = object.bsphere_radius; /* pre baked scaled sphere radius according to object's scale */
+    if(projected_p010.w != 0.0){
+      projected_p010.x /= projected_p010.w;
+      projected_p010.y /= projected_p010.w;
+      projected_p010.z /= projected_p010.w;
+    }
+    if(projected_p100.w != 0.0){
+      projected_p100.x /= projected_p100.w;
+      projected_p100.y /= projected_p100.w;
+      projected_p100.z /= projected_p100.w;
+    }
+    if(projected_p110.w != 0.0){
+      projected_p110.x /= projected_p110.w;
+      projected_p110.y /= projected_p110.w;
+      projected_p110.z /= projected_p110.w;
     }
 
-    bool should_frustrum_cull_object = frustrum_cull_object(&bsphere_center_world_view, bsphere_radius_scaled, znear, zfar);
-    if(should_frustrum_cull_object) continue;
-
-    /* if not culled, then add to list */
-    objects_sorted[num_objects_sorted].object_index = object_i;
-    objects_sorted[num_objects_sorted].sort_z       = bsphere_center_world_view.z + bsphere_radius_scaled;
-    num_objects_sorted++;
-  }
-  /* sort objects front to back */
-  if(num_objects_sorted > 1)
-    object_quicksort(objects_sorted, num_objects_sorted);
-
-  objects_sorted[num_objects_sorted].object_index = 0; /* set the last sorted object to be the skybox */
-  /* end of sort */
-
-  /* triangles list for clipped triangles */
-  triangle_t triangles_after_clipping[MAX_NUM_POLYGON_VERTICES - 2]; /* for a polygon with N vertices, the number of nested triangles is always N-2 */
-
-  total_triangles_rendered = 0;
-  /* transform each mesh, and rasterize */
-  for(uint32_t object_i = 0; object_i < num_objects_sorted + 1; object_i++){
-    uint32_t object_index = objects_sorted[object_i].object_index;
-    object_t *object = &objects[object_index];
+    if(projected_p001.w != 0.0){
+      projected_p001.x /= projected_p001.w;
+      projected_p001.y /= projected_p001.w;
+      projected_p001.z /= projected_p001.w;
+    }
+    if(projected_p011.w != 0.0){
+      projected_p011.x /= projected_p011.w;
+      projected_p011.y /= projected_p011.w;
+      projected_p011.z /= projected_p011.w;
+    }
+    if(projected_p101.w != 0.0){
+      projected_p101.x /= projected_p101.w;
+      projected_p101.y /= projected_p101.w;
+      projected_p101.z /= projected_p101.w;
+    }
+    if(projected_p111.w != 0.0){
+      projected_p111.x /= projected_p111.w;
+      projected_p111.y /= projected_p111.w;
+      projected_p111.z /= projected_p111.w;
+    }
     
-    matrix4_t world_view_matrix;
-    if(!object->fixed){
-      object->translation.x += object->velocity.x * delta_time;
-      object->translation.y += object->velocity.y * delta_time;
-      object->translation.z += object->velocity.z * delta_time;
-      object->rotation.x    += object->angular_velocity.x * delta_time;
-      object->rotation.y    += object->angular_velocity.y * delta_time;
-      object->rotation.z    += object->angular_velocity.z * delta_time;
+    if(
+      projected_p000.x < -1.0f || projected_p010.x < -1.0f || projected_p100.x < -1.0f || projected_p110.x < -1.0f ||
+      projected_p000.x > 1.0f || projected_p010.x > 1.0f || projected_p100.x > 1.0f || projected_p110.x > 1.0f ||
+      projected_p000.y < -1.0f || projected_p010.y < -1.0f || projected_p100.y < -1.0f || projected_p110.y < -1.0f ||
+      projected_p000.y > 1.0f || projected_p010.y > 1.0f || projected_p100.y > 1.0f || projected_p110.y > 1.0f ||
+      projected_p000.z < 0.0f || projected_p010.z < 0.0f || projected_p100.z < 0.0f || projected_p110.z < 0.0f ||
+      projected_p000.z > 1.0f || projected_p010.z > 1.0f || projected_p100.z > 1.0f || projected_p110.z > 1.0f ||
 
-      /* if object is dynamic, generate the final combined world/view matrix */
-      world_view_matrix = matrix4_gen_world_view_matrix(object, &view_matrix);
-    }
+      projected_p001.x < -1.0f || projected_p011.x < -1.0f || projected_p101.x < -1.0f || projected_p111.x < -1.0f ||
+      projected_p001.x > 1.0f  || projected_p011.x > 1.0f  || projected_p101.x > 1.0f  || projected_p111.x > 1.0f  ||
+      projected_p001.y < -1.0f || projected_p011.y < -1.0f || projected_p101.y < -1.0f || projected_p111.y < -1.0f ||
+      projected_p001.y > 1.0f  || projected_p011.y > 1.0f  || projected_p101.y > 1.0f  || projected_p111.y > 1.0f  ||
+      projected_p001.z < 0.0f  || projected_p011.z < 0.0f  || projected_p101.z < 0.0f  || projected_p111.z < 0.0f  ||
+      projected_p001.z > 1.0f  || projected_p011.z > 1.0f  || projected_p101.z > 1.0f  || projected_p111.z > 1.0f
+    ) continue;
 
-    uint32_t num_mesh_faces = object->mesh->num_faces;
-    for(uint32_t i = 0; i < num_mesh_faces; i++){
-      face_t mesh_face = object->mesh->faces[i];
+    projected_p000.x =  projected_p000.x * (window_width  * 0.5) + (window_width  * 0.5);
+    projected_p000.y = -projected_p000.y * (window_height * 0.5) + (window_height * 0.5); 
+    projected_p010.x =  projected_p010.x * (window_width  * 0.5) + (window_width  * 0.5);
+    projected_p010.y = -projected_p010.y * (window_height * 0.5) + (window_height * 0.5); 
+    projected_p100.x =  projected_p100.x * (window_width  * 0.5) + (window_width  * 0.5);
+    projected_p100.y = -projected_p100.y * (window_height * 0.5) + (window_height * 0.5); 
+    projected_p110.x =  projected_p110.x * (window_width  * 0.5) + (window_width  * 0.5);
+    projected_p110.y = -projected_p110.y * (window_height * 0.5) + (window_height * 0.5); 
 
-      /* WORLD MATRIX / VIEW MATRIX TRANSFORM */
-      vector3_t face_vertices[3];
-      vector4_t transformed_vertices[3];
-      if(object->fixed){
-        /* object is static, fetch object's baked transformed vertices and apply view transform only */
-        face_vertices[0] = object->transformed_vertices[mesh_face.vertex_indices[0]];
-        face_vertices[1] = object->transformed_vertices[mesh_face.vertex_indices[1]];
-        face_vertices[2] = object->transformed_vertices[mesh_face.vertex_indices[2]];
+    projected_p001.x =  projected_p001.x * (window_width  * 0.5) + (window_width  * 0.5);
+    projected_p001.y = -projected_p001.y * (window_height * 0.5) + (window_height * 0.5); 
+    projected_p011.x =  projected_p011.x * (window_width  * 0.5) + (window_width  * 0.5);
+    projected_p011.y = -projected_p011.y * (window_height * 0.5) + (window_height * 0.5); 
+    projected_p101.x =  projected_p101.x * (window_width  * 0.5) + (window_width  * 0.5);
+    projected_p101.y = -projected_p101.y * (window_height * 0.5) + (window_height * 0.5); 
+    projected_p111.x =  projected_p111.x * (window_width  * 0.5) + (window_width  * 0.5);
+    projected_p111.y = -projected_p111.y * (window_height * 0.5) + (window_height * 0.5); 
 
-        transformed_vertices[0] = matrix4_mul_vector3(&view_matrix, face_vertices[0]); /* affine transform so can use this faster multiply */
-        transformed_vertices[1] = matrix4_mul_vector3(&view_matrix, face_vertices[1]); /* affine transform so can use this faster multiply */
-        transformed_vertices[2] = matrix4_mul_vector3(&view_matrix, face_vertices[2]); /* affine transform so can use this faster multiply */
-      }
-      else{
-        /* object is dynamic, fetch mesh vertices and apply world_view transforms */
-        face_vertices[0] = object->mesh->vertices[mesh_face.vertex_indices[0]];
-        face_vertices[1] = object->mesh->vertices[mesh_face.vertex_indices[1]];
-        face_vertices[2] = object->mesh->vertices[mesh_face.vertex_indices[2]];
+    /* bottom */
+    draw_line(projected_p000.x, projected_p000.y, projected_p010.x, projected_p010.y, (color_t){.uint32 = 0xFFFFFFFF});
+    draw_line(projected_p010.x, projected_p010.y, projected_p110.x, projected_p110.y, (color_t){.uint32 = 0xFFFFFFFF});
+    draw_line(projected_p110.x, projected_p110.y, projected_p100.x, projected_p100.y, (color_t){.uint32 = 0xFFFFFFFF});
+    draw_line(projected_p100.x, projected_p100.y, projected_p000.x, projected_p000.y, (color_t){.uint32 = 0xFFFFFFFF});
 
-        transformed_vertices[0] = matrix4_mul_vector3(&world_view_matrix, face_vertices[0]); /* affine transform so can use this faster multiply */
-        transformed_vertices[1] = matrix4_mul_vector3(&world_view_matrix, face_vertices[1]); /* affine transform so can use this faster multiply */
-        transformed_vertices[2] = matrix4_mul_vector3(&world_view_matrix, face_vertices[2]); /* affine transform so can use this faster multiply */
-      }
+    /* top */
+    draw_line(projected_p001.x, projected_p001.y, projected_p011.x, projected_p011.y, (color_t){.uint32 = 0xFFFFFFFF});
+    draw_line(projected_p011.x, projected_p011.y, projected_p111.x, projected_p111.y, (color_t){.uint32 = 0xFFFFFFFF});
+    draw_line(projected_p111.x, projected_p111.y, projected_p101.x, projected_p101.y, (color_t){.uint32 = 0xFFFFFFFF});
+    draw_line(projected_p101.x, projected_p101.y, projected_p001.x, projected_p001.y, (color_t){.uint32 = 0xFFFFFFFF});
 
-      /* BACKFACE CULLING */
-      /* calculate face normals for backface culling and lighting */
-      vector3_t v_a = {transformed_vertices[0].x, transformed_vertices[0].y, transformed_vertices[0].z};  /*   A               */
-      vector3_t v_b = {transformed_vertices[1].x, transformed_vertices[1].y, transformed_vertices[1].z};  /*  / \    Clockwise */
-      vector3_t v_c = {transformed_vertices[2].x, transformed_vertices[2].y, transformed_vertices[2].z};  /* C---B             */
-      /* vectors for cross product */
-      vector3_t v_ab = {.x = v_b.x - v_a.x, .y = v_b.y - v_a.y, .z = v_b.z - v_a.z};
-      vector3_t v_ac = {.x = v_c.x - v_a.x, .y = v_c.y - v_a.y, .z = v_c.z - v_a.z};
-      /* face normal
-        cross product between v_ab and v_ac */
-      vector3_t v_face_normal = {
-        .x = v_ab.y * v_ac.z - v_ab.z * v_ac.y,
-        .y = v_ab.z * v_ac.x - v_ab.x * v_ac.z,
-        .z = v_ab.x * v_ac.y - v_ab.y * v_ac.x
-      };
-
-      /* Backface culling */
-      if((object->backface_culling && !projection_options.backface_culling_override) || 
-         (projection_options.backface_culling_override && projection_options.backface_culling)
-      ){
-        /* camera - v_a ray
-          after view_matrix transform, camera position is always at 0, 0, 0 */
-        /* calculate dot product between camera ray and orthogonal to find alignment */
-        float dot_face_normal_cam_ray = -(v_face_normal.x * v_a.x + v_face_normal.y * v_a.y + v_face_normal.z * v_a.z);
-        if(dot_face_normal_cam_ray < 0) continue;
-      }
-
-      /* FRUSTRUM CLIPPING */
-      /* this function creates a polygon from the current face, clips against all frustrum planes,
-         then re-triangularizes the polygon - it returns the number of generated triangles from the polygon */
-      int num_triangles_from_polygon = frustrum_clip_triangle_and_re_triangularize(
-        (vector3_t){transformed_vertices[0].x, transformed_vertices[0].y, transformed_vertices[0].z},
-        (vector3_t){transformed_vertices[1].x, transformed_vertices[1].y, transformed_vertices[1].z},
-        (vector3_t){transformed_vertices[2].x, transformed_vertices[2].y, transformed_vertices[2].z},
-        mesh_face.uv[0],
-        mesh_face.uv[1],
-        mesh_face.uv[2],
-        triangles_after_clipping
-      );
-
-      for(int t = 0; t < num_triangles_from_polygon; t++){
-        triangle_t *triangle_after_clipping = &triangles_after_clipping[t];
-
-        /* PROJECTION MATRIX / PERSPECTIVE DIVIDE */
-        triangle_t projected_triangle = {0}; /* all fields initialized to zero - so that the light_intensities field is all 0 in case object not reflective */
-        for(int j = 0; j < 3; j++){
-          //vector4_t projected_vertex = matrix4_mul_vector4_project(&projection_matrix, triangle_after_clipping->points[j]);
-          vector4_t projected_vertex = matrix4_mul_vector4(&projection_matrix, triangle_after_clipping->points[j]);
-
-          /* w stores old z, so divide by w to create perspective divide */
-          if(projected_vertex.w != 0.0){
-            projected_vertex.x /= projected_vertex.w;
-            projected_vertex.y /= projected_vertex.w;
-            projected_vertex.z /= projected_vertex.w;
-          }
-
-          /* scale vertices by screen width and translate to middle of the screen */
-          projected_vertex.x =  projected_vertex.x * (window_width  * 0.5) + (window_width  * 0.5);
-          projected_vertex.y = -projected_vertex.y * (window_height * 0.5) + (window_height * 0.5); /* invert y coordinate to account for inverse screen y (screen y grows downward) */
-
-          projected_triangle.points[j] = projected_vertex;
-          projected_triangle.uv[j]     = triangle_after_clipping->uv[j];
-        }
-        
-        /* LIGHT CALCULATIONS */
-        /*
-          find light intensity to face based on dot product between face orthogonal and light direction
-          result needs minus sign because the light direction vector is written as the opposite of the actual light direction we need to see (i.e y = 1 would mean shining up, but we actually want shine from above for the case y = 1)
-          also, most importantly, because all vertices are transformed by the view_matrix, the light direction vector also needs to be transformed
-          this is because a transformation by view_matrix amounts to a rotation(plus translation) of all vertices, which changes the face normals
-          ** BUT changing normals due to camera transforms should not affect how the light behaves, and so the light direction vector must track any rotation.
-          the view_matrix translation part should be ignored, and hence why the w component of vector in the multiplication below is be 0 to nulify any translations.
-          ** BUT for point light its the opposite and w must be 1 because point light DOES have a position and that position must also be transformed by the view matrix.
-
-          if camera is on same side as light, then we want the light to shine on the face regardeless of the face normal's direction.
-          hence we test: sgn((camera - v_a) dot normal) == sgn((light - v_a) dot normal) and the final dot product intensity needs to be absolute value after that
-          but if object is translucent to light, then we want to light both sides of a face regardless of the camera position, or the face's normal
-
-          light_intensities field is initialized to zero above in declaration - so that the light_intensities field is all 0 in case object not reflective
-        */
-        if(object->reflective){
-          vector3_normalize(&v_face_normal); /* normalize here for use below */
-          for(uint32_t light_index = 0; light_index < num_light_sources; light_index++){
-            if(light_sources[light_index].type == LIGHT_DIRECTIONAL){
-              vector4_t light_direction_view = matrix4_view_mul_vector4(&view_matrix, (vector4_t){light_sources[light_index].direction.x, light_sources[light_index].direction.y, light_sources[light_index].direction.z, 0});
-              if(object->two_sided_lighting)
-                projected_triangle.light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
-              else{
-                /* if not translucent, then face only lights up if sgn(cam_ray dot normal) == sgn (light_direction dot normal) */
-                vector3_t cam_ray = {.x = 0 - v_a.x, .y = 0 - v_a.y, .z = 0 - v_a.z}; 
-                float camera_v_a_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
-                float light_direction_v_a_dot_normal  = -(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
-                if((light_direction_v_a_dot_normal > 0.0f && camera_v_a_dot_normal > 0.0f) || (light_direction_v_a_dot_normal < 0.0f && camera_v_a_dot_normal < 0.0f)){
-                  projected_triangle.light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
-
-                  if(object->specular){
-                    vector3_t light_direction_view_vec3 = (vector3_t){-light_direction_view.x, -light_direction_view.y, -light_direction_view.z};
-                    vector3_normalize_fast_approx(&cam_ray);
-                    vector3_normalize_fast_approx(&light_direction_view_vec3);
-                    vector3_t H = vector3_add(light_direction_view_vec3, cam_ray);
-                    vector3_normalize_fast_approx(&H);
-                    float d = fmax(vector3_dot(v_face_normal, H), 0.0f);
-                    float spec = 0.0f;
-                    if(d > 0.0f) spec = 5 * powf(d, SPECULAR_POWER);
-                    projected_triangle.light_intensities[light_index] += spec;
-                  }
-                }
-                else projected_triangle.light_intensities[light_index] = 0.0f;
-              }
-              projected_triangle.light_intensities[light_index] *= light_sources[light_index].intensity;
-            }
-            else if(light_sources[light_index].type == LIGHT_POINT){
-              /* the 1/r^2 relation can be done without a square root.  since r = vector length, and the relation uses r^2, we don't need to first find square root and then square it.
-                we can simply find the "semi" vector length by skipping the square root (using the _squarred function).  this gives 1/r^2 without a square root.
-                for dot product also, instead of finding the ray len, we use the len squared and then use fast inv square root.
-              */
-              vector4_t light_position_view = matrix4_mul_vector3(&view_matrix, (vector3_t){light_sources[light_index].position.x, light_sources[light_index].position.y, light_sources[light_index].position.z});
-              vector3_t lightpos_to_v_a_ray = (vector3_t){light_position_view.x - v_a.x, light_position_view.y - v_a.y, light_position_view.z - v_a.z};
-              float lightpos_to_v_a_ray_length_squarred = vector3_length_squarred(lightpos_to_v_a_ray);
-              
-              if(object->two_sided_lighting){
-                projected_triangle.light_intensities[light_index] = fabsf(v_face_normal.x * lightpos_to_v_a_ray.x + v_face_normal.y * lightpos_to_v_a_ray.y + v_face_normal.z * lightpos_to_v_a_ray.z) * q_rsqrt(lightpos_to_v_a_ray_length_squarred);
-                projected_triangle.light_intensities[light_index] /= 1.0f + lightpos_to_v_a_ray_length_squarred;
-                projected_triangle.light_intensities[light_index] *= light_sources[light_index].intensity;
-              }
-              else{
-                vector3_t cam_ray = {.x = 0 - v_a.x, .y = 0 - v_a.y, .z = 0 - v_a.z}; 
-                float light_v_a_dot_normal  = v_face_normal.x * lightpos_to_v_a_ray.x + v_face_normal.y * lightpos_to_v_a_ray.y + v_face_normal.z * lightpos_to_v_a_ray.z;
-                float camera_v_a_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
-                float spec = 0.0f;
-                if(object->specular){
-                  vector3_normalize_fast_approx(&lightpos_to_v_a_ray);
-                  vector3_normalize_fast_approx(&cam_ray);
-                  vector3_t H = vector3_add(lightpos_to_v_a_ray, cam_ray);
-                  vector3_normalize_fast_approx(&H);
-                  float d = fmax(vector3_dot(v_face_normal, H), 0.0f);
-                  if(d > 0.0f) spec = 5 * powf(d, SPECULAR_POWER);
-                }
-                if((light_v_a_dot_normal > 0.0f && camera_v_a_dot_normal > 0.0f) || (light_v_a_dot_normal < 0.0f && camera_v_a_dot_normal < 0.0f)){
-                  projected_triangle.light_intensities[light_index] = spec + fabsf(light_v_a_dot_normal) * q_rsqrt(lightpos_to_v_a_ray_length_squarred);
-                  projected_triangle.light_intensities[light_index] /= 1.0f + lightpos_to_v_a_ray_length_squarred;
-                  projected_triangle.light_intensities[light_index] *= light_sources[light_index].intensity;
-                }
-                else
-                  projected_triangle.light_intensities[light_index] = 0.0f;
-              } 
-            }
-            else if(light_sources[light_index].type == LIGHT_AMBIENT){
-              projected_triangle.light_intensities[light_index] = light_sources[light_index].intensity;
-            }
-            /* clamp to [0.0, 1.0] */
-            if(projected_triangle.light_intensities[light_index] < 0.0f) projected_triangle.light_intensities[light_index] = 0.0f;
-            else if(projected_triangle.light_intensities[light_index] > 1.0f) projected_triangle.light_intensities[light_index] = 1.0f;
-          }
-        }
-
-        /* TRIANGLE RASTERIZATION */
-        if(object->object_type == OBJECT_TYPE_SKYBOX){ /* if object is skybox (always index 0), then render without zbuffer writing */
-          rasterize_triangle_no_zbuffer_write(
-            &projected_triangle, 
-            object->texture->texture, 
-            object->texture->texture_width, object->texture->texture_height, 
-            object->blend_mode, object->alpha_cutoff,
-            object->solid_color,
-            object->opacity,
-            object->reflective,
-            object->emissive_color,
-            object->emissive_intensity
-          );
-        }
-        else{
-          rasterize_triangle(
-            &projected_triangle, 
-            object->texture->texture, 
-            object->texture->texture_width, object->texture->texture_height, 
-            object->blend_mode, object->alpha_cutoff,
-            object->solid_color,
-            object->opacity,
-            object->reflective,
-            object->emissive_color,
-            object->emissive_intensity
-          );
-        }
-        if(projection_options.wireframe_overlay){
-          draw_triangle(projected_triangle.points[0].x,
-                        projected_triangle.points[0].y, 
-                        projected_triangle.points[1].x, 
-                        projected_triangle.points[1].y, 
-                        projected_triangle.points[2].x, 
-                        projected_triangle.points[2].y, 
-                        (color_t){.uint32 = 0xffffff00}
-          );
-        }
-
-        total_triangles_rendered++;
-      } /* for(int t = 0; t < polygon.num_vertices - 2; t++) */
-    } /* for(uint32_t i = 0; i < num_mesh_faces; i++) */
-
-  } /* for(uint32_t object_i = 0; object_i < num_objects_sorted; object_i++) */
-
-  if((time_count & 0x1F) == 0)
-    snprintf(text0, 128, "%u, %d, %dr:%dt, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
-      total_triangles_rendered, fps, 
-      num_objects_sorted, num_objects,
-      camera.position.x, camera.position.y, camera.position.z,
-      camera.direction.x, camera.direction.y, camera.direction.z,
-      camera.theta, camera.eta
-    );
+    /* sides */
+    draw_line(projected_p000.x, projected_p000.y, projected_p001.x, projected_p001.y, (color_t){.uint32 = 0xFFFFFFFF});
+    draw_line(projected_p100.x, projected_p100.y, projected_p101.x, projected_p101.y, (color_t){.uint32 = 0xFFFFFFFF});
+    draw_line(projected_p010.x, projected_p010.y, projected_p011.x, projected_p011.y, (color_t){.uint32 = 0xFFFFFFFF});
+    draw_line(projected_p110.x, projected_p110.y, projected_p111.x, projected_p111.y, (color_t){.uint32 = 0xFFFFFFFF});
+  }
 }
 
 void update_light(void){
@@ -1273,9 +1147,9 @@ void update_light(void){
 
     light_sources[1].direction = (vector3_t){sun_direction.x, -sun_direction.y, -sun_direction.z};
 
-    skybox->translation.x  = camera.position.x; 
-    skybox->translation.y  = camera.position.y;
-    skybox->translation.z  = camera.position.z;
+    skybox->translation.x  = player.position.x; 
+    skybox->translation.y  = player.position.y;
+    skybox->translation.z  = player.position.z;
 
     skybox->emissive_color.rgb.red   = light_sources[1].color.rgb.red   = 200 +  55 * (1.0f - sin_eta);
     skybox->emissive_color.rgb.green = light_sources[1].color.rgb.green = 100 + 155 * sin_eta;
@@ -1298,6 +1172,30 @@ void update_state(void){
 
   update_light();
 
+  player.direction = (vector3_t){
+    .x = cosf(player.theta),
+    .y = 0.0f,
+    .z = sinf(player.theta)
+  };
+
+  /* vector orthogonal to player direction: layer.direction (in XZ plane) cross up */
+  player_direction_orthogonal_left_right = (vector3_t){
+    .x = -player.direction.z * up.y,
+    .y =  0.0f,
+    .z =  player.direction.x * up.y
+  };
+
+  /* camera tracks player */
+  camera.position = (vector3_t){
+    .x = player.position.x,
+    .y = player.position.y + player.height,
+    .z = player.position.z
+  };
+  camera.direction = (vector3_t){
+    .x = cosf(player.eta) * player.direction.x,
+    .y = sinf(player.eta),
+    .z = cosf(player.eta) * player.direction.z
+  };
 }
 
 inline void rasterize_triangle(
@@ -1609,12 +1507,12 @@ void process_frame_rate(void) {
 
   int64_t elapsed = start_time - previous_frame_time;
 
-  if (elapsed < FRAME_TARGET_TIME) SDL_Delay(FRAME_TARGET_TIME - elapsed);
+  if(elapsed < FRAME_TARGET_TIME) SDL_Delay(FRAME_TARGET_TIME - elapsed);
 
   int64_t end_time = SDL_GetTicks64();
   int64_t frame_time = end_time - previous_frame_time;
 
-  if (frame_time <= 0) frame_time = 1;
+  if(frame_time <= 0) frame_time = 1;
 
   fps = (int)(1000.0 / (double)frame_time);
   if((time_count & 0x1F) == 0) snprintf(fps_str, sizeof(fps_str), "fps: %d", fps);
@@ -1627,7 +1525,6 @@ void set_title(void){
   char string[256] = {0};
   if(*text0 != '\0') strcpy(string, text0);
   if(*text1 != '\0') strcat(string, text1);
-  if(*text2 != '\0') strcat(string, text2);
 
   SDL_SetWindowTitle(window, string);
 }
@@ -1635,7 +1532,6 @@ void set_title(void){
 void render_text(){
   if(*text0 != '\0') draw_text(renderer, 0, 0, text0);
   if(*text1 != '\0') draw_text(renderer, 0, 20, text1);
-  if(*text2 != '\0') draw_text(renderer, 0, 40, text2);
 }
 
 int main(void) {
@@ -1645,14 +1541,13 @@ int main(void) {
   
   while(!quit){
     frame_id++;
-    process_input();
     process_frame_rate();
+    process_input();
 
     if(!is_paused){
-      time_of_day += delta_time;
-      snprintf(text2, 64, " time: %d:%d", (int)time_of_day / 60, (int)time_of_day % 60);
       update_state();
-      //update_and_render_color_buffer();
+      move_player();
+      resolve_player_collisions();
       render_visible_chunks();
       time_count++; /* one count per frame */
     }
@@ -2059,14 +1954,8 @@ void load_server_room(){
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                            texture
   );
-  printf("%f %f\n%f %f\n%f %f", 
-    objects[object_id].bbox_aabb.x_min,
-    objects[object_id].bbox_aabb.x_max,
-    objects[object_id].bbox_aabb.y_min,
-    objects[object_id].bbox_aabb.y_max,
-    objects[object_id].bbox_aabb.z_min,
-    objects[object_id].bbox_aabb.z_max
-  );
+  /* create collision aabb from object's own bounding box aabb */
+  create_collision_aabb(get_object_aabb(object_id), object_id);
 
   /* mainframes */
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
@@ -2077,6 +1966,9 @@ void load_server_room(){
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                            texture
   );
+  /* create collision aabb from object's own bounding box aabb */
+  create_collision_aabb(get_object_aabb(object_id), object_id);
+
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                            (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.2f, 
                            0.0f, false, true, false,
@@ -2085,6 +1977,8 @@ void load_server_room(){
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                            texture
   );
+  /* create collision aabb from object's own bounding box aabb */
+  create_collision_aabb(get_object_aabb(object_id), object_id);
 
   mesh = load_mesh("./assets/obj/potted_tree.obj");
   texture = load_texture("./assets/textures/plants/potted_tree.png");
@@ -2096,6 +1990,8 @@ void load_server_room(){
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                            texture
   );
+  /* create collision aabb from object's own bounding box aabb */
+  create_collision_aabb(get_object_aabb(object_id), object_id);
 }
 
 uint32_t chunk_num_vertices_inside_plane(chunk_t *chunk, frustrum_plane_t frustrum_plane){

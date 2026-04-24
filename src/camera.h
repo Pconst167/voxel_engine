@@ -13,6 +13,5 @@ typedef struct{
 } camera_t;
 
 extern camera_t camera;
-extern vector3_t camera_direction_orthogonal_left_right;
 
 #endif

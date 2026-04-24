@@ -111,7 +111,11 @@ uint32_t create_object(
   return num_objects - 1;
 }
 
-
 void bind_texture_to_object(object_t *object, texture_t *texture){
   object->texture = texture;
+}
+
+
+aabb_3d_t get_object_aabb(uint32_t object_id){
+  return objects[object_id].bbox_aabb;
 }

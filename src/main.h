@@ -1,37 +1,24 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
 #include <SDL2/SDL.h>
-#include <math.h>
-#include "display.h"
 #include "vector.h"
-#include "mesh.h"
 #include "triangle.h"
-#include "array.h"
-#include "matrix.h"
-#include "light.h"
-#include "misc.h"
-#include "upng.h"
-#include "camera.h"
-#include "text.h"
+#include "object.h"
 #include "clipping.h"
-#include "object.h"
 #include "color.h"
-#include "object.h"
 #include "chunk.h"
-#include "player.h"
+#include "collision.h"
 
 void render_text();
 void free_resources(void);
-void update_and_render_color_buffer2(void) ;
 void object_quicksort(object_sort_key_t *array, int count);
 void qs(object_sort_key_t *array, int left, int right);
 void render_sun(void);
 void update_state(void);
+void move_player(void);
 void update_light(void);
 void process_input(void);
 void setup(void) ;
@@ -69,6 +56,13 @@ int get_chunk_intersection_mode_fast(chunk_t *chunk);
 void render_chunk(chunk_t *chunk);
 void render_visible_chunks(void);
 void draw_chunk_outlines(void);
+void draw_collision_aabb_outlines(void);
+
+float clampf(float x, float min, float max);
+bool ranges_overlap(float a0, float a1, float b0, float b1);
+bool resolve_player_against_aabb_xz(const collision_aabb_t *box);
+void move_player_with_collision(vector3_t move);
+void resolve_player_collisions();
 
 void load_skybox();
 void load_world1(void);

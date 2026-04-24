@@ -23,6 +23,7 @@ typedef struct{
   bool dither;
   bool object_render_debug;
   bool render_chunk_outlines;
+  bool render_collision_aabb_outlines;
   float ortho_half_width;
   float ortho_half_height;
 } projection_options_t;
