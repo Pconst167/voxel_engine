@@ -60,8 +60,11 @@ extern double chunk_dz;
 /* go through all static/chunkable objects in the world, for each object, get the face vertices
    and keep track of minimum and maximum x, and z.  use those as the world bounds */
 void calculate_world_bounds(void);
-void create_chunks(void);
-void populate_chunks(void);
+void create_world_chunks(void);
+
+void populate_chunks_with_objects(void);
+void populate_chunks_with_collision_aabbs(void);
+
 int chunk_has_object_entry(int z_row, int x_col, uint32_t object_id);
 
 #endif

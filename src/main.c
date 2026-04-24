@@ -184,8 +184,8 @@ void setup(void) {
 
 
   calculate_world_bounds();
-  create_chunks();
-  populate_chunks();
+  create_world_chunks();
+  populate_chunks_with_objects();
 
 
   //for(int row = 0; row < NUM_CHUNK_DIVISIONS; row++){
