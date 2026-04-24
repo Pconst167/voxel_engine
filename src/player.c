@@ -6,7 +6,7 @@ player_t player = {
   .direction      = {.x = 0.0f, .y = 0.0f, .z = 1.0f},
   .theta          = M_PI_2,
   .eta            = 0.0f,
-  .radius         = 5.0f,
+  .radius         = 20.0f,
   .height         = 70.0f,
   .grounded       = false
 };

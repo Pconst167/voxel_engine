@@ -245,10 +245,10 @@ void populate_chunks_with_collision_aabbs(void){
     collision_aabb_t *collision_aabb = &collision_aabbs[collision_aabb_id];
     
     // compute the range of chunks that span across the collision aabb - these are the chunks that overlap with the collision aabb
-    int chunk_xcol_min = (int)((collision_aabb->aabb.x_min - world_x_min) / chunk_dx);
-    int chunk_xcol_max = (int)((collision_aabb->aabb.x_max - world_x_min) / chunk_dx);
-    int chunk_zrow_min = (int)((collision_aabb->aabb.z_min - world_z_min) / chunk_dz);
-    int chunk_zrow_max = (int)((collision_aabb->aabb.z_max - world_z_min) / chunk_dz);
+    int chunk_xcol_min = (int)floor((collision_aabb->aabb.x_min - world_x_min) / chunk_dx);
+    int chunk_xcol_max = (int)floor((collision_aabb->aabb.x_max - world_x_min) / chunk_dx);
+    int chunk_zrow_min = (int)floor((collision_aabb->aabb.z_min - world_z_min) / chunk_dz);
+    int chunk_zrow_max = (int)floor((collision_aabb->aabb.z_max - world_z_min) / chunk_dz);
     
     // clamp boundaries on both ends because an aabb on the boundary can give a chunk index out of range
     chunk_xcol_min = MAX(0, MIN(NUM_CHUNK_DIVISIONS - 1, chunk_xcol_min));

@@ -195,7 +195,7 @@ void setup(void) {
   populate_chunks_with_objects();
 
   /* populate world with aabbs */
-  //populate_chunks_with_collision_aabbs();
+  populate_chunks_with_collision_aabbs();
 
   //for(int row = 0; row < NUM_CHUNK_DIVISIONS; row++){
   //  for(int col = 0; col < NUM_CHUNK_DIVISIONS; col++){
@@ -325,22 +325,18 @@ void move_player(void){
 
   /* strafe left-right */
   if(keys[SDL_SCANCODE_Q]){
-    player.position.x += player_direction_orthogonal_left_right.x * move_speed_delta_time;
-    player.position.z += player_direction_orthogonal_left_right.z * move_speed_delta_time;
+    move_player_with_collision((vector3_t){.x = player_direction_orthogonal_left_right.x * move_speed_delta_time, .y = 0.0f, .z = player_direction_orthogonal_left_right.z * move_speed_delta_time});
   }
   else if(keys[SDL_SCANCODE_E]){
-    player.position.x -= player_direction_orthogonal_left_right.x * move_speed_delta_time;
-    player.position.z -= player_direction_orthogonal_left_right.z * move_speed_delta_time;
+    move_player_with_collision((vector3_t){.x = -player_direction_orthogonal_left_right.x * move_speed_delta_time, .y = 0.0f, .z = -player_direction_orthogonal_left_right.z * move_speed_delta_time});
   }
 
   /* forwards-backwards */
   if(keys[SDL_SCANCODE_W]){
-    player.position.x += player.direction.x * move_speed_delta_time;
-    player.position.z += player.direction.z * move_speed_delta_time;
+    move_player_with_collision((vector3_t){.x = player.direction.x * move_speed_delta_time, .y = 0.0f, .z = player.direction.z * move_speed_delta_time});
   }
   else if(keys[SDL_SCANCODE_S]){
-    player.position.x -= player.direction.x * move_speed_delta_time;
-    player.position.z -= player.direction.z * move_speed_delta_time;
+    move_player_with_collision((vector3_t){.x = -player.direction.x * move_speed_delta_time, .y = 0.0f, .z = -player.direction.z * move_speed_delta_time});
   }
 }
 
@@ -416,8 +412,8 @@ bool resolve_player_against_aabb_xz(const collision_aabb_t *box){
 void resolve_player_collisions(){
   collision_step++;
 
-  int player_chunk_x = (player.position.x - world_x_min) / chunk_dx;
-  int player_chunk_z = (player.position.z - world_z_min) / chunk_dz;
+  int player_chunk_x = (int)floorf((player.position.x - world_x_min) / chunk_dx);
+  int player_chunk_z = (int)floorf((player.position.z - world_z_min) / chunk_dz);
 
   for(int dz = -1; dz <= 1; dz++){
     for(int dx = -1; dx <= 1; dx++){
@@ -428,6 +424,8 @@ void resolve_player_collisions(){
       if(chunk_z < 0 || chunk_z >= NUM_CHUNK_DIVISIONS) continue;
 
       chunk_t *chunk = &chunks[chunk_z][chunk_x];
+
+      //if(chunk->num_collision_aabbs != 0) printf("found collision aabbs\n");
 
       for(uint32_t i = 0; i < chunk->num_collision_aabbs; i++){
         uint32_t aabb_id = chunk->collision_aabbs[i];
