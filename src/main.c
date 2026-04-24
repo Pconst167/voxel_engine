@@ -2034,7 +2034,7 @@ void load_server_room(){
   create_light_source(LIGHT_POINT,       (vector3_t){.x = -200.0f,  .y = 100.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 2000.0f);
   create_light_source(LIGHT_POINT,       (vector3_t){.x = 200.0f,   .y = 100.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 2000.0f);
   create_light_source(LIGHT_POINT,       (vector3_t){.x = 200.0f,   .y = 100.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 2000.0f);
-  create_light_source(LIGHT_POINT,       (vector3_t){.x = 0.0f,     .y = 100.0f, .z = 0.0f},    (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFAAFFFF}, 2000.0f);
+  create_light_source(LIGHT_POINT,       (vector3_t){.x = -260.0f,     .y = 200.0f, .z = 500.0f},    (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFAAFFFF}, 3000.0f);
 
   /* room */
   mesh = load_mesh("./assets/obj/server_room/room.obj");
@@ -2047,6 +2047,18 @@ void load_server_room(){
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                            texture
   );
+
+  /* white machine */
+  mesh = load_mesh("./assets/obj/server_room/server.obj");
+  texture = load_texture("./assets/textures/server_room/server.png");
+  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true,
+                           (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.2f, 
+                           0.0f, false, true, false,
+                           BLEND_MODE_OPAQUE, 0x00,
+                           (vector3_t){50, 50, 50}, (vector3_t){0, 0, 0}, (vector3_t){-8, 3, 178}, 
+                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                           texture
+  );
   printf("%f %f\n%f %f\n%f %f", 
     objects[object_id].bbox_aabb.x_min,
     objects[object_id].bbox_aabb.x_max,
@@ -2056,26 +2068,12 @@ void load_server_room(){
     objects[object_id].bbox_aabb.z_max
   );
 
-  /* white machine */
-  mesh = load_mesh("./assets/obj/server_room/server.obj");
-  texture = load_texture("./assets/textures/server_room/server.png");
-  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true,
-                           (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.2f, 
-                           0.0f, false, true, false,
-                           BLEND_MODE_OPAQUE, 0x00,
-                           (vector3_t){3, 2.5, 3}, (vector3_t){0, M_PI, 0}, (vector3_t){-8, 3, 178}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                           texture
-  );
-
   /* mainframes */
-  mesh = load_mesh("./assets/obj/server_room/server2.obj");
-  texture = load_texture("./assets/textures/server_room/server2.png");
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                            (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.2f, 
                            0.0f, false, true, false,
                            BLEND_MODE_OPAQUE, 0x00, 
-                           (vector3_t){20, 14, 20}, (vector3_t){0, M_PI_2, 0}, (vector3_t){45, 3, 178}, 
+                           (vector3_t){50, 50, 50}, (vector3_t){0, 0, 0}, (vector3_t){45, 3, 178}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                            texture
   );
@@ -2083,7 +2081,7 @@ void load_server_room(){
                            (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.2f, 
                            0.0f, false, true, false,
                            BLEND_MODE_OPAQUE, 0x00, 
-                           (vector3_t){20, 14, 20}, (vector3_t){0, 0.4, 0}, (vector3_t){100, 3, 178}, 
+                           (vector3_t){50, 50, 50}, (vector3_t){0, 0, 0}, (vector3_t){100, 3, 178}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                            texture
   );
@@ -2094,7 +2092,7 @@ void load_server_room(){
                            (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 0.0f, 
                            0.0f, true, true, false,
                            BLEND_MODE_ALPHA_TEST, 0x01, 
-                           (vector3_t){6, 6, 6}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 10}, 
+                           (vector3_t){12, 14, 12}, (vector3_t){0, 0, 0}, (vector3_t){-300, 0, 550}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                            texture
   );
