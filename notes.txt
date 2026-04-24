@@ -13,12 +13,49 @@ maybe build circuits
 ADD TIC-80 OPEN SOURCE CONSOLE TO ONE OF THE COMPUTERS?
 OR PERHAPS CREATE A FANTASY CONSOLE INSIDE THE GAME? MY OWN?
 in either case we need a screen where players can code a game!
+Genius Feature: In-Game OS Progression
+
+or ad games like elite etc - make my own mini games and add
+have a crt in the corner etc
 
 
+
+Start with primitive machine.
+Later unlock:
+floppy disks
+networking
+graphics
+bots
+multitasking
+floating point unit
+GPU card
+buy more memory?
+or find more
+
+People LOVE progression.
+
+Perfect For Your Engine
+
+Because you already have first-person 3D:
+
+Build immersive tactile spaces:
+terminals glowing in dark rooms
+humming machinery
+CRT screens
+flickering lights
+doors opening after code compile succeeds
+
+This can feel amazing in a small map.
+
+
+
+
+================================================================================
 game where you can grow plants, buy seeds, grow, sell etc
 and be able to import or create new plants into the game!  plants the game doesnt have but you love.
 watching plants and trees grow etc, get polynated by bees, eaten by animals etc
 
+===========================================================================
 
 make a meme game kinda like megabonk but with meme bosses like stonks head, vance thank you etc
 
