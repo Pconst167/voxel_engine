@@ -3,6 +3,7 @@
 #include "array.h"
 #include "aabb.h"
 #include "collision.h"
+#include "log.h"
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -97,8 +98,8 @@ void calculate_world_bounds(void){
   world_z_min = z_min;
   world_z_max = z_max;
 
-  printf("\nworld xmin: %f, world xmax: %f", x_min, x_max);
-  printf("\nworld zmin: %f, world zmax: %f\n", z_min, z_max);
+  print_log("\nworld xmin: %f, world xmax: %f", x_min, x_max);
+  print_log("\nworld zmin: %f, world zmax: %f\n", z_min, z_max);
 }
 
 /* split the world into chunks */
@@ -116,7 +117,7 @@ void create_world_chunks(void){
       chunks[z_row][x_col].z_min = world_z_min + (z_row    ) * chunk_dz;     
       chunks[z_row][x_col].z_max = world_z_min + (z_row + 1) * chunk_dz;     
 
-      //printf("xstart: %f, xend: %f, zstart: %f, zend: %f\n", 
+      //print_log("xstart: %f, xend: %f, zstart: %f, zend: %f\n", 
       //  chunks[z_row][x_col].x_min, 
       //  chunks[z_row][x_col].x_max, 
       //  chunks[z_row][x_col].z_min, 
@@ -125,8 +126,8 @@ void create_world_chunks(void){
     }
   }
 
-  printf("\nchunk_dx: %f\n", chunk_dx);
-  printf("chunk_dz: %f\n", chunk_dz);
+  print_log("\nchunk_dx: %f\n", chunk_dx);
+  print_log("chunk_dz: %f\n", chunk_dz);
 }
 
 /*

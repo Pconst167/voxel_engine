@@ -66,6 +66,7 @@ uint32_t create_object(
   object_type_t object_type,
   bool fixed,
   bool backface_culling,
+  bool attach_collision_aabb,
 
   color_t solid_color,
   color_t emissive_color,

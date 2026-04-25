@@ -5,6 +5,7 @@
 #include "mesh.h"
 #include "color.h"
 #include "array.h"
+#include "log.h"
 
 mesh_t meshes[MAX_MESHES];
 uint32_t num_meshes;
@@ -16,7 +17,7 @@ void load_obj_file(char* filename) {
   uv_t *texture_coords = NULL;
 
   if(file == NULL) {
-    fprintf(stderr, "ERROR: could not open OBJ file: %s\n", filename);
+    print_log("ERROR: could not open OBJ file: %s\n", filename);
     exit(1);
   }
 
@@ -117,12 +118,12 @@ void load_obj_file(char* filename) {
   meshes[num_meshes].num_faces    = array_length(meshes[num_meshes].faces);
 
   if(meshes[num_meshes].num_vertices == 0){
-    fprintf(stderr, "ERROR: 0 vertices in OBJ file: %s\n", filename);
+    print_log("ERROR: 0 vertices in OBJ file: %s\n", filename);
     exit(1);
   }
 
   if(meshes[num_meshes].num_faces == 0){
-    fprintf(stderr, "ERROR: 0 faces in OBJ file: %s\n", filename);
+    print_log("ERROR: 0 faces in OBJ file: %s\n", filename);
     exit(1);
   }
 

@@ -1,4 +1,5 @@
 #include "triangle.h"
+#include "options.h"
 
 /*
   TODO:
@@ -155,7 +156,7 @@ void draw_filled_triangle(
   if(parallelogram_area == 0.0f) return;
 
   /* backface culling */
-  //if(projection_options.backface_culling){
+  //if(options.backface_culling){
   //  if(parallelogram_area <= 0.0f) return;
   //}
 
@@ -290,7 +291,7 @@ void draw_filled_triangle(
     w2_row += delta_w2_row;
   }
 
-  if(projection_options.wireframe_overlay){
+  if(options.wireframe_overlay){
     draw_triangle(v0->x, v0->y, v1->x, v1->y, v2->x, v2->y, (color_t){.uint32 = 0xFFFFFFFF});
   }
 }
@@ -317,7 +318,7 @@ void draw_filled_triangle_no_zbuffer_write(
   if(parallelogram_area == 0.0f) return;
 
   /* backface culling */
-  //if(projection_options.backface_culling){
+  //if(options.backface_culling){
   //  if(parallelogram_area <= 0.0f) return;
   //}
 
@@ -450,7 +451,7 @@ void draw_filled_triangle_no_zbuffer_write(
     w2_row += delta_w2_row;
   }
 
-  if(projection_options.wireframe_overlay){
+  if(options.wireframe_overlay){
     draw_triangle(v0->x, v0->y, v1->x, v1->y, v2->x, v2->y, (color_t){.uint32 = 0xFFFFFFFF});
   }
 }
@@ -689,7 +690,7 @@ void draw_textured_triangle_opaque_float(
   if(parallelogram_area == 0.0f) return;
 
   /* backface culling */
-  //if(projection_options.backface_culling){
+  //if(options.backface_culling){
   //  if(parallelogram_area <= 0.0f) return;
   //}
 
@@ -878,7 +879,7 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
   if(parallelogram_area == 0.0f) return;
 
   /* backface culling */
-  //if(projection_options.backface_culling){
+  //if(options.backface_culling){
   //  if(parallelogram_area <= 0.0f) return;
   //}
 
@@ -1066,7 +1067,7 @@ void draw_textured_triangle_alpha_test(
   if(parallelogram_area == 0.0f) return;
 
   /* backface culling */
-  //if(projection_options.backface_culling){
+  //if(options.backface_culling){
   //  if(parallelogram_area <= 0.0f) return;
   //}
 
@@ -1257,7 +1258,7 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
   if(parallelogram_area == 0.0f) return;
 
   /* backface culling */
-  //if(projection_options.backface_culling){
+  //if(options.backface_culling){
   //  if(parallelogram_area <= 0.0f) return;
   //}
 
@@ -1446,7 +1447,7 @@ void draw_textured_triangle_alpha_blend(
   if(parallelogram_area == 0.0f) return;
 
   /* backface culling */
-  //if(projection_options.backface_culling){
+  //if(options.backface_culling){
   //  if(parallelogram_area <= 0.0f) return;
   //}
 
@@ -1634,7 +1635,7 @@ void draw_textured_triangle(
   if(parallelogram_area == 0.0f) return;
 
   /* backface culling */
-  //if(projection_options.backface_culling){
+  //if(options.backface_culling){
   //  if(parallelogram_area <= 0.0f) return;
   //}
 
@@ -1819,7 +1820,7 @@ void draw_textured_triangle_affine(
   if(parallelogram_area == 0.0f) return;
 
   /* backface culling */
-  //if(projection_options.backface_culling){
+  //if(options.backface_culling){
   //  if(parallelogram_area <= 0.0f) return;
   //}
 

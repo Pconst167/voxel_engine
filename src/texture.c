@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "upng.h"
 #include "texture.h"
+#include "log.h"
 
 texture_t texture_list[MAX_NUM_TEXTURES];
 uint32_t num_textures;
@@ -9,14 +10,14 @@ uint32_t num_textures;
 void load_png_texture_data(texture_t *texture, char *filename){
   upng_t *png_texture = upng_new_from_file(filename);
   if(png_texture == NULL){
-    fprintf(stderr, "ERROR: could not load PNG file: %s\n", filename);
+    print_log("ERROR: could not load PNG file: %s\n", filename);
     exit(1);
   }
   
   upng_decode(png_texture);
 
   if(upng_get_error(png_texture) != UPNG_EOK){
-    fprintf(stderr, "ERROR: could not decode PNG file: %s\n", filename);
+    print_log("ERROR: could not decode PNG file: %s\n", filename);
     upng_free(png_texture);
     exit(1);
   }
@@ -32,7 +33,7 @@ void load_png_texture_data(texture_t *texture, char *filename){
 
   texture->texture = (color_t *)malloc(width * height * sizeof(color_t));
   if(texture->texture == NULL){
-    fprintf(stderr, "ERROR: could not allocate texture memory\n");
+    print_log("ERROR: could not allocate texture memory\n");
     upng_free(png_texture);
     exit(1);
   }
@@ -73,7 +74,7 @@ void load_png_texture_data(texture_t *texture, char *filename){
 
 texture_t *load_texture(char *texture_filename){
   if(num_textures == MAX_NUM_TEXTURES){
-    printf("ERROR: maximum number of textures reached\n");
+    print_log("ERROR: maximum number of textures reached: %d\n", num_textures);
     exit(1);
   }
 

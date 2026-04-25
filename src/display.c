@@ -1,4 +1,5 @@
 #include "display.h"
+#include "log.h"
 
 #define ASPECT_RATIO_X (1920.0f / 1200.0f)
 
@@ -19,7 +20,7 @@ bool initialize_window(void){
   window_height = window_width / ASPECT_RATIO_X;
 
   if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0){
-    fprintf(stderr, "Error initializing SDL.\n");
+    print_log("Error initializing SDL.\n");
     return false;
   }
 
@@ -37,7 +38,7 @@ bool initialize_window(void){
   );
 
   if(!window){
-    fprintf(stderr, "Error creating SDL window.\n");
+    print_log("ERROR: failed to create SDL window");
     return false;
   }
 
@@ -45,7 +46,7 @@ bool initialize_window(void){
 
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
   if(!renderer){
-    fprintf(stderr, "Error creating SDL renderer.\n");
+    print_log("ERROR: failed to create SDL renderer");
     return false;
   }
 
@@ -57,8 +58,6 @@ bool initialize_window(void){
 
   SDL_RendererInfo info;
   SDL_GetRendererInfo(renderer, &info);
-  printf("renderer: %s\n", info.name);
-  printf("flags: 0x%x\n", info.flags);
   
   /* allocate the required memory in bytes to hold the color buffer */
   color_buffer = (color_t *)malloc(sizeof(color_t) * window_width * window_height);

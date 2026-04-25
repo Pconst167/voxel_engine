@@ -3,6 +3,8 @@
 #include "object.h"
 #include "array.h"
 #include "matrix.h"
+#include "collision.h"
+#include "log.h"
 
 object_t objects[MAX_NUM_OBJECTS];
 uint32_t num_objects;
@@ -12,6 +14,7 @@ uint32_t create_object(
   object_type_t object_type,
   bool fixed,
   bool backface_culling,
+  bool attach_collision_aabb,
 
   color_t solid_color,
   color_t emissive_color,
@@ -78,12 +81,13 @@ uint32_t create_object(
     object->bounding_center.y = transformed_bounding_center.y;
     object->bounding_center.z = transformed_bounding_center.z;
 
+    // scale the bounding sphere radius according to object's scale
     float scale_max = object->scale.x;
     if(object->scale.y > scale_max) scale_max = object->scale.y;
     if(object->scale.z > scale_max) scale_max = object->scale.z;
     object->bsphere_radius = mesh->bsphere_radius * scale_max;
 
-    /* recompute aabb bounding box after transformations */
+    /* compute object's aabb bounding box after vertex transformations - cannot be the same bbox as the mesh's because object can be scaled by transforms */
     vector3_t bbox_min = object->transformed_vertices[0];
     vector3_t bbox_max = object->transformed_vertices[0];
     for(uint32_t i = 0; i < mesh->num_vertices; i++){
@@ -101,6 +105,18 @@ uint32_t create_object(
     object->bbox_aabb.y_max = bbox_max.y;
     object->bbox_aabb.z_min = bbox_min.z;
     object->bbox_aabb.z_max = bbox_max.z;
+
+    // create and attach a collision aabb to object
+    if(attach_collision_aabb){
+      create_collision_aabb(object->bbox_aabb, num_objects);
+      print_log(
+        "created and attached new collision aabb to object: %d - x_min: %9.3f, x_max: %9.3f, z_min: %9.3f, z_max: %9.3f, y_min: %9.3f, y_max: %9.3f", 
+        object->bbox_aabb.x_min, object->bbox_aabb.x_max,
+        object->bbox_aabb.y_min, object->bbox_aabb.y_max,
+        object->bbox_aabb.z_min, object->bbox_aabb.z_max,
+        num_objects
+      );
+    }
   }
 
   /* create face draw stamp array */
