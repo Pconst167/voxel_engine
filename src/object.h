@@ -67,6 +67,7 @@ uint32_t create_object(
   bool fixed,
   bool backface_culling,
   bool attach_collision_aabb,
+  vector3_t collision_aabb_scale,
 
   color_t solid_color,
   color_t emissive_color,

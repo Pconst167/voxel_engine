@@ -15,6 +15,7 @@ uint32_t create_object(
   bool fixed,
   bool backface_culling,
   bool attach_collision_aabb,
+  vector3_t collision_aabb_scale,
 
   color_t solid_color,
   color_t emissive_color,
@@ -60,6 +61,8 @@ uint32_t create_object(
   object->angular_velocity   = angular_velocity;
   
   object->texture            = texture;
+
+  print_log("creating new object: %d", num_objects);
 
   /* if object is fixed/static, bake in all the transformations beforehand! */
   if(fixed){
@@ -108,7 +111,17 @@ uint32_t create_object(
 
     // create and attach a collision aabb to object
     if(attach_collision_aabb){
-      create_collision_aabb(object->bbox_aabb, num_objects);
+      create_collision_aabb(
+        (aabb_3d_t){
+          .x_min = 0.5 * object->bbox_aabb.x_min * (1.0 + collision_aabb_scale.x) + 0.5 * object->bbox_aabb.x_max * (1.0 - collision_aabb_scale.x),
+          .x_max = 0.5 * object->bbox_aabb.x_min * (1.0 - collision_aabb_scale.x) + 0.5 * object->bbox_aabb.x_max * (1.0 + collision_aabb_scale.x),
+          .y_min = 0.5 * object->bbox_aabb.y_min * (1.0 + collision_aabb_scale.y) + 0.5 * object->bbox_aabb.y_max * (1.0 - collision_aabb_scale.y),
+          .y_max = 0.5 * object->bbox_aabb.y_min * (1.0 - collision_aabb_scale.y) + 0.5 * object->bbox_aabb.y_max * (1.0 + collision_aabb_scale.y),
+          .z_min = 0.5 * object->bbox_aabb.z_min * (1.0 + collision_aabb_scale.z) + 0.5 * object->bbox_aabb.z_max * (1.0 - collision_aabb_scale.z),
+          .z_max = 0.5 * object->bbox_aabb.z_min * (1.0 - collision_aabb_scale.z) + 0.5 * object->bbox_aabb.z_max * (1.0 + collision_aabb_scale.z)
+        },
+        num_objects
+      );
       print_log(
         "created and attached new collision aabb to object: %d - x_min: %9.3f, x_max: %9.3f, z_min: %9.3f, z_max: %9.3f, y_min: %9.3f, y_max: %9.3f", 
         object->bbox_aabb.x_min, object->bbox_aabb.x_max,
