@@ -339,25 +339,39 @@ void move_player(void){
 
   /* strafe left-right */
   if(keys[SDL_SCANCODE_Q]){
-    move_player_with_collision((vector3_t){.x = player_direction_orthogonal_left_right.x * move_speed_delta_time, .y = 0.0f, .z = player_direction_orthogonal_left_right.z * move_speed_delta_time});
+    move_player_with_collision((vector3_t){
+      .x = player_direction_orthogonal_left_right.x * move_speed_delta_time, 
+      .y = 0.0f, 
+      .z = player_direction_orthogonal_left_right.z * move_speed_delta_time
+    });
   }
   else if(keys[SDL_SCANCODE_E]){
-    move_player_with_collision((vector3_t){.x = -player_direction_orthogonal_left_right.x * move_speed_delta_time, .y = 0.0f, .z = -player_direction_orthogonal_left_right.z * move_speed_delta_time});
+    move_player_with_collision((vector3_t){
+      .x = -player_direction_orthogonal_left_right.x * move_speed_delta_time, 
+      .y = 0.0f, 
+      .z = -player_direction_orthogonal_left_right.z * move_speed_delta_time
+    });
   }
 
   /* forwards-backwards */
   if(keys[SDL_SCANCODE_W]){
-    move_player_with_collision((vector3_t){.x = player.direction.x * move_speed_delta_time, .y = 0.0f, .z = player.direction.z * move_speed_delta_time});
+    move_player_with_collision((vector3_t){
+      .x = player.direction.x * move_speed_delta_time, 
+      .y = 0.0f, 
+      .z = player.direction.z * move_speed_delta_time
+    });
   }
   else if(keys[SDL_SCANCODE_S]){
-    move_player_with_collision((vector3_t){.x = -player.direction.x * move_speed_delta_time, .y = 0.0f, .z = -player.direction.z * move_speed_delta_time});
+    move_player_with_collision((vector3_t){
+      .x = -player.direction.x * move_speed_delta_time, 
+      .y = 0.0f, 
+      .z = -player.direction.z * move_speed_delta_time
+    });
   }
 }
 
 void move_player_with_collision(vector3_t move){
   player.position.x += move.x;
-  resolve_player_collisions();
-
   player.position.z += move.z;
   resolve_player_collisions();
 
@@ -1968,87 +1982,87 @@ void load_server_room(){
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                            texture
   );
-  float left  = objects[object_id].bbox_aabb.x_min;
-  float right = objects[object_id].bbox_aabb.x_max;
-  float back  = objects[object_id].bbox_aabb.z_min;
-  float front = objects[object_id].bbox_aabb.z_max;
-  float top   = objects[object_id].bbox_aabb.y_max;
+  float x_min  = objects[object_id].bbox_aabb.x_min;
+  float x_max = objects[object_id].bbox_aabb.x_max;
+  float z_min  = objects[object_id].bbox_aabb.z_min;
+  float z_max = objects[object_id].bbox_aabb.z_max;
+  float y_max   = objects[object_id].bbox_aabb.y_max;
   float thickness = 50;
   
-  // left
+  // x_min
   create_collision_aabb((aabb_3d_t){
-    .x_min = left,                   
-    .x_max = left + thickness,  
-    .z_min = back + 300, 
-    .z_max = front, 
+    .x_min = x_min - thickness / 2.0f,                   
+    .x_max = x_min + thickness / 2.0f,  
+    .z_min = z_min + 300, 
+    .z_max = z_max, 
     .y_min = 0.0f, 
-    .y_max = top}, 
+    .y_max = y_max}, 
     object_id
   );
-  // right
+  // x_max
   create_collision_aabb((aabb_3d_t){
-    .x_min = right,                  
-    .x_max = right + thickness, 
-    .z_min = back, 
-    .z_max = front - 300, 
+    .x_min = x_max,                  
+    .x_max = x_max + thickness, 
+    .z_min = z_min, 
+    .z_max = z_max - 300, 
     .y_min = 0.0f, 
-    .y_max = top}, 
+    .y_max = y_max}, 
     object_id
   );
-  // back
+  // z_min
   create_collision_aabb((aabb_3d_t){
-    .x_min = left + 620,             
-    .x_max = right,             
-    .z_min = back - thickness, 
-    .z_max = back, 
+    .x_min = x_min + 620,             
+    .x_max = x_max,             
+    .z_min = z_min - thickness, 
+    .z_max = z_min, 
     .y_min = 0.0f, 
-    .y_max = top}, 
-    object_id
-  );
-  create_collision_aabb((aabb_3d_t){
-    .x_min = left,                   
-    .x_max = left + 600,        
-    .z_min = back + 250, 
-    .z_max = back + 250 + thickness, 
-    .y_min = 0.0f, 
-    .y_max = top}, 
+    .y_max = y_max}, 
     object_id
   );
   create_collision_aabb((aabb_3d_t){
-    .x_min = left + 620 - thickness, 
-    .x_max = left + 620,        
-    .z_min = back, 
-    .z_max = back + 300, 
+    .x_min = x_min,                   
+    .x_max = x_min + 600,        
+    .z_min = z_min + 250, 
+    .z_max = z_min + 250 + thickness, 
     .y_min = 0.0f, 
-    .y_max = top}, 
-    object_id
-  );
-  // front                                                                                       
-  create_collision_aabb((aabb_3d_t){
-    .x_min = left + 385,             
-    .x_max = right,             
-    .z_min = front - 280 - thickness, 
-    .z_max = front - 280, 
-    .y_min = 0.0f, 
-    .y_max = top}, 
+    .y_max = y_max}, 
     object_id
   );
   create_collision_aabb((aabb_3d_t){
-    .x_min = left + 430 - thickness, 
-    .x_max = left + 430,        
-    .z_min = front - 310, 
-    .z_max = front, 
+    .x_min = x_min + 620 - thickness, 
+    .x_max = x_min + 620,        
+    .z_min = z_min, 
+    .z_max = z_min + 300, 
     .y_min = 0.0f, 
-    .y_max = top}, 
+    .y_max = y_max}, 
+    object_id
+  );
+  // z_max                                                                                       
+  create_collision_aabb((aabb_3d_t){
+    .x_min = x_min + 385,             
+    .x_max = x_max,             
+    .z_min = z_max - 280 - thickness, 
+    .z_max = z_max - 280, 
+    .y_min = 0.0f, 
+    .y_max = y_max}, 
     object_id
   );
   create_collision_aabb((aabb_3d_t){
-    .x_min = left,                   
-    .x_max = left + 420,        
-    .z_min = front - thickness, 
-    .z_max = front, 
+    .x_min = x_min + 430 - thickness, 
+    .x_max = x_min + 430,        
+    .z_min = z_max - 310, 
+    .z_max = z_max, 
     .y_min = 0.0f, 
-    .y_max = top}, 
+    .y_max = y_max}, 
+    object_id
+  );
+  create_collision_aabb((aabb_3d_t){
+    .x_min = x_min,                   
+    .x_max = x_min + 420,        
+    .z_min = z_max - thickness / 2.0f, 
+    .z_max = z_max + thickness / 2.0f, 
+    .y_min = 0.0f, 
+    .y_max = y_max}, 
     object_id
   );
 
