@@ -58,8 +58,6 @@ void render_visible_chunks(void);
 void draw_chunk_outlines(void);
 void draw_collision_aabb_outlines(void);
 
-float clampf(float x, float min, float max);
-bool ranges_overlap(float a0, float a1, float b0, float b1);
 bool resolve_player_against_aabb_xz(const collision_aabb_t *box);
 void move_player_with_collision(vector3_t move);
 void resolve_player_collisions();

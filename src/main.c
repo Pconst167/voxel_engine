@@ -101,7 +101,7 @@
 
 #define PLAYER_SPEED_SHIFT_KEY_FACTOR 5.0f
 #define PLAYER_ETA_DIRECTION 1.0f /* +1: mouse back looks up, -1: mouse back looks down */
-#define MOUSE_SENSITIVITY 0.2f
+#define MOUSE_SENSITIVITY 0.005f
 #define DAY_LENGTH (1.01f * 60.0f * 60.0f / 0.016f) /* hours */
 
 #define FOV_Y_DEG 90.0
@@ -219,6 +219,13 @@ void process_input(void){
         quit = true;
         break;
 
+      case SDL_MOUSEMOTION:
+        player.theta  -= MOUSE_SENSITIVITY                        * event.motion.xrel;
+        player.eta    += MOUSE_SENSITIVITY * PLAYER_ETA_DIRECTION * event.motion.yrel;
+        if(player.eta  >  ETA_MAX) player.eta =  ETA_MAX;
+        if(player.eta  < -ETA_MAX) player.eta = -ETA_MAX;
+        break;
+
       case SDL_KEYDOWN:
         if(event.key.repeat == 0){
           switch (event.key.keysym.sym){
@@ -298,15 +305,6 @@ void move_player(void){
   float move_speed_delta_time = ((shift)? PLAYER_SPEED_SHIFT_KEY_FACTOR * move_speed : move_speed) * delta_time;
   float _turn_speed_delta_time = turn_speed * delta_time;
 
-  while(SDL_PollEvent(&event)){
-    if(event.type == SDL_MOUSEMOTION){
-      player.theta  -= MOUSE_SENSITIVITY                        * event.motion.xrel * delta_time;
-      player.eta    += MOUSE_SENSITIVITY * PLAYER_ETA_DIRECTION * event.motion.yrel * delta_time;
-      if(player.eta  >  ETA_MAX) player.eta =  ETA_MAX;
-      if(player.eta  < -ETA_MAX) player.eta = -ETA_MAX;
-    }
-  }
-
   /* turning left-right */
   if(keys[SDL_SCANCODE_LEFT])
     player.theta += _turn_speed_delta_time;
@@ -350,24 +348,20 @@ void move_player_with_collision(vector3_t move){
   player.position.y += move.y;
 }
 
-inline float clampf(float x, float min, float max){
-  if(x < min) return min;
-  if(x > max) return max;
-  return x;
-}
-
-inline bool ranges_overlap(float a0, float a1, float b0, float b1){
-  return a1 > b0 && a0 < b1;
-}
-
 bool resolve_player_against_aabb_xz(const collision_aabb_t *box){
   float player_bottom = player.position.y;
   float player_top = player.position.y + player.height;
 
-  if(!ranges_overlap(player_bottom, player_top, box->aabb.y_min, box->aabb.y_max)) return false;
+  if((player_top <= box->aabb.y_min || player_bottom >= box->aabb.y_max)) return false;
 
-  float nearest_x = clampf(player.position.x, box->aabb.x_min, box->aabb.x_max);
-  float nearest_z = clampf(player.position.z, box->aabb.z_min, box->aabb.z_max);
+  float nearest_x, nearest_z;
+       if(player.position.x < box->aabb.x_min) nearest_x = box->aabb.x_min;
+  else if(player.position.x > box->aabb.x_max) nearest_x = box->aabb.x_max;
+  else                                         nearest_x = player.position.x;
+
+       if(player.position.z < box->aabb.z_min) nearest_z = box->aabb.z_min;
+  else if(player.position.z > box->aabb.z_max) nearest_z = box->aabb.z_max;
+  else                                         nearest_z = player.position.z;
 
   float dx = player.position.x - nearest_x;
   float dz = player.position.z - nearest_z;
