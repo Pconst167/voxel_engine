@@ -386,13 +386,13 @@ bool resolve_player_against_aabb_xz(const collision_aabb_t *box){
   }
   else{
     /* Player center is inside the AABB XZ rectangle. Push out nearest side. */
-    float pen_left  = fabs(player.position.x - box->aabb.x_min);
-    float pen_right = fabs(box->aabb.x_max - player.position.x);
-    float pen_front = fabs(player.position.z - box->aabb.z_min);
-    float pen_back  = fabs(box->aabb.z_max - player.position.z);
+    float pen_left  = fabsf(player.position.x - (float)box->aabb.x_min);
+    float pen_right = fabsf((float)box->aabb.x_max - player.position.x);
+    float pen_front = fabsf(player.position.z - (float)box->aabb.z_min);
+    float pen_back  = fabsf((float)box->aabb.z_max - player.position.z);
 
-    float min_pen = pen_left;
     int side = 0;
+    float min_pen = pen_left;
 
     if(pen_right < min_pen){ min_pen = pen_right; side = 1; }
     if(pen_front < min_pen){ min_pen = pen_front; side = 2; }
