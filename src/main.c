@@ -103,7 +103,10 @@
 #include "misc.h"
 #include "text.h"
 
-#define PLAYER_SPEED_SHIFT_KEY_FACTOR 5.0f
+// compile time enables
+#define SPECULAR_LIGHT_ENABLE 0
+
+#define PLAYER_SPEED_SHIFT_KEY_FACTOR 2.0f
 #define PLAYER_ETA_DIRECTION 1.0f /* +1: mouse back looks up, -1: mouse back looks down */
 #define MOUSE_SENSITIVITY 0.005f
 #define DAY_LENGTH (1.01f * 60.0f * 60.0f / 0.016f) /* hours */
@@ -130,10 +133,14 @@ char text1[256];
 
 /* game control */
 float delta_time;
-float move_speed = 100.0f;
+float move_speed = 200.0f;
 float turn_speed = 2.0f;
 bool quit = false;
 bool is_paused = false;
+
+/* player data */
+int player_chunk_x;
+int player_chunk_z;
 
 uint8_t color_buffer_reset = 0x00; /* repeat byte for color buffer reset */
 
@@ -301,7 +308,6 @@ void process_input(void){
 }
 
 void move_player(void){
-  SDL_Event event;
 
   const uint8_t *keys = SDL_GetKeyboardState(NULL);
   bool shift = keys[SDL_SCANCODE_LSHIFT] || keys[SDL_SCANCODE_RSHIFT];
@@ -416,20 +422,32 @@ bool resolve_player_against_aabb_xz(const collision_aabb_t *box){
 void resolve_player_collisions(){
   collision_step++;
 
-  int player_chunk_x = (int)floorf((player.position.x - world_x_min) / chunk_dx);
-  int player_chunk_z = (int)floorf((player.position.z - world_z_min) / chunk_dz);
+  player_chunk_x = (int)floorf((player.position.x - world_x_min) / chunk_dx);
+  player_chunk_z = (int)floorf((player.position.z - world_z_min) / chunk_dz);
 
-  for(int dz = -1; dz <= 1; dz++){
-    for(int dx = -1; dx <= 1; dx++){
-      int chunk_x = player_chunk_x + dx;
-      int chunk_z = player_chunk_z + dz;
+  if(player_chunk_x < 0) player_chunk_x = 0;
+  if(player_chunk_x >= NUM_CHUNK_DIVISIONS) player_chunk_x = NUM_CHUNK_DIVISIONS - 1;
+  if(player_chunk_z < 0) player_chunk_z = 0;
+  if(player_chunk_z >= NUM_CHUNK_DIVISIONS) player_chunk_z = NUM_CHUNK_DIVISIONS - 1;
 
-      if(chunk_x < 0 || chunk_x >= NUM_CHUNK_DIVISIONS) continue;
-      if(chunk_z < 0 || chunk_z >= NUM_CHUNK_DIVISIONS) continue;
+  int start_x = player_chunk_x - 1;
+  if(start_x < 0) start_x = 0;
+  if(start_x >= NUM_CHUNK_DIVISIONS) start_x = NUM_CHUNK_DIVISIONS - 1;
+  int end_x = player_chunk_x + 1;
+  if(end_x < 0) end_x = 0;
+  if(end_x >= NUM_CHUNK_DIVISIONS) end_x = NUM_CHUNK_DIVISIONS - 1;
+
+  int start_z = player_chunk_z - 1;
+  if(start_z < 0) start_z = 0;
+  if(start_z >= NUM_CHUNK_DIVISIONS) start_z = NUM_CHUNK_DIVISIONS - 1;
+  int end_z = player_chunk_z + 1;
+  if(end_z < 0) end_z = 0;
+  if(end_z >= NUM_CHUNK_DIVISIONS) end_z = NUM_CHUNK_DIVISIONS - 1;
+
+  for(int chunk_z = start_z; chunk_z <= end_z; chunk_z++){
+    for(int chunk_x = start_x; chunk_x <= end_x; chunk_x++){
 
       chunk_t *chunk = &chunks[chunk_z][chunk_x];
-
-      //if(chunk->num_collision_aabbs != 0) printf("found collision aabbs\n");
 
       for(uint32_t i = 0; i < chunk->num_collision_aabbs; i++){
         uint32_t aabb_id = chunk->collision_aabbs[i];
@@ -794,17 +812,19 @@ void render_chunk(chunk_t *chunk){
                 if((light_direction_v_a_dot_normal > 0.0f && camera_v_a_dot_normal > 0.0f) || (light_direction_v_a_dot_normal < 0.0f && camera_v_a_dot_normal < 0.0f)){
                   projected_triangle.light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
 
-                  if(object->specular){
-                    vector3_t light_direction_view_vec3 = (vector3_t){-light_direction_view.x, -light_direction_view.y, -light_direction_view.z};
-                    vector3_normalize_fast_approx(&cam_ray);
-                    vector3_normalize_fast_approx(&light_direction_view_vec3);
-                    vector3_t H = vector3_add(light_direction_view_vec3, cam_ray);
-                    vector3_normalize_fast_approx(&H);
-                    float d = fmax(vector3_dot(v_face_normal, H), 0.0f);
-                    float spec = 0.0f;
-                    if(d > 0.0f) spec = 5 * powf(d, SPECULAR_POWER);
-                    projected_triangle.light_intensities[light_index] += spec;
-                  }
+                  #if SPECULAR_LIGHT_ENABLE == 1
+                    if(object->specular){
+                      vector3_t light_direction_view_vec3 = (vector3_t){-light_direction_view.x, -light_direction_view.y, -light_direction_view.z};
+                      vector3_normalize_fast_approx(&cam_ray);
+                      vector3_normalize_fast_approx(&light_direction_view_vec3);
+                      vector3_t H = vector3_add(light_direction_view_vec3, cam_ray);
+                      vector3_normalize_fast_approx(&H);
+                      float d = fmax(vector3_dot(v_face_normal, H), 0.0f);
+                      float spec = 0.0f;
+                      if(d > 0.0f) spec = 5 * powf(d, SPECULAR_POWER);
+                      projected_triangle.light_intensities[light_index] += spec;
+                    }
+                  #endif
                 }
                 else projected_triangle.light_intensities[light_index] = 0.0f;
               }
@@ -828,17 +848,21 @@ void render_chunk(chunk_t *chunk){
                 vector3_t cam_ray = {.x = 0 - v_a.x, .y = 0 - v_a.y, .z = 0 - v_a.z}; 
                 float light_v_a_dot_normal  = v_face_normal.x * lightpos_to_v_a_ray.x + v_face_normal.y * lightpos_to_v_a_ray.y + v_face_normal.z * lightpos_to_v_a_ray.z;
                 float camera_v_a_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
-                float spec = 0.0f;
-                if(object->specular){
-                  vector3_normalize_fast_approx(&lightpos_to_v_a_ray);
-                  vector3_normalize_fast_approx(&cam_ray);
-                  vector3_t H = vector3_add(lightpos_to_v_a_ray, cam_ray);
-                  vector3_normalize_fast_approx(&H);
-                  float d = fmax(vector3_dot(v_face_normal, H), 0.0f);
-                  if(d > 0.0f) spec = 5 * powf(d, SPECULAR_POWER);
-                }
                 if((light_v_a_dot_normal > 0.0f && camera_v_a_dot_normal > 0.0f) || (light_v_a_dot_normal < 0.0f && camera_v_a_dot_normal < 0.0f)){
-                  projected_triangle.light_intensities[light_index] = spec + fabsf(light_v_a_dot_normal) * q_rsqrt(lightpos_to_v_a_ray_length_squarred);
+                  projected_triangle.light_intensities[light_index] = fabsf(light_v_a_dot_normal) * q_rsqrt(lightpos_to_v_a_ray_length_squarred);
+
+                  #if SPECULAR_LIGHT_ENABLE == 1
+                    float spec = 0.0f;
+                    if(object->specular){
+                      vector3_normalize_fast_approx(&lightpos_to_v_a_ray);
+                      vector3_normalize_fast_approx(&cam_ray);
+                      vector3_t H = vector3_add(lightpos_to_v_a_ray, cam_ray);
+                      vector3_normalize_fast_approx(&H);
+                      float d = fmax(vector3_dot(v_face_normal, H), 0.0f);
+                      if(d > 0.0f) spec = 5 * powf(d, SPECULAR_POWER);
+                      projected_triangle.light_intensities[light_index] = spec;
+                    }
+                  #endif
                   projected_triangle.light_intensities[light_index] /= 1.0f + lightpos_to_v_a_ray_length_squarred;
                   projected_triangle.light_intensities[light_index] *= light_sources[light_index].intensity;
                 }
@@ -885,8 +909,9 @@ void render_chunk(chunk_t *chunk){
   } /* for(uint32_t object_i = 0; object_i < num_objects_sorted; object_i++) */
   
   if((time_count & 0x1F) == 0)
-    snprintf(text0, 128, "t: %u, c: %u, %u (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
+    snprintf(text0, 128, "%u, %u, %u, %d:%d, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
       total_triangles_rendered, total_chunks_rendered, fps, 
+      player_chunk_x, player_chunk_z,
       player.position.x, player.position.y, player.position.z,
       player.direction.x, player.direction.y, player.direction.z,
       player.theta, player.eta
@@ -1549,7 +1574,6 @@ int main(void) {
     if(!is_paused){
       update_state();
       move_player();
-      resolve_player_collisions();
       render_visible_chunks();
       time_count++; /* one count per frame */
     }
@@ -1926,19 +1950,19 @@ void load_server_room(){
   texture_t *texture;
   int32_t object_id;
 
-  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.05f);
-  create_light_source(LIGHT_POINT,       (vector3_t){.x = -200.0f,  .y = 100.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 2000.0f);
-  create_light_source(LIGHT_POINT,       (vector3_t){.x = -200.0f,  .y = 100.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 2000.0f);
-  create_light_source(LIGHT_POINT,       (vector3_t){.x = 200.0f,   .y = 100.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 2000.0f);
-  create_light_source(LIGHT_POINT,       (vector3_t){.x = 200.0f,   .y = 100.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 2000.0f);
-  create_light_source(LIGHT_POINT,       (vector3_t){.x = -260.0f,     .y = 200.0f, .z = 500.0f},    (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFAAFFFF}, 3000.0f);
+  create_light_source(LIGHT_AMBIENT, (vector3_t){.x = 0.0f,     .y = 0.0f,   .z = 0.0f},    (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 0.05f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -200.0f,  .y = 100.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 2000.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -200.0f,  .y = 100.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 2000.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = 200.0f,   .y = 100.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 2000.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = 200.0f,   .y = 100.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 2000.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 200.0f, .z = 500.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFAAFFFF}, 3000.0f);
 
   /* room */
   mesh = load_mesh("./assets/obj/server_room/room.obj");
   texture = load_texture("./assets/textures/server_room/room.png");
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
                            (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF40FF40}, 0.0f, 
-                           0.0f, false, true, false,
+                           0.0f, false, true, true,
                            BLEND_MODE_OPAQUE, 0x00, 
                            (vector3_t){1000, 300, 1300}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
@@ -1948,23 +1972,85 @@ void load_server_room(){
   float right = objects[object_id].bbox_aabb.x_max;
   float back  = objects[object_id].bbox_aabb.z_min;
   float front = objects[object_id].bbox_aabb.z_max;
-  float top = objects[object_id].bbox_aabb.y_max;
+  float top   = objects[object_id].bbox_aabb.y_max;
   float thickness = 50;
+  
   // left
-  create_collision_aabb((aabb_3d_t){.x_min = left, .x_max = left + thickness, .z_min = back + 300, .z_max = front, .y_min = 0.0f, .y_max = top}, object_id);
+  create_collision_aabb((aabb_3d_t){
+    .x_min = left,                   
+    .x_max = left + thickness,  
+    .z_min = back + 300, 
+    .z_max = front, 
+    .y_min = 0.0f, 
+    .y_max = top}, 
+    object_id
+  );
   // right
-  create_collision_aabb((aabb_3d_t){.x_min = right, .x_max = right + thickness, .z_min = back, .z_max = front - 300, .y_min = 0.0f, .y_max = top}, object_id);
+  create_collision_aabb((aabb_3d_t){
+    .x_min = right,                  
+    .x_max = right + thickness, 
+    .z_min = back, 
+    .z_max = front - 300, 
+    .y_min = 0.0f, 
+    .y_max = top}, 
+    object_id
+  );
   // back
-  create_collision_aabb((aabb_3d_t){.x_min = left + 620, .x_max = right, .z_min = back, .z_max = back + thickness, .y_min = 0.0f, .y_max = top}, object_id);
-  create_collision_aabb((aabb_3d_t){.x_min = left, .x_max = left + 600, .z_min = back + 250, .z_max = back + 250 + thickness, .y_min = 0.0f, .y_max = top}, object_id);
-  create_collision_aabb((aabb_3d_t){.x_min = left + 620 - thickness, .x_max = left + 620, .z_min = back, .z_max = back + 300, .y_min = 0.0f, .y_max = top}, object_id);
-  // front
-  // hor
-  create_collision_aabb((aabb_3d_t){.x_min = left + 385, .x_max = right, .z_min = front - 280 - thickness, .z_max = front - 280, .y_min = 0.0f, .y_max = top}, object_id);
-  // vert
-  create_collision_aabb((aabb_3d_t){.x_min = left + 430 - thickness, .x_max = left + 430, .z_min = front - 310, .z_max = front, .y_min = 0.0f, .y_max = top}, object_id);
-  // hor
-  create_collision_aabb((aabb_3d_t){.x_min = left, .x_max = left + 420, .z_min = front - thickness, .z_max = front, .y_min = 0.0f, .y_max = top}, object_id);
+  create_collision_aabb((aabb_3d_t){
+    .x_min = left + 620,             
+    .x_max = right,             
+    .z_min = back - thickness, 
+    .z_max = back, 
+    .y_min = 0.0f, 
+    .y_max = top}, 
+    object_id
+  );
+  create_collision_aabb((aabb_3d_t){
+    .x_min = left,                   
+    .x_max = left + 600,        
+    .z_min = back + 250, 
+    .z_max = back + 250 + thickness, 
+    .y_min = 0.0f, 
+    .y_max = top}, 
+    object_id
+  );
+  create_collision_aabb((aabb_3d_t){
+    .x_min = left + 620 - thickness, 
+    .x_max = left + 620,        
+    .z_min = back, 
+    .z_max = back + 300, 
+    .y_min = 0.0f, 
+    .y_max = top}, 
+    object_id
+  );
+  // front                                                                                       
+  create_collision_aabb((aabb_3d_t){
+    .x_min = left + 385,             
+    .x_max = right,             
+    .z_min = front - 280 - thickness, 
+    .z_max = front - 280, 
+    .y_min = 0.0f, 
+    .y_max = top}, 
+    object_id
+  );
+  create_collision_aabb((aabb_3d_t){
+    .x_min = left + 430 - thickness, 
+    .x_max = left + 430,        
+    .z_min = front - 310, 
+    .z_max = front, 
+    .y_min = 0.0f, 
+    .y_max = top}, 
+    object_id
+  );
+  create_collision_aabb((aabb_3d_t){
+    .x_min = left,                   
+    .x_max = left + 420,        
+    .z_min = front - thickness, 
+    .z_max = front, 
+    .y_min = 0.0f, 
+    .y_max = top}, 
+    object_id
+  );
 
   /* white machine */
   mesh = load_mesh("./assets/obj/server_room/server.obj");
