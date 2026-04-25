@@ -29,6 +29,10 @@
       then for fully inside, we only test for clipping, but for intersecting chunks, clip all triangles directly.
 
     TODO:
+      for options such as adding culling etc, for objects or anything, use bit fields instead of bools, so I can see what the option is when looking
+      at the function
+
+
       about lighting: we can interpolate the 3d x y z coordinates in a triangle per pixel, and use that to calculate the per pixel light values.
       for point light we can interpolate the real per pixel brightness with 1/r^2 law.
       but probably expensive.
