@@ -1944,6 +1944,27 @@ void load_server_room(){
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                            texture
   );
+  float left  = objects[object_id].bbox_aabb.x_min;
+  float right = objects[object_id].bbox_aabb.x_max;
+  float back  = objects[object_id].bbox_aabb.z_min;
+  float front = objects[object_id].bbox_aabb.z_max;
+  float top = objects[object_id].bbox_aabb.y_max;
+  float thickness = 50;
+  // left
+  create_collision_aabb((aabb_3d_t){.x_min = left, .x_max = left + thickness, .z_min = back + 300, .z_max = front, .y_min = 0.0f, .y_max = top}, object_id);
+  // right
+  create_collision_aabb((aabb_3d_t){.x_min = right, .x_max = right + thickness, .z_min = back, .z_max = front - 300, .y_min = 0.0f, .y_max = top}, object_id);
+  // back
+  create_collision_aabb((aabb_3d_t){.x_min = left + 620, .x_max = right, .z_min = back, .z_max = back + thickness, .y_min = 0.0f, .y_max = top}, object_id);
+  create_collision_aabb((aabb_3d_t){.x_min = left, .x_max = left + 600, .z_min = back + 250, .z_max = back + 250 + thickness, .y_min = 0.0f, .y_max = top}, object_id);
+  create_collision_aabb((aabb_3d_t){.x_min = left + 620 - thickness, .x_max = left + 620, .z_min = back, .z_max = back + 300, .y_min = 0.0f, .y_max = top}, object_id);
+  // front
+  // hor
+  create_collision_aabb((aabb_3d_t){.x_min = left + 385, .x_max = right, .z_min = front - 280 - thickness, .z_max = front - 280, .y_min = 0.0f, .y_max = top}, object_id);
+  // vert
+  create_collision_aabb((aabb_3d_t){.x_min = left + 430 - thickness, .x_max = left + 430, .z_min = front - 310, .z_max = front, .y_min = 0.0f, .y_max = top}, object_id);
+  // hor
+  create_collision_aabb((aabb_3d_t){.x_min = left, .x_max = left + 420, .z_min = front - thickness, .z_max = front, .y_min = 0.0f, .y_max = top}, object_id);
 
   /* white machine */
   mesh = load_mesh("./assets/obj/server_room/server.obj");
