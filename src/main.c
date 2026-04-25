@@ -303,21 +303,27 @@ void move_player(void){
   bool shift = keys[SDL_SCANCODE_LSHIFT] || keys[SDL_SCANCODE_RSHIFT];
 
   float move_speed_delta_time = ((shift)? PLAYER_SPEED_SHIFT_KEY_FACTOR * move_speed : move_speed) * delta_time;
-  float _turn_speed_delta_time = turn_speed * delta_time;
+  float turn_speed_delta_time = turn_speed * delta_time;
+
+  /* up-down for debug */
+  if(keys[SDL_SCANCODE_D])
+    player.position.y += move_speed_delta_time;
+  else if(keys[SDL_SCANCODE_A])
+    player.position.y -= move_speed_delta_time;
 
   /* turning left-right */
   if(keys[SDL_SCANCODE_LEFT])
-    player.theta += _turn_speed_delta_time;
+    player.theta += turn_speed_delta_time;
   else if(keys[SDL_SCANCODE_RIGHT])
-    player.theta -= _turn_speed_delta_time;
+    player.theta -= turn_speed_delta_time;
 
   /* turning up-down */
   if(keys[SDL_SCANCODE_UP]){
-    player.eta += _turn_speed_delta_time;
+    player.eta += turn_speed_delta_time;
     if(player.eta > ETA_MAX) player.eta = ETA_MAX;
   }
   else if(keys[SDL_SCANCODE_DOWN]){
-    player.eta -= _turn_speed_delta_time;
+    player.eta -= turn_speed_delta_time;
     if(player.eta < -ETA_MAX) player.eta = -ETA_MAX;
   }
 
@@ -352,7 +358,7 @@ bool resolve_player_against_aabb_xz(const collision_aabb_t *box){
   float player_bottom = player.position.y;
   float player_top = player.position.y + player.height;
 
-  if((player_top <= box->aabb.y_min || player_bottom >= box->aabb.y_max)) return false;
+  if((player_top < box->aabb.y_min || player_bottom > box->aabb.y_max)) return false;
 
   float nearest_x, nearest_z;
        if(player.position.x < box->aabb.x_min) nearest_x = box->aabb.x_min;
