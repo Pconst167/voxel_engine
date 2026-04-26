@@ -508,18 +508,15 @@ void render_visible_chunks(void) {
 
   view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
 
-  /* loop through all chunks 
-     for each chunk, classify it into: intersecting, inside, and add each to a list
-     for inside list, render directly with clipping test only - only clip triangles that go outside frustrum
-     for intersecting list, apply clipping and render
-  */
+  // loop through all chunks 
+  // for each chunk, classify it into: intersecting, inside, and add each to a list
   total_triangles_rendered = 0;
   total_chunks_rendered = 0;
   for(int z_row = 0; z_row < NUM_CHUNK_DIVISIONS; z_row++){
     for(int x_col = 0; x_col < NUM_CHUNK_DIVISIONS; x_col++){
       if(!chunks[z_row][x_col].empty){ /* if chunk is not empty, then render objects contained in chunk */
-        int intersection_mode = get_chunk_intersection_mode_fast(&chunks[z_row][x_col]);
-        if(intersection_mode == 1 || intersection_mode == -1)
+        chunk_intersection_mode_t intersection_mode = get_chunk_intersection_mode_fast(&chunks[z_row][x_col]);
+        if(intersection_mode == CHUNK_INTERSECTION_MODE_INSIDE || intersection_mode == CHUNK_INTERSECTION_MODE_INTERSECTING)
           render_chunk(&chunks[z_row][x_col]);
       }
     }
@@ -540,7 +537,7 @@ void render_visible_chunks(void) {
    if count == 0 its fully outside
    else its intersecting
 */
-int get_chunk_intersection_mode_fast(chunk_t *chunk){
+chunk_intersection_mode_t get_chunk_intersection_mode_fast(chunk_t *chunk){
   float x_min = chunk->x_min;
   float x_max = chunk->x_max;
   float y_min = chunk->y_min;
@@ -620,12 +617,12 @@ int get_chunk_intersection_mode_fast(chunk_t *chunk){
           fabsf(n.x * axis_z_view.x + n.y * axis_z_view.y + n.z * axis_z_view.z) * extents_world.z;
     }
 
-    if(s + r < 0.0f) return 0;   /* outside */
+    if(s + r < 0.0f) return CHUNK_INTERSECTION_MODE_OUTSIDE;   /* outside */
 
     if(s - r < 0.0f) fully_inside_all_planes = false;
   }
 
-  return fully_inside_all_planes ? 1 : -1;
+  return fully_inside_all_planes ? CHUNK_INTERSECTION_MODE_INSIDE : CHUNK_INTERSECTION_MODE_INTERSECTING;
 }
 
 int get_chunk_intersection_mode(chunk_t *chunk){
@@ -1494,6 +1491,33 @@ void render_sun(void){
       color_buffer[y * window_width + x] = final_color;
     }
   }
+}
+
+void qs_chunk(chunk_sort_key_t *array, int left, int right){
+  int i = left;
+  int j = right;
+  float pivot = array[(left + right) / 2].sort_z;
+
+  while(i <= j){
+    while(array[i].sort_z < pivot) i++;
+    while(array[j].sort_z > pivot) j--;
+
+    if(i <= j){
+      chunk_sort_key_t tmp = array[i];
+      array[i] = array[j];
+      array[j] = tmp;
+      i++;
+      j--;
+    }
+  }
+
+  if(left < j) qs_chunk(array, left, j);
+  if(i < right) qs_chunk(array, i, right);
+}
+
+inline void chunk_quicksort(chunk_sort_key_t *array, int count){
+  if(count > 1)
+    qs_chunk(array, 0, count - 1);
 }
 
 void qs(object_sort_key_t *array, int left, int right){

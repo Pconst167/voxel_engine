@@ -16,6 +16,8 @@ void render_text();
 void free_resources(void);
 void object_quicksort(object_sort_key_t *array, int count);
 void qs(object_sort_key_t *array, int left, int right);
+void chunk_quicksort(chunk_sort_key_t *array, int count);
+void qs_chunk(chunk_sort_key_t *array, int left, int right);
 void render_sun(void);
 void update_state(void);
 void move_player(void);
@@ -52,7 +54,7 @@ inline void rasterize_triangle_no_zbuffer_write(
 bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane);
 uint32_t chunk_num_vertices_inside_plane(chunk_t *chunk, frustrum_plane_t frustrum_plane);
 int get_chunk_intersection_mode(chunk_t *chunk);
-int get_chunk_intersection_mode_fast(chunk_t *chunk);
+chunk_intersection_mode_t get_chunk_intersection_mode_fast(chunk_t *chunk);
 void render_chunk(chunk_t *chunk);
 void render_visible_chunks(void);
 void draw_chunk_outlines(void);

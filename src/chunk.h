@@ -7,6 +7,12 @@
 
 #define NUM_CHUNK_DIVISIONS 8 /* 10 along x, and 10 along z */
 
+typedef enum{
+  CHUNK_INTERSECTION_MODE_OUTSIDE,
+  CHUNK_INTERSECTION_MODE_INSIDE,
+  CHUNK_INTERSECTION_MODE_INTERSECTING
+} chunk_intersection_mode_t;
+
 typedef struct{
   uint32_t object_id;
   uint32_t *face_indices;

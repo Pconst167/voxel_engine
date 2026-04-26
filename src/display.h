@@ -6,7 +6,7 @@
 #include <SDL2/SDL.h>
 #include "color.h"
 
-#define FPS 60
+#define FPS 200
 #define FRAME_TARGET_TIME (1000 / FPS)
 
 extern int fps;
