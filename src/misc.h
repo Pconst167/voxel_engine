@@ -6,6 +6,9 @@
 #define M_PI_2 (M_PI / 2.0)
 #define M_PI_4 (M_PI / 4.0)
 
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
 float fmax2(float f0, float f1);
 float fmin2(float f0, float f1);
 

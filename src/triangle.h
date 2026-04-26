@@ -8,9 +8,7 @@
 #include "color.h"
 #include "display.h"
 #include "material.h"
-
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#include "misc.h"
 
 typedef struct{
   float u, v;

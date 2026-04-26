@@ -1201,9 +1201,6 @@ void update_light(void){
     /* as sun sets or rises, ambient light should get bluer, and oranger towards noon */
     light_sources[0].color = skybox->emissive_color; 
     light_sources[0].intensity = MIN_AMBIENT_LIGHT_INTENSITY + AMBIENT_LIGHT_MAX_FACTOR * sin_eta;
-
-    /* hack to hide ramdom background leaking pixels at triangle edges */
-    color_buffer_reset = (uint8_t)(skybox->emissive_intensity * 100.0f);
   }
 }
 
