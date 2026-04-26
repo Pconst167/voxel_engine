@@ -143,7 +143,7 @@ void draw_filled_triangle(
   float *light_intensities,
   color_t emissive_color,
   float emissive_intensity,
-  bool reflective,
+  bool reflects_light,
   bool dither
 ){
   float parallelogram_area = edge_cross(
@@ -248,7 +248,7 @@ void draw_filled_triangle(
           uint32_t green_total = 0;
           uint32_t blue_total  = 0;
 
-          if(reflective){
+          if(reflects_light){
             red_total   = (uint32_t)(color.rgb.red   * intensity.red  );
             green_total = (uint32_t)(color.rgb.green * intensity.green);
             blue_total  = (uint32_t)(color.rgb.blue  * intensity.blue );
@@ -305,7 +305,7 @@ void draw_filled_triangle_no_zbuffer_write(
   float *light_intensities,
   color_t emissive_color,
   float emissive_intensity,
-  bool reflective,
+  bool reflects_light,
   bool dither
 ){
   float parallelogram_area = edge_cross(
@@ -410,7 +410,7 @@ void draw_filled_triangle_no_zbuffer_write(
           uint32_t green_total = 0;
           uint32_t blue_total  = 0;
 
-          if(reflective){
+          if(reflects_light){
             red_total   = (uint32_t)(color.rgb.red   * intensity.red  );
             green_total = (uint32_t)(color.rgb.green * intensity.green);
             blue_total  = (uint32_t)(color.rgb.blue  * intensity.blue );
@@ -488,7 +488,7 @@ inline void draw_textured_triangle_opaque(
   float *light_intensities,
   color_t emissive_color,
   float emissive_intensity,
-  bool reflective,
+  bool reflects_light,
   bool dither
 ){
   int x_min = (int)floorf(MIN(MIN(v0->x, v1->x), v2->x));
@@ -616,7 +616,7 @@ inline void draw_textured_triangle_opaque(
           uint32_t green_total = 0;
           uint32_t blue_total  = 0;
 
-          if(reflective){
+          if(reflects_light){
             red_total   = (uint32_t)(texel.rgb.red   * intensity.red);
             green_total = (uint32_t)(texel.rgb.green * intensity.green);
             blue_total  = (uint32_t)(texel.rgb.blue  * intensity.blue);
@@ -677,7 +677,7 @@ void draw_textured_triangle_opaque_float(
   float *light_intensities,
   color_t emissive_color,
   float emissive_intensity,
-  bool reflective,
+  bool reflects_light,
   bool dither
 ){
   float parallelogram_area = edge_cross(
@@ -812,7 +812,7 @@ void draw_textured_triangle_opaque_float(
           uint32_t green_total = 0;
           uint32_t blue_total  = 0;
 
-          if(reflective){
+          if(reflects_light){
             red_total   = (uint32_t)(texel.rgb.red   * intensity.red  );
             green_total = (uint32_t)(texel.rgb.green * intensity.green);
             blue_total  = (uint32_t)(texel.rgb.blue  * intensity.blue );
@@ -866,7 +866,7 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
   float *light_intensities,
   color_t emissive_color,
   float emissive_intensity,
-  bool reflective,
+  bool reflects_light,
   bool dither
 ){
   float parallelogram_area = edge_cross(
@@ -1001,7 +1001,7 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
           uint32_t green_total = 0;
           uint32_t blue_total  = 0;
 
-          if(reflective){
+          if(reflects_light){
             red_total   = (uint32_t)(texel.rgb.red   * intensity.red  );
             green_total = (uint32_t)(texel.rgb.green * intensity.green);
             blue_total  = (uint32_t)(texel.rgb.blue  * intensity.blue );
@@ -1053,7 +1053,7 @@ void draw_textured_triangle_alpha_test(
   float *light_intensities,
   color_t emissive_color,
   float emissive_intensity,
-  bool reflective,
+  bool reflects_light,
   bool dither,
   uint8_t alpha_cutoff
 ){
@@ -1190,7 +1190,7 @@ void draw_textured_triangle_alpha_test(
             uint32_t green_total = 0;
             uint32_t blue_total  = 0;
 
-            if(reflective){
+            if(reflects_light){
               red_total   = (uint32_t)(texel.rgb.red   * intensity.red  );
               green_total = (uint32_t)(texel.rgb.green * intensity.green);
               blue_total  = (uint32_t)(texel.rgb.blue  * intensity.blue );
@@ -1244,7 +1244,7 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
   float *light_intensities,
   color_t emissive_color,
   float emissive_intensity,
-  bool reflective,
+  bool reflects_light,
   bool dither,
   uint8_t alpha_cutoff
 ){
@@ -1381,7 +1381,7 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
             uint32_t green_total = 0;
             uint32_t blue_total  = 0;
 
-            if(reflective){
+            if(reflects_light){
               red_total   = (uint32_t)(texel.rgb.red   * intensity.red  );
               green_total = (uint32_t)(texel.rgb.green * intensity.green);
               blue_total  = (uint32_t)(texel.rgb.blue  * intensity.blue );
@@ -1433,7 +1433,7 @@ void draw_textured_triangle_alpha_blend(
   float *light_intensities,
   color_t emissive_color,
   float emissive_intensity,
-  bool reflective,
+  bool reflects_light,
   bool dither,
   float opacity
 ){
@@ -1569,7 +1569,7 @@ void draw_textured_triangle_alpha_blend(
           uint32_t green_total = 0;
           uint32_t blue_total  = 0;
 
-          if(reflective){
+          if(reflects_light){
             red_total   = (uint32_t)(texel.rgb.red   * intensity.red  );
             green_total = (uint32_t)(texel.rgb.green * intensity.green);
             blue_total  = (uint32_t)(texel.rgb.blue  * intensity.blue );
@@ -1619,7 +1619,7 @@ void draw_textured_triangle(
   float *light_intensities,
   color_t emissive_color,
   float emissive_intensity,
-  bool reflective,
+  bool reflects_light,
   bool dither,
   blend_mode_t blend_mode,
   uint8_t alpha_cutoff,
@@ -1757,7 +1757,7 @@ void draw_textured_triangle(
           uint32_t green_total = 0;
           uint32_t blue_total  = 0;
 
-          if(reflective){
+          if(reflects_light){
             red_total   = (uint32_t)(texel.rgb.red   * intensity.red  );
             green_total = (uint32_t)(texel.rgb.green * intensity.green);
             blue_total  = (uint32_t)(texel.rgb.blue  * intensity.blue );
@@ -2165,7 +2165,7 @@ void draw_textured_triangle_opaque(
   float *light_intensities,
   color_t emissive_color,
   float emissive_intensity,
-  bool reflective,
+  bool reflects_light,
   bool dither
 ){
   float parallelogram_area = edge_cross(
@@ -2337,7 +2337,7 @@ void draw_textured_triangle_opaque(
         uint32_t green_total = 0;
         uint32_t blue_total  = 0;
 
-        if(reflective){
+        if(reflects_light){
           red_total   = (uint32_t)(texel.rgb.red   * intensity.red);
           green_total = (uint32_t)(texel.rgb.green * intensity.green);
           blue_total  = (uint32_t)(texel.rgb.blue  * intensity.blue);

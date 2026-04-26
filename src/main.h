@@ -33,7 +33,7 @@ inline void rasterize_triangle(
   uint8_t alpha_cutoff,
   color_t base_color,
   float opacity,
-  bool reflective,
+  bool reflects_light,
   color_t emissive_color,
   float emissive_intensity
 );
@@ -46,7 +46,7 @@ inline void rasterize_triangle_no_zbuffer_write(
   uint8_t alpha_cutoff,
   color_t base_color,
   float opacity,
-  bool reflective,
+  bool reflects_light,
   color_t emissive_color,
   float emissive_intensity
 );

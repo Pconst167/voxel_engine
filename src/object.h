@@ -31,8 +31,8 @@ typedef struct{
   float emissive_intensity; /* if object is self-luminous, how emissive? */
   float opacity; /* used as a global alpha blending - makes object totally opaque or ghostly */
   bool two_sided_lighting; /* object will be lit on both sides of light equally */
-  bool reflective;
-  bool specular;
+  bool reflects_light;
+  bool specular_highlights;
   blend_mode_t blend_mode;
   uint8_t alpha_cutoff;
   /* current object's trandformation state */
@@ -74,8 +74,8 @@ int32_t create_object(
   float emissive_intensity,
   float opacity,
   bool two_sided_lighting,
-  bool reflective,
-  bool specular,
+  bool reflects_light,
+  bool specular_highlights,
 
   blend_mode_t blend_mode,
   uint8_t alpha_cutoff,

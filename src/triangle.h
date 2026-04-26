@@ -68,7 +68,7 @@ void draw_filled_triangle(
   float *light_intensities,
   color_t emissive_color,
   float emissive_intensity,
-  bool reflective,
+  bool reflects_light,
   bool dither
 );
 void draw_filled_triangle_no_zbuffer_write(
@@ -77,7 +77,7 @@ void draw_filled_triangle_no_zbuffer_write(
   float *light_intensities,
   color_t emissive_color,
   float emissive_intensity,
-  bool reflective,
+  bool reflects_light,
   bool dither
 );
 
@@ -89,7 +89,7 @@ void draw_textured_triangle_opaque(
   float *light_intensities,
   color_t emissive_color,
   float emissive_intensity,
-  bool reflective,
+  bool reflects_light,
   bool dither
 );
 void draw_textured_triangle_opaque_float(
@@ -100,7 +100,7 @@ void draw_textured_triangle_opaque_float(
   float *light_intensities,
   color_t emissive_color,
   float emissive_intensity,
-  bool reflective,
+  bool reflects_light,
   bool dither
 );
 void draw_textured_triangle_opaque_no_zbuffer_write(
@@ -111,7 +111,7 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
   float *light_intensities,
   color_t emissive_color,
   float emissive_intensity,
-  bool reflective,
+  bool reflects_light,
   bool dither
 );
 void draw_textured_triangle_alpha_test(
@@ -122,7 +122,7 @@ void draw_textured_triangle_alpha_test(
   float *light_intensities,
   color_t emissive_color,
   float emissive_intensity,
-  bool reflective,
+  bool reflects_light,
   bool dither,
   uint8_t alpha_cutoff
 );
@@ -134,7 +134,7 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
   float *light_intensities,
   color_t emissive_color,
   float emissive_intensity,
-  bool reflective,
+  bool reflects_light,
   bool dither,
   uint8_t alpha_cutoff
 );
@@ -146,7 +146,7 @@ void draw_textured_triangle_alpha_blend(
   float *light_intensities,
   color_t emissive_color,
   float emissive_intensity,
-  bool reflective,
+  bool reflects_light,
   bool dither,
   float opacity
 );
@@ -159,7 +159,7 @@ void draw_textured_triangle(
   float *light_intensities,
   color_t emissive_color,
   float emissive_intensity,
-  bool reflective,
+  bool reflects_light,
   bool dither,
   blend_mode_t blend_mode,
   uint8_t alpha_cutoff,

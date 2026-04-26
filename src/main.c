@@ -111,7 +111,7 @@
 #include "debug.h"
 
 // compile time enables
-#define SPECULAR_LIGHT_ENABLE 0
+#define SPECULAR_LIGHT_ENABLE 1
 
 #define PLAYER_SPEED_SHIFT_KEY_FACTOR 2.0f
 #define PLAYER_ETA_DIRECTION 1.0f /* +1: mouse back looks up, -1: mouse back looks down */
@@ -807,9 +807,9 @@ void render_chunk(chunk_t *chunk){
           hence we test: sgn((camera - v_a) dot normal) == sgn((light - v_a) dot normal) and the final dot product intensity needs to be absolute value after that
           but if object is translucent to light, then we want to light both sides of a face regardless of the camera position, or the face's normal
 
-          light_intensities field is initialized to zero above in declaration - so that the light_intensities field is all 0 in case object not reflective
+          light_intensities field is initialized to zero above in declaration - so that the light_intensities field is all 0 in case object not reflects_light
         */
-        if(object->reflective){
+        if(object->reflects_light){
           vector3_normalize_fast_approx(&v_face_normal); /* normalize here for use below */
           for(uint32_t light_index = 0; light_index < num_light_sources; light_index++){
             if(light_sources[light_index].type == LIGHT_DIRECTIONAL){
@@ -825,7 +825,7 @@ void render_chunk(chunk_t *chunk){
                   projected_triangle.light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
 
                   #if SPECULAR_LIGHT_ENABLE == 1
-                    if(object->specular){
+                    if(object->specular_highlights){
                       vector3_t light_direction_view_vec3 = (vector3_t){-light_direction_view.x, -light_direction_view.y, -light_direction_view.z};
                       vector3_normalize_fast_approx(&cam_ray);
                       vector3_normalize_fast_approx(&light_direction_view_vec3);
@@ -864,7 +864,7 @@ void render_chunk(chunk_t *chunk){
                   projected_triangle.light_intensities[light_index] = fabsf(light_v_a_dot_normal) * q_rsqrt(lightpos_to_v_a_ray_length_squarred);
 
                   #if SPECULAR_LIGHT_ENABLE == 1
-                    if(object->specular){
+                    if(object->specular_highlights){
                       vector3_normalize_fast_approx(&lightpos_to_v_a_ray);
                       vector3_normalize_fast_approx(&cam_ray);
                       vector3_t H = vector3_add(lightpos_to_v_a_ray, cam_ray);
@@ -899,7 +899,7 @@ void render_chunk(chunk_t *chunk){
           object->blend_mode, object->alpha_cutoff,
           object->base_color,
           object->opacity,
-          object->reflective,
+          object->reflects_light,
           object->emissive_color,
           object->emissive_intensity
         );
@@ -1242,7 +1242,7 @@ inline void rasterize_triangle(
   uint8_t alpha_cutoff,
   color_t base_color,
   float opacity,
-  bool reflective,
+  bool reflects_light,
   color_t emissive_color,
   float emissive_intensity
 ){
@@ -1255,7 +1255,7 @@ inline void rasterize_triangle(
       triangle->light_intensities,
       emissive_color,
       emissive_intensity,
-      reflective,
+      reflects_light,
       options.dither
     );
     return;
@@ -1280,7 +1280,7 @@ inline void rasterize_triangle(
           triangle->light_intensities,
           emissive_color,
           emissive_intensity,
-          reflective,
+          reflects_light,
           options.dither
         );
         return;
@@ -1294,7 +1294,7 @@ inline void rasterize_triangle(
           triangle->light_intensities,
           emissive_color,
           emissive_intensity,
-          reflective,
+          reflects_light,
           options.dither,
           alpha_cutoff
         );
@@ -1309,7 +1309,7 @@ inline void rasterize_triangle(
           triangle->light_intensities,
           emissive_color,
           emissive_intensity,
-          reflective,
+          reflects_light,
           options.dither,
           opacity
         );
@@ -1326,7 +1326,7 @@ inline void rasterize_triangle_no_zbuffer_write(
   uint8_t alpha_cutoff,
   color_t base_color,
   float opacity,
-  bool reflective,
+  bool reflects_light,
   color_t emissive_color,
   float emissive_intensity
 ){
@@ -1339,7 +1339,7 @@ inline void rasterize_triangle_no_zbuffer_write(
       triangle->light_intensities,
       emissive_color,
       emissive_intensity,
-      reflective,
+      reflects_light,
       options.dither
     );
     return;
@@ -1364,7 +1364,7 @@ inline void rasterize_triangle_no_zbuffer_write(
           triangle->light_intensities,
           emissive_color,
           emissive_intensity,
-          reflective,
+          reflects_light,
           options.dither
         );
         return;
@@ -1378,7 +1378,7 @@ inline void rasterize_triangle_no_zbuffer_write(
           triangle->light_intensities,
           emissive_color,
           emissive_intensity,
-          reflective,
+          reflects_light,
           options.dither,
           alpha_cutoff
         );
@@ -1393,7 +1393,7 @@ inline void rasterize_triangle_no_zbuffer_write(
           triangle->light_intensities,
           emissive_color,
           emissive_intensity,
-          reflective,
+          reflects_light,
           options.dither,
           opacity
         );
@@ -1985,9 +1985,9 @@ void load_server_room(){
   texture = load_texture("./assets/textures/server_room/room.png");
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
                            (color_t){.uint32 = 0xFFFFFFFF}, (color_t){.uint32 = 0xFFFF0000}, 0.0f, 
-                           0.0f, false, true, true,
+                           0.0f, false, true, false,
                            BLEND_MODE_OPAQUE, 0x00, 
-                           (vector3_t){1000, 300, 1300}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+                           (vector3_t){1000, 400, 1300}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                            texture
   );
@@ -2148,7 +2148,7 @@ void load_server_room(){
                            (color_t){.uint32 = 0xFFFF0000}, (color_t){.uint32 = 0xFFFFFFFF}, 0.5f, 
                            0.0f, false, true, false,
                            BLEND_MODE_OPAQUE, 0x00, 
-                           (vector3_t){10, 10, 10}, (vector3_t){M_PI_2, 0, 0}, (vector3_t){0, 100, 0}, 
+                           (vector3_t){10, 10, 10}, (vector3_t){M_PI_2, 0, 0}, (vector3_t){-200, 100, 0}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                            texture
   );

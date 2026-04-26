@@ -22,8 +22,8 @@ int32_t create_object(
   float emissive_intensity,
   float opacity,
   bool two_sided_lighting,
-  bool reflective,
-  bool specular,
+  bool reflects_light,
+  bool specular_highlights,
 
   blend_mode_t blend_mode,
   uint8_t alpha_cutoff,
@@ -43,29 +43,29 @@ int32_t create_object(
 
   object_t *object = &objects[num_objects];
 
-  object->mesh               = mesh;
-  object->object_type        = object_type;
-  object->fixed              = fixed;
-  object->backface_culling   = backface_culling;
+  object->mesh                = mesh;
+  object->object_type         = object_type;
+  object->fixed               = fixed;
+  object->backface_culling    = backface_culling;
+                              
+  object->base_color          = base_color;
+  object->emissive_color      = emissive_color;
+  object->emissive_intensity  = emissive_intensity;
+  object->opacity             = opacity;
+  object->two_sided_lighting  = two_sided_lighting;
+  object->reflects_light      = reflects_light;
+  object->specular_highlights = specular_highlights;
   
-  object->base_color         = base_color;
-  object->emissive_color     = emissive_color;
-  object->emissive_intensity = emissive_intensity;
-  object->opacity            = opacity;
-  object->two_sided_lighting = two_sided_lighting;
-  object->reflective         = reflective;
-  object->specular           = specular;
-  
-  object->blend_mode         = blend_mode;
-  object->alpha_cutoff       = alpha_cutoff;
-  
-  object->scale              = scale;
-  object->rotation           = rotation;
-  object->translation        = translation;
-  object->velocity           = velocity;
-  object->angular_velocity   = angular_velocity;
-  
-  object->texture            = texture;
+  object->blend_mode          = blend_mode;
+  object->alpha_cutoff        = alpha_cutoff;
+                              
+  object->scale               = scale;
+  object->rotation            = rotation;
+  object->translation         = translation;
+  object->velocity            = velocity;
+  object->angular_velocity    = angular_velocity;
+                              
+  object->texture             = texture;
 
   print_log("creating new object: %d", num_objects);
 
