@@ -31,6 +31,8 @@
     TODO:
       add functions to add cube, sphere, cylinder, etc.
 
+      convert other raster functions to fixed point
+
       for options such as adding culling etc, for objects or anything, use bit fields instead of bools, so I can see what the option is when looking
       at the function
 
@@ -309,13 +311,13 @@ void move_player(void){
   float turn_speed_delta_time = turn_speed * delta_time;
 
   /* up-down for debug */
-  if(keys[SDL_SCANCODE_D])
+  if(keys[SDL_SCANCODE_E])
     move_player_with_collision((vector3_t){
       .x = 0.0f, 
       .y = move_speed_delta_time, 
       .z = 0.0f
     });
-  else if(keys[SDL_SCANCODE_A])
+  else if(keys[SDL_SCANCODE_Q])
     move_player_with_collision((vector3_t){
       .x = 0.0f, 
       .y = -move_speed_delta_time, 
@@ -339,14 +341,14 @@ void move_player(void){
   }
 
   /* strafe left-right */
-  if(keys[SDL_SCANCODE_Q]){
+  if(keys[SDL_SCANCODE_A]){
     move_player_with_collision((vector3_t){
       .x = player_direction_orthogonal_left_right.x * move_speed_delta_time, 
       .y = 0.0f, 
       .z = player_direction_orthogonal_left_right.z * move_speed_delta_time
     });
   }
-  else if(keys[SDL_SCANCODE_E]){
+  else if(keys[SDL_SCANCODE_D]){
     move_player_with_collision((vector3_t){
       .x = -player_direction_orthogonal_left_right.x * move_speed_delta_time, 
       .y = 0.0f, 
