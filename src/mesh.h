@@ -5,7 +5,7 @@
 #include "triangle.h"
 #include "aabb.h"
 
-#define MAX_MESHES 5000
+#define MAX_NUM_MESHES 5000
 
 typedef struct{
   /* geometry */
@@ -19,13 +19,13 @@ typedef struct{
   float bsphere_radius;
 } mesh_t;
 
-extern mesh_t meshes[MAX_MESHES];
+extern mesh_t meshes[MAX_NUM_MESHES];
 extern uint32_t num_meshes;
 
-mesh_t *load_mesh(
-  char *obj_filename
-);
+mesh_t *load_mesh(char *obj_filename);
 
-void load_obj_file(char* filename);
+void load_obj_file(char* filename, mesh_t *mesh);
+
+mesh_t *create_cube_mesh(vector3_t vertex_min, vector3_t vertex_max);
 
 #endif

@@ -29,6 +29,8 @@
       then for fully inside, we only test for clipping, but for intersecting chunks, clip all triangles directly.
 
     TODO:
+      add functions to add cube, sphere, cylinder, etc.
+
       for options such as adding culling etc, for objects or anything, use bit fields instead of bools, so I can see what the option is when looking
       at the function
 
@@ -115,7 +117,7 @@
 
 #define FOV_Y_DEG 90.0
 #define FOV_Y (FOV_Y_DEG * M_PI / 180.0)
-#define ZNEAR 0.1f
+#define ZNEAR 1.0f
 #define ZFAR 8000.0f
 
 /* parameters for controlling the absolute ambient light */
@@ -308,9 +310,17 @@ void move_player(void){
 
   /* up-down for debug */
   if(keys[SDL_SCANCODE_D])
-    player.position.y += move_speed_delta_time;
+    move_player_with_collision((vector3_t){
+      .x = 0.0f, 
+      .y = move_speed_delta_time, 
+      .z = 0.0f
+    });
   else if(keys[SDL_SCANCODE_A])
-    player.position.y -= move_speed_delta_time;
+    move_player_with_collision((vector3_t){
+      .x = 0.0f, 
+      .y = -move_speed_delta_time, 
+      .z = 0.0f
+    });
 
   /* turning left-right */
   if(keys[SDL_SCANCODE_LEFT])
@@ -1956,17 +1966,17 @@ void load_server_room(){
   int32_t object_id;
 
   create_light_source(LIGHT_AMBIENT, (vector3_t){.x = 0.0f,     .y = 0.0f,   .z = 0.0f},    (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 0.05f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = -200.0f,  .y = 100.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 2000.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = -200.0f,  .y = 100.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 2000.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = 200.0f,   .y = 100.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 2000.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = 200.0f,   .y = 100.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 2000.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 200.0f, .z = 500.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFAAFFFF}, 3000.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -200.0f,  .y = 100.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 2000.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -200.0f,  .y = 100.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 2000.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = 200.0f,   .y = 100.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 2000.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = 200.0f,   .y = 100.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 2000.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 200.0f, .z = 500.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 3000.0f);
 
   /* room */
   mesh = load_mesh("./assets/obj/server_room/room.obj");
   texture = load_texture("./assets/textures/server_room/room.png");
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                           (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF40FF40}, 0.0f, 
+                           (color_t){.uint32 = 0xFFFFFFFF}, (color_t){.uint32 = 0xFFFF0000}, 0.0f, 
                            0.0f, false, true, true,
                            BLEND_MODE_OPAQUE, 0x00, 
                            (vector3_t){1000, 300, 1300}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
@@ -2107,6 +2117,30 @@ void load_server_room(){
                            0.0f, true, true, false,
                            BLEND_MODE_OPAQUE, 0x00, 
                            (vector3_t){50, 50, 50}, (vector3_t){0, 0, 0}, (vector3_t){-300, 0, 250}, 
+                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                           texture
+  );
+
+  // jupiter
+  mesh = load_mesh("./assets/obj/sphere.obj");
+  texture = load_texture("./assets/textures/misc/jupiter.png");
+  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, false, false, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.8f},
+                           (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f, 
+                           0.0f, false, false, false,
+                           BLEND_MODE_OPAQUE, 0x00, 
+                           (vector3_t){15, 15, 15}, (vector3_t){M_PI_2, 0, 0}, (vector3_t){350, 100, 0}, 
+                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                           texture
+  );
+
+  // cube
+  mesh = create_cube_mesh((vector3_t){-1, -1, -1}, (vector3_t){1,1,1});
+  texture = load_texture("./assets/textures/misc/checker.png");
+  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
+                           (color_t){.uint32 = 0xFFFF0000}, (color_t){.uint32 = 0xFFFFFFFF}, 0.5f, 
+                           0.0f, false, true, false,
+                           BLEND_MODE_OPAQUE, 0x00, 
+                           (vector3_t){10, 10, 10}, (vector3_t){M_PI_2, 0, 0}, (vector3_t){0, 100, 0}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                            texture
   );

@@ -9,7 +9,7 @@
 object_t objects[MAX_NUM_OBJECTS];
 uint32_t num_objects;
 
-uint32_t create_object(
+int32_t create_object(
   mesh_t *mesh,
   object_type_t object_type,
   bool fixed,
@@ -36,6 +36,11 @@ uint32_t create_object(
 
   texture_t *texture
 ){
+  if(num_objects >= MAX_NUM_OBJECTS){
+    print_log("ERROR: max number of objects reached %d", MAX_NUM_OBJECTS);
+    return -1;
+  }
+
   object_t *object = &objects[num_objects];
 
   object->mesh               = mesh;
@@ -143,7 +148,6 @@ uint32_t create_object(
 void bind_texture_to_object(object_t *object, texture_t *texture){
   object->texture = texture;
 }
-
 
 aabb_3d_t get_object_aabb(uint32_t object_id){
   return objects[object_id].bbox_aabb;

@@ -61,7 +61,7 @@ typedef struct{
 extern object_t objects[MAX_NUM_OBJECTS];
 extern uint32_t num_objects;
 
-uint32_t create_object(
+int32_t create_object(
   mesh_t *mesh,
   object_type_t object_type,
   bool fixed,
@@ -92,5 +92,6 @@ uint32_t create_object(
 void bind_texture_to_object(object_t *object, texture_t *texture);
 
 aabb_3d_t get_object_aabb(uint32_t object_id);
+
 
 #endif
