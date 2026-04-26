@@ -108,6 +108,7 @@
 #include "text.h"
 #include "options.h"
 #include "log.h"
+#include "debug.h"
 
 // compile time enables
 #define SPECULAR_LIGHT_ENABLE 0
@@ -120,7 +121,7 @@
 #define FOV_Y_DEG 90.0
 #define FOV_Y (FOV_Y_DEG * M_PI / 180.0)
 #define ZNEAR 1.0f
-#define ZFAR 8000.0f
+#define ZFAR 18000.0f
 
 /* parameters for controlling the absolute ambient light */
 #define MIN_AMBIENT_LIGHT_INTENSITY 0.1f
@@ -132,7 +133,7 @@ uint32_t frame_id = 1; /* start at 1, because all face_draw_stamp values are res
 char fps_str[16];
 uint32_t total_triangles_rendered;
 uint32_t total_chunks_rendered;
-uint32_t time_count; /* keeps a count that increments every frame - used to pace events */
+uint64_t time_count; /* keeps a count that increments every frame - used to pace events */
 float time_of_day; /* keeps time the accumulation of  each delta_time per frame */
 char text0[256];
 char text1[256];
@@ -169,8 +170,6 @@ float sun_eta = (M_PI_2); /* sun's eta angle, start sun on horizon */
 
 void setup(void) {
   
-  init_font("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 20);
-
   aspect_ratio_x = (float)window_width  / (float)window_height;
   aspect_ratio_y = (float)window_height / (float)window_width;
   fov_y = FOV_Y;
@@ -185,8 +184,8 @@ void setup(void) {
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
 
   /* create objects */
-  load_server_room();
-  //load_voxel_world();
+  //load_server_room();
+  load_voxel_world();
   //load_cave_world();
   //load_world1();
 
@@ -509,14 +508,18 @@ void render_visible_chunks(void) {
   view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
 
   // loop through all chunks and render only ones inside or intersecting
+  chunk_sort_key_t chunk_sort_keys[NUM_CHUNK_DIVISIONS * NUM_CHUNK_DIVISIONS] = {0};
+
   total_triangles_rendered = 0;
   total_chunks_rendered = 0;
   for(int z_row = 0; z_row < NUM_CHUNK_DIVISIONS; z_row++){
     for(int x_col = 0; x_col < NUM_CHUNK_DIVISIONS; x_col++){
       if(!chunks[z_row][x_col].empty){ /* if chunk is not empty, then render objects contained in chunk */
         chunk_intersection_mode_t intersection_mode = get_chunk_intersection_mode_fast(&chunks[z_row][x_col]);
-        if(intersection_mode == CHUNK_INTERSECTION_MODE_INSIDE || intersection_mode == CHUNK_INTERSECTION_MODE_INTERSECTING)
+        if(intersection_mode == CHUNK_INTERSECTION_MODE_INSIDE || intersection_mode == CHUNK_INTERSECTION_MODE_INTERSECTING){
           render_chunk(&chunks[z_row][x_col]);
+          total_chunks_rendered++;
+        }
       }
     }
   }
@@ -685,8 +688,6 @@ bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane
 void render_chunk(chunk_t *chunk){
   /* triangles list for clipped triangles */
   triangle_t triangles_after_clipping[MAX_NUM_POLYGON_VERTICES - 2]; /* for a polygon with N vertices, the number of nested triangles is always N-2 */
-
-  total_chunks_rendered++;
 
   /* loop through all objects in chunk */
   uint32_t num_chunk_objects = chunk->num_chunk_objects;
@@ -1547,13 +1548,6 @@ inline void object_quicksort(object_sort_key_t *array, int count){
 }
 
 void free_resources(void){
-  /* free font */
-  if (font) {
-    TTF_CloseFont(font);
-    font = NULL;
-  }
-  TTF_Quit();
-
   /* free buffers */
   free(color_buffer);
   free(zbuffer);
@@ -1596,11 +1590,6 @@ void set_title(void){
   SDL_SetWindowTitle(window, string);
 }
 
-void render_text(){
-  if(*text0 != '\0') draw_text(renderer, 0, 0, text0);
-  if(*text1 != '\0') draw_text(renderer, 0, 20, text1);
-}
-
 int main(void) {
 
   quit = !initialize_window();
@@ -1620,7 +1609,6 @@ int main(void) {
 
     sdl_render();
     set_title();
-    //render_text();
     SDL_RenderPresent(renderer);
   }
 
