@@ -7,15 +7,10 @@
 #include "light.h"
 #include "color.h"
 #include "display.h"
+#include "material.h"
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
-
-typedef enum{
-  BLEND_MODE_OPAQUE,
-  BLEND_MODE_ALPHA_TEST,
-  BLEND_MODE_ALPHA_BLEND
-} blend_mode_t;
 
 typedef struct{
   float u, v;

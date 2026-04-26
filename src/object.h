@@ -26,7 +26,7 @@ typedef struct{
   vector3_t bounding_center;
   float bsphere_radius;
   /* color and light */
-  color_t solid_color;
+  color_t base_color;
   color_t emissive_color; /* object's own emission color */
   float emissive_intensity; /* if object is self-luminous, how emissive? */
   float opacity; /* used as a global alpha blending - makes object totally opaque or ghostly */
@@ -69,7 +69,7 @@ int32_t create_object(
   bool attach_collision_aabb,
   vector3_t collision_aabb_scale,
 
-  color_t solid_color,
+  color_t base_color,
   color_t emissive_color,
   float emissive_intensity,
   float opacity,

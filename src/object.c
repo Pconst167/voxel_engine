@@ -17,7 +17,7 @@ int32_t create_object(
   bool attach_collision_aabb,
   vector3_t collision_aabb_scale,
 
-  color_t solid_color,
+  color_t base_color,
   color_t emissive_color,
   float emissive_intensity,
   float opacity,
@@ -48,7 +48,7 @@ int32_t create_object(
   object->fixed              = fixed;
   object->backface_culling   = backface_culling;
   
-  object->solid_color        = solid_color;
+  object->base_color         = base_color;
   object->emissive_color     = emissive_color;
   object->emissive_intensity = emissive_intensity;
   object->opacity            = opacity;

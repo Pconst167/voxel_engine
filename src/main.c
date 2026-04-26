@@ -820,8 +820,8 @@ void render_chunk(chunk_t *chunk){
                 /* if not translucent, then face only lights up if sgn(cam_ray dot normal) == sgn (light_direction dot normal) */
                 vector3_t cam_ray = {.x = 0 - v_a.x, .y = 0 - v_a.y, .z = 0 - v_a.z}; 
                 float camera_v_a_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
-                float light_direction_v_a_dot_normal  = -(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
-                if((light_direction_v_a_dot_normal > 0.0f && camera_v_a_dot_normal > 0.0f) || (light_direction_v_a_dot_normal < 0.0f && camera_v_a_dot_normal < 0.0f)){
+                float light_direction_dot_normal  = -(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
+                if((light_direction_dot_normal > 0.0f && camera_v_a_dot_normal > 0.0f) || (light_direction_dot_normal < 0.0f && camera_v_a_dot_normal < 0.0f)){
                   projected_triangle.light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
 
                   #if SPECULAR_LIGHT_ENABLE == 1
@@ -864,15 +864,15 @@ void render_chunk(chunk_t *chunk){
                   projected_triangle.light_intensities[light_index] = fabsf(light_v_a_dot_normal) * q_rsqrt(lightpos_to_v_a_ray_length_squarred);
 
                   #if SPECULAR_LIGHT_ENABLE == 1
-                    float spec = 0.0f;
                     if(object->specular){
                       vector3_normalize_fast_approx(&lightpos_to_v_a_ray);
                       vector3_normalize_fast_approx(&cam_ray);
                       vector3_t H = vector3_add(lightpos_to_v_a_ray, cam_ray);
                       vector3_normalize_fast_approx(&H);
                       float d = fmax(vector3_dot(v_face_normal, H), 0.0f);
+                      float spec = 0.0f;
                       if(d > 0.0f) spec = 5 * powf(d, SPECULAR_POWER);
-                      projected_triangle.light_intensities[light_index] = spec;
+                      projected_triangle.light_intensities[light_index] += spec;
                     }
                   #endif
                   projected_triangle.light_intensities[light_index] /= 1.0f + lightpos_to_v_a_ray_length_squarred;
@@ -897,7 +897,7 @@ void render_chunk(chunk_t *chunk){
           object->texture->texture, 
           object->texture->texture_width, object->texture->texture_height, 
           object->blend_mode, object->alpha_cutoff,
-          object->solid_color,
+          object->base_color,
           object->opacity,
           object->reflective,
           object->emissive_color,
@@ -1243,7 +1243,7 @@ inline void rasterize_triangle(
   uint32_t texture_width, uint32_t texture_height, 
   blend_mode_t blend_mode,
   uint8_t alpha_cutoff,
-  color_t solid_color,
+  color_t base_color,
   float opacity,
   bool reflective,
   color_t emissive_color,
@@ -1254,7 +1254,7 @@ inline void rasterize_triangle(
       &triangle->points[0], 
       &triangle->points[1], 
       &triangle->points[2], 
-      solid_color,
+      base_color,
       triangle->light_intensities,
       emissive_color,
       emissive_intensity,
@@ -1327,7 +1327,7 @@ inline void rasterize_triangle_no_zbuffer_write(
   uint32_t texture_width, uint32_t texture_height, 
   blend_mode_t blend_mode,
   uint8_t alpha_cutoff,
-  color_t solid_color,
+  color_t base_color,
   float opacity,
   bool reflective,
   color_t emissive_color,
@@ -1338,7 +1338,7 @@ inline void rasterize_triangle_no_zbuffer_write(
       &triangle->points[0], 
       &triangle->points[1], 
       &triangle->points[2], 
-      solid_color,
+      base_color,
       triangle->light_intensities,
       emissive_color,
       emissive_intensity,
