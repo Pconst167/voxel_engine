@@ -508,8 +508,7 @@ void render_visible_chunks(void) {
 
   view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
 
-  // loop through all chunks 
-  // for each chunk, classify it into: intersecting, inside, and add each to a list
+  // loop through all chunks and render only ones inside or intersecting
   total_triangles_rendered = 0;
   total_chunks_rendered = 0;
   for(int z_row = 0; z_row < NUM_CHUNK_DIVISIONS; z_row++){
