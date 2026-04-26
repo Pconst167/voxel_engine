@@ -184,8 +184,8 @@ void setup(void) {
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
 
   /* create objects */
-  //load_server_room();
-  load_voxel_world();
+  load_server_room();
+  //load_voxel_world();
   //load_cave_world();
   //load_world1();
 
@@ -508,8 +508,6 @@ void render_visible_chunks(void) {
   view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
 
   // loop through all chunks and render only ones inside or intersecting
-  chunk_sort_key_t chunk_sort_keys[NUM_CHUNK_DIVISIONS * NUM_CHUNK_DIVISIONS] = {0};
-
   total_triangles_rendered = 0;
   total_chunks_rendered = 0;
   for(int z_row = 0; z_row < NUM_CHUNK_DIVISIONS; z_row++){
@@ -1968,7 +1966,7 @@ void load_skybox(){
                            1.0f, false, false, false, 
                            BLEND_MODE_OPAQUE, 0x01, 
                            (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0.01, 0},
+                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
                            texture
   );
 }
@@ -1979,11 +1977,11 @@ void load_server_room(){
   int32_t object_id;
 
   create_light_source(LIGHT_AMBIENT, (vector3_t){.x = 0.0f,     .y = 0.0f,   .z = 0.0f},    (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 0.05f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = -200.0f,  .y = 100.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 2000.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = -200.0f,  .y = 100.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 2000.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = 200.0f,   .y = 100.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 2000.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = 200.0f,   .y = 100.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 2000.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 200.0f, .z = 500.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 3000.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -200.0f,  .y = 100.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 4000.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -200.0f,  .y = 100.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 4000.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = 200.0f,   .y = 100.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 4000.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = 200.0f,   .y = 100.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 4000.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 200.0f, .z = 500.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 4000.0f);
 
   /* room */
   mesh = load_mesh("./assets/obj/server_room/room.obj");
