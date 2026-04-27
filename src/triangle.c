@@ -13,7 +13,6 @@
 #define FIXED_SHIFT 8
 #define FIXED_ONE   (1 << FIXED_SHIFT)
 
-
 __attribute__((optimize("Ofast")))
 static inline uint8_t quantize_dither_u8(uint8_t c, int x, int y){
   static const uint8_t bayer4x4[4][4] = {

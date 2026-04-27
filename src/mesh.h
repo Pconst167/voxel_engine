@@ -2,10 +2,21 @@
 #define MESH_H
 
 #include "vector.h"
-#include "triangle.h"
+#include "material.h"
 #include "aabb.h"
 
-#define MAX_NUM_MESHES 5000
+#define MAX_NUM_MESHES 1000
+
+typedef struct{
+  float u, v;
+} uv_t;
+
+typedef struct{
+  uint32_t vertex_indices[3];
+  uv_t uv[3];
+  color_t color;
+  uint32_t material_id; // each face has its own material - keeps material id
+} face_t;
 
 typedef struct{
   /* geometry */
@@ -17,6 +28,9 @@ typedef struct{
   aabb_3d_t bbox_aabb;
   vector3_t bounding_center;
   float bsphere_radius;
+  // materials
+  material_t *materials;
+  uint32_t num_materials;
 } mesh_t;
 
 extern mesh_t meshes[MAX_NUM_MESHES];

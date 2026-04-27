@@ -9,22 +9,14 @@
 #include "display.h"
 #include "material.h"
 #include "misc.h"
-
-typedef struct{
-  float u, v;
-} uv_t;
-
-typedef struct{
-  uint32_t vertex_indices[3];
-  uv_t uv[3];
-  color_t color;
-} face_t;
+#include "mesh.h"
 
 typedef struct{
   vector4_t points[3];
   uv_t uv[3];
   float avg_w;
   float light_intensities[MAX_NUM_LIGHT_SOURCES];
+  uint32_t material_id; // triangle inherits either mesh material id, or object material override id
 } triangle_t;
 
 typedef struct{
