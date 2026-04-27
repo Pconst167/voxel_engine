@@ -15,7 +15,6 @@ typedef struct{
   vector4_t points[3];
   uv_t uv[3];
   float avg_w;
-  float light_intensities[MAX_NUM_LIGHT_SOURCES];
   uint32_t material_id; // triangle inherits either mesh material id, or object material override id
 } triangle_t;
 
@@ -57,7 +56,7 @@ void draw_triangle(float x0, float y0, float x1, float y1, float x2, float y2, c
 void draw_filled_triangle(
   vector4_t *v0, vector4_t *v1, vector4_t *v2, 
   color_t color, 
-  float *light_intensities,
+  light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   float emissive_intensity,
   bool reflects_light,
@@ -66,7 +65,7 @@ void draw_filled_triangle(
 void draw_filled_triangle_no_zbuffer_write(
   vector4_t *v0, vector4_t *v1, vector4_t *v2, 
   color_t color, 
-  float *light_intensities,
+  light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   float emissive_intensity,
   bool reflects_light,
@@ -78,7 +77,7 @@ void draw_textured_triangle_opaque(
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
-  float *light_intensities,
+  light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   float emissive_intensity,
   bool reflects_light,
@@ -89,7 +88,7 @@ void draw_textured_triangle_opaque_float(
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
-  float *light_intensities,
+  light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   float emissive_intensity,
   bool reflects_light,
@@ -100,7 +99,7 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
-  float *light_intensities,
+  light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   float emissive_intensity,
   bool reflects_light,
@@ -111,7 +110,7 @@ void draw_textured_triangle_alpha_test(
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
-  float *light_intensities,
+  light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   float emissive_intensity,
   bool reflects_light,
@@ -123,7 +122,7 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
-  float *light_intensities,
+  light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   float emissive_intensity,
   bool reflects_light,
@@ -135,7 +134,7 @@ void draw_textured_triangle_alpha_blend(
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
-  float *light_intensities,
+  light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   float emissive_intensity,
   bool reflects_light,
@@ -148,7 +147,7 @@ void draw_textured_triangle(
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
-  float *light_intensities,
+  light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   float emissive_intensity,
   bool reflects_light,
@@ -163,7 +162,7 @@ void draw_textured_triangle_affine(
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
-  float *light_intensities,
+  light_intensity_rgb_t total_light_intensity,
   bool dither,
   blend_mode_t blend_mode,
   uint8_t alpha_cutoff,

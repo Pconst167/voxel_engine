@@ -139,7 +139,7 @@ void draw_filled_triangle(
   vector4_t *v1,
   vector4_t *v2,
   color_t color,
-  float *light_intensities,
+  light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   float emissive_intensity,
   bool reflects_light,
@@ -219,9 +219,6 @@ void draw_filled_triangle(
 
   float one_over_parallelogram_area = 1.0f / parallelogram_area;
 
-  /* find the light intensities once per triangle */
-  light_intensity_rgb_t intensity = find_total_light_intensity(light_intensities);
-
   for(int y = y_min; y <= y_max; y++){
     float w0 = w0_row;
     float w1 = w1_row;
@@ -248,9 +245,9 @@ void draw_filled_triangle(
           uint32_t blue_total  = 0;
 
           if(reflects_light){
-            red_total   = (uint32_t)(color.rgb.red   * intensity.red  );
-            green_total = (uint32_t)(color.rgb.green * intensity.green);
-            blue_total  = (uint32_t)(color.rgb.blue  * intensity.blue );
+            red_total   = (uint32_t)(color.rgb.red   * total_light_intensity.red  );
+            green_total = (uint32_t)(color.rgb.green * total_light_intensity.green);
+            blue_total  = (uint32_t)(color.rgb.blue  * total_light_intensity.blue );
           }
 
           /* add emissive color on top */
@@ -301,7 +298,7 @@ void draw_filled_triangle_no_zbuffer_write(
   vector4_t *v1,
   vector4_t *v2,
   color_t color,
-  float *light_intensities,
+  light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   float emissive_intensity,
   bool reflects_light,
@@ -381,9 +378,6 @@ void draw_filled_triangle_no_zbuffer_write(
 
   float one_over_parallelogram_area = 1.0f / parallelogram_area;
 
-  /* find the light intensities once per triangle */
-  light_intensity_rgb_t intensity = find_total_light_intensity(light_intensities);
-
   for(int y = y_min; y <= y_max; y++){
     float w0 = w0_row;
     float w1 = w1_row;
@@ -410,9 +404,9 @@ void draw_filled_triangle_no_zbuffer_write(
           uint32_t blue_total  = 0;
 
           if(reflects_light){
-            red_total   = (uint32_t)(color.rgb.red   * intensity.red  );
-            green_total = (uint32_t)(color.rgb.green * intensity.green);
-            blue_total  = (uint32_t)(color.rgb.blue  * intensity.blue );
+            red_total   = (uint32_t)(color.rgb.red   * total_light_intensity.red  );
+            green_total = (uint32_t)(color.rgb.green * total_light_intensity.green);
+            blue_total  = (uint32_t)(color.rgb.blue  * total_light_intensity.blue );
           }
 
           /* add emissive color on top */
@@ -484,7 +478,7 @@ inline void draw_textured_triangle_opaque(
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
-  float *light_intensities,
+  light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   float emissive_intensity,
   bool reflects_light,
@@ -569,8 +563,6 @@ inline void draw_textured_triangle_opaque(
   float v1_v_over_w = v1_uv.v * one_over_v1_w;
   float v2_v_over_w = v2_uv.v * one_over_v2_w;
 
-  light_intensity_rgb_t intensity = find_total_light_intensity(light_intensities);
-
   for(int y = y_min; y <= y_max; y++){
     int64_t w0 = w0_row;
     int64_t w1 = w1_row;
@@ -616,9 +608,9 @@ inline void draw_textured_triangle_opaque(
           uint32_t blue_total  = 0;
 
           if(reflects_light){
-            red_total   = (uint32_t)(texel.rgb.red   * intensity.red);
-            green_total = (uint32_t)(texel.rgb.green * intensity.green);
-            blue_total  = (uint32_t)(texel.rgb.blue  * intensity.blue);
+            red_total   = (uint32_t)(texel.rgb.red   * total_light_intensity.red);
+            green_total = (uint32_t)(texel.rgb.green * total_light_intensity.green);
+            blue_total  = (uint32_t)(texel.rgb.blue  * total_light_intensity.blue);
           }
 
           if(emissive_intensity > 0.0f){
@@ -673,7 +665,7 @@ void draw_textured_triangle_opaque_float(
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
-  float *light_intensities,
+  light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   float emissive_intensity,
   bool reflects_light,
@@ -767,9 +759,6 @@ void draw_textured_triangle_opaque_float(
   float v2_v_over_v2_w = v2_uv.v * one_over_v2_w;
   float one_over_parallelogram_area = 1.0f / parallelogram_area;
 
-  /* find the light intensities once per triangle */
-  light_intensity_rgb_t intensity = find_total_light_intensity(light_intensities);
-
   for(int y = y_min; y <= y_max; y++){
     float w0 = w0_row;
     float w1 = w1_row;
@@ -812,9 +801,9 @@ void draw_textured_triangle_opaque_float(
           uint32_t blue_total  = 0;
 
           if(reflects_light){
-            red_total   = (uint32_t)(texel.rgb.red   * intensity.red  );
-            green_total = (uint32_t)(texel.rgb.green * intensity.green);
-            blue_total  = (uint32_t)(texel.rgb.blue  * intensity.blue );
+            red_total   = (uint32_t)(texel.rgb.red   * total_light_intensity.red  );
+            green_total = (uint32_t)(texel.rgb.green * total_light_intensity.green);
+            blue_total  = (uint32_t)(texel.rgb.blue  * total_light_intensity.blue );
           }
 
           /* add emissive color on top */
@@ -862,7 +851,7 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
-  float *light_intensities,
+  light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   float emissive_intensity,
   bool reflects_light,
@@ -956,9 +945,6 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
   float v2_v_over_v2_w = v2_uv.v * one_over_v2_w;
   float one_over_parallelogram_area = 1.0f / parallelogram_area;
 
-  /* find the light intensities once per triangle */
-  light_intensity_rgb_t intensity = find_total_light_intensity(light_intensities);
-
   for(int y = y_min; y <= y_max; y++){
     float w0 = w0_row;
     float w1 = w1_row;
@@ -1001,9 +987,9 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
           uint32_t blue_total  = 0;
 
           if(reflects_light){
-            red_total   = (uint32_t)(texel.rgb.red   * intensity.red  );
-            green_total = (uint32_t)(texel.rgb.green * intensity.green);
-            blue_total  = (uint32_t)(texel.rgb.blue  * intensity.blue );
+            red_total   = (uint32_t)(texel.rgb.red   * total_light_intensity.red  );
+            green_total = (uint32_t)(texel.rgb.green * total_light_intensity.green);
+            blue_total  = (uint32_t)(texel.rgb.blue  * total_light_intensity.blue );
           }
 
           /* add emissive color on top */
@@ -1049,7 +1035,7 @@ void draw_textured_triangle_alpha_test(
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
-  float *light_intensities,
+  light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   float emissive_intensity,
   bool reflects_light,
@@ -1144,9 +1130,6 @@ void draw_textured_triangle_alpha_test(
   float v2_v_over_v2_w = v2_uv.v * one_over_v2_w;
   float one_over_parallelogram_area = 1.0f / parallelogram_area;
 
-  /* find the light intensities once per triangle */
-  light_intensity_rgb_t intensity = find_total_light_intensity(light_intensities);
-
   for(int y = y_min; y <= y_max; y++){
     float w0 = w0_row;
     float w1 = w1_row;
@@ -1190,9 +1173,9 @@ void draw_textured_triangle_alpha_test(
             uint32_t blue_total  = 0;
 
             if(reflects_light){
-              red_total   = (uint32_t)(texel.rgb.red   * intensity.red  );
-              green_total = (uint32_t)(texel.rgb.green * intensity.green);
-              blue_total  = (uint32_t)(texel.rgb.blue  * intensity.blue );
+              red_total   = (uint32_t)(texel.rgb.red   * total_light_intensity.red  );
+              green_total = (uint32_t)(texel.rgb.green * total_light_intensity.green);
+              blue_total  = (uint32_t)(texel.rgb.blue  * total_light_intensity.blue );
             }
 
             /* add emissive color on top */
@@ -1240,7 +1223,7 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
-  float *light_intensities,
+  light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   float emissive_intensity,
   bool reflects_light,
@@ -1335,9 +1318,6 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
   float v2_v_over_v2_w = v2_uv.v * one_over_v2_w;
   float one_over_parallelogram_area = 1.0f / parallelogram_area;
 
-  /* find the light intensities once per triangle */
-  light_intensity_rgb_t intensity = find_total_light_intensity(light_intensities);
-
   for(int y = y_min; y <= y_max; y++){
     float w0 = w0_row;
     float w1 = w1_row;
@@ -1381,9 +1361,9 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
             uint32_t blue_total  = 0;
 
             if(reflects_light){
-              red_total   = (uint32_t)(texel.rgb.red   * intensity.red  );
-              green_total = (uint32_t)(texel.rgb.green * intensity.green);
-              blue_total  = (uint32_t)(texel.rgb.blue  * intensity.blue );
+              red_total   = (uint32_t)(texel.rgb.red   * total_light_intensity.red  );
+              green_total = (uint32_t)(texel.rgb.green * total_light_intensity.green);
+              blue_total  = (uint32_t)(texel.rgb.blue  * total_light_intensity.blue );
             }
 
             /* add emissive color on top */
@@ -1429,7 +1409,7 @@ void draw_textured_triangle_alpha_blend(
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
-  float *light_intensities,
+  light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   float emissive_intensity,
   bool reflects_light,
@@ -1524,9 +1504,6 @@ void draw_textured_triangle_alpha_blend(
   float v2_v_over_v2_w = v2_uv.v * one_over_v2_w;
   float one_over_parallelogram_area = 1.0f / parallelogram_area;
 
-  /* find the light intensities once per triangle */
-  light_intensity_rgb_t intensity = find_total_light_intensity(light_intensities);
-
   for(int y = y_min; y <= y_max; y++){
     float w0 = w0_row;
     float w1 = w1_row;
@@ -1569,9 +1546,9 @@ void draw_textured_triangle_alpha_blend(
           uint32_t blue_total  = 0;
 
           if(reflects_light){
-            red_total   = (uint32_t)(texel.rgb.red   * intensity.red  );
-            green_total = (uint32_t)(texel.rgb.green * intensity.green);
-            blue_total  = (uint32_t)(texel.rgb.blue  * intensity.blue );
+            red_total   = (uint32_t)(texel.rgb.red   * total_light_intensity.red  );
+            green_total = (uint32_t)(texel.rgb.green * total_light_intensity.green);
+            blue_total  = (uint32_t)(texel.rgb.blue  * total_light_intensity.blue );
           }
 
           /* add emissive color on top */
@@ -1615,7 +1592,7 @@ void draw_textured_triangle(
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
-  float *light_intensities,
+  light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   float emissive_intensity,
   bool reflects_light,
@@ -1712,9 +1689,6 @@ void draw_textured_triangle(
   float v2_v_over_v2_w = v2_uv.v * one_over_v2_w;
   float one_over_parallelogram_area = 1.0f / parallelogram_area;
 
-  /* find the light intensities once per triangle */
-  light_intensity_rgb_t intensity = find_total_light_intensity(light_intensities);
-
   for(int y = y_min; y <= y_max; y++){
     float w0 = w0_row;
     float w1 = w1_row;
@@ -1757,9 +1731,9 @@ void draw_textured_triangle(
           uint32_t blue_total  = 0;
 
           if(reflects_light){
-            red_total   = (uint32_t)(texel.rgb.red   * intensity.red  );
-            green_total = (uint32_t)(texel.rgb.green * intensity.green);
-            blue_total  = (uint32_t)(texel.rgb.blue  * intensity.blue );
+            red_total   = (uint32_t)(texel.rgb.red   * total_light_intensity.red  );
+            green_total = (uint32_t)(texel.rgb.green * total_light_intensity.green);
+            blue_total  = (uint32_t)(texel.rgb.blue  * total_light_intensity.blue );
           }
 
           /* add emissive color on top */
@@ -1803,7 +1777,7 @@ void draw_textured_triangle_affine(
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
-  float *light_intensities,
+  light_intensity_rgb_t total_light_intensity,
   bool dither,
   blend_mode_t blend_mode,
   uint8_t alpha_cutoff,
@@ -1894,9 +1868,6 @@ void draw_textured_triangle_affine(
   float v2_v = v2_uv.v;
   float one_over_parallelogram_area = 1.0f / parallelogram_area;
 
-  /* find the light intensities once per triangle */
-  light_intensity_rgb_t intensity = find_total_light_intensity(light_intensities);
-
   for(int y = y_min; y <= y_max; y++){
     float w0 = w0_row;
     float w1 = w1_row;
@@ -1931,9 +1902,9 @@ void draw_textured_triangle_affine(
 
           color_t texel = texture[texture_v * texture_width + texture_u];
           
-          uint32_t red_total   = (uint32_t)(texel.rgb.red   * intensity.red  );
-          uint32_t green_total = (uint32_t)(texel.rgb.green * intensity.green);
-          uint32_t blue_total  = (uint32_t)(texel.rgb.blue  * intensity.blue );
+          uint32_t red_total   = (uint32_t)(texel.rgb.red   * total_light_intensity.red  );
+          uint32_t green_total = (uint32_t)(texel.rgb.green * total_light_intensity.green);
+          uint32_t blue_total  = (uint32_t)(texel.rgb.blue  * total_light_intensity.blue );
 
           /* clamp total amount as results over 255 do not make sense */
           if(red_total   > 255) red_total   = 255;
@@ -2161,7 +2132,7 @@ void draw_textured_triangle_opaque(
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
-  float *light_intensities,
+  light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   float emissive_intensity,
   bool reflects_light,
@@ -2253,9 +2224,6 @@ void draw_textured_triangle_opaque(
   float v1_v_over_v1_w = v1_uv.v * one_over_v1_w;
   float v2_v_over_v2_w = v2_uv.v * one_over_v2_w;
   float one_over_parallelogram_area = 1.0f / parallelogram_area;
-
-  // find the light intensities once per triangle 
-  light_intensity_rgb_t intensity = find_total_light_intensity(light_intensities);
 
   for(int y = y_min; y <= y_max; y++){
     float w0 = w0_row;

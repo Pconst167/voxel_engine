@@ -35,7 +35,8 @@ inline void rasterize_triangle(
   float opacity,
   bool reflects_light,
   color_t emissive_color,
-  float emissive_intensity
+  float emissive_intensity,
+  light_intensity_rgb_t total_light_intensity
 );
 
 inline void rasterize_triangle_no_zbuffer_write(
@@ -48,7 +49,8 @@ inline void rasterize_triangle_no_zbuffer_write(
   float opacity,
   bool reflects_light,
   color_t emissive_color,
-  float emissive_intensity
+  float emissive_intensity,
+  light_intensity_rgb_t total_light_intensity
 );
 
 bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane);

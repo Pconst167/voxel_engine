@@ -773,7 +773,7 @@ void render_chunk(chunk_t *chunk){
         triangle_t *triangle_after_clipping = &triangles_after_clipping[t];
 
         /* PROJECTION MATRIX / PERSPECTIVE DIVIDE */
-        triangle_t projected_triangle = {0}; /* all fields initialized to zero - so that the light_intensities field is all 0 in case object not reflective */
+        triangle_t projected_triangle = {0};
         for(int j = 0; j < 3; j++){
           /* optimized multiplication - removed multiplications where matrix elements are 0 */
           vector4_t projected_vertex = matrix4_projection_mul_vector4(&projection_matrix, triangle_after_clipping->points[j]);
@@ -807,22 +807,23 @@ void render_chunk(chunk_t *chunk){
           hence we test: sgn((camera - v_a) dot normal) == sgn((light - v_a) dot normal) and the final dot product intensity needs to be absolute value after that
           but if object is translucent to light, then we want to light both sides of a face regardless of the camera position, or the face's normal
 
-          light_intensities field is initialized to zero above in declaration - so that the light_intensities field is all 0 in case object not reflects_light
+          light_intensities field is initialized to zero below in declaration - so that the light_intensities field is all 0 in case object not reflects_light
         */
+       float light_intensities[MAX_NUM_LIGHT_SOURCES] = {0.0f}; // keeps the total light intensity for this face
         if(object->reflects_light){
           vector3_normalize_fast_approx(&v_face_normal); /* normalize here for use below */
           for(uint32_t light_index = 0; light_index < num_light_sources; light_index++){
             if(light_sources[light_index].type == LIGHT_DIRECTIONAL){
               vector4_t light_direction_view = matrix4_mul_vector4(&view_matrix, (vector4_t){light_sources[light_index].direction.x, light_sources[light_index].direction.y, light_sources[light_index].direction.z, 0});
               if(object->two_sided_lighting)
-                projected_triangle.light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
+                light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
               else{
                 /* if not translucent, then face only lights up if sgn(cam_ray dot normal) == sgn (light_direction dot normal) */
                 vector3_t cam_ray = {.x = 0 - v_a.x, .y = 0 - v_a.y, .z = 0 - v_a.z}; 
                 float camera_v_a_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
                 float light_direction_dot_normal  = -(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
                 if((light_direction_dot_normal > 0.0f && camera_v_a_dot_normal > 0.0f) || (light_direction_dot_normal < 0.0f && camera_v_a_dot_normal < 0.0f)){
-                  projected_triangle.light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
+                  light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
 
                   #if SPECULAR_LIGHT_ENABLE == 1
                     if(object->specular_highlights){
@@ -834,13 +835,13 @@ void render_chunk(chunk_t *chunk){
                       float d = fmax(vector3_dot(v_face_normal, H), 0.0f);
                       float spec = 0.0f;
                       if(d > 0.0f) spec = 5 * powf(d, SPECULAR_POWER);
-                      projected_triangle.light_intensities[light_index] += spec;
+                      light_intensities[light_index] += spec;
                     }
                   #endif
                 }
-                else projected_triangle.light_intensities[light_index] = 0.0f;
+                else light_intensities[light_index] = 0.0f;
               }
-              projected_triangle.light_intensities[light_index] *= light_sources[light_index].intensity;
+              light_intensities[light_index] *= light_sources[light_index].intensity;
             }
             else if(light_sources[light_index].type == LIGHT_POINT){
               /* the 1/r^2 relation can be done without a square root.  since r = vector length, and the relation uses r^2, we don't need to first find square root and then square it.
@@ -852,16 +853,16 @@ void render_chunk(chunk_t *chunk){
               float lightpos_to_v_a_ray_length_squarred = vector3_length_squarred(lightpos_to_v_a_ray);
               
               if(object->two_sided_lighting){
-                projected_triangle.light_intensities[light_index] = fabsf(v_face_normal.x * lightpos_to_v_a_ray.x + v_face_normal.y * lightpos_to_v_a_ray.y + v_face_normal.z * lightpos_to_v_a_ray.z) * q_rsqrt(lightpos_to_v_a_ray_length_squarred);
-                projected_triangle.light_intensities[light_index] /= 1.0f + lightpos_to_v_a_ray_length_squarred;
-                projected_triangle.light_intensities[light_index] *= light_sources[light_index].intensity;
+                light_intensities[light_index] = fabsf(v_face_normal.x * lightpos_to_v_a_ray.x + v_face_normal.y * lightpos_to_v_a_ray.y + v_face_normal.z * lightpos_to_v_a_ray.z) * q_rsqrt(lightpos_to_v_a_ray_length_squarred);
+                light_intensities[light_index] /= 1.0f + lightpos_to_v_a_ray_length_squarred;
+                light_intensities[light_index] *= light_sources[light_index].intensity;
               }
               else{
                 vector3_t cam_ray = {.x = 0 - v_a.x, .y = 0 - v_a.y, .z = 0 - v_a.z}; 
                 float light_v_a_dot_normal  = v_face_normal.x * lightpos_to_v_a_ray.x + v_face_normal.y * lightpos_to_v_a_ray.y + v_face_normal.z * lightpos_to_v_a_ray.z;
                 float camera_v_a_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
                 if((light_v_a_dot_normal > 0.0f && camera_v_a_dot_normal > 0.0f) || (light_v_a_dot_normal < 0.0f && camera_v_a_dot_normal < 0.0f)){
-                  projected_triangle.light_intensities[light_index] = fabsf(light_v_a_dot_normal) * q_rsqrt(lightpos_to_v_a_ray_length_squarred);
+                  light_intensities[light_index] = fabsf(light_v_a_dot_normal) * q_rsqrt(lightpos_to_v_a_ray_length_squarred);
 
                   #if SPECULAR_LIGHT_ENABLE == 1
                     if(object->specular_highlights){
@@ -872,24 +873,26 @@ void render_chunk(chunk_t *chunk){
                       float d = fmax(vector3_dot(v_face_normal, H), 0.0f);
                       float spec = 0.0f;
                       if(d > 0.0f) spec = 5 * powf(d, SPECULAR_POWER);
-                      projected_triangle.light_intensities[light_index] += spec;
+                      light_intensities[light_index] += spec;
                     }
                   #endif
-                  projected_triangle.light_intensities[light_index] /= 1.0f + lightpos_to_v_a_ray_length_squarred;
-                  projected_triangle.light_intensities[light_index] *= light_sources[light_index].intensity;
+                  light_intensities[light_index] /= 1.0f + lightpos_to_v_a_ray_length_squarred;
+                  light_intensities[light_index] *= light_sources[light_index].intensity;
                 }
                 else
-                  projected_triangle.light_intensities[light_index] = 0.0f;
+                  light_intensities[light_index] = 0.0f;
               } 
             }
             else if(light_sources[light_index].type == LIGHT_AMBIENT){
-              projected_triangle.light_intensities[light_index] = light_sources[light_index].intensity;
+              light_intensities[light_index] = light_sources[light_index].intensity;
             }
             /* clamp to [0.0, 1.0] */
-            if(projected_triangle.light_intensities[light_index] < 0.0f) projected_triangle.light_intensities[light_index] = 0.0f;
-            else if(projected_triangle.light_intensities[light_index] > 1.0f) projected_triangle.light_intensities[light_index] = 1.0f;
+            if(light_intensities[light_index] < 0.0f) light_intensities[light_index] = 0.0f;
+            else if(light_intensities[light_index] > 1.0f) light_intensities[light_index] = 1.0f;
           }
         }
+
+        light_intensity_rgb_t total_light_intensity = find_total_light_intensity(light_intensities);
 
         /* TRIANGLE RASTERIZATION */
         rasterize_triangle(
@@ -901,17 +904,19 @@ void render_chunk(chunk_t *chunk){
           object->opacity,
           object->reflects_light,
           object->emissive_color,
-          object->emissive_intensity
+          object->emissive_intensity,
+          total_light_intensity
         );
 
         if(options.wireframe_overlay){
-          draw_triangle(projected_triangle.points[0].x,
-                        projected_triangle.points[0].y, 
-                        projected_triangle.points[1].x, 
-                        projected_triangle.points[1].y, 
-                        projected_triangle.points[2].x, 
-                        projected_triangle.points[2].y, 
-                        (color_t){.uint32 = 0xffffff00}
+          draw_triangle(
+            projected_triangle.points[0].x,
+            projected_triangle.points[0].y, 
+            projected_triangle.points[1].x, 
+            projected_triangle.points[1].y, 
+            projected_triangle.points[2].x, 
+            projected_triangle.points[2].y, 
+            (color_t){.uint32 = 0xffffff00}
           );
         }
 
@@ -1244,7 +1249,8 @@ inline void rasterize_triangle(
   float opacity,
   bool reflects_light,
   color_t emissive_color,
-  float emissive_intensity
+  float emissive_intensity,
+  light_intensity_rgb_t total_light_intensity
 ){
   if(options.projection_mode == TEXT_FILLED){
     draw_filled_triangle(
@@ -1252,7 +1258,7 @@ inline void rasterize_triangle(
       &triangle->points[1], 
       &triangle->points[2], 
       base_color,
-      triangle->light_intensities,
+      total_light_intensity,
       emissive_color,
       emissive_intensity,
       reflects_light,
@@ -1277,7 +1283,7 @@ inline void rasterize_triangle(
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
           mesh_texture, texture_width, texture_height,
-          triangle->light_intensities,
+          total_light_intensity,
           emissive_color,
           emissive_intensity,
           reflects_light,
@@ -1291,7 +1297,7 @@ inline void rasterize_triangle(
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
           mesh_texture, texture_width, texture_height,
-          triangle->light_intensities,
+          total_light_intensity,
           emissive_color,
           emissive_intensity,
           reflects_light,
@@ -1306,7 +1312,7 @@ inline void rasterize_triangle(
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
           mesh_texture, texture_width, texture_height,
-          triangle->light_intensities,
+          total_light_intensity,
           emissive_color,
           emissive_intensity,
           reflects_light,
@@ -1328,7 +1334,8 @@ inline void rasterize_triangle_no_zbuffer_write(
   float opacity,
   bool reflects_light,
   color_t emissive_color,
-  float emissive_intensity
+  float emissive_intensity,
+  light_intensity_rgb_t total_light_intensity
 ){
   if(options.projection_mode == TEXT_FILLED){
     draw_filled_triangle_no_zbuffer_write(
@@ -1336,7 +1343,7 @@ inline void rasterize_triangle_no_zbuffer_write(
       &triangle->points[1], 
       &triangle->points[2], 
       base_color,
-      triangle->light_intensities,
+      total_light_intensity,
       emissive_color,
       emissive_intensity,
       reflects_light,
@@ -1361,7 +1368,7 @@ inline void rasterize_triangle_no_zbuffer_write(
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
           texture, texture_width, texture_height,
-          triangle->light_intensities,
+          total_light_intensity,
           emissive_color,
           emissive_intensity,
           reflects_light,
@@ -1375,7 +1382,7 @@ inline void rasterize_triangle_no_zbuffer_write(
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
           texture, texture_width, texture_height,
-          triangle->light_intensities,
+          total_light_intensity,
           emissive_color,
           emissive_intensity,
           reflects_light,
@@ -1390,7 +1397,7 @@ inline void rasterize_triangle_no_zbuffer_write(
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
           texture, texture_width, texture_height,
-          triangle->light_intensities,
+          total_light_intensity,
           emissive_color,
           emissive_intensity,
           reflects_light,
