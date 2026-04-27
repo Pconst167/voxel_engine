@@ -892,6 +892,7 @@ void render_chunk(chunk_t *chunk){
           }
         }
 
+        // find total light intensity on this face - this is total intensity per rgb channel
         light_intensity_rgb_t total_light_intensity = find_total_light_intensity(light_intensities);
 
         /* TRIANGLE RASTERIZATION */
@@ -2140,8 +2141,8 @@ void load_server_room(){
   mesh = load_mesh("./assets/obj/sphere.obj");
   texture = load_texture("./assets/textures/misc/jupiter.png");
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, false, false, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.8f},
-                           (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f, 
-                           0.0f, false, false, false,
+                           (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF40FFFF}, 0.9f, 
+                           0.0f, false, true, false,
                            BLEND_MODE_OPAQUE, 0x00, 
                            (vector3_t){15, 15, 15}, (vector3_t){M_PI_2, 0, 0}, (vector3_t){350, 100, 0}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},

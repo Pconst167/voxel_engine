@@ -47,7 +47,7 @@ void draw_pixel_alpha_blend(int x, int y, float opacity, color_t color);
 void draw_pixel_opaque(int x, int y, color_t color, float zbuffer_value);
 void draw_rect(int x, int y, int width, int height, color_t color);
 void draw_line(float x0, float y0, float x1, float y1, color_t color);
-color_t temporal_dither(color_t color, int x, int y);
+color_t apply_dither(color_t color, int x, int y);
 
 /* triangles */
 void draw_triangle(float x0, float y0, float x1, float y1, float x2, float y2, color_t color);

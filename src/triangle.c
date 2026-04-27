@@ -33,7 +33,7 @@ static inline uint8_t quantize_dither_u8(uint8_t c, int x, int y){
 }
 
 __attribute__((optimize("Ofast")))
-color_t temporal_dither(color_t color, int x, int y){
+color_t apply_dither(color_t color, int x, int y){
   return (color_t){
     .rgb.alpha = color.rgb.alpha,
     .rgb.blue  = quantize_dither_u8(color.rgb.blue,  x, y),
@@ -267,7 +267,7 @@ void draw_filled_triangle(
             .rgb.green = green_total,
             .rgb.red   = red_total
           };
-          if(dither) final_color = temporal_dither(final_color, x, y);
+          if(dither) final_color = apply_dither(final_color, x, y);
 
           if((unsigned)x < (unsigned)window_width && (unsigned)y < (unsigned)window_height){
             color_buffer[y * window_width + x] = final_color;
@@ -426,7 +426,7 @@ void draw_filled_triangle_no_zbuffer_write(
             .rgb.green = green_total,
             .rgb.red   = red_total
           };
-          if(dither) final_color = temporal_dither(final_color, x, y);
+          if(dither) final_color = apply_dither(final_color, x, y);
 
           if((unsigned)x < (unsigned)window_width && (unsigned)y < (unsigned)window_height)
             color_buffer[y * window_width + x] = final_color;
@@ -631,7 +631,7 @@ inline void draw_textured_triangle_opaque(
           };
 
           if(dither){
-            final_color = temporal_dither(final_color, x, y);
+            final_color = apply_dither(final_color, x, y);
           }
 
           color_buffer[y * window_width + x] = final_color;
@@ -823,7 +823,7 @@ void draw_textured_triangle_opaque_float(
             .rgb.green = green_total,
             .rgb.red   = red_total
           };
-          if(dither) final_color = temporal_dither(final_color, x, y);
+          if(dither) final_color = apply_dither(final_color, x, y);
 
           /* draw pixel */
           if((unsigned)x < (unsigned)window_width && (unsigned)y < (unsigned)window_height){
@@ -1009,7 +1009,7 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
             .rgb.green = green_total,
             .rgb.red   = red_total
           };
-          if(dither) final_color = temporal_dither(final_color, x, y);
+          if(dither) final_color = apply_dither(final_color, x, y);
 
           /* draw pixel */
           if((unsigned)x < (unsigned)window_width && (unsigned)y < (unsigned)window_height)
@@ -1195,7 +1195,7 @@ void draw_textured_triangle_alpha_test(
               .rgb.green = green_total,
               .rgb.red   = red_total
             };
-            if(dither) final_color = temporal_dither(final_color, x, y);
+            if(dither) final_color = apply_dither(final_color, x, y);
 
             if((unsigned)x < (unsigned)window_width && (unsigned)y < (unsigned)window_height){
               color_buffer[y * window_width + x] = final_color;
@@ -1383,7 +1383,7 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
               .rgb.green = green_total,
               .rgb.red   = red_total
             };
-            if(dither) final_color = temporal_dither(final_color, x, y);
+            if(dither) final_color = apply_dither(final_color, x, y);
 
             if((unsigned)x < (unsigned)window_width && (unsigned)y < (unsigned)window_height)
               color_buffer[y * window_width + x] = final_color;
@@ -1568,7 +1568,7 @@ void draw_textured_triangle_alpha_blend(
             .rgb.green = green_total,
             .rgb.red   = red_total
           };
-          if(dither) final_color = temporal_dither(final_color, x, y);
+          if(dither) final_color = apply_dither(final_color, x, y);
 
           draw_pixel_alpha_blend(x, y, opacity, final_color);
         }
@@ -1753,7 +1753,7 @@ void draw_textured_triangle(
             .rgb.green = green_total,
             .rgb.red   = red_total
           };
-          if(dither) final_color = temporal_dither(final_color, x, y);
+          if(dither) final_color = apply_dither(final_color, x, y);
 
           draw_pixel(x, y, blend_mode, alpha_cutoff, opacity, final_color, interpolated_reciprocal_w);
         }
@@ -1918,7 +1918,7 @@ void draw_textured_triangle_affine(
             .rgb.red   = red_total
           };
 
-          if(dither) final_color = temporal_dither(final_color, x, y);
+          if(dither) final_color = apply_dither(final_color, x, y);
 
           draw_pixel(x, y, blend_mode, alpha_cutoff, opacity, final_color, interpolated_reciprocal_w);
         }
@@ -2330,7 +2330,7 @@ void draw_textured_triangle_opaque(
         };
 
         if(dither){
-          final_color = temporal_dither(final_color, x, y);
+          final_color = apply_dither(final_color, x, y);
         }
 
         color_buffer[buffer_index] = final_color;
