@@ -6,6 +6,8 @@
 #include "color.h"
 #include "texture.h"
 
+#define DEFAULT_ALPHA_CUTOFF 128
+
 typedef enum{
   BLEND_MODE_OPAQUE,
   BLEND_MODE_ALPHA_TEST,

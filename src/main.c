@@ -2121,7 +2121,7 @@ void load_server_room(){
   mesh = load_mesh("./assets/obj/drone.obj");
   texture = load_texture("./assets/textures/misc/drone.png");
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, false, true, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.8f},
-                           (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0x00000000},
+                           (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF808080},
                            0.0f, true, true, false,
                            BLEND_MODE_OPAQUE, 0x00, 
                            (vector3_t){50, 50, 50}, (vector3_t){0, 0, 0}, (vector3_t){-300, 0, 250}, 

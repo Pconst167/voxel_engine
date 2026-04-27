@@ -6,29 +6,265 @@
 #include "color.h"
 #include "array.h"
 #include "log.h"
+#include "texture.h"
 
 mesh_t meshes[MAX_NUM_MESHES];
 uint32_t num_meshes;
 
-void load_obj_file(char* filename, mesh_t *mesh) {
-  FILE* file = fopen(filename, "r");
+static color_t color_from_float_rgb(float red, float green, float blue){
+  if(red   < 0.0f) red = 0.0f;
+  if(green < 0.0f) green = 0.0f;
+  if(blue  < 0.0f) blue = 0.0f;
+
+  if(red   > 1.0f) red = 1.0f;
+  if(green > 1.0f) green = 1.0f;
+  if(blue  > 1.0f) blue = 1.0f;
+
+  color_t color;
+  color.rgb.red   = (uint8_t)(red   * 255.0f);
+  color.rgb.green = (uint8_t)(green * 255.0f);
+  color.rgb.blue  = (uint8_t)(blue  * 255.0f);
+  color.rgb.alpha = 255;
+
+  return color;
+}
+
+// create a default material
+static material_t material_default(const char *name){
+  material_t material;
+  memset(&material, 0, sizeof(material));
+
+  if(name)
+    snprintf(material.material_name, sizeof(material.material_name), "%s", name);
+  else
+    snprintf(material.material_name, sizeof(material.material_name), "default");
+
+  material.base_color          = color_from_float_rgb(1.0f, 1.0f, 1.0f);
+  material.emissive_color      = color_from_float_rgb(0.0f, 0.0f, 0.0f);
+  material.opacity             = 1.0f;
+  material.two_sided_lighting  = false;
+  material.reflects_light      = true;
+  material.specular_highlights = false;
+  material.blend_mode          = BLEND_MODE_OPAQUE;
+  material.alpha_cutoff        = DEFAULT_ALPHA_CUTOFF;
+  material.texture             = NULL;
+
+  return material;
+}
+
+static int find_mesh_material_id(mesh_t *mesh, const char *name){
+  for(int material_i = 0; material_i < array_length(mesh->materials); material_i++)
+    if(!strcmp(mesh->materials[material_i].material_name, name)) 
+      return material_i;
+
+  return -1;
+}
+
+static uint32_t add_material_to_mesh(mesh_t *mesh, material_t material){
+  int material_id = find_mesh_material_id(mesh, material.material_name);
+
+  // if material exists, return index
+  if(material_id != -1) return (uint32_t)material_id;
+
+  // if material doesn't exist, add material to mesh
+  array_push(mesh->materials, material);
+  mesh->num_materials = array_length(mesh->materials);
+
+  return mesh->num_materials - 1;
+}
+
+static void get_directory_from_path(
+  const char *path, 
+  char *output_directory, 
+  size_t output_size
+){
+  const char *last_slash = strrchr(path, '/'); // strrchr finds first occurrence starting at the end
+
+  // if no slash is found at all, then file has no directory, i.e 'file.obj'
+  // hence return '.' (current directory)
+  if(!last_slash){
+    snprintf(output_directory, output_size, ".");
+    return;
+  }
+
+  // returned path is something like './some/directory/' or '/some/other/'
+  // and output_directory needs to include a '\0' at the end, so need to test if len >= output_size
+  size_t len = (size_t)(last_slash - path);
+  if(len >= output_size){
+    output_directory[0] = '\0';
+    print_log("ERROR: path too long\n");
+    return;
+  }
+
+  // copy final directory into output_directory and end with '\0'
+  memcpy(output_directory, path, len);
+  output_directory[len] = '\0';
+}
+
+// join two paths together, i.e: './some/dir' or '/some/dir/' and 'filename.mtl' = './some/dir/filename.mtl' or '/some/dir/filename.mtl'
+static void path_join(
+  char *output, 
+  size_t output_size, 
+  const char *directory, 
+  const char *filename
+){
+  // if filenamename starts with '/', then it already has a full path with directory so return filenamename
+  if(filename[0] == '/')
+    snprintf(output, output_size, "%s", filename);
+  // if filename does not contain a root slash '/', then join directory with filename
+  else
+    snprintf(output, output_size, "%s/%s", directory, filename);
+}
+
+static void load_mtl_file(const char *mtl_filename, const char *obj_dir, mesh_t *mesh){
+  char full_path[2048];
+  path_join(full_path, sizeof(full_path), obj_dir, mtl_filename);
+
+  FILE *file = fopen(full_path, "r");
+  if(!file){
+    print_log("WARNING: could not open MTL file: %s\n", full_path);
+    return;
+  }
+
+  char line[1024];
+  material_t current_mat = material_default("default");
+  bool has_current_mat = false;
+
+  while(fgets(line, sizeof(line), file)){
+    if(strncmp(line, "newmtl ", 7) == 0){
+      if(has_current_mat)
+        add_material_to_mesh(mesh, current_mat);
+
+      char name[128];
+      if(sscanf(line, "newmtl %127[^\r\n]", name) == 1){
+        current_mat = material_default(name);
+        has_current_mat = true;
+      }
+    }
+    else if(has_current_mat && strncmp(line, "Kd ", 3) == 0){
+      float r, g, b;
+      if(sscanf(line, "Kd %f %f %f", &r, &g, &b) == 3)
+        current_mat.base_color = color_from_float_rgb(r, g, b);
+    }
+    else if(has_current_mat && strncmp(line, "Ke ", 3) == 0){
+      float r, g, b;
+      if(sscanf(line, "Ke %f %f %f", &r, &g, &b) == 3)
+        current_mat.emissive_color = color_from_float_rgb(r, g, b);
+    }
+    else if(has_current_mat && strncmp(line, "d ", 2) == 0){
+      float opacity;
+      if(sscanf(line, "d %f", &opacity) == 1){
+        current_mat.opacity = opacity;
+
+        if(opacity < 1.0f)
+          current_mat.blend_mode = BLEND_MODE_ALPHA_BLEND;
+      }
+    }
+    else if(has_current_mat && strncmp(line, "Tr ", 3) == 0){
+      float tr;
+      if(sscanf(line, "Tr %f", &tr) == 1){
+        current_mat.opacity = 1.0f - tr;
+
+        if(current_mat.opacity < 1.0f)
+          current_mat.blend_mode = BLEND_MODE_ALPHA_BLEND;
+      }
+    }
+    else if(has_current_mat && strncmp(line, "Ns ", 3) == 0){
+      float ns;
+      if(sscanf(line, "Ns %f", &ns) == 1){
+        if(ns > 0.0f)
+          current_mat.specular_highlights = true;
+      }
+    }
+    else if(has_current_mat && strncmp(line, "Ks ", 3) == 0){
+      float r, g, b;
+      if(sscanf(line, "Ks %f %f %f", &r, &g, &b) == 3){
+        if(r > 0.0f || g > 0.0f || b > 0.0f)
+          current_mat.specular_highlights = true;
+      }
+    }
+    else if(has_current_mat && strncmp(line, "illum ", 6) == 0){
+      int illum;
+      if(sscanf(line, "illum %d", &illum) == 1){
+        current_mat.reflects_light = illum != 0;
+
+        if(illum >= 2)
+          current_mat.specular_highlights = true;
+      }
+    }
+    else if(has_current_mat && strncmp(line, "map_Kd ", 7) == 0){
+      char texture_filename[512];
+
+      if(sscanf(line, "map_Kd %511[^\r\n]", texture_filename) == 1){
+        char texture_path[2048];
+        path_join(texture_path, sizeof(texture_path), obj_dir, texture_filename);
+
+        current_mat.texture = load_texture(texture_path);
+      }
+    }
+  }
+
+  if(has_current_mat)
+    add_material_to_mesh(mesh, current_mat);
+
+  fclose(file);
+}
+
+void load_obj_file(char *filename, mesh_t *mesh) {
+  FILE *file = fopen(filename, "r");
   char line[1024];
   uv_t *texture_coords = NULL;
+
+  uint32_t current_material_id = 0;
+
+  char obj_dir[1024];
+  get_directory_from_path(filename, obj_dir, sizeof(obj_dir));
 
   if(file == NULL) {
     print_log("ERROR: could not open OBJ file: %s\n", filename);
     exit(1);
   }
 
+  /* Default material in case OBJ has no MTL/usemtl. */
+  add_material_to_mesh(mesh, material_default("default"));
+  current_material_id = 0;
+
   while(fgets(line, sizeof(line), file)) {
+    /* material library */
+    if(strncmp(line, "mtllib ", 7) == 0){
+      char mtl_filename[512];
+
+      if(sscanf(line, "mtllib %511[^\r\n]", mtl_filename) == 1){
+        load_mtl_file(mtl_filename, obj_dir, mesh);
+      }
+    }
+    /* use material */
+    else if(strncmp(line, "usemtl ", 7) == 0){
+      char material_name[128];
+
+      if(sscanf(line, "usemtl %127[^\r\n]", material_name) == 1){
+        int found_id = find_mesh_material_id(mesh, material_name);
+
+        if(found_id >= 0){
+          current_material_id = (uint32_t)found_id;
+        }
+        else{
+          material_t missing_mat = material_default(material_name);
+          current_material_id = add_material_to_mesh(mesh, missing_mat);
+
+          print_log("WARNING: material '%s' used before being loaded in OBJ: %s\n",
+            material_name, filename);
+        }
+      }
+    }
     /* vertex */
-    if (strncmp(line, "v ", 2) == 0) {
+    else if (strncmp(line, "v ", 2) == 0) {
       vector3_t vertex;
       if (sscanf(line, "v %f %f %f", &vertex.x, &vertex.y, &vertex.z) == 3) {
         array_push(mesh->vertices, vertex);
       }
     }
-    /* texture */
+    /* texture coord */
     else if (strncmp(line, "vt ", 3) == 0) {
       uv_t texture;
       if (sscanf(line, "vt %f %f", &texture.u, &texture.v) == 2) {
@@ -40,10 +276,9 @@ void load_obj_file(char* filename, mesh_t *mesh) {
     else if (strncmp(line, "f ", 2) == 0) {
       int v_idx[16];
       int vt_idx[16];
-      //int vn_idx[16];
       int num_vertices = 0;
 
-      char *token = strtok(line + 2, " \n");
+      char *token = strtok(line + 2, " \n\r");
 
       while (token != NULL && num_vertices < 16) {
         int v = 0, vt = 0, vn = 0;
@@ -51,38 +286,37 @@ void load_obj_file(char* filename, mesh_t *mesh) {
         if (sscanf(token, "%d/%d/%d", &v, &vt, &vn) == 3) {
           v_idx[num_vertices]  = v;
           vt_idx[num_vertices] = vt;
-          //vn_idx[num_vertices] = vn;
         }
         else if (sscanf(token, "%d//%d", &v, &vn) == 2) {
           v_idx[num_vertices]  = v;
           vt_idx[num_vertices] = 0;
-          //vn_idx[num_vertices] = vn;
         }
         else if (sscanf(token, "%d/%d", &v, &vt) == 2) {
           v_idx[num_vertices]  = v;
           vt_idx[num_vertices] = vt;
-          //vn_idx[num_vertices] = 0;
         }
         else if (sscanf(token, "%d", &v) == 1) {
           v_idx[num_vertices]  = v;
           vt_idx[num_vertices] = 0;
-          //vn_idx[num_vertices] = 0;
         }
 
         num_vertices++;
-        token = strtok(NULL, " \n");
+        token = strtok(NULL, " \n\r");
       }
 
       /* triangulate polygon using fan */
       for (int i = 1; i < num_vertices - 1; i++) {
         face_t face;
+        memset(&face, 0, sizeof(face));
+
+        face.material_id = current_material_id;
 
         int vertex0_index = v_idx[0];
         int vertex1_index = v_idx[i];
         int vertex2_index = v_idx[i + 1];
 
-        /* handle negative indices */
         int vertex_count = array_length(mesh->vertices);
+
         if (vertex0_index < 0) vertex0_index = vertex_count + vertex0_index + 1;
         if (vertex1_index < 0) vertex1_index = vertex_count + vertex1_index + 1;
         if (vertex2_index < 0) vertex2_index = vertex_count + vertex2_index + 1;
@@ -105,8 +339,9 @@ void load_obj_file(char* filename, mesh_t *mesh) {
     }
   }
 
-  mesh->num_vertices = array_length(mesh->vertices);
-  mesh->num_faces    = array_length(mesh->faces);
+  mesh->num_vertices  = array_length(mesh->vertices);
+  mesh->num_faces     = array_length(mesh->faces);
+  mesh->num_materials = array_length(mesh->materials);
 
   if(mesh->num_vertices == 0){
     print_log("ERROR: 0 vertices in OBJ file: %s\n", filename);
@@ -193,6 +428,10 @@ mesh_t *create_cube_mesh(vector3_t vertex_min, vector3_t vertex_max){
   mesh_t *mesh = &meshes[num_meshes]; // pointer to last mesh slot (the new mesh)
   mesh->num_vertices = 8;
   mesh->num_faces    = 12;
+
+  // set default material
+  add_material_to_mesh(mesh, material_default("default"));
+
   vector3_t vertices[8];
 
   for(uint8_t v = 0; v < 8; v++){
@@ -225,8 +464,10 @@ mesh_t *create_cube_mesh(vector3_t vertex_min, vector3_t vertex_max){
     {.vertex_indices = {2, 7, 6}, .uv = {{0,1}, {1,0}, {1,1}}}
   };
 
-  for(uint8_t i = 0; i < 12; i++)
+  for(uint8_t i = 0; i < 12; i++){
     array_push(mesh->faces, faces[i]);
+    mesh->faces[i].material_id = 0; // set default material for all faces
+  }
 
   /* bounding box center */
   double bbox_center_x = 0.5 * ((double)vertex_min.x + (double)vertex_max.x);
