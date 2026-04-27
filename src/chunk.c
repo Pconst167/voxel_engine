@@ -99,7 +99,7 @@ void calculate_world_bounds(void){
   world_z_max = z_max;
 
   print_log("\nworld xmin: %f, world xmax: %f", x_min, x_max);
-  print_log("\nworld zmin: %f, world zmax: %f\n", z_min, z_max);
+  print_log("world zmin: %f, world zmax: %f\n", z_min, z_max);
 }
 
 /* split the world into chunks */
@@ -126,8 +126,8 @@ void create_world_chunks(void){
     }
   }
 
-  print_log("\nchunk_dx: %f\n", chunk_dx);
-  print_log("chunk_dz: %f\n", chunk_dz);
+  print_log("chunk_dx: %f", chunk_dx);
+  print_log("chunk_dz: %f", chunk_dz);
 }
 
 /*

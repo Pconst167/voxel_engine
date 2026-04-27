@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "upng.h"
 #include "texture.h"
 #include "log.h"
@@ -7,11 +8,22 @@
 texture_t texture_list[MAX_NUM_TEXTURES];
 uint32_t num_textures;
 
-void load_png_texture_data(texture_t *texture, char *filename){
+texture_t default_texture = {
+  .texture = (color_t[]){
+    {.uint32=0xFF000000},
+    {.uint32=0xFFFF00FF},
+    {.uint32=0xFF000000},
+    {.uint32=0xFFFF00FF}
+  },
+  .texture_width  = 2,
+  .texture_height = 2
+};
+
+texture_t load_png_texture_data(char *filename){
   upng_t *png_texture = upng_new_from_file(filename);
   if(png_texture == NULL){
     print_log("ERROR: could not load PNG file: %s\n", filename);
-    exit(1);
+    return default_texture;
   }
   
   upng_decode(png_texture);
@@ -19,8 +31,10 @@ void load_png_texture_data(texture_t *texture, char *filename){
   if(upng_get_error(png_texture) != UPNG_EOK){
     print_log("ERROR: could not decode PNG file: %s\n", filename);
     upng_free(png_texture);
-    exit(1);
+    return default_texture;
   }
+
+  texture_t texture;
 
   unsigned width  = upng_get_width(png_texture);
   unsigned height = upng_get_height(png_texture);
@@ -28,14 +42,14 @@ void load_png_texture_data(texture_t *texture, char *filename){
 
   const unsigned char *src = upng_get_buffer(png_texture);
 
-  texture->texture_width  = width;
-  texture->texture_height = height;
+  texture.texture_width  = width;
+  texture.texture_height = height;
 
-  texture->texture = (color_t *)malloc(width * height * sizeof(color_t));
-  if(texture->texture == NULL){
+  texture.texture = (color_t *)malloc(width * height * sizeof(color_t));
+  if(texture.texture == NULL){
     print_log("ERROR: could not allocate texture memory\n");
     upng_free(png_texture);
-    exit(1);
+    return default_texture;
   }
 
   // Convert to RGBA always
@@ -61,7 +75,7 @@ void load_png_texture_data(texture_t *texture, char *filename){
     }
 
     /* ABGR */
-    texture->texture[i] = (color_t){
+    texture.texture[i] = (color_t){
       .rgb.alpha = a,
       .rgb.blue  = b,
       .rgb.green = g,
@@ -70,16 +84,26 @@ void load_png_texture_data(texture_t *texture, char *filename){
   }
 
   upng_free(png_texture);
+
+  return texture;
 }
 
 texture_t *load_texture(char *texture_filename){
-  if(num_textures == MAX_NUM_TEXTURES){
+  // check if texture by same name already exists and return it
+  for(uint32_t i = 0; i < num_textures; i++)
+    if(!strcmp(texture_list[i].filename, texture_filename))
+      return &texture_list[i];
+
+  if(num_textures >= MAX_NUM_TEXTURES){
     print_log("ERROR: maximum number of textures reached: %d\n", num_textures);
-    exit(1);
+    return &default_texture;
   }
 
-  load_png_texture_data(&texture_list[num_textures], texture_filename);
+  texture_t texture = load_png_texture_data(texture_filename);
+  texture_list[num_textures] = texture;
   num_textures++;
+
+  print_log("loading texture file: %s, w: %d, h: %d", texture_filename, texture.texture_width, texture.texture_height);
 
   return &texture_list[num_textures - 1];
 }

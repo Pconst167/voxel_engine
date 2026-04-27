@@ -13,6 +13,8 @@ player can write and run programs
 have a computer mainframe with a panel.
 maybe build circuits
 
+ADD A FLYING DRONE FRIEND THAT ALWAYS HELPS AND FLIES AROUND YOU
+
 ADD TIC-80 OPEN SOURCE CONSOLE TO ONE OF THE COMPUTERS?
 OR PERHAPS CREATE A FANTASY CONSOLE INSIDE THE GAME? MY OWN?
 in either case we need a screen where players can code a game!

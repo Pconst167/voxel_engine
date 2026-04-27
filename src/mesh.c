@@ -30,7 +30,7 @@ static color_t color_from_float_rgb(float red, float green, float blue){
 }
 
 // create a default material
-static material_t material_default(const char *name){
+static material_t generate_default_material(const char *name){
   material_t material;
   memset(&material, 0, sizeof(material));
 
@@ -116,96 +116,110 @@ static void path_join(
     snprintf(output, output_size, "%s/%s", directory, filename);
 }
 
-static void load_mtl_file(const char *mtl_filename, const char *obj_dir, mesh_t *mesh){
+// load material file referenced by .obj file
+// .mtl file location is relative to .obj directory
+static void load_mtl_file(
+  const char *mtl_filename, 
+  const char *obj_directory, 
+  mesh_t *mesh
+){
+  // join .obj directory with .mtl filename to form a full path
   char full_path[2048];
-  path_join(full_path, sizeof(full_path), obj_dir, mtl_filename);
+  path_join(full_path, sizeof(full_path), obj_directory, mtl_filename);
 
   FILE *file = fopen(full_path, "r");
   if(!file){
-    print_log("WARNING: could not open MTL file: %s\n", full_path);
+    print_log("WARNING: could not open .mtl file: %s\n", full_path);
     return;
   }
 
   char line[1024];
-  material_t current_mat = material_default("default");
-  bool has_current_mat = false;
+  // generate a default material, in case material file doesn't define any materials in error
+  material_t current_material = generate_default_material("default");
+  // flag to say whether we have found a new material name definition
+  bool has_current_material = false;
 
+  // start reading file lines
   while(fgets(line, sizeof(line), file)){
-    if(strncmp(line, "newmtl ", 7) == 0){
-      if(has_current_mat)
-        add_material_to_mesh(mesh, current_mat);
+    if(strncmp(line, "newmtl ", 7) == 0){ // if we find 'newmtl' keyword, then if we have already parsed a previous material, commit it 
+      if(has_current_material)
+        add_material_to_mesh(mesh, current_material);
 
       char name[128];
-      if(sscanf(line, "newmtl %127[^\r\n]", name) == 1){
-        current_mat = material_default(name);
-        has_current_mat = true;
+      // if 'newmtl' keyword is found and it also has the new material name, then generate new default material
+      // and set the flag to true, indicating we have found a new material definition + name
+      if(sscanf(line, "newmtl %127[^\r\n]", name) == 1){ 
+        current_material = generate_default_material(name);
+        has_current_material = true;
       }
     }
-    else if(has_current_mat && strncmp(line, "Kd ", 3) == 0){
+    // base color
+    else if(has_current_material && strncmp(line, "Kd ", 3) == 0){
       float r, g, b;
       if(sscanf(line, "Kd %f %f %f", &r, &g, &b) == 3)
-        current_mat.base_color = color_from_float_rgb(r, g, b);
+        current_material.base_color = color_from_float_rgb(r, g, b);
     }
-    else if(has_current_mat && strncmp(line, "Ke ", 3) == 0){
+    // emissive color
+    else if(has_current_material && strncmp(line, "Ke ", 3) == 0){
       float r, g, b;
       if(sscanf(line, "Ke %f %f %f", &r, &g, &b) == 3)
-        current_mat.emissive_color = color_from_float_rgb(r, g, b);
+        current_material.emissive_color = color_from_float_rgb(r, g, b);
     }
-    else if(has_current_mat && strncmp(line, "d ", 2) == 0){
+    // opacity
+    else if(has_current_material && strncmp(line, "d ", 2) == 0){
       float opacity;
       if(sscanf(line, "d %f", &opacity) == 1){
-        current_mat.opacity = opacity;
+        current_material.opacity = opacity;
 
-        if(opacity < 1.0f)
-          current_mat.blend_mode = BLEND_MODE_ALPHA_BLEND;
+        // if opacity is less than 1.0, then material is no longer opaque and is alpha blended
+        if(opacity < 1.0f) current_material.blend_mode = BLEND_MODE_ALPHA_BLEND;
       }
     }
-    else if(has_current_mat && strncmp(line, "Tr ", 3) == 0){
+    // opacity
+    else if(has_current_material && strncmp(line, "Tr ", 3) == 0){
       float tr;
       if(sscanf(line, "Tr %f", &tr) == 1){
-        current_mat.opacity = 1.0f - tr;
+        current_material.opacity = 1.0f - tr;
 
-        if(current_mat.opacity < 1.0f)
-          current_mat.blend_mode = BLEND_MODE_ALPHA_BLEND;
+        // just another option for opacity, equivalent to 'd' above
+        if(current_material.opacity < 1.0f) current_material.blend_mode = BLEND_MODE_ALPHA_BLEND;
       }
     }
-    else if(has_current_mat && strncmp(line, "Ns ", 3) == 0){
-      float ns;
-      if(sscanf(line, "Ns %f", &ns) == 1){
-        if(ns > 0.0f)
-          current_mat.specular_highlights = true;
-      }
-    }
-    else if(has_current_mat && strncmp(line, "Ks ", 3) == 0){
-      float r, g, b;
-      if(sscanf(line, "Ks %f %f %f", &r, &g, &b) == 3){
-        if(r > 0.0f || g > 0.0f || b > 0.0f)
-          current_mat.specular_highlights = true;
-      }
-    }
-    else if(has_current_mat && strncmp(line, "illum ", 6) == 0){
+    // reflects light / specular highlights
+    else if(has_current_material && strncmp(line, "illum ", 6) == 0){
       int illum;
       if(sscanf(line, "illum %d", &illum) == 1){
-        current_mat.reflects_light = illum != 0;
-
-        if(illum >= 2)
-          current_mat.specular_highlights = true;
+        switch(illum){
+          case 0:
+            current_material.reflects_light      = false;
+            current_material.specular_highlights = false;
+            break;
+          case 1:
+            current_material.reflects_light      = true;
+            current_material.specular_highlights = false;
+            break;
+          default:
+            current_material.reflects_light      = true;
+            current_material.specular_highlights = true;
+            break;
+        }
       }
     }
-    else if(has_current_mat && strncmp(line, "map_Kd ", 7) == 0){
+    // texture
+    else if(has_current_material && strncmp(line, "map_Kd ", 7) == 0){
       char texture_filename[512];
 
       if(sscanf(line, "map_Kd %511[^\r\n]", texture_filename) == 1){
         char texture_path[2048];
-        path_join(texture_path, sizeof(texture_path), obj_dir, texture_filename);
+        path_join(texture_path, sizeof(texture_path), obj_directory, texture_filename);
 
-        current_mat.texture = load_texture(texture_path);
+        current_material.texture = load_texture(texture_path);
       }
     }
   }
 
-  if(has_current_mat)
-    add_material_to_mesh(mesh, current_mat);
+  // if file end is reached, commit current material
+  if(has_current_material) add_material_to_mesh(mesh, current_material);
 
   fclose(file);
 }
@@ -226,7 +240,7 @@ void load_obj_file(char *filename, mesh_t *mesh) {
   }
 
   /* Default material in case OBJ has no MTL/usemtl. */
-  add_material_to_mesh(mesh, material_default("default"));
+  add_material_to_mesh(mesh, generate_default_material("default"));
   current_material_id = 0;
 
   while(fgets(line, sizeof(line), file)) {
@@ -249,7 +263,7 @@ void load_obj_file(char *filename, mesh_t *mesh) {
           current_material_id = (uint32_t)found_id;
         }
         else{
-          material_t missing_mat = material_default(material_name);
+          material_t missing_mat = generate_default_material(material_name);
           current_material_id = add_material_to_mesh(mesh, missing_mat);
 
           print_log("WARNING: material '%s' used before being loaded in OBJ: %s\n",
@@ -430,7 +444,7 @@ mesh_t *create_cube_mesh(vector3_t vertex_min, vector3_t vertex_max){
   mesh->num_faces    = 12;
 
   // set default material
-  add_material_to_mesh(mesh, material_default("default"));
+  add_material_to_mesh(mesh, generate_default_material("default"));
 
   vector3_t vertices[8];
 
