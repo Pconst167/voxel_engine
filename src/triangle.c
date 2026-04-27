@@ -141,7 +141,6 @@ void draw_filled_triangle(
   color_t color,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  float emissive_intensity,
   bool reflects_light,
   bool dither
 ){
@@ -251,10 +250,10 @@ void draw_filled_triangle(
           }
 
           /* add emissive color on top */
-          if(emissive_intensity > 0.0f){
-            red_total   += emissive_color.rgb.red   * emissive_intensity;
-            green_total += emissive_color.rgb.green * emissive_intensity;
-            blue_total  += emissive_color.rgb.blue  * emissive_intensity;
+          if(emissive_color.uint32 > 0){
+            red_total   += emissive_color.rgb.red  ;
+            green_total += emissive_color.rgb.green;
+            blue_total  += emissive_color.rgb.blue ;
           }
 
           /* clamp total amount as results over 255 do not make sense */
@@ -300,7 +299,6 @@ void draw_filled_triangle_no_zbuffer_write(
   color_t color,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  float emissive_intensity,
   bool reflects_light,
   bool dither
 ){
@@ -410,10 +408,10 @@ void draw_filled_triangle_no_zbuffer_write(
           }
 
           /* add emissive color on top */
-          if(emissive_intensity > 0.0f){
-            red_total   += emissive_color.rgb.red   * emissive_intensity;
-            green_total += emissive_color.rgb.green * emissive_intensity;
-            blue_total  += emissive_color.rgb.blue  * emissive_intensity;
+          if(emissive_color.uint32 > 0){
+            red_total   += emissive_color.rgb.red  ;
+            green_total += emissive_color.rgb.green;
+            blue_total  += emissive_color.rgb.blue ;
           }
 
           /* clamp total amount as results over 255 do not make sense */
@@ -480,7 +478,6 @@ inline void draw_textured_triangle_opaque(
   color_t *texture, int texture_width, int texture_height,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  float emissive_intensity,
   bool reflects_light,
   bool dither
 ){
@@ -613,10 +610,10 @@ inline void draw_textured_triangle_opaque(
             blue_total  = (uint32_t)(texel.rgb.blue  * total_light_intensity.blue);
           }
 
-          if(emissive_intensity > 0.0f){
-            red_total   += (uint32_t)(texel.rgb.red   * emissive_color.rgb.red   / 255.0f * emissive_intensity);
-            green_total += (uint32_t)(texel.rgb.green * emissive_color.rgb.green / 255.0f * emissive_intensity);
-            blue_total  += (uint32_t)(texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f * emissive_intensity);
+          if(emissive_color.uint32 > 0){
+            red_total   += (uint32_t)(texel.rgb.red   * emissive_color.rgb.red   / 255.0f);
+            green_total += (uint32_t)(texel.rgb.green * emissive_color.rgb.green / 255.0f);
+            blue_total  += (uint32_t)(texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f);
           }
 
           if(red_total   > 255) red_total   = 255;
@@ -667,7 +664,6 @@ void draw_textured_triangle_opaque_float(
   color_t *texture, int texture_width, int texture_height,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  float emissive_intensity,
   bool reflects_light,
   bool dither
 ){
@@ -807,10 +803,10 @@ void draw_textured_triangle_opaque_float(
           }
 
           /* add emissive color on top */
-          if(emissive_intensity > 0.0f){
-            red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f * emissive_intensity;
-            green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f * emissive_intensity;
-            blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f * emissive_intensity;
+          if(emissive_color.uint32 > 0){
+            red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f;
+            green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f;
+            blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f;
           }
 
           /* clamp total amount as results over 255 do not make sense */
@@ -853,7 +849,6 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
   color_t *texture, int texture_width, int texture_height,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  float emissive_intensity,
   bool reflects_light,
   bool dither
 ){
@@ -993,10 +988,10 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
           }
 
           /* add emissive color on top */
-          if(emissive_intensity > 0.0f){
-            red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f * emissive_intensity;
-            green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f * emissive_intensity;
-            blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f * emissive_intensity;
+          if(emissive_color.uint32 > 0){
+            red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f;
+            green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f;
+            blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f;
           }
 
           /* clamp total amount as results over 255 do not make sense */
@@ -1037,7 +1032,6 @@ void draw_textured_triangle_alpha_test(
   color_t *texture, int texture_width, int texture_height,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  float emissive_intensity,
   bool reflects_light,
   bool dither,
   uint8_t alpha_cutoff
@@ -1179,10 +1173,10 @@ void draw_textured_triangle_alpha_test(
             }
 
             /* add emissive color on top */
-            if(emissive_intensity > 0.0f){
-              red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f * emissive_intensity;
-              green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f * emissive_intensity;
-              blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f * emissive_intensity;
+            if(emissive_color.uint32 > 0){
+              red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f;
+              green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f;
+              blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f;
             }
 
             /* clamp total amount as results over 255 do not make sense */
@@ -1225,7 +1219,6 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
   color_t *texture, int texture_width, int texture_height,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  float emissive_intensity,
   bool reflects_light,
   bool dither,
   uint8_t alpha_cutoff
@@ -1367,10 +1360,10 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
             }
 
             /* add emissive color on top */
-            if(emissive_intensity > 0.0f){
-              red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f * emissive_intensity;
-              green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f * emissive_intensity;
-              blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f * emissive_intensity;
+            if(emissive_color.uint32 > 0){
+              red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f;
+              green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f;
+              blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f;
             }
 
             /* clamp total amount as results over 255 do not make sense */
@@ -1411,7 +1404,6 @@ void draw_textured_triangle_alpha_blend(
   color_t *texture, int texture_width, int texture_height,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  float emissive_intensity,
   bool reflects_light,
   bool dither,
   float opacity
@@ -1552,10 +1544,10 @@ void draw_textured_triangle_alpha_blend(
           }
 
           /* add emissive color on top */
-          if(emissive_intensity > 0.0f){
-            red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f * emissive_intensity;
-            green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f * emissive_intensity;
-            blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f * emissive_intensity;
+          if(emissive_color.uint32 > 0){
+            red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f;
+            green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f;
+            blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f;
           }
 
           /* clamp total amount as results over 255 do not make sense */
@@ -1594,7 +1586,6 @@ void draw_textured_triangle(
   color_t *texture, int texture_width, int texture_height,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  float emissive_intensity,
   bool reflects_light,
   bool dither,
   blend_mode_t blend_mode,
@@ -1737,10 +1728,10 @@ void draw_textured_triangle(
           }
 
           /* add emissive color on top */
-          if(emissive_intensity > 0.0f){
-            red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f * emissive_intensity;
-            green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f * emissive_intensity;
-            blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f * emissive_intensity;
+          if(emissive_color.uint32 > 0){
+            red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f;
+            green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f;
+            blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f;
           }
 
           /* clamp total amount as results over 255 do not make sense */
@@ -2134,7 +2125,6 @@ void draw_textured_triangle_opaque(
   color_t *texture, int texture_width, int texture_height,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  float emissive_intensity,
   bool reflects_light,
   bool dither
 ){
@@ -2311,10 +2301,10 @@ void draw_textured_triangle_opaque(
         }
 
         / add emissive color on top 
-        if(emissive_intensity > 0.0f){
-          red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f * emissive_intensity;
-          green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f * emissive_intensity;
-          blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f * emissive_intensity;
+        if(emissive_color.uint32 > 0){
+          red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f;
+          green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f;
+          blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f;
         }
 
          clamp total amount 

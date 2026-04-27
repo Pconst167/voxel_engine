@@ -28,7 +28,6 @@ typedef struct{
   /* color and light */
   color_t base_color;
   color_t emissive_color; /* object's own emission color */
-  float emissive_intensity; /* if object is self-luminous, how emissive? */
   float opacity; /* used as a global alpha blending - makes object totally opaque or ghostly */
   bool two_sided_lighting; /* object will be lit on both sides of light equally */
   bool reflects_light;
@@ -71,7 +70,6 @@ int32_t create_object(
 
   color_t base_color,
   color_t emissive_color,
-  float emissive_intensity,
   float opacity,
   bool two_sided_lighting,
   bool reflects_light,

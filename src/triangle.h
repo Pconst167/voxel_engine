@@ -58,7 +58,6 @@ void draw_filled_triangle(
   color_t color, 
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  float emissive_intensity,
   bool reflects_light,
   bool dither
 );
@@ -67,7 +66,6 @@ void draw_filled_triangle_no_zbuffer_write(
   color_t color, 
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  float emissive_intensity,
   bool reflects_light,
   bool dither
 );
@@ -79,7 +77,6 @@ void draw_textured_triangle_opaque(
   color_t *texture, int texture_width, int texture_height,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  float emissive_intensity,
   bool reflects_light,
   bool dither
 );
@@ -90,7 +87,6 @@ void draw_textured_triangle_opaque_float(
   color_t *texture, int texture_width, int texture_height,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  float emissive_intensity,
   bool reflects_light,
   bool dither
 );
@@ -101,7 +97,6 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
   color_t *texture, int texture_width, int texture_height,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  float emissive_intensity,
   bool reflects_light,
   bool dither
 );
@@ -112,7 +107,6 @@ void draw_textured_triangle_alpha_test(
   color_t *texture, int texture_width, int texture_height,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  float emissive_intensity,
   bool reflects_light,
   bool dither,
   uint8_t alpha_cutoff
@@ -124,7 +118,6 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
   color_t *texture, int texture_width, int texture_height,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  float emissive_intensity,
   bool reflects_light,
   bool dither,
   uint8_t alpha_cutoff
@@ -136,7 +129,6 @@ void draw_textured_triangle_alpha_blend(
   color_t *texture, int texture_width, int texture_height,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  float emissive_intensity,
   bool reflects_light,
   bool dither,
   float opacity
@@ -149,7 +141,6 @@ void draw_textured_triangle(
   color_t *texture, int texture_width, int texture_height,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  float emissive_intensity,
   bool reflects_light,
   bool dither,
   blend_mode_t blend_mode,

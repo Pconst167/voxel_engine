@@ -35,7 +35,6 @@ inline void rasterize_triangle(
   float opacity,
   bool reflects_light,
   color_t emissive_color,
-  float emissive_intensity,
   light_intensity_rgb_t total_light_intensity
 );
 
@@ -49,7 +48,6 @@ inline void rasterize_triangle_no_zbuffer_write(
   float opacity,
   bool reflects_light,
   color_t emissive_color,
-  float emissive_intensity,
   light_intensity_rgb_t total_light_intensity
 );
 

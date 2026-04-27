@@ -19,7 +19,6 @@ int32_t create_object(
 
   color_t base_color,
   color_t emissive_color,
-  float emissive_intensity,
   float opacity,
   bool two_sided_lighting,
   bool reflects_light,
@@ -50,7 +49,6 @@ int32_t create_object(
                               
   object->base_color          = base_color;
   object->emissive_color      = emissive_color;
-  object->emissive_intensity  = emissive_intensity;
   object->opacity             = opacity;
   object->two_sided_lighting  = two_sided_lighting;
   object->reflects_light      = reflects_light;
