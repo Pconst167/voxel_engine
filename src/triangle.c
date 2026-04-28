@@ -611,9 +611,9 @@ inline void draw_textured_triangle_opaque(
           }
 
           if(emissive_color.uint32 > 0){
-            red_total   += (uint32_t)(texel.rgb.red   * emissive_color.rgb.red   / 255.0f);
-            green_total += (uint32_t)(texel.rgb.green * emissive_color.rgb.green / 255.0f);
-            blue_total  += (uint32_t)(texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f);
+            red_total   += ((uint32_t)(texel.rgb.red   * emissive_color.rgb.red  ) + 127) >> 8;
+            green_total += ((uint32_t)(texel.rgb.green * emissive_color.rgb.green) + 127) >> 8;
+            blue_total  += ((uint32_t)(texel.rgb.blue  * emissive_color.rgb.blue ) + 127) >> 8;
           }
 
           if(red_total   > 255) red_total   = 255;
@@ -804,9 +804,9 @@ void draw_textured_triangle_opaque_float(
 
           /* add emissive color on top */
           if(emissive_color.uint32 > 0){
-            red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f;
-            green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f;
-            blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f;
+            red_total   += ((uint32_t)(texel.rgb.red   * emissive_color.rgb.red  ) + 127) >> 8;
+            green_total += ((uint32_t)(texel.rgb.green * emissive_color.rgb.green) + 127) >> 8;
+            blue_total  += ((uint32_t)(texel.rgb.blue  * emissive_color.rgb.blue ) + 127) >> 8;
           }
 
           /* clamp total amount as results over 255 do not make sense */
@@ -989,9 +989,9 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
 
           /* add emissive color on top */
           if(emissive_color.uint32 > 0){
-            red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f;
-            green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f;
-            blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f;
+            red_total   += ((uint32_t)(texel.rgb.red   * emissive_color.rgb.red  ) + 127) >> 8;
+            green_total += ((uint32_t)(texel.rgb.green * emissive_color.rgb.green) + 127) >> 8;
+            blue_total  += ((uint32_t)(texel.rgb.blue  * emissive_color.rgb.blue ) + 127) >> 8;
           }
 
           /* clamp total amount as results over 255 do not make sense */
@@ -1174,9 +1174,9 @@ void draw_textured_triangle_alpha_test(
 
             /* add emissive color on top */
             if(emissive_color.uint32 > 0){
-              red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f;
-              green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f;
-              blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f;
+              red_total   += ((uint32_t)(texel.rgb.red   * emissive_color.rgb.red  ) + 127) >> 8;
+              green_total += ((uint32_t)(texel.rgb.green * emissive_color.rgb.green) + 127) >> 8;
+              blue_total  += ((uint32_t)(texel.rgb.blue  * emissive_color.rgb.blue ) + 127) >> 8;
             }
 
             /* clamp total amount as results over 255 do not make sense */
@@ -1361,9 +1361,9 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
 
             /* add emissive color on top */
             if(emissive_color.uint32 > 0){
-              red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f;
-              green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f;
-              blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f;
+              red_total   += ((uint32_t)(texel.rgb.red   * emissive_color.rgb.red  ) + 127) >> 8;
+              green_total += ((uint32_t)(texel.rgb.green * emissive_color.rgb.green) + 127) >> 8;
+              blue_total  += ((uint32_t)(texel.rgb.blue  * emissive_color.rgb.blue ) + 127) >> 8;
             }
 
             /* clamp total amount as results over 255 do not make sense */
@@ -1545,9 +1545,9 @@ void draw_textured_triangle_alpha_blend(
 
           /* add emissive color on top */
           if(emissive_color.uint32 > 0){
-            red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f;
-            green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f;
-            blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f;
+            red_total   += ((uint32_t)(texel.rgb.red   * emissive_color.rgb.red  ) + 127) >> 8;
+            green_total += ((uint32_t)(texel.rgb.green * emissive_color.rgb.green) + 127) >> 8;
+            blue_total  += ((uint32_t)(texel.rgb.blue  * emissive_color.rgb.blue ) + 127) >> 8;
           }
 
           /* clamp total amount as results over 255 do not make sense */
@@ -1729,9 +1729,9 @@ void draw_textured_triangle(
 
           /* add emissive color on top */
           if(emissive_color.uint32 > 0){
-            red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f;
-            green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f;
-            blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f;
+            red_total   += ((uint32_t)(texel.rgb.red   * emissive_color.rgb.red  ) + 127) >> 8;
+            green_total += ((uint32_t)(texel.rgb.green * emissive_color.rgb.green) + 127) >> 8;
+            blue_total  += ((uint32_t)(texel.rgb.blue  * emissive_color.rgb.blue ) + 127) >> 8;
           }
 
           /* clamp total amount as results over 255 do not make sense */
@@ -2302,9 +2302,9 @@ void draw_textured_triangle_opaque(
 
         / add emissive color on top 
         if(emissive_color.uint32 > 0){
-          red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f;
-          green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f;
-          blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f;
+          red_total   += ((uint32_t)(texel.rgb.red   * emissive_color.rgb.red  ) + 127) >> 8;
+          green_total += ((uint32_t)(texel.rgb.green * emissive_color.rgb.green) + 127) >> 8;
+          blue_total  += ((uint32_t)(texel.rgb.blue  * emissive_color.rgb.blue ) + 127) >> 8;
         }
 
          clamp total amount 

@@ -224,7 +224,7 @@ static void load_mtl_file(
   fclose(file);
 }
 
-void load_obj_file(char *filename, mesh_t *mesh) {
+void load_obj_file(char *filename, mesh_t *mesh){
   FILE *file = fopen(filename, "r");
   char line[1024];
   uv_t *texture_coords = NULL;
@@ -234,82 +234,81 @@ void load_obj_file(char *filename, mesh_t *mesh) {
   char obj_dir[1024];
   get_directory_from_path(filename, obj_dir, sizeof(obj_dir));
 
-  if(file == NULL) {
+  if(file == NULL){
     print_log("ERROR: could not open OBJ file: %s\n", filename);
     exit(1);
   }
 
-  /* Default material in case OBJ has no MTL/usemtl. */
+  // default material in case .obj has no .mtl/usemtl
   add_material_to_mesh(mesh, generate_default_material("default"));
   current_material_id = 0;
 
-  while(fgets(line, sizeof(line), file)) {
-    /* material library */
+  while(fgets(line, sizeof(line), file)){
+    // material library
     if(strncmp(line, "mtllib ", 7) == 0){
       char mtl_filename[512];
 
-      if(sscanf(line, "mtllib %511[^\r\n]", mtl_filename) == 1){
+      // read material filename
+      if(sscanf(line, "mtllib %511[^\r\n]", mtl_filename) == 1)
         load_mtl_file(mtl_filename, obj_dir, mesh);
-      }
     }
-    /* use material */
+    // use material
     else if(strncmp(line, "usemtl ", 7) == 0){
       char material_name[128];
 
       if(sscanf(line, "usemtl %127[^\r\n]", material_name) == 1){
-        int found_id = find_mesh_material_id(mesh, material_name);
+        int material_id = find_mesh_material_id(mesh, material_name);
 
-        if(found_id >= 0){
-          current_material_id = (uint32_t)found_id;
-        }
+        // if material name found, set current id to it
+        if(material_id != -1)
+          current_material_id = (uint32_t)material_id;
         else{
-          material_t missing_mat = generate_default_material(material_name);
-          current_material_id = add_material_to_mesh(mesh, missing_mat);
+          // if material not found, create new material slot, and fill it with default material
+          material_t missing_material = generate_default_material(material_name);
+          current_material_id = add_material_to_mesh(mesh, missing_material);
 
-          print_log("WARNING: material '%s' used before being loaded in OBJ: %s\n",
-            material_name, filename);
+          print_log("WARNING: material '%s' does not exist or material library not set in .obj file: %s - generating default material slot", material_name, filename);
         }
       }
     }
     /* vertex */
-    else if (strncmp(line, "v ", 2) == 0) {
+    else if(strncmp(line, "v ", 2) == 0){
       vector3_t vertex;
-      if (sscanf(line, "v %f %f %f", &vertex.x, &vertex.y, &vertex.z) == 3) {
+      if(sscanf(line, "v %f %f %f", &vertex.x, &vertex.y, &vertex.z) == 3)
         array_push(mesh->vertices, vertex);
-      }
     }
     /* texture coord */
-    else if (strncmp(line, "vt ", 3) == 0) {
+    else if(strncmp(line, "vt ", 3) == 0){
       uv_t texture;
-      if (sscanf(line, "vt %f %f", &texture.u, &texture.v) == 2) {
+      if(sscanf(line, "vt %f %f", &texture.u, &texture.v) == 2){
         texture.v = 1.0f - texture.v;
         array_push(texture_coords, texture);
       }
     }
     /* face */
-    else if (strncmp(line, "f ", 2) == 0) {
+    else if(strncmp(line, "f ", 2) == 0){
       int v_idx[16];
       int vt_idx[16];
       int num_vertices = 0;
 
       char *token = strtok(line + 2, " \n\r");
 
-      while (token != NULL && num_vertices < 16) {
+      while(token != NULL && num_vertices < 16){
         int v = 0, vt = 0, vn = 0;
 
-        if (sscanf(token, "%d/%d/%d", &v, &vt, &vn) == 3) {
+        if(sscanf(token, "%d/%d/%d", &v, &vt, &vn) == 3){
           v_idx[num_vertices]  = v;
           vt_idx[num_vertices] = vt;
         }
-        else if (sscanf(token, "%d//%d", &v, &vn) == 2) {
+        else if(sscanf(token, "%d//%d", &v, &vn) == 2){
           v_idx[num_vertices]  = v;
           vt_idx[num_vertices] = 0;
         }
-        else if (sscanf(token, "%d/%d", &v, &vt) == 2) {
+        else if(sscanf(token, "%d/%d", &v, &vt) == 2){
           v_idx[num_vertices]  = v;
           vt_idx[num_vertices] = vt;
         }
-        else if (sscanf(token, "%d", &v) == 1) {
+        else if(sscanf(token, "%d", &v) == 1){
           v_idx[num_vertices]  = v;
           vt_idx[num_vertices] = 0;
         }
@@ -319,7 +318,7 @@ void load_obj_file(char *filename, mesh_t *mesh) {
       }
 
       /* triangulate polygon using fan */
-      for (int i = 1; i < num_vertices - 1; i++) {
+      for(int i = 1; i < num_vertices - 1; i++){
         face_t face;
         memset(&face, 0, sizeof(face));
 
@@ -331,21 +330,21 @@ void load_obj_file(char *filename, mesh_t *mesh) {
 
         int vertex_count = array_length(mesh->vertices);
 
-        if (vertex0_index < 0) vertex0_index = vertex_count + vertex0_index + 1;
-        if (vertex1_index < 0) vertex1_index = vertex_count + vertex1_index + 1;
-        if (vertex2_index < 0) vertex2_index = vertex_count + vertex2_index + 1;
+        if(vertex0_index < 0) vertex0_index = vertex_count + vertex0_index + 1;
+        if(vertex1_index < 0) vertex1_index = vertex_count + vertex1_index + 1;
+        if(vertex2_index < 0) vertex2_index = vertex_count + vertex2_index + 1;
 
         face.vertex_indices[0] = vertex0_index - 1;
         face.vertex_indices[1] = vertex1_index - 1;
         face.vertex_indices[2] = vertex2_index - 1;
 
-        if (vt_idx[0] > 0)
+        if(vt_idx[0] > 0)
           face.uv[0] = texture_coords[vt_idx[0] - 1];
 
-        if (vt_idx[i] > 0)
+        if(vt_idx[i] > 0)
           face.uv[1] = texture_coords[vt_idx[i] - 1];
 
-        if (vt_idx[i + 1] > 0)
+        if(vt_idx[i + 1] > 0)
           face.uv[2] = texture_coords[vt_idx[i + 1] - 1];
 
         array_push(mesh->faces, face);
