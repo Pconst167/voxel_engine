@@ -186,7 +186,6 @@ void setup(void) {
   /* create objects */
   load_server_room();
   //load_voxel_world();
-  //load_cave_world();
   //load_world1();
 
   /* normalize all light direction vectors to unity */
@@ -779,10 +778,11 @@ void render_chunk(chunk_t *chunk){
           vector4_t projected_vertex = matrix4_projection_mul_vector4(&projection_matrix, triangle_after_clipping->points[j]);
 
           /* w stores old z, so divide by w to create perspective divide */
-          if(projected_vertex.w != 0.0){
-            projected_vertex.x /= projected_vertex.w;
-            projected_vertex.y /= projected_vertex.w;
-            projected_vertex.z /= projected_vertex.w;
+          if(projected_vertex.w != 0.0f){
+            float one_over_projected_vertex_w = 1.0f / projected_vertex.w;
+            projected_vertex.x *= one_over_projected_vertex_w;
+            projected_vertex.y *= one_over_projected_vertex_w;
+            projected_vertex.z *= one_over_projected_vertex_w;
           }
 
           /* scale vertices by screen width and translate to middle of the screen */
@@ -1421,7 +1421,7 @@ void render_sun(void){
 
   /* world -> camera rotation only(no translation, meaning w = 0) */
   /* NOTE: using optimized version of multiply */
-  vector4_t vec4_sun_cam = matrix4_view_mul_vector4(&view_matrix, (vector4_t){sun_direction.x, sun_direction.y, sun_direction.z, 0.0f});
+  vector4_t vec4_sun_cam = matrix4_mul_vector4(&view_matrix, (vector4_t){sun_direction.x, sun_direction.y, sun_direction.z, 0.0f});
   vector3_t sun_cam = {vec4_sun_cam.x, vec4_sun_cam.y, vec4_sun_cam.z};
 
   for(int y = 0; y < window_height; y++){
@@ -1914,25 +1914,6 @@ void load_quake_world(){
   );
 }
 
-void load_cave_world(){
-  mesh_t *mesh;
-  texture_t *texture;
-
-  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,     .y = 0.0f,    .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFF4080FF}, 0.6f);
-  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.9f);
-
-  mesh = load_mesh("./assets/obj/cave.obj");
-  texture = load_texture("./assets/textures/ground/mountain.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, false,  (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0x00000000},
-                0.0f, false, true, false,
-                BLEND_MODE_OPAQUE, 0x01, 
-                (vector3_t){10, 10, 10}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
-}
-
 void load_voxel_world(){
   mesh_t *mesh;
   texture_t *texture;
@@ -2120,7 +2101,7 @@ void load_server_room(){
   // drone
   mesh = load_mesh("./assets/obj/drone.obj");
   texture = load_texture("./assets/textures/misc/drone.png");
-  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, false, true, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.8f},
+  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, false, true, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.5f},
                            (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF808080},
                            0.0f, true, true, false,
                            BLEND_MODE_OPAQUE, 0x00, 
@@ -2144,6 +2125,17 @@ void load_server_room(){
   // cube
   mesh = create_cube_mesh((vector3_t){-1, -1, -1}, (vector3_t){1,1,1});
   texture = load_texture("./assets/textures/misc/checker.png");
+  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
+                           (color_t){.uint32 = 0xFFFF0000}, (color_t){.uint32 = 0xFF808080},
+                           0.0f, false, true, false,
+                           BLEND_MODE_OPAQUE, 0x00, 
+                           (vector3_t){10, 10, 10}, (vector3_t){M_PI_2, 0, 0}, (vector3_t){-200, 100, 0}, 
+                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
+                           texture
+  );
+
+  // cube and material
+  mesh = load_mesh("./assets/cube.obj");
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
                            (color_t){.uint32 = 0xFFFF0000}, (color_t){.uint32 = 0xFF808080},
                            0.0f, false, true, false,

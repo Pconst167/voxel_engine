@@ -194,7 +194,7 @@ inline vector4_t matrix4_projection_mul_vector4(const matrix4_t *m, const vector
   return (vector4_t){
     .x = m->element[0][0] * v.x,
     .y = m->element[1][1] * v.y,
-    .z = m->element[2][2] * v.z + m->element[2][3] * v.w,
+    .z = m->element[2][2] * v.z + m->element[2][3],
     .w = v.z
   };
 }
@@ -278,16 +278,6 @@ inline matrix4_t matrix4_gen_view_matrix(const vector3_t camera_position, const 
     {zf.x, zf.y, zf.z, -(zf.x * camera_position.x + zf.y * camera_position.y + zf.z * camera_position.z)},
     {   0,    0,    0,                                                                                 1}
   }};
-}
-
-/* optimized matrix multiply when multiplying by view matrix only */
-inline vector4_t matrix4_view_mul_vector4(const matrix4_t *m, const vector4_t v){
-  return (vector4_t){
-    .x = m->element[0][0] * v.x + m->element[0][1] * v.y + m->element[0][2] * v.z + m->element[0][3] * v.w,
-    .y = m->element[1][0] * v.x + m->element[1][1] * v.y + m->element[1][2] * v.z + m->element[1][3] * v.w,
-    .z = m->element[2][0] * v.x + m->element[2][1] * v.y + m->element[2][2] * v.z + m->element[2][3] * v.w,
-    .w = v.w
-  };
 }
 
 /* 

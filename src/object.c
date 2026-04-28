@@ -126,11 +126,11 @@ int32_t create_object(
         num_objects
       );
       print_log(
-        "created and attached new collision aabb to object: %d - x_min: %9.3f, x_max: %9.3f, z_min: %9.3f, z_max: %9.3f, y_min: %9.3f, y_max: %9.3f", 
+        "created and attached new collision aabb to object: %d (x_min: %.3f, x_max: %.3f, z_min: %.3f, z_max: %.3f, y_min: %.3f, y_max: %.3f)", 
+        num_objects,
         object->bbox_aabb.x_min, object->bbox_aabb.x_max,
         object->bbox_aabb.y_min, object->bbox_aabb.y_max,
-        object->bbox_aabb.z_min, object->bbox_aabb.z_max,
-        num_objects
+        object->bbox_aabb.z_min, object->bbox_aabb.z_max
       );
     }
   }

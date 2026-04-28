@@ -133,6 +133,8 @@ static void load_mtl_file(
     return;
   }
 
+  print_log("loading material file: %s", mtl_filename);
+
   char line[1024];
   // generate a default material, in case material file doesn't define any materials in error
   material_t current_material = generate_default_material("default");
@@ -145,12 +147,13 @@ static void load_mtl_file(
       if(has_current_material)
         add_material_to_mesh(mesh, current_material);
 
-      char name[128];
+      char material_name[128];
       // if 'newmtl' keyword is found and it also has the new material name, then generate new default material
       // and set the flag to true, indicating we have found a new material definition + name
-      if(sscanf(line, "newmtl %127[^\r\n]", name) == 1){ 
-        current_material = generate_default_material(name);
+      if(sscanf(line, "newmtl %127[^\r\n]", material_name) == 1){ 
+        current_material = generate_default_material(material_name);
         has_current_material = true;
+        print_log("new material name: %s", material_name);
       }
     }
     // base color
@@ -238,6 +241,8 @@ void load_obj_file(char *filename, mesh_t *mesh){
     print_log("ERROR: could not open OBJ file: %s\n", filename);
     exit(1);
   }
+
+  print_log("loading obj file: %s", filename);
 
   // default material in case .obj has no .mtl/usemtl
   add_material_to_mesh(mesh, generate_default_material("default"));

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-void print_log(char *message, ...);
+void print_log(const char *message, ...)
+  __attribute__((format(printf, 1, 2)));
 
 #endif
