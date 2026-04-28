@@ -769,7 +769,110 @@ void render_chunk(chunk_t *chunk){
       }
 
       material_t face_material = object->mesh->materials[face.material_id];
-      vector3_t v_face_centroid = (vector3_t){(v_a.x + v_b.x + v_c.x) / 3.0f, (v_a.y + v_b.y + v_c.y) / 3.0f, (v_a.z + v_b.z + v_c.z) / 3.0f};
+
+      /* LIGHT CALCULATIONS */
+      /*
+        find light intensity to face based on dot product between face orthogonal and light direction
+        result needs minus sign because the light direction vector is written as the opposite of the actual light direction we need to see (i.e y = 1 would mean shining up, but we actually want shine from above for the case y = 1)
+        also, most importantly, because all vertices are transformed by the view_matrix, the light direction vector also needs to be transformed
+        this is because a transformation by view_matrix amounts to a rotation(plus translation) of all vertices, which changes the face normals
+        ** BUT changing normals due to camera transforms should not affect how the light behaves, and so the light direction vector must track any rotation.
+        the view_matrix translation part should be ignored, and hence why the w component of vector in the multiplication below is be 0 to nulify any translations.
+        ** BUT for point light its the opposite and w must be 1 because point light DOES have a position and that position must also be transformed by the view matrix.
+
+        if camera is on same side as light, then we want the light to shine on the face regardeless of the face normal's direction.
+        hence we test: sgn((camera - v_face_centroid) dot normal) == sgn((light - v_face_centroid) dot normal) and the final dot product intensity needs to be absolute value after that
+        but if object is translucent to light, then we want to light both sides of a face regardless of the camera position, or the face's normal
+
+        light_intensities field is initialized to zero below in declaration - so that the light_intensities field is all 0 in case object not reflects_light
+      */
+      //vector3_t v_face_centroid = {(v_a.x + v_b.x + v_c.x) / 3.0f, (v_a.y + v_b.y + v_c.y) / 3.0f, (v_a.z + v_b.z + v_c.z) / 3.0f};
+      vector3_t v_face_centroid = v_a;
+      float light_intensities[MAX_NUM_LIGHT_SOURCES] = {0.0f}; // keeps the total light intensity for this face
+      if(face_material.reflects_light){
+        vector3_normalize_fast_approx(&v_face_normal); /* normalize here for use below */
+        for(uint32_t light_index = 0; light_index < num_light_sources; light_index++){
+          if(light_sources[light_index].type == LIGHT_DIRECTIONAL){
+            vector4_t light_direction_view = matrix4_mul_vector4(&view_matrix, (vector4_t){light_sources[light_index].direction.x, light_sources[light_index].direction.y, light_sources[light_index].direction.z, 0});
+            if(face_material.two_sided_lighting)
+              light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
+            else{
+              /* if not translucent, then face only lights up if sgn(cam_ray dot normal) == sgn (light_direction dot normal) */
+              vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
+              float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
+              float light_direction_dot_normal  = -(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
+              if((light_direction_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_direction_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
+                light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
+      
+                #if SPECULAR_LIGHT_ENABLE == 1
+                  if(face_material.specular_highlights){
+                    vector3_t light_direction_view_vec3 = (vector3_t){-light_direction_view.x, -light_direction_view.y, -light_direction_view.z};
+                    vector3_normalize_fast_approx(&cam_ray);
+                    vector3_normalize_fast_approx(&light_direction_view_vec3);
+                    vector3_t H = vector3_add(light_direction_view_vec3, cam_ray);
+                    vector3_normalize_fast_approx(&H);
+                    float d = fmax(vector3_dot(v_face_normal, H), 0.0f);
+                    float spec = 0.0f;
+                    if(d > 0.0f) spec = 5 * powf(d, SPECULAR_POWER);
+                    light_intensities[light_index] += spec;
+                  }
+                #endif
+              }
+              else light_intensities[light_index] = 0.0f;
+            }
+            light_intensities[light_index] *= light_sources[light_index].intensity;
+          }
+          else if(light_sources[light_index].type == LIGHT_POINT){
+            /* the 1/r^2 relation can be done without a square root.  since r = vector length, and the relation uses r^2, we don't need to first find square root and then square it.
+              we can simply find the "semi" vector length by skipping the square root (using the _squarred function).  this gives 1/r^2 without a square root.
+              for dot product also, instead of finding the ray len, we use the len squared and then use fast inv square root.
+            */
+            vector4_t light_position_view = matrix4_mul_vector3(&view_matrix, (vector3_t){light_sources[light_index].position.x, light_sources[light_index].position.y, light_sources[light_index].position.z});
+            vector3_t lightpos_to_v_face_centroid_ray = (vector3_t){light_position_view.x - v_face_centroid.x, light_position_view.y - v_face_centroid.y, light_position_view.z - v_face_centroid.z};
+            float lightpos_to_v_face_centroid_ray_length_squarred = vector3_length_squarred(lightpos_to_v_face_centroid_ray);
+            
+            if(face_material.two_sided_lighting){
+              light_intensities[light_index] = fabsf(v_face_normal.x * lightpos_to_v_face_centroid_ray.x + v_face_normal.y * lightpos_to_v_face_centroid_ray.y + v_face_normal.z * lightpos_to_v_face_centroid_ray.z) * q_rsqrt(lightpos_to_v_face_centroid_ray_length_squarred);
+              light_intensities[light_index] /= 1.0f + lightpos_to_v_face_centroid_ray_length_squarred;
+              light_intensities[light_index] *= light_sources[light_index].intensity;
+            }
+            else{
+              vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
+              float light_v_face_centroid_dot_normal  = v_face_normal.x * lightpos_to_v_face_centroid_ray.x + v_face_normal.y * lightpos_to_v_face_centroid_ray.y + v_face_normal.z * lightpos_to_v_face_centroid_ray.z;
+              float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
+              if((light_v_face_centroid_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_v_face_centroid_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
+                light_intensities[light_index] = fabsf(light_v_face_centroid_dot_normal) * q_rsqrt(lightpos_to_v_face_centroid_ray_length_squarred);
+      
+                #if SPECULAR_LIGHT_ENABLE == 1
+                  if(face_material.specular_highlights){
+                    vector3_normalize_fast_approx(&lightpos_to_v_face_centroid_ray);
+                    vector3_normalize_fast_approx(&cam_ray);
+                    vector3_t H = vector3_add(lightpos_to_v_face_centroid_ray, cam_ray);
+                    vector3_normalize_fast_approx(&H);
+                    float d = fmax(vector3_dot(v_face_normal, H), 0.0f);
+                    float spec = 0.0f;
+                    if(d > 0.0f) spec = 5 * powf(d, SPECULAR_POWER);
+                    light_intensities[light_index] += spec;
+                  }
+                #endif
+                light_intensities[light_index] /= 1.0f + lightpos_to_v_face_centroid_ray_length_squarred;
+                light_intensities[light_index] *= light_sources[light_index].intensity;
+              }
+              else
+                light_intensities[light_index] = 0.0f;
+            } 
+          }
+          else if(light_sources[light_index].type == LIGHT_AMBIENT){
+            light_intensities[light_index] = light_sources[light_index].intensity;
+          }
+          /* clamp to [0.0, 1.0] */
+          if(light_intensities[light_index] < 0.0f) light_intensities[light_index] = 0.0f;
+          else if(light_intensities[light_index] > 1.0f) light_intensities[light_index] = 1.0f;
+        }
+      }
+
+      // find total light intensity on this face - this is total intensity per rgb channel
+      light_intensity_rgb_t total_light_intensity = find_total_light_intensity(light_intensities);
 
       // loop all faces generated from clipped polygon
       for(int t = 0; t < num_triangles_from_polygon; t++){
@@ -797,108 +900,6 @@ void render_chunk(chunk_t *chunk){
           projected_triangle.uv[j]     = triangle_after_clipping->uv[j];
         }
         
-        /* LIGHT CALCULATIONS */
-        /*
-          find light intensity to face based on dot product between face orthogonal and light direction
-          result needs minus sign because the light direction vector is written as the opposite of the actual light direction we need to see (i.e y = 1 would mean shining up, but we actually want shine from above for the case y = 1)
-          also, most importantly, because all vertices are transformed by the view_matrix, the light direction vector also needs to be transformed
-          this is because a transformation by view_matrix amounts to a rotation(plus translation) of all vertices, which changes the face normals
-          ** BUT changing normals due to camera transforms should not affect how the light behaves, and so the light direction vector must track any rotation.
-          the view_matrix translation part should be ignored, and hence why the w component of vector in the multiplication below is be 0 to nulify any translations.
-          ** BUT for point light its the opposite and w must be 1 because point light DOES have a position and that position must also be transformed by the view matrix.
-
-          if camera is on same side as light, then we want the light to shine on the face regardeless of the face normal's direction.
-          hence we test: sgn((camera - v_face_centroid) dot normal) == sgn((light - v_face_centroid) dot normal) and the final dot product intensity needs to be absolute value after that
-          but if object is translucent to light, then we want to light both sides of a face regardless of the camera position, or the face's normal
-
-          light_intensities field is initialized to zero below in declaration - so that the light_intensities field is all 0 in case object not reflects_light
-        */
-       float light_intensities[MAX_NUM_LIGHT_SOURCES] = {0.0f}; // keeps the total light intensity for this face
-        if(face_material.reflects_light){
-          vector3_normalize_fast_approx(&v_face_normal); /* normalize here for use below */
-          for(uint32_t light_index = 0; light_index < num_light_sources; light_index++){
-            if(light_sources[light_index].type == LIGHT_DIRECTIONAL){
-              vector4_t light_direction_view = matrix4_mul_vector4(&view_matrix, (vector4_t){light_sources[light_index].direction.x, light_sources[light_index].direction.y, light_sources[light_index].direction.z, 0});
-              if(face_material.two_sided_lighting)
-                light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
-              else{
-                /* if not translucent, then face only lights up if sgn(cam_ray dot normal) == sgn (light_direction dot normal) */
-                vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
-                float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
-                float light_direction_dot_normal  = -(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
-                if((light_direction_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_direction_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
-                  light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
-
-                  #if SPECULAR_LIGHT_ENABLE == 1
-                    if(face_material.specular_highlights){
-                      vector3_t light_direction_view_vec3 = (vector3_t){-light_direction_view.x, -light_direction_view.y, -light_direction_view.z};
-                      vector3_normalize_fast_approx(&cam_ray);
-                      vector3_normalize_fast_approx(&light_direction_view_vec3);
-                      vector3_t H = vector3_add(light_direction_view_vec3, cam_ray);
-                      vector3_normalize_fast_approx(&H);
-                      float d = fmax(vector3_dot(v_face_normal, H), 0.0f);
-                      float spec = 0.0f;
-                      if(d > 0.0f) spec = 5 * powf(d, SPECULAR_POWER);
-                      light_intensities[light_index] += spec;
-                    }
-                  #endif
-                }
-                else light_intensities[light_index] = 0.0f;
-              }
-              light_intensities[light_index] *= light_sources[light_index].intensity;
-            }
-            else if(light_sources[light_index].type == LIGHT_POINT){
-              /* the 1/r^2 relation can be done without a square root.  since r = vector length, and the relation uses r^2, we don't need to first find square root and then square it.
-                we can simply find the "semi" vector length by skipping the square root (using the _squarred function).  this gives 1/r^2 without a square root.
-                for dot product also, instead of finding the ray len, we use the len squared and then use fast inv square root.
-              */
-              vector4_t light_position_view = matrix4_mul_vector3(&view_matrix, (vector3_t){light_sources[light_index].position.x, light_sources[light_index].position.y, light_sources[light_index].position.z});
-              vector3_t lightpos_to_v_face_centroid_ray = (vector3_t){light_position_view.x - v_face_centroid.x, light_position_view.y - v_face_centroid.y, light_position_view.z - v_face_centroid.z};
-              float lightpos_to_v_face_centroid_ray_length_squarred = vector3_length_squarred(lightpos_to_v_face_centroid_ray);
-              
-              if(face_material.two_sided_lighting){
-                light_intensities[light_index] = fabsf(v_face_normal.x * lightpos_to_v_face_centroid_ray.x + v_face_normal.y * lightpos_to_v_face_centroid_ray.y + v_face_normal.z * lightpos_to_v_face_centroid_ray.z) * q_rsqrt(lightpos_to_v_face_centroid_ray_length_squarred);
-                light_intensities[light_index] /= 1.0f + lightpos_to_v_face_centroid_ray_length_squarred;
-                light_intensities[light_index] *= light_sources[light_index].intensity;
-              }
-              else{
-                vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
-                float light_v_face_centroid_dot_normal  = v_face_normal.x * lightpos_to_v_face_centroid_ray.x + v_face_normal.y * lightpos_to_v_face_centroid_ray.y + v_face_normal.z * lightpos_to_v_face_centroid_ray.z;
-                float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
-                if((light_v_face_centroid_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_v_face_centroid_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
-                  light_intensities[light_index] = fabsf(light_v_face_centroid_dot_normal) * q_rsqrt(lightpos_to_v_face_centroid_ray_length_squarred);
-
-                  #if SPECULAR_LIGHT_ENABLE == 1
-                    if(face_material.specular_highlights){
-                      vector3_normalize_fast_approx(&lightpos_to_v_face_centroid_ray);
-                      vector3_normalize_fast_approx(&cam_ray);
-                      vector3_t H = vector3_add(lightpos_to_v_face_centroid_ray, cam_ray);
-                      vector3_normalize_fast_approx(&H);
-                      float d = fmax(vector3_dot(v_face_normal, H), 0.0f);
-                      float spec = 0.0f;
-                      if(d > 0.0f) spec = 5 * powf(d, SPECULAR_POWER);
-                      light_intensities[light_index] += spec;
-                    }
-                  #endif
-                  light_intensities[light_index] /= 1.0f + lightpos_to_v_face_centroid_ray_length_squarred;
-                  light_intensities[light_index] *= light_sources[light_index].intensity;
-                }
-                else
-                  light_intensities[light_index] = 0.0f;
-              } 
-            }
-            else if(light_sources[light_index].type == LIGHT_AMBIENT){
-              light_intensities[light_index] = light_sources[light_index].intensity;
-            }
-            /* clamp to [0.0, 1.0] */
-            if(light_intensities[light_index] < 0.0f) light_intensities[light_index] = 0.0f;
-            else if(light_intensities[light_index] > 1.0f) light_intensities[light_index] = 1.0f;
-          }
-        }
-
-        // find total light intensity on this face - this is total intensity per rgb channel
-        light_intensity_rgb_t total_light_intensity = find_total_light_intensity(light_intensities);
-
         /* TRIANGLE RASTERIZATION */
         rasterize_triangle(
           &projected_triangle, 
