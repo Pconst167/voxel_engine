@@ -768,6 +768,10 @@ void render_chunk(chunk_t *chunk){
         num_triangles_from_polygon = 1;
       }
 
+      material_t face_material = object->mesh->materials[face.material_id];
+      vector3_t v_face_centroid = (vector3_t){(v_a.x + v_b.x + v_c.x) / 3.0f, (v_a.y + v_b.y + v_c.y) / 3.0f, (v_a.z + v_b.z + v_c.z) / 3.0f};
+
+      // loop all faces generated from clipped polygon
       for(int t = 0; t < num_triangles_from_polygon; t++){
         triangle_t *triangle_after_clipping = &triangles_after_clipping[t];
 
@@ -804,29 +808,29 @@ void render_chunk(chunk_t *chunk){
           ** BUT for point light its the opposite and w must be 1 because point light DOES have a position and that position must also be transformed by the view matrix.
 
           if camera is on same side as light, then we want the light to shine on the face regardeless of the face normal's direction.
-          hence we test: sgn((camera - v_a) dot normal) == sgn((light - v_a) dot normal) and the final dot product intensity needs to be absolute value after that
+          hence we test: sgn((camera - v_face_centroid) dot normal) == sgn((light - v_face_centroid) dot normal) and the final dot product intensity needs to be absolute value after that
           but if object is translucent to light, then we want to light both sides of a face regardless of the camera position, or the face's normal
 
           light_intensities field is initialized to zero below in declaration - so that the light_intensities field is all 0 in case object not reflects_light
         */
        float light_intensities[MAX_NUM_LIGHT_SOURCES] = {0.0f}; // keeps the total light intensity for this face
-        if(object->reflects_light){
+        if(face_material.reflects_light){
           vector3_normalize_fast_approx(&v_face_normal); /* normalize here for use below */
           for(uint32_t light_index = 0; light_index < num_light_sources; light_index++){
             if(light_sources[light_index].type == LIGHT_DIRECTIONAL){
               vector4_t light_direction_view = matrix4_mul_vector4(&view_matrix, (vector4_t){light_sources[light_index].direction.x, light_sources[light_index].direction.y, light_sources[light_index].direction.z, 0});
-              if(object->two_sided_lighting)
+              if(face_material.two_sided_lighting)
                 light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
               else{
                 /* if not translucent, then face only lights up if sgn(cam_ray dot normal) == sgn (light_direction dot normal) */
-                vector3_t cam_ray = {.x = 0 - v_a.x, .y = 0 - v_a.y, .z = 0 - v_a.z}; 
-                float camera_v_a_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
+                vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
+                float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
                 float light_direction_dot_normal  = -(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
-                if((light_direction_dot_normal > 0.0f && camera_v_a_dot_normal > 0.0f) || (light_direction_dot_normal < 0.0f && camera_v_a_dot_normal < 0.0f)){
+                if((light_direction_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_direction_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
                   light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
 
                   #if SPECULAR_LIGHT_ENABLE == 1
-                    if(object->specular_highlights){
+                    if(face_material.specular_highlights){
                       vector3_t light_direction_view_vec3 = (vector3_t){-light_direction_view.x, -light_direction_view.y, -light_direction_view.z};
                       vector3_normalize_fast_approx(&cam_ray);
                       vector3_normalize_fast_approx(&light_direction_view_vec3);
@@ -849,26 +853,26 @@ void render_chunk(chunk_t *chunk){
                 for dot product also, instead of finding the ray len, we use the len squared and then use fast inv square root.
               */
               vector4_t light_position_view = matrix4_mul_vector3(&view_matrix, (vector3_t){light_sources[light_index].position.x, light_sources[light_index].position.y, light_sources[light_index].position.z});
-              vector3_t lightpos_to_v_a_ray = (vector3_t){light_position_view.x - v_a.x, light_position_view.y - v_a.y, light_position_view.z - v_a.z};
-              float lightpos_to_v_a_ray_length_squarred = vector3_length_squarred(lightpos_to_v_a_ray);
+              vector3_t lightpos_to_v_face_centroid_ray = (vector3_t){light_position_view.x - v_face_centroid.x, light_position_view.y - v_face_centroid.y, light_position_view.z - v_face_centroid.z};
+              float lightpos_to_v_face_centroid_ray_length_squarred = vector3_length_squarred(lightpos_to_v_face_centroid_ray);
               
-              if(object->two_sided_lighting){
-                light_intensities[light_index] = fabsf(v_face_normal.x * lightpos_to_v_a_ray.x + v_face_normal.y * lightpos_to_v_a_ray.y + v_face_normal.z * lightpos_to_v_a_ray.z) * q_rsqrt(lightpos_to_v_a_ray_length_squarred);
-                light_intensities[light_index] /= 1.0f + lightpos_to_v_a_ray_length_squarred;
+              if(face_material.two_sided_lighting){
+                light_intensities[light_index] = fabsf(v_face_normal.x * lightpos_to_v_face_centroid_ray.x + v_face_normal.y * lightpos_to_v_face_centroid_ray.y + v_face_normal.z * lightpos_to_v_face_centroid_ray.z) * q_rsqrt(lightpos_to_v_face_centroid_ray_length_squarred);
+                light_intensities[light_index] /= 1.0f + lightpos_to_v_face_centroid_ray_length_squarred;
                 light_intensities[light_index] *= light_sources[light_index].intensity;
               }
               else{
-                vector3_t cam_ray = {.x = 0 - v_a.x, .y = 0 - v_a.y, .z = 0 - v_a.z}; 
-                float light_v_a_dot_normal  = v_face_normal.x * lightpos_to_v_a_ray.x + v_face_normal.y * lightpos_to_v_a_ray.y + v_face_normal.z * lightpos_to_v_a_ray.z;
-                float camera_v_a_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
-                if((light_v_a_dot_normal > 0.0f && camera_v_a_dot_normal > 0.0f) || (light_v_a_dot_normal < 0.0f && camera_v_a_dot_normal < 0.0f)){
-                  light_intensities[light_index] = fabsf(light_v_a_dot_normal) * q_rsqrt(lightpos_to_v_a_ray_length_squarred);
+                vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
+                float light_v_face_centroid_dot_normal  = v_face_normal.x * lightpos_to_v_face_centroid_ray.x + v_face_normal.y * lightpos_to_v_face_centroid_ray.y + v_face_normal.z * lightpos_to_v_face_centroid_ray.z;
+                float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
+                if((light_v_face_centroid_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_v_face_centroid_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
+                  light_intensities[light_index] = fabsf(light_v_face_centroid_dot_normal) * q_rsqrt(lightpos_to_v_face_centroid_ray_length_squarred);
 
                   #if SPECULAR_LIGHT_ENABLE == 1
-                    if(object->specular_highlights){
-                      vector3_normalize_fast_approx(&lightpos_to_v_a_ray);
+                    if(face_material.specular_highlights){
+                      vector3_normalize_fast_approx(&lightpos_to_v_face_centroid_ray);
                       vector3_normalize_fast_approx(&cam_ray);
-                      vector3_t H = vector3_add(lightpos_to_v_a_ray, cam_ray);
+                      vector3_t H = vector3_add(lightpos_to_v_face_centroid_ray, cam_ray);
                       vector3_normalize_fast_approx(&H);
                       float d = fmax(vector3_dot(v_face_normal, H), 0.0f);
                       float spec = 0.0f;
@@ -876,7 +880,7 @@ void render_chunk(chunk_t *chunk){
                       light_intensities[light_index] += spec;
                     }
                   #endif
-                  light_intensities[light_index] /= 1.0f + lightpos_to_v_a_ray_length_squarred;
+                  light_intensities[light_index] /= 1.0f + lightpos_to_v_face_centroid_ray_length_squarred;
                   light_intensities[light_index] *= light_sources[light_index].intensity;
                 }
                 else
@@ -898,13 +902,7 @@ void render_chunk(chunk_t *chunk){
         /* TRIANGLE RASTERIZATION */
         rasterize_triangle(
           &projected_triangle, 
-          object->texture->texture, 
-          object->texture->texture_width, object->texture->texture_height, 
-          object->blend_mode, object->alpha_cutoff,
-          object->base_color,
-          object->opacity,
-          object->reflects_light,
-          object->emissive_color,
+          face_material,
           total_light_intensity
         );
 
@@ -1195,19 +1193,19 @@ void update_light(void){
     skybox->translation.y  = player.position.y;
     skybox->translation.z  = player.position.z;
 
-    skybox->emissive_color.rgb.red   = light_sources[1].color.rgb.red   = 200 +  55 * (1.0f - sin_eta);
-    skybox->emissive_color.rgb.green = light_sources[1].color.rgb.green = 100 + 155 * sin_eta;
-    skybox->emissive_color.rgb.blue  = light_sources[1].color.rgb.blue  = 255       * sin_eta;
+    skybox->mesh->materials[0].emissive_color.rgb.red   = light_sources[1].color.rgb.red   = 200 +  55 * (1.0f - sin_eta);
+    skybox->mesh->materials[0].emissive_color.rgb.green = light_sources[1].color.rgb.green = 100 + 155 * sin_eta;
+    skybox->mesh->materials[0].emissive_color.rgb.blue  = light_sources[1].color.rgb.blue  = 255       * sin_eta;
 
     //* obj 0 is skybox */
     float emissive_intensity = (sin_eta < MIN_SKYBOX_INTENSITY) ? MIN_SKYBOX_INTENSITY : sin_eta;
-    skybox->emissive_color.rgb.red   = 255.0f * (emissive_intensity); /* sky luminosity as a function of time */
-    skybox->emissive_color.rgb.green = 255.0f * (emissive_intensity); /* sky luminosity as a function of time */
-    skybox->emissive_color.rgb.blue  = 255.0f * (emissive_intensity); /* sky luminosity as a function of time */
+    skybox->mesh->materials[0].emissive_color.rgb.red   = 255.0f * (emissive_intensity); /* sky luminosity as a function of time */
+    skybox->mesh->materials[0].emissive_color.rgb.green = 255.0f * (emissive_intensity); /* sky luminosity as a function of time */
+    skybox->mesh->materials[0].emissive_color.rgb.blue  = 255.0f * (emissive_intensity); /* sky luminosity as a function of time */
 
     light_sources[1].intensity = sin_eta;
     /* as sun sets or rises, ambient light should get bluer, and oranger towards noon */
-    light_sources[0].color = skybox->emissive_color; 
+    light_sources[0].color = skybox->mesh->materials[0].emissive_color; 
     light_sources[0].intensity = MIN_AMBIENT_LIGHT_INTENSITY + AMBIENT_LIGHT_MAX_FACTOR * sin_eta;
   }
 }
@@ -1244,14 +1242,7 @@ void update_state(void){
 
 inline void rasterize_triangle(
   triangle_t *triangle, 
-  color_t *mesh_texture, 
-  uint32_t texture_width, uint32_t texture_height, 
-  blend_mode_t blend_mode,
-  uint8_t alpha_cutoff,
-  color_t base_color,
-  float opacity,
-  bool reflects_light,
-  color_t emissive_color,
+  material_t face_material,
   light_intensity_rgb_t total_light_intensity
 ){
   if(options.projection_mode == TEXT_FILLED){
@@ -1259,10 +1250,10 @@ inline void rasterize_triangle(
       &triangle->points[0], 
       &triangle->points[1], 
       &triangle->points[2], 
-      base_color,
+      face_material.base_color,
       total_light_intensity,
-      emissive_color,
-      reflects_light,
+      face_material.emissive_color,
+      face_material.reflects_light,
       options.dither
     );
     return;
@@ -1277,16 +1268,16 @@ inline void rasterize_triangle(
     return;
   }
   else{
-    switch(blend_mode){
+    switch(face_material.blend_mode){
       case BLEND_MODE_OPAQUE:
         draw_textured_triangle_opaque(
           &triangle->points[0], triangle->uv[0],
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
-          mesh_texture, texture_width, texture_height,
+          face_material.texture->texture, face_material.texture->texture_width, face_material.texture->texture_height,
           total_light_intensity,
-          emissive_color,
-          reflects_light,
+          face_material.emissive_color,
+          face_material.reflects_light,
           options.dither
         );
         return;
@@ -1296,12 +1287,12 @@ inline void rasterize_triangle(
           &triangle->points[0], triangle->uv[0],
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
-          mesh_texture, texture_width, texture_height,
+          face_material.texture->texture, face_material.texture->texture_width, face_material.texture->texture_height,
           total_light_intensity,
-          emissive_color,
-          reflects_light,
+          face_material.emissive_color,
+          face_material.reflects_light,
           options.dither,
-          alpha_cutoff
+          face_material.alpha_cutoff
         );
         return;
 
@@ -1310,12 +1301,12 @@ inline void rasterize_triangle(
           &triangle->points[0], triangle->uv[0],
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
-          mesh_texture, texture_width, texture_height,
+          face_material.texture->texture, face_material.texture->texture_width, face_material.texture->texture_height,
           total_light_intensity,
-          emissive_color,
-          reflects_light,
+          face_material.emissive_color,
+          face_material.reflects_light,
           options.dither,
-          opacity
+          face_material.opacity
         );
         return;
     }
@@ -1324,14 +1315,7 @@ inline void rasterize_triangle(
 
 inline void rasterize_triangle_no_zbuffer_write(
   triangle_t *triangle, 
-  color_t *texture, 
-  uint32_t texture_width, uint32_t texture_height, 
-  blend_mode_t blend_mode,
-  uint8_t alpha_cutoff,
-  color_t base_color,
-  float opacity,
-  bool reflects_light,
-  color_t emissive_color,
+  material_t face_material,
   light_intensity_rgb_t total_light_intensity
 ){
   if(options.projection_mode == TEXT_FILLED){
@@ -1339,10 +1323,10 @@ inline void rasterize_triangle_no_zbuffer_write(
       &triangle->points[0], 
       &triangle->points[1], 
       &triangle->points[2], 
-      base_color,
+      face_material.base_color,
       total_light_intensity,
-      emissive_color,
-      reflects_light,
+      face_material.emissive_color,
+      face_material.reflects_light,
       options.dither
     );
     return;
@@ -1357,16 +1341,16 @@ inline void rasterize_triangle_no_zbuffer_write(
     return;
   }
   else{
-    switch(blend_mode){
+    switch(face_material.blend_mode){
       case BLEND_MODE_OPAQUE:
         draw_textured_triangle_opaque_no_zbuffer_write(
           &triangle->points[0], triangle->uv[0],
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
-          texture, texture_width, texture_height,
+          face_material.texture->texture, face_material.texture->texture_width, face_material.texture->texture_height,
           total_light_intensity,
-          emissive_color,
-          reflects_light,
+          face_material.emissive_color,
+          face_material.reflects_light,
           options.dither
         );
         return;
@@ -1376,12 +1360,12 @@ inline void rasterize_triangle_no_zbuffer_write(
           &triangle->points[0], triangle->uv[0],
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
-          texture, texture_width, texture_height,
+          face_material.texture->texture, face_material.texture->texture_width, face_material.texture->texture_height,
           total_light_intensity,
-          emissive_color,
-          reflects_light,
+          face_material.emissive_color,
+          face_material.reflects_light,
           options.dither,
-          alpha_cutoff
+          face_material.alpha_cutoff
         );
         return;
 
@@ -1390,12 +1374,12 @@ inline void rasterize_triangle_no_zbuffer_write(
           &triangle->points[0], triangle->uv[0],
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
-          texture, texture_width, texture_height,
+          face_material.texture->texture, face_material.texture->texture_width, face_material.texture->texture_height,
           total_light_intensity,
-          emissive_color,
-          reflects_light,
+          face_material.emissive_color,
+          face_material.reflects_light,
           options.dither,
-          opacity
+          face_material.opacity
         );
         return;
     }
@@ -1613,345 +1597,31 @@ int main(void) {
   return 0;
 }
 
-void load_world1(void){
-  mesh_t *mesh;
-  texture_t *texture;
-
-  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.6f);
-  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
-
-  load_skybox();
-
-  mesh = load_mesh("./assets/obj/mountain.obj");
-  texture = load_texture("./assets/textures/ground/grass3.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0x00000000}, 
-                0.0f, false, true, true,
-                BLEND_MODE_OPAQUE, 0x01, 
-                (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
-  mesh = load_mesh("./assets/obj/river.obj");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0x00000000},
-                0.0f, false, true, true,
-                BLEND_MODE_OPAQUE, 0x01, 
-                (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){-1000, 0, 0}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
-
-  mesh = load_mesh("./assets/obj/spires.obj");
-  texture = load_texture("./assets/textures/ground/mountain.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-               (color_t){.uint32 = 0xFFFF9090}, (color_t){.uint32 = 0x00000000},
-               0.0f, false, true, true,
-               BLEND_MODE_OPAQUE, 0x01, 
-               (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){1000, 0, 13.5}, 
-               (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
-
-
-  mesh = load_mesh("./assets/obj/water2.obj");
-  texture = load_texture("./assets/textures/water/water.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0xFFFFFF80}, 
-                0.5f, false, false, false,
-                BLEND_MODE_OPAQUE, 0x01, 
-                (vector3_t){1, 2, 1}, (vector3_t){0, 0, 0}, (vector3_t){-1000, -50, 0}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
-  
-  mesh = load_mesh("./assets/obj/sphere.obj");
-  texture = load_texture("./assets/textures/misc/moon.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, false, true, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                (color_t){.uint32 = 0xFFFFA0A0}, (color_t){.uint32 = 0xFF808080},
-                1.0f, false, true, false,
-                BLEND_MODE_ALPHA_BLEND, 0x01, 
-                (vector3_t){30, 30, 30}, (vector3_t){0, 0, 0}, (vector3_t){0, 800, -400}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0.5, 0},
-                texture
-  );
-
-  mesh = load_mesh("./assets/obj/fir.obj");
-  texture = load_texture("./assets/textures/plants/branch.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-               (color_t){.uint32 = 0xFF606090}, (color_t){.uint32 = 0x00000000},
-               1.0f, false, true, false,
-               BLEND_MODE_ALPHA_TEST, 0x01, 
-               (vector3_t){5, 5, 5}, (vector3_t){0, 0, 0}, (vector3_t){10,  10, 0}, 
-               (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-               texture
-  );
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-               (color_t){.uint32 = 0xFF606090}, (color_t){.uint32 = 0x00000000},
-               1.0f, false, true, false,
-               BLEND_MODE_ALPHA_TEST, 0x01, 
-               (vector3_t){8, 8, 8}, (vector3_t){0, 0, 0}, (vector3_t){260,  60, 180}, 
-               (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-               (color_t){.uint32 = 0xFF606090}, (color_t){.uint32 = 0x00000000},
-               1.0f, false, true, false,
-               BLEND_MODE_ALPHA_TEST, 0x01, 
-                (vector3_t){6, 6, 6}, (vector3_t){0, 0, 0}, (vector3_t){-60,  130, 200}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-               (color_t){.uint32 = 0xFF606090}, (color_t){.uint32 = 0x00000000},
-               1.0f, false, true, false,
-               BLEND_MODE_ALPHA_TEST, 0x01, 
-                (vector3_t){7, 8, 7}, (vector3_t){0, 0, 0}, (vector3_t){-160,  -15, -200}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-               (color_t){.uint32 = 0xFF606090}, (color_t){.uint32 = 0x00000000},
-               1.0f, false, true, false,
-               BLEND_MODE_ALPHA_TEST, 0x01, 
-                (vector3_t){6, 7, 6}, (vector3_t){0, 0, 0}, (vector3_t){-170,  -15, -50}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
-  
-  mesh = load_mesh("./assets/obj/sakura_trunk.obj");
-  texture = load_texture("./assets/textures/plants/bark2.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                (color_t){.uint32 = 0xFF808090}, (color_t){.uint32 = 0x00000000},
-                1.0f, false, true, false,
-                BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){1.2, 1.2, 1.2},          (vector3_t){0, 0, 0},    (vector3_t){150,  45, -60}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
-
-  mesh = load_mesh("./assets/obj/sakura_leaves.obj");
-  texture = load_texture("./assets/textures/plants/sakura_leaves.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-               (color_t){.uint32 = 0xFFFF60FF}, (color_t){.uint32 = 0x00000000},
-               1.0f, true, true, false,
-               BLEND_MODE_ALPHA_TEST, 0x01, 
-               (vector3_t){1.2, 1.2, 1.2}, (vector3_t){0, 0, 0},    (vector3_t){150,  45, -60}, 
-               (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
-
-  mesh = load_mesh("./assets/obj/cabin.obj");
-  texture = load_texture("./assets/textures/buildings/cabin.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, false, false,  (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                (color_t){.uint32 = 0xFF8080A0}, (color_t){.uint32 = 0xFF000000},
-                1.0f, false, true, false,
-                BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){1, 1, 1},    (vector3_t){0, 0, 0},    (vector3_t){-25, 9, -150}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
-
-  mesh = load_mesh("./assets/obj/ufo.obj");
-  texture = load_texture("./assets/textures/misc/ufo.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, false, false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                (color_t){.uint32 = 0xFFFFFFFF}, (color_t){.uint32 = 0xFF808080},
-                1.0f, false, true, true,
-                BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0},    (vector3_t){0,  300, 200}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0.8, 0},
-                texture
-  );
-
-  mesh = load_mesh("./assets/obj/baloon.obj");
-  texture = load_texture("./assets/textures/misc/baloon.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, false, true, false,  (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                (color_t){.uint32 = 0xFFFF80FF}, (color_t){.uint32 = 0xFF800000},
-                1.0f, false, true, true,
-                BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){2, 2, 2}, (vector3_t){0, 0, 0},    (vector3_t){150,  250, -100}, 
-                (vector3_t){10, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
-
-  // 18
-  mesh = load_mesh("./assets/obj/rocks/rock1.obj");
-  texture = load_texture("./assets/textures/stone/rock1.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, false, true, false,  (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                (color_t){.uint32 = 0xFF80FFFF}, (color_t){.uint32 = 0xFF008080},
-                1.0f, false, true, true,
-                BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0},    (vector3_t){-30, 90, 0}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0.1, 0.5, 0},
-                texture
-  );
-
-
-  // 20
-  create_object(mesh, OBJECT_TYPE_NORMAL, false, true, false,  (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                          (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF00AAAA},
-                          1.0f, false, true, false,
-                          BLEND_MODE_OPAQUE, 0x00, 
-                          (vector3_t){35, 35, 35}, (vector3_t){0, 0, 0},    (vector3_t){-800, 50, 20}, 
-                          (vector3_t){0, 0, 0}, (vector3_t){0.6, 0.2, 0},
-                texture
-  );
-
-  // 21
-  create_object(mesh, OBJECT_TYPE_NORMAL, false, true, false,  (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                          (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF0070EE},
-                          1.0f, false, true, true,
-                          BLEND_MODE_OPAQUE, 0x00, 
-                          (vector3_t){25, 35, 25}, (vector3_t){0, 0, 0},    (vector3_t){70, 150, 20}, 
-                          (vector3_t){0, 0, 0}, (vector3_t){0.6, 0.3, 0},
-                texture
-  );
-
-  // 22
-  create_object(mesh, OBJECT_TYPE_NORMAL, false, true, false,  (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                          (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF006020},
-                          1.0f, false, true, false,
-                          BLEND_MODE_OPAQUE, 0x00, 
-                          (vector3_t){45, 45, 45}, (vector3_t){0, 0, 0},    (vector3_t){-160, 250, 20}, 
-                          (vector3_t){0, 0, 0}, (vector3_t){0.7, 0.3, 0},
-                texture
-  );
-
-  // 23
-  create_object(mesh, OBJECT_TYPE_NORMAL, false, true, false,  (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                          (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFFFF80},
-                          1.0f, false, true, false,
-                          BLEND_MODE_OPAQUE, 0x00, 
-                          (vector3_t){45, 45, 45}, (vector3_t){0, 0, 0},    (vector3_t){-40, 360, 30}, 
-                          (vector3_t){0, 0, 0}, (vector3_t){0.8, 0.5, 0},
-                          texture
-  );
-
-  texture = load_texture("./assets/textures/stone/rock1.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, false,  (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0x00000000},
-                1.0f, false, true, true,
-                BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){25, 25, 25}, (vector3_t){0, 0, 0},    (vector3_t){-50, 10, -50}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
-
-  mesh = load_mesh("./assets/obj/rocks/rock2.obj");
-  texture = load_texture("./assets/textures/stone/rock3.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, false,  (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0x00000000},
-                1.0f, false, true, true,
-                BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){15, 15, 15}, (vector3_t){M_PI_2, 0, 0},    (vector3_t){-80, 24, -90}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
-
-  mesh = load_mesh("./assets/obj/rocks/rock2.obj");
-  texture = load_texture("./assets/textures/stone/rock2.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, false, true, false,  (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF208020},
-                0.0f, false, true, false,
-                BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){25, 25, 25}, (vector3_t){0.2, 0, 0}, (vector3_t){1000, 148, -30}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0.5, 0.5, 0},
-                texture
-  );
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, false,  (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0x00000000},
-                1.0f, false, true, true,
-                BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){25, 25, 25}, (vector3_t){0, 0, 0},    (vector3_t){-80, 18, -30}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
-  create_object(mesh, OBJECT_TYPE_NORMAL, false, true, false,  (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                          (color_t){.uint32 = 0xFFFF8080}, (color_t){.uint32 = 0xFF008020},
-                          1.0f, false, true, true,
-                          BLEND_MODE_OPAQUE, 0x00, 
-                          (vector3_t){25, 25, 25}, (vector3_t){0, 0, 0},    (vector3_t){-110, 120, -20}, 
-                          (vector3_t){0, 0, 0}, (vector3_t){0.4, 0.3, 0},
-                texture
-  );
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, false,  (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0x00000000}, 
-                1.0f, false, true, true,
-                BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){25, 25, 25}, (vector3_t){0, 0, 0},    (vector3_t){-80, 18, -30}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
-
-  mesh = load_mesh("./assets/obj/castle.obj");
-  texture = load_texture("./assets/textures/walls/castle.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, false, false,  (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0x00000000},
-                1.0f, false, true, false,
-                BLEND_MODE_OPAQUE, 0x00, 
-                (vector3_t){10, 10, 10}, (vector3_t){0, M_PI, 0},    (vector3_t){500, 0, 600}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
-}
-
-void load_quake_world(){
-  mesh_t *mesh;
-  texture_t *texture;
-
-  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.9f);
-  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.1f);
-
-  mesh = load_mesh("./assets/obj/quake/e4m2.obj");
-  texture = load_texture("./assets/textures/walls/wall.png");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, false,  (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0x00000000},
-                0.0f, false, true, false,
-                BLEND_MODE_OPAQUE, 0x01, 
-                (vector3_t){2, 2, 2}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
-  );
-}
-
 void load_voxel_world(){
   mesh_t *mesh;
-  texture_t *texture;
 
   create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f,  .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.8f);
   create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.4f);
 
   mesh = load_mesh("./assets/obj/voxels.obj");
-  texture = load_texture("./assets/textures/ground/mountain.png");
   create_object(mesh, OBJECT_TYPE_NORMAL, true, true, false,  (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                (color_t){.uint32 = 0xFF80FF40}, (color_t){.uint32 = 0x00000000},
-                0.0f, false, true, false,
-                BLEND_MODE_OPAQUE, 0x01, 
                 (vector3_t){10, 10, 10}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                texture
+                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 }
 
 void load_skybox(){
   mesh_t *mesh;
-  texture_t *texture;
 
   mesh = load_mesh("./assets/obj/skybox_cube.obj");
-  texture = load_texture("./assets/textures/sky/sky.png");
   skybox_id = create_object(mesh, OBJECT_TYPE_SKYBOX, false, false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                           (color_t){.uint32 = 0xFF000000}, (color_t){.uint32 = 0xFF20FFFF},
-                           1.0f, false, false, false, 
-                           BLEND_MODE_OPAQUE, 0x01, 
                            (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                           texture
+                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 }
 
 void load_server_room(){
   mesh_t *mesh;
-  texture_t *texture;
   int32_t object_id;
 
   create_light_source(LIGHT_AMBIENT, (vector3_t){.x = 0.0f,     .y = 0.0f,   .z = 0.0f},    (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 0.05f);
@@ -1963,20 +1633,15 @@ void load_server_room(){
 
   /* room */
   mesh = load_mesh("./assets/obj/server_room/room.obj");
-  texture = load_texture("./assets/textures/server_room/room.png");
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                           (color_t){.uint32 = 0xFFFFFFFF}, (color_t){.uint32 = 0x00000000},
-                           0.0f, false, true, false,
-                           BLEND_MODE_OPAQUE, 0x00, 
                            (vector3_t){1000, 400, 1300}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                           texture
+                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
-  float x_min  = objects[object_id].bbox_aabb.x_min;
-  float x_max = objects[object_id].bbox_aabb.x_max;
-  float z_min  = objects[object_id].bbox_aabb.z_min;
-  float z_max = objects[object_id].bbox_aabb.z_max;
-  float y_max   = objects[object_id].bbox_aabb.y_max;
+  float x_min     = objects[object_id].bbox_aabb.x_min;
+  float x_max     = objects[object_id].bbox_aabb.x_max;
+  float z_min     = objects[object_id].bbox_aabb.z_min;
+  float z_max     = objects[object_id].bbox_aabb.z_max;
+  float y_max     = objects[object_id].bbox_aabb.y_max;
   float thickness = 50;
   
   // x_min
@@ -2056,93 +1721,58 @@ void load_server_room(){
     object_id
   );
 
-  /* white machine */
+  return;
+
+  /* room */
   mesh = load_mesh("./assets/obj/server_room/server.obj");
-  texture = load_texture("./assets/textures/server_room/server.png");
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                           (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF202020},
-                           0.0f, false, true, false,
-                           BLEND_MODE_OPAQUE, 0x00,
                            (vector3_t){50, 50, 50}, (vector3_t){0, 0, 0}, (vector3_t){-8, 3, 178}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                           texture
+                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
   /* mainframes */
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                           (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF202020},
-                           0.0f, false, true, false,
-                           BLEND_MODE_OPAQUE, 0x00, 
                            (vector3_t){50, 50, 50}, (vector3_t){0, 0, 0}, (vector3_t){45, 3, 178}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                           texture
+                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                           (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF202020},
-                           0.0f, false, true, false,
-                           BLEND_MODE_OPAQUE, 0x00, 
                            (vector3_t){50, 50, 50}, (vector3_t){0, 0, 0}, (vector3_t){100, 3, 178}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                           texture
+                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
   mesh = load_mesh("./assets/obj/potted_tree.obj");
-  texture = load_texture("./assets/textures/plants/potted_tree.png");
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, false, true, (vector3_t){.x = 0.25f, .y = 1.0f, .z = 0.25f},
-                           (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0x00000000},
-                           0.0f, true, true, false,
-                           BLEND_MODE_ALPHA_TEST, 0x01, 
                            (vector3_t){12, 14, 12}, (vector3_t){0, 0, 0}, (vector3_t){-300, 0, 550}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                           texture
+                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
   // drone
   mesh = load_mesh("./assets/obj/drone.obj");
-  texture = load_texture("./assets/textures/misc/drone.png");
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, false, true, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.5f},
-                           (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFF808080},
-                           0.0f, true, true, false,
-                           BLEND_MODE_OPAQUE, 0x00, 
                            (vector3_t){50, 50, 50}, (vector3_t){0, 0, 0}, (vector3_t){-300, 0, 250}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                           texture
+                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
   // jupiter
   mesh = load_mesh("./assets/obj/sphere.obj");
-  texture = load_texture("./assets/textures/misc/jupiter.png");
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, false, false, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.8f},
-                           (color_t){.uint32 = 0xFFFF8060}, (color_t){.uint32 = 0xFFFF8080},
-                           0.0f, false, true, false,
-                           BLEND_MODE_OPAQUE, 0x00, 
                            (vector3_t){15, 15, 15}, (vector3_t){M_PI_2, 0, 0}, (vector3_t){350, 100, 0}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                           texture
+                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
   // cube
   mesh = create_cube_mesh((vector3_t){-1, -1, -1}, (vector3_t){1,1,1});
-  texture = load_texture("./assets/textures/misc/checker.png");
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                           (color_t){.uint32 = 0xFFFF0000}, (color_t){.uint32 = 0xFF808080},
-                           0.0f, false, true, false,
-                           BLEND_MODE_OPAQUE, 0x00, 
                            (vector3_t){10, 10, 10}, (vector3_t){M_PI_2, 0, 0}, (vector3_t){-200, 100, 0}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                           texture
+                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
   // cube and material
   mesh = load_mesh("./assets/cube.obj");
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                           (color_t){.uint32 = 0xFFFF0000}, (color_t){.uint32 = 0xFF808080},
-                           0.0f, false, true, false,
-                           BLEND_MODE_OPAQUE, 0x00, 
                            (vector3_t){10, 10, 10}, (vector3_t){M_PI_2, 0, 0}, (vector3_t){-200, 100, 0}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0},
-                           texture
+                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 }
 

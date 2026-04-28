@@ -27,27 +27,13 @@ void setup(void) ;
 
 inline void rasterize_triangle(
   triangle_t *triangle, 
-  color_t *mesh_texture, 
-  uint32_t texture_width, uint32_t texture_height, 
-  blend_mode_t blend_mode,
-  uint8_t alpha_cutoff,
-  color_t base_color,
-  float opacity,
-  bool reflects_light,
-  color_t emissive_color,
+  material_t face_material,
   light_intensity_rgb_t total_light_intensity
 );
 
 inline void rasterize_triangle_no_zbuffer_write(
   triangle_t *triangle, 
-  color_t *mesh_texture, 
-  uint32_t texture_width, uint32_t texture_height, 
-  blend_mode_t blend_mode,
-  uint8_t alpha_cutoff,
-  color_t base_color,
-  float opacity,
-  bool reflects_light,
-  color_t emissive_color,
+  material_t face_material,
   light_intensity_rgb_t total_light_intensity
 );
 
@@ -65,10 +51,7 @@ void move_player_with_collision(vector3_t move);
 void resolve_player_collisions();
 
 void load_skybox();
-void load_world1(void);
 void load_voxel_world();
 void load_server_room();
-void load_quake_world();
-void load_cave_world();
 
 #endif

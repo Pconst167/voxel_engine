@@ -17,23 +17,11 @@ int32_t create_object(
   bool attach_collision_aabb,
   vector3_t collision_aabb_scale,
 
-  color_t base_color,
-  color_t emissive_color,
-  float opacity,
-  bool two_sided_lighting,
-  bool reflects_light,
-  bool specular_highlights,
-
-  blend_mode_t blend_mode,
-  uint8_t alpha_cutoff,
-
   vector3_t scale,
   vector3_t rotation,
   vector3_t translation,
   vector3_t velocity,
-  vector3_t angular_velocity,
-
-  texture_t *texture
+  vector3_t angular_velocity
 ){
   if(num_objects >= MAX_NUM_OBJECTS){
     print_log("ERROR: max number of objects reached %d", MAX_NUM_OBJECTS);
@@ -47,24 +35,12 @@ int32_t create_object(
   object->fixed               = fixed;
   object->backface_culling    = backface_culling;
                               
-  object->base_color          = base_color;
-  object->emissive_color      = emissive_color;
-  object->opacity             = opacity;
-  object->two_sided_lighting  = two_sided_lighting;
-  object->reflects_light      = reflects_light;
-  object->specular_highlights = specular_highlights;
-  
-  object->blend_mode          = blend_mode;
-  object->alpha_cutoff        = alpha_cutoff;
-                              
   object->scale               = scale;
   object->rotation            = rotation;
   object->translation         = translation;
   object->velocity            = velocity;
   object->angular_velocity    = angular_velocity;
                               
-  object->texture             = texture;
-
   print_log("creating new object: %d", num_objects);
 
   /* if object is fixed/static, bake in all the transformations beforehand! */
@@ -141,10 +117,6 @@ int32_t create_object(
   num_objects++;
 
   return num_objects - 1;
-}
-
-void bind_texture_to_object(object_t *object, texture_t *texture){
-  object->texture = texture;
 }
 
 aabb_3d_t get_object_aabb(uint32_t object_id){

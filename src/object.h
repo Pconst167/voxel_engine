@@ -14,7 +14,6 @@ typedef enum{
   OBJECT_TYPE_SKYBOX /* skyboxes are special objects that track camera movement so they are always at constant distance from camera */
 } object_type_t;
 
-/* for now one object maps to one mesh. */
 typedef struct{
   mesh_t *mesh;
   vector3_t *transformed_vertices; /* if object is fixed, then we hold a copy of the original vertices here, only with baked transformations */
@@ -25,15 +24,6 @@ typedef struct{
   aabb_3d_t bbox_aabb; /* object's bounding box aabb */
   vector3_t bounding_center;
   float bsphere_radius;
-  /* color and light */
-  color_t base_color;
-  color_t emissive_color; /* object's own emission color */
-  float opacity; /* used as a global alpha blending - makes object totally opaque or ghostly */
-  bool two_sided_lighting; /* object will be lit on both sides of light equally */
-  bool reflects_light;
-  bool specular_highlights;
-  blend_mode_t blend_mode;
-  uint8_t alpha_cutoff;
   /* current object's trandformation state */
   vector3_t scale;
   vector3_t rotation;
@@ -41,15 +31,9 @@ typedef struct{
   /* these are added to the current transformation state for potential movement */
   vector3_t velocity;
   vector3_t angular_velocity;
-  /* texture data */
-  texture_t *texture;
   /* an array indicating the frame id where each object face was last drawn - used to avoid redrawing the same face in different chunks */
   uint32_t *face_draw_stamp;
 } object_t;
-
-typedef struct{
-  mesh_t *mesh;
-} skybox_t;
 
 /* used to sort objects for rendering */
 typedef struct{
@@ -68,26 +52,12 @@ int32_t create_object(
   bool attach_collision_aabb,
   vector3_t collision_aabb_scale,
 
-  color_t base_color,
-  color_t emissive_color,
-  float opacity,
-  bool two_sided_lighting,
-  bool reflects_light,
-  bool specular_highlights,
-
-  blend_mode_t blend_mode,
-  uint8_t alpha_cutoff,
-
   vector3_t scale,
   vector3_t rotation,
   vector3_t translation,
   vector3_t velocity,
-  vector3_t angular_velocity,
-
-  texture_t *texture
+  vector3_t angular_velocity
 );
-
-void bind_texture_to_object(object_t *object, texture_t *texture);
 
 aabb_3d_t get_object_aabb(uint32_t object_id);
 
