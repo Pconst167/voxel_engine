@@ -111,7 +111,7 @@
 #include "debug.h"
 
 // compile time enables
-#define SPECULAR_LIGHT_ENABLE 1
+#define SPECULAR_LIGHT_ENABLE 0
 
 #define PLAYER_SPEED_SHIFT_KEY_FACTOR 2.0f
 #define PLAYER_ETA_DIRECTION 1.0f /* +1: mouse back looks up, -1: mouse back looks down */
@@ -786,8 +786,8 @@ void render_chunk(chunk_t *chunk){
 
         light_intensities field is initialized to zero below in declaration - so that the light_intensities field is all 0 in case object not reflects_light
       */
-      vector3_t v_face_centroid = {(v_a.x + v_b.x + v_c.x) / 3.0f, (v_a.y + v_b.y + v_c.y) / 3.0f, (v_a.z + v_b.z + v_c.z) / 3.0f};
-      //vector3_t v_face_centroid = v_a;
+      //vector3_t v_face_centroid = {(v_a.x + v_b.x + v_c.x) / 3.0f, (v_a.y + v_b.y + v_c.y) / 3.0f, (v_a.z + v_b.z + v_c.z) / 3.0f};
+      vector3_t v_face_centroid = v_a;
       float light_intensities[MAX_NUM_LIGHT_SOURCES] = {0.0f}; // keeps the total light intensity for this face
       if(face_material.reflects_light){
         vector3_normalize_fast_approx(&v_face_normal); /* normalize here for use below */
@@ -823,17 +823,13 @@ void render_chunk(chunk_t *chunk){
             light_intensities[light_index] *= light_sources[light_index].intensity;
           }
           else if(light_sources[light_index].type == LIGHT_POINT){
-            /* the 1/r^2 relation can be done without a square root.  since r = vector length, and the relation uses r^2, we don't need to first find square root and then square it.
-              we can simply find the "semi" vector length by skipping the square root (using the _squarred function).  this gives 1/r^2 without a square root.
-              for dot product also, instead of finding the ray len, we use the len squared and then use fast inv square root.
-            */
             vector4_t light_position_view = matrix4_mul_vector3(&view_matrix, (vector3_t){light_sources[light_index].position.x, light_sources[light_index].position.y, light_sources[light_index].position.z});
             vector3_t lightpos_to_v_face_centroid_ray = (vector3_t){light_position_view.x - v_face_centroid.x, light_position_view.y - v_face_centroid.y, light_position_view.z - v_face_centroid.z};
-            float lightpos_to_v_face_centroid_ray_length_squarred = vector3_length_squarred(lightpos_to_v_face_centroid_ray);
+            float lightpos_to_v_face_centroid_ray_length = vector3_length(lightpos_to_v_face_centroid_ray);
             
             if(face_material.two_sided_lighting){
-              light_intensities[light_index] = fabsf(v_face_normal.x * lightpos_to_v_face_centroid_ray.x + v_face_normal.y * lightpos_to_v_face_centroid_ray.y + v_face_normal.z * lightpos_to_v_face_centroid_ray.z) * q_rsqrt(lightpos_to_v_face_centroid_ray_length_squarred);
-              light_intensities[light_index] /= 1.0f + lightpos_to_v_face_centroid_ray_length_squarred;
+              light_intensities[light_index] = fabsf(v_face_normal.x * lightpos_to_v_face_centroid_ray.x + v_face_normal.y * lightpos_to_v_face_centroid_ray.y + v_face_normal.z * lightpos_to_v_face_centroid_ray.z) / (lightpos_to_v_face_centroid_ray_length);
+              light_intensities[light_index] /= 1.0f + lightpos_to_v_face_centroid_ray_length;
               light_intensities[light_index] *= light_sources[light_index].intensity;
             }
             else{
@@ -841,7 +837,7 @@ void render_chunk(chunk_t *chunk){
               float light_v_face_centroid_dot_normal  = v_face_normal.x * lightpos_to_v_face_centroid_ray.x + v_face_normal.y * lightpos_to_v_face_centroid_ray.y + v_face_normal.z * lightpos_to_v_face_centroid_ray.z;
               float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
               if((light_v_face_centroid_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_v_face_centroid_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
-                light_intensities[light_index] = fabsf(light_v_face_centroid_dot_normal) * q_rsqrt(lightpos_to_v_face_centroid_ray_length_squarred);
+                light_intensities[light_index] = fabsf(light_v_face_centroid_dot_normal) / lightpos_to_v_face_centroid_ray_length;
       
                 #if SPECULAR_LIGHT_ENABLE == 1
                   if(face_material.specular_highlights){
@@ -855,7 +851,7 @@ void render_chunk(chunk_t *chunk){
                     light_intensities[light_index] += spec;
                   }
                 #endif
-                light_intensities[light_index] /= 1.0f + lightpos_to_v_face_centroid_ray_length_squarred;
+                light_intensities[light_index] /= 1.0f + lightpos_to_v_face_centroid_ray_length;
                 light_intensities[light_index] *= light_sources[light_index].intensity;
               }
               else
@@ -1246,7 +1242,7 @@ inline void rasterize_triangle(
   material_t face_material,
   light_intensity_rgb_t total_light_intensity
 ){
-  if(options.projection_mode == TEXT_FILLED){
+  if(options.projection_mode == TEXT_FILLED || face_material.texture == NULL){
     draw_filled_triangle(
       &triangle->points[0], 
       &triangle->points[1], 
@@ -1626,11 +1622,11 @@ void load_server_room(){
   int32_t object_id;
 
   create_light_source(LIGHT_AMBIENT, (vector3_t){.x = 0.0f,     .y = 0.0f,   .z = 0.0f},    (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 0.05f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = -200.0f,  .y = 100.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 4000.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = -200.0f,  .y = 100.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 4000.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = 200.0f,   .y = 100.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 4000.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = 200.0f,   .y = 100.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 4000.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 130.0f, .z = 500.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 4000.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -200.0f,  .y = 100.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 100.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -200.0f,  .y = 100.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 100.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = 200.0f,   .y = 100.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 100.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = 200.0f,   .y = 100.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 100.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 250.0f, .z = 500.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 100.0f);
 
   /* room */
   mesh = load_mesh("./assets/obj/server_room/room2.obj");
@@ -1638,6 +1634,7 @@ void load_server_room(){
                            (vector3_t){1300, 1300, 1300}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
+  
   float x_min     = objects[object_id].bbox_aabb.x_min;
   float x_max     = objects[object_id].bbox_aabb.x_max;
   float z_min     = objects[object_id].bbox_aabb.z_min;
@@ -1660,7 +1657,7 @@ void load_server_room(){
     .x_min = x_max,                  
     .x_max = x_max + thickness, 
     .z_min = z_min, 
-    .z_max = z_max - 300, 
+    .z_max = z_max - 280, 
     .y_min = 0.0f, 
     .y_max = y_max}, 
     object_id
@@ -1677,7 +1674,7 @@ void load_server_room(){
   );
   create_collision_aabb((aabb_3d_t){
     .x_min = x_min,                   
-    .x_max = x_min + 600,        
+    .x_max = x_min + 620,        
     .z_min = z_min + 250, 
     .z_max = z_min + 250 + thickness, 
     .y_min = 0.0f, 
@@ -1685,8 +1682,8 @@ void load_server_room(){
     object_id
   );
   create_collision_aabb((aabb_3d_t){
-    .x_min = x_min + 620 - thickness, 
-    .x_max = x_min + 620,        
+    .x_min = x_min + 660 - thickness, 
+    .x_max = x_min + 660,        
     .z_min = z_min, 
     .z_max = z_min + 300, 
     .y_min = 0.0f, 
@@ -1695,34 +1692,32 @@ void load_server_room(){
   );
   // z_max                                                                                       
   create_collision_aabb((aabb_3d_t){
-    .x_min = x_min + 385,             
-    .x_max = x_max,             
-    .z_min = z_max - 280 - thickness, 
-    .z_max = z_max - 280, 
-    .y_min = 0.0f, 
-    .y_max = y_max}, 
-    object_id
-  );
-  create_collision_aabb((aabb_3d_t){
-    .x_min = x_min + 430 - thickness, 
-    .x_max = x_min + 430,        
-    .z_min = z_max - 310, 
-    .z_max = z_max, 
-    .y_min = 0.0f, 
-    .y_max = y_max}, 
-    object_id
-  );
-  create_collision_aabb((aabb_3d_t){
     .x_min = x_min,                   
-    .x_max = x_min + 420,        
+    .x_max = (x_min + x_max) / 2.0f,        
     .z_min = z_max - thickness / 2.0f, 
     .z_max = z_max + thickness / 2.0f, 
     .y_min = 0.0f, 
     .y_max = y_max}, 
     object_id
   );
-
-  return;
+  create_collision_aabb((aabb_3d_t){
+    .x_min = (x_min + x_max) / 2.0f,             
+    .x_max = x_max + thickness,             
+    .z_min = z_max - 260 - thickness / 2.0f, 
+    .z_max = z_max - 260 + thickness / 2.0f, 
+    .y_min = 0.0f, 
+    .y_max = y_max}, 
+    object_id
+  );
+  create_collision_aabb((aabb_3d_t){
+    .x_min = (x_min + x_max) / 2.0f, 
+    .x_max = (x_min + x_max) / 2.0f + thickness,        
+    .z_min = z_max - 270, 
+    .z_max = z_max, 
+    .y_min = 0.0f, 
+    .y_max = y_max}, 
+    object_id
+  );
 
   /* room */
   mesh = load_mesh("./assets/obj/server_room/server.obj");
@@ -1742,19 +1737,22 @@ void load_server_room(){
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
-  mesh = load_mesh("./assets/obj/potted_tree.obj");
+  mesh = load_mesh("./assets/obj/server_room/potted_tree.obj");
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, false, true, (vector3_t){.x = 0.25f, .y = 1.0f, .z = 0.25f},
                            (vector3_t){12, 14, 12}, (vector3_t){0, 0, 0}, (vector3_t){-300, 0, 550}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
+  mesh->materials[1].blend_mode = BLEND_MODE_ALPHA_TEST;
+  mesh->materials[1].alpha_cutoff = 0x01;
 
   // drone
-  mesh = load_mesh("./assets/obj/drone.obj");
+  mesh = load_mesh("./assets/obj/server_room/drone.obj");
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, false, true, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.5f},
                            (vector3_t){50, 50, 50}, (vector3_t){0, 0, 0}, (vector3_t){-300, 0, 250}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
+return;
   // jupiter
   mesh = load_mesh("./assets/obj/sphere.obj");
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, false, false, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.8f},
