@@ -786,8 +786,8 @@ void render_chunk(chunk_t *chunk){
 
         light_intensities field is initialized to zero below in declaration - so that the light_intensities field is all 0 in case object not reflects_light
       */
-      //vector3_t v_face_centroid = {(v_a.x + v_b.x + v_c.x) / 3.0f, (v_a.y + v_b.y + v_c.y) / 3.0f, (v_a.z + v_b.z + v_c.z) / 3.0f};
-      vector3_t v_face_centroid = v_a;
+      vector3_t v_face_centroid = {(v_a.x + v_b.x + v_c.x) / 3.0f, (v_a.y + v_b.y + v_c.y) / 3.0f, (v_a.z + v_b.z + v_c.z) / 3.0f};
+      //vector3_t v_face_centroid = v_a;
       float light_intensities[MAX_NUM_LIGHT_SOURCES] = {0.0f}; // keeps the total light intensity for this face
       if(face_material.reflects_light){
         vector3_normalize_fast_approx(&v_face_normal); /* normalize here for use below */
@@ -1630,12 +1630,12 @@ void load_server_room(){
   create_light_source(LIGHT_POINT,   (vector3_t){.x = -200.0f,  .y = 100.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 4000.0f);
   create_light_source(LIGHT_POINT,   (vector3_t){.x = 200.0f,   .y = 100.0f, .z = -100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 4000.0f);
   create_light_source(LIGHT_POINT,   (vector3_t){.x = 200.0f,   .y = 100.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 4000.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 200.0f, .z = 500.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 4000.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 130.0f, .z = 500.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 4000.0f);
 
   /* room */
-  mesh = load_mesh("./assets/obj/server_room/room.obj");
+  mesh = load_mesh("./assets/obj/server_room/room2.obj");
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
-                           (vector3_t){1000, 400, 1300}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+                           (vector3_t){1300, 1300, 1300}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
   float x_min     = objects[object_id].bbox_aabb.x_min;

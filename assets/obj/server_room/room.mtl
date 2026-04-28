@@ -2,18 +2,14 @@
 # www.blender.org
 
 newmtl ceiling
-Ns 0.000000
-Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 1
-map_Kd /home/pconst/Desktop/3d_game/assets/textures/server_room/floor.png
+map_Kd /home/pconst/Desktop/3d_game/assets/textures/server_room/floor2.png
 
 newmtl floor
-Ns 0.000000
-Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
@@ -22,8 +18,6 @@ illum 1
 map_Kd /home/pconst/Desktop/3d_game/assets/textures/floor/floor.png
 
 newmtl walls
-Ns 0.000000
-Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
