@@ -16,4 +16,6 @@ typedef struct{
 } color_t;
 
 
+color_t color_from_float_rgb(float red, float green, float blue);
+
 #endif

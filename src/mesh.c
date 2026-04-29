@@ -11,47 +11,6 @@
 mesh_t meshes[MAX_NUM_MESHES];
 uint32_t num_meshes;
 
-static color_t color_from_float_rgb(float red, float green, float blue){
-  if(red   < 0.0f) red = 0.0f;
-  if(green < 0.0f) green = 0.0f;
-  if(blue  < 0.0f) blue = 0.0f;
-
-  if(red   > 1.0f) red = 1.0f;
-  if(green > 1.0f) green = 1.0f;
-  if(blue  > 1.0f) blue = 1.0f;
-
-  color_t color;
-  color.rgb.red   = (uint8_t)(red   * 255.0f);
-  color.rgb.green = (uint8_t)(green * 255.0f);
-  color.rgb.blue  = (uint8_t)(blue  * 255.0f);
-  color.rgb.alpha = 255;
-
-  return color;
-}
-
-// create a default material
-static material_t generate_default_material(const char *name){
-  material_t material;
-  memset(&material, 0, sizeof(material));
-
-  if(name)
-    snprintf(material.material_name, sizeof(material.material_name), "%s", name);
-  else
-    snprintf(material.material_name, sizeof(material.material_name), "default");
-
-  material.base_color          = color_from_float_rgb(1.0f, 1.0f, 1.0f);
-  material.emissive_color      = color_from_float_rgb(0.0f, 0.0f, 0.0f);
-  material.opacity             = 1.0f;
-  material.two_sided_lighting  = false;
-  material.reflects_light      = true;
-  material.specular_highlights = false;
-  material.blend_mode          = BLEND_MODE_OPAQUE;
-  material.alpha_cutoff        = DEFAULT_ALPHA_CUTOFF;
-  material.texture             = NULL;
-
-  return material;
-}
-
 static int find_mesh_material_id(mesh_t *mesh, const char *name){
   for(int material_i = 0; material_i < array_length(mesh->materials); material_i++)
     if(!strcmp(mesh->materials[material_i].material_name, name)) 
@@ -343,14 +302,11 @@ void load_obj_file(char *filename, mesh_t *mesh){
         face.vertex_indices[1] = vertex1_index - 1;
         face.vertex_indices[2] = vertex2_index - 1;
 
-        if(vt_idx[0] > 0)
-          face.uv[0] = texture_coords[vt_idx[0] - 1];
+        if(vt_idx[0] > 0) face.uv[0] = texture_coords[vt_idx[0] - 1];
 
-        if(vt_idx[i] > 0)
-          face.uv[1] = texture_coords[vt_idx[i] - 1];
+        if(vt_idx[i] > 0) face.uv[1] = texture_coords[vt_idx[i] - 1];
 
-        if(vt_idx[i + 1] > 0)
-          face.uv[2] = texture_coords[vt_idx[i + 1] - 1];
+        if(vt_idx[i + 1] > 0) face.uv[2] = texture_coords[vt_idx[i + 1] - 1];
 
         array_push(mesh->faces, face);
       }

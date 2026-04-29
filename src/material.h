@@ -30,4 +30,6 @@ typedef struct{
   texture_t *texture;
 } material_t;
 
+material_t generate_default_material(const char *name);
+
 #endif
