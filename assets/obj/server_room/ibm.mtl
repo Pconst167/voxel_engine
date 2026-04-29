@@ -1,0 +1,29 @@
+# Blender 4.0.2 MTL File: 'None'
+# www.blender.org
+
+newmtl body
+Ka 1.000000 1.000000 1.000000
+Kd 0.259520 0.225093 0.123282
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+
+newmtl floppies
+Ka 1.000000 1.000000 1.000000
+Kd 0.003857 0.002397 0.002045
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+
+newmtl screen.001
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 1.000000 1.000000 1.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd /home/pconst/Desktop/3d_game/assets/textures/server_room/screen.png

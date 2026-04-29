@@ -110,6 +110,7 @@
 #include "log.h"
 #include "debug.h"
 #include "material.h"
+#include "emulator/emulator.h"
 
 // compile time enables
 #define SPECULAR_LIGHT_ENABLE 0
@@ -138,6 +139,7 @@ uint64_t time_count; /* keeps a count that increments every frame - used to pace
 float time_of_day; /* keeps time the accumulation of  each delta_time per frame */
 char text0[256];
 char text1[256];
+char text2[256];
 
 /* game control */
 float delta_time;
@@ -1569,6 +1571,7 @@ void set_title(void){
   char string[256] = {0};
   if(*text0 != '\0') strcpy(string, text0);
   if(*text1 != '\0') strcat(string, text1);
+  if(*text2 != '\0') strcat(string, text2);
 
   SDL_SetWindowTitle(window, string);
 }
@@ -1578,22 +1581,27 @@ int main(void) {
   quit = !initialize_window();
   setup();
   
+  emulator_setup();
+
   while(!quit){
     frame_id++;
     process_frame_rate();
     process_input();
 
-    if(!is_paused){
-      update_state();
-      move_player();
-      render_visible_chunks();
-      time_count++; /* one count per frame */
-    }
+    update_state();
+    move_player();
+
+    emulator_cycle(100000);
+    render_visible_chunks();
+    
+    time_count++; /* one count per frame */
 
     sdl_render();
     set_title();
     SDL_RenderPresent(renderer);
   }
+
+  emulator_finish();
 
   destroy_window();
   free_resources();
@@ -1608,7 +1616,7 @@ void load_voxel_world(){
   create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.4f);
 
   mesh = load_mesh("./assets/obj/voxels.obj");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, false,  (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, false,  (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
                 (vector3_t){10, 10, 10}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
                 (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
@@ -1618,7 +1626,7 @@ void load_skybox(){
   mesh_t *mesh;
 
   mesh = load_mesh("./assets/obj/skybox_cube.obj");
-  skybox_id = create_object(mesh, OBJECT_TYPE_SKYBOX, false, false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
+  skybox_id = create_object(mesh, OBJECT_TYPE_SKYBOX, false, false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
                            (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
@@ -1631,11 +1639,12 @@ void load_server_room(){
   create_light_source(LIGHT_AMBIENT, (vector3_t){.x = 0.0f,     .y = 0.0f,   .z = 0.0f},    (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 0.05f);
   create_light_source(LIGHT_POINT,   (vector3_t){.x = 300.0f,   .y = 100.0f, .z = -50.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 50.0f);
   create_light_source(LIGHT_POINT,   (vector3_t){.x = -300.0f,   .y = 100.0f, .z = -50.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 50.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 250.0f, .z = 500.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 50.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 250.0f, .z = 500.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 150.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = 100.0f,  .y = 250.0f, .z = 300.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 150.0f);
 
   /* room */
   mesh = load_mesh("./assets/obj/server_room/room2.obj");
-  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f},
+  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
                            (vector3_t){1300, 1500, 1300}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
@@ -1724,39 +1733,37 @@ void load_server_room(){
     object_id
   );
 
+  // ibm
+  term0 = load_mesh("./assets/obj/server_room/ibm.obj");
+  object_id = create_object(term0, OBJECT_TYPE_NORMAL, true, true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.6f}, (vector3_t){0.0f, 0.0f, 20.0f},
+                           (vector3_t){100, 100, 100}, (vector3_t){0, 0, 0}, (vector3_t){-300, 3, 600}, 
+                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  );
+
   /* mainframes */
   term0 = load_mesh("./assets/obj/server_room/server.obj");
-  object_id = create_object(term0, OBJECT_TYPE_NORMAL, true, true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.6f},
-                           (vector3_t){100, 80, 50}, (vector3_t){0, 0, 0}, (vector3_t){100, 3, 330}, 
+  object_id = create_object(term0, OBJECT_TYPE_NORMAL, true, true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.6f}, (vector3_t){0.0f, 0.0f, 20.0f},
+                           (vector3_t){100, 80, 80}, (vector3_t){0, 0, 0}, (vector3_t){100, 3, 330}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
   term1 = load_mesh("./assets/obj/server_room/server.obj");
-  object_id = create_object(term1, OBJECT_TYPE_NORMAL, true, true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.6f},
-                           (vector3_t){100, 80, 50}, (vector3_t){0, 0, 0}, (vector3_t){280, 3, 330}, 
+  object_id = create_object(term1, OBJECT_TYPE_NORMAL, true, true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.6f}, (vector3_t){0.0f, 0.0f, 20.0f},
+                           (vector3_t){100, 80, 80}, (vector3_t){0, 0, 0}, (vector3_t){280, 3, 330}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
   term2 = load_mesh("./assets/obj/server_room/server.obj");
-  object_id = create_object(term2, OBJECT_TYPE_NORMAL, true, true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.6f},
-                           (vector3_t){100, 80, 50}, (vector3_t){0, 0, 0}, (vector3_t){460, 3, 330}, 
+  object_id = create_object(term2, OBJECT_TYPE_NORMAL, true, true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.6f}, (vector3_t){0.0f, 0.0f, 20.0f},
+                           (vector3_t){100, 80, 80}, (vector3_t){0, 0, 0}, (vector3_t){460, 3, 330}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
   texture_t *tex = load_texture("./assets/textures/server_room/sol1_screen.png");
   term2->materials[2].texture = tex;
 
-  // tree
-  mesh = load_mesh("./assets/obj/server_room/potted_tree.obj");
-  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, false, true, (vector3_t){.x = 0.25f, .y = 1.0f, .z = 0.25f},
-                           (vector3_t){12, 14, 12}, (vector3_t){0, 0, 0}, (vector3_t){-300, 0, 550}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  );
-  mesh->materials[1].blend_mode = BLEND_MODE_ALPHA_TEST;
-  mesh->materials[1].alpha_cutoff = 0x01;
-
   // drone
   mesh = load_mesh("./assets/obj/server_room/drone.obj");
-  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, false, true, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.5f},
+  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, false, true, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.8f}, (vector3_t){0.0f, 0.0f, 0.0f},
                            (vector3_t){80, 80, 80}, (vector3_t){0, 0, 0}, (vector3_t){-300, 0, 250}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );

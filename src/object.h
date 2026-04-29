@@ -51,6 +51,7 @@ int32_t create_object(
   bool backface_culling,
   bool attach_collision_aabb,
   vector3_t collision_aabb_scale,
+  vector3_t collision_aabb_translation,
 
   vector3_t scale,
   vector3_t rotation,

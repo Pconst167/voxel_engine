@@ -16,6 +16,7 @@ int32_t create_object(
   bool backface_culling,
   bool attach_collision_aabb,
   vector3_t collision_aabb_scale,
+  vector3_t collision_aabb_translation,
 
   vector3_t scale,
   vector3_t rotation,
@@ -92,12 +93,12 @@ int32_t create_object(
     if(attach_collision_aabb){
       create_collision_aabb(
         (aabb_3d_t){
-          .x_min = 0.5 * object->bbox_aabb.x_min * (1.0 + collision_aabb_scale.x) + 0.5 * object->bbox_aabb.x_max * (1.0 - collision_aabb_scale.x),
-          .x_max = 0.5 * object->bbox_aabb.x_min * (1.0 - collision_aabb_scale.x) + 0.5 * object->bbox_aabb.x_max * (1.0 + collision_aabb_scale.x),
-          .y_min = 0.5 * object->bbox_aabb.y_min * (1.0 + collision_aabb_scale.y) + 0.5 * object->bbox_aabb.y_max * (1.0 - collision_aabb_scale.y),
-          .y_max = 0.5 * object->bbox_aabb.y_min * (1.0 - collision_aabb_scale.y) + 0.5 * object->bbox_aabb.y_max * (1.0 + collision_aabb_scale.y),
-          .z_min = 0.5 * object->bbox_aabb.z_min * (1.0 + collision_aabb_scale.z) + 0.5 * object->bbox_aabb.z_max * (1.0 - collision_aabb_scale.z),
-          .z_max = 0.5 * object->bbox_aabb.z_min * (1.0 - collision_aabb_scale.z) + 0.5 * object->bbox_aabb.z_max * (1.0 + collision_aabb_scale.z)
+          .x_min = 0.5 * object->bbox_aabb.x_min * (1.0 + collision_aabb_scale.x) + 0.5 * object->bbox_aabb.x_max * (1.0 - collision_aabb_scale.x) + collision_aabb_translation.x,
+          .x_max = 0.5 * object->bbox_aabb.x_min * (1.0 - collision_aabb_scale.x) + 0.5 * object->bbox_aabb.x_max * (1.0 + collision_aabb_scale.x) + collision_aabb_translation.x,
+          .y_min = 0.5 * object->bbox_aabb.y_min * (1.0 + collision_aabb_scale.y) + 0.5 * object->bbox_aabb.y_max * (1.0 - collision_aabb_scale.y) + collision_aabb_translation.y,
+          .y_max = 0.5 * object->bbox_aabb.y_min * (1.0 - collision_aabb_scale.y) + 0.5 * object->bbox_aabb.y_max * (1.0 + collision_aabb_scale.y) + collision_aabb_translation.y,
+          .z_min = 0.5 * object->bbox_aabb.z_min * (1.0 + collision_aabb_scale.z) + 0.5 * object->bbox_aabb.z_max * (1.0 - collision_aabb_scale.z) + collision_aabb_translation.z,
+          .z_max = 0.5 * object->bbox_aabb.z_min * (1.0 - collision_aabb_scale.z) + 0.5 * object->bbox_aabb.z_max * (1.0 + collision_aabb_scale.z) + collision_aabb_translation.z
         },
         num_objects
       );
