@@ -4,6 +4,7 @@
 #include "upng.h"
 #include "texture.h"
 #include "log.h"
+#include "debug.h"
 
 texture_t texture_list[MAX_NUM_TEXTURES];
 uint32_t num_textures;

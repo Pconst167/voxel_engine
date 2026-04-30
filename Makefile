@@ -1,9 +1,8 @@
 SRC = ./src/*.c ./src/emulator/*.c
+FLAGS = -Wall -Wextra -Wformat=2 -O3 -march=native -std=c99 -lSDL2 -lSDL2_mixer -lm -lGL -DDEBUG_MEMORY
 
 build:
-	gcc -Wall -Wextra -Wformat=2 -O3 -march=native -std=c99 \
-	$(SRC) \
-	-lSDL2 -lSDL2_mixer -lm -lGL -o renderer
+	gcc $(SRC) $(FLAGS)  -o renderer
 
 run:
 	./renderer

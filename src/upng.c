@@ -28,6 +28,7 @@ freely, subject to the following restrictions:
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include "debug.h"
 
 #include "upng.h"
 

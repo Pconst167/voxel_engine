@@ -110,9 +110,9 @@
 #include "text.h"
 #include "options.h"
 #include "log.h"
-#include "debug.h"
 #include "material.h"
 #include "emulator/emulator.h"
+#include "debug.h"
 
 // compile time enables
 #define SPECULAR_LIGHT_ENABLE 0
@@ -1608,6 +1608,8 @@ int main(void) {
 
   destroy_window();
   free_resources();
+
+  debug_print_allocated();
 
   return 0;
 }

@@ -2,9 +2,17 @@
 #define DEBUG_H
 
 #include <stdint.h>
+#include <stddef.h>
 
-extern uint64_t pixels_tested, pixels_drawn, pixels_rejected;
-extern uint64_t avg_pixels_tested, avg_pixels_drawn, avg_pixels_rejected;
+#define DEBUG_MEMORY_ALLOCATION_SIZE 10000
 
+void *debug_memory_malloc(size_t size, const char *file, uint32_t line);
+void debug_print_allocated(void);
+
+#ifdef DEBUG_MEMORY
+
+  #define malloc(size) debug_memory_malloc((size), __FILE__, __LINE__)
+
+#endif
 
 #endif

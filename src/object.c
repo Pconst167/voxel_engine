@@ -5,6 +5,7 @@
 #include "matrix.h"
 #include "collision.h"
 #include "log.h"
+#include "debug.h"
 
 object_t objects[MAX_NUM_OBJECTS];
 uint32_t num_objects;

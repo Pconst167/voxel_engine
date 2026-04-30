@@ -1,5 +1,6 @@
 #include "display.h"
 #include "log.h"
+#include "debug.h"
 
 #define ASPECT_RATIO_X (1920.0f / 1200.0f)
 

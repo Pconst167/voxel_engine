@@ -1,7 +1,6 @@
 #include <math.h>
 #include "aabb.h"
 
-
 aabb_3d_t calculate_3d_aabb(
   vector3_t v_a,
   vector3_t v_b,

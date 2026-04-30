@@ -1,4 +1,5 @@
 #include "clipping.h"
+#include "debug.h"
 
 plane_t view_frustrum_planes[NUM_VIEW_FRUSTRUM_PLANES];
 
