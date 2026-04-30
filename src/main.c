@@ -194,8 +194,8 @@ void setup(void) {
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
 
   /* create objects */
-  load_server_room();
-  //load_voxel_world();
+  //load_server_room();
+  load_voxel_world();
   //load_world1();
 
   /* normalize all light direction vectors to unity */
@@ -509,7 +509,8 @@ RENDER STAGE
   ** after all intersecting chunks are found, sort them front to back before rendering.
 
 */
-void render_visible_chunks(void) {
+// old function that does not sort before rendering - about 5FPS slower
+void render_visible_chunks2(void) {
   /* reset color_buffer */
   memset(color_buffer, color_buffer_reset, total_buffer_pixels * sizeof(uint32_t));
   /* reset zbuffer - it needs to be reset here as well in case skybox object does not exist */
@@ -536,6 +537,73 @@ void render_visible_chunks(void) {
   if(options.render_collision_aabb_outlines) draw_collision_aabb_outlines(); 
 }
 
+// sort chunks front to back and render
+void render_visible_chunks(void) {
+  /* reset color buffer */
+  memset(color_buffer, color_buffer_reset, total_buffer_pixels * sizeof(uint32_t));
+
+  /* reset zbuffer */
+  memset(zbuffer, 0x00, total_buffer_pixels * sizeof(uint32_t));
+
+  view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
+
+  total_triangles_rendered = 0;
+  total_chunks_rendered = 0;
+
+  chunk_sort_key_t chunk_sort_keys[NUM_CHUNK_DIVISIONS * NUM_CHUNK_DIVISIONS];
+  int num_visible_chunks = 0;
+
+  /* collect visible chunks */
+  for(int z_row = 0; z_row < NUM_CHUNK_DIVISIONS; z_row++){
+    for(int x_col = 0; x_col < NUM_CHUNK_DIVISIONS; x_col++){
+      chunk_t *chunk = &chunks[z_row][x_col];
+
+      if(chunk->empty) continue;
+
+      chunk_intersection_mode_t intersection_mode = get_chunk_intersection_mode_fast(chunk);
+
+      if(intersection_mode != CHUNK_INTERSECTION_MODE_INSIDE && intersection_mode != CHUNK_INTERSECTION_MODE_INTERSECTING) continue;
+
+      /* compute chunk center */
+      float center_x = (float)((chunk->x_min + chunk->x_max) * 0.5);
+      float center_y = (float)((chunk->y_min + chunk->y_max) * 0.5);
+      float center_z = (float)((chunk->z_min + chunk->z_max) * 0.5);
+
+      vector4_t chunk_center_view = matrix4_mul_vector3(&view_matrix, (vector3_t){center_x, center_y, center_z});
+
+      chunk_sort_keys[num_visible_chunks].chunk_z_row = z_row;
+      chunk_sort_keys[num_visible_chunks].chunk_x_col = x_col;
+      chunk_sort_keys[num_visible_chunks].sort_z = chunk_center_view.z;
+
+      num_visible_chunks++;
+    }
+  }
+
+  /* insertion sort (front-to-back = nearest first) */
+  for(int i = 1; i < num_visible_chunks; i++){
+    chunk_sort_key_t key = chunk_sort_keys[i];
+    int j = i - 1;
+
+    while(j >= 0 && chunk_sort_keys[j].sort_z > key.sort_z){
+      chunk_sort_keys[j + 1] = chunk_sort_keys[j];
+      j--;
+    }
+
+    chunk_sort_keys[j + 1] = key;
+  }
+
+  /* render in sorted order */
+  for(int i = 0; i < num_visible_chunks; i++){
+    int z_row = chunk_sort_keys[i].chunk_z_row;
+    int x_col = chunk_sort_keys[i].chunk_x_col;
+
+    render_chunk(&chunks[z_row][x_col]);
+    total_chunks_rendered++;
+  }
+
+  if(options.render_chunk_outlines) draw_chunk_outlines();
+  if(options.render_collision_aabb_outlines) draw_collision_aabb_outlines();
+}
 /*  0 : outside
     1 : inside
    -1 : intersecting
