@@ -1740,6 +1740,7 @@ void load_server_room(){
   );
 
   //object_deactivate_collision_aabb(aabb_back);
+  texture_t *tex;
 
   // ibm
   mesh = load_mesh("./assets/obj/server_room/ibm.obj", true);
@@ -1776,6 +1777,8 @@ void load_server_room(){
                            (vector3_t){130, 110, 80}, (vector3_t){0, 0, 0}, (vector3_t){150, 3, 330}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
+  tex = load_texture("./assets/textures/server_room/sol1_screen_green.png");
+  term0->materials[3].texture = tex;
 
   term1 = load_mesh("./assets/obj/server_room/server.obj", false);
   object_id = create_object(term1, OBJECT_TYPE_NORMAL, true, true, 
@@ -1790,7 +1793,7 @@ void load_server_room(){
                            (vector3_t){130, 110, 80}, (vector3_t){0, 0, 0}, (vector3_t){510, 3, 330}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
-  texture_t *tex = load_texture("./assets/textures/server_room/sol1_screen.png");
+  tex = load_texture("./assets/textures/server_room/sol1_screen_amber.png");
   term2->materials[3].texture = tex;
 
 
