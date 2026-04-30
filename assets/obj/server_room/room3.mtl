@@ -29,7 +29,7 @@ Ke 1.000000 1.000000 1.000000
 Ni 1.450000
 d 1.000000
 illum 1
-map_Kd /home/pconst/Desktop/3d_game/assets/textures/sky/sky3.png
+map_Kd /home/pconst/Desktop/3d_game/assets/textures/server_room/sky1.png
 
 newmtl walls.004
 Ns 0.000000

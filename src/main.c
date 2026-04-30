@@ -1580,7 +1580,7 @@ void set_title(void){
 }
 
 int main(void) {
-
+  
   quit = !initialize_window();
   setup();
   
@@ -1644,9 +1644,9 @@ void load_server_room(){
   int32_t object_id;
 
   create_light_source(LIGHT_AMBIENT, (vector3_t){.x = 0.0f,     .y = 0.0f,   .z = 0.0f},    (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 0.05f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = 300.0f,   .y = 100.0f, .z = -50.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 300.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = -300.0f,   .y = 100.0f, .z = -50.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 300.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 250.0f, .z = 500.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 150.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = 300.0f,   .y = 50.0f, .z = -50.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 300.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -300.0f,   .y = 50.0f, .z = -50.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 300.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 150.0f, .z = 400.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF00FF}, 150.0f);
   //create_light_source(LIGHT_POINT,   (vector3_t){.x = 100.0f,  .y = 250.0f, .z = 300.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 100.0f);
 
   /* room */

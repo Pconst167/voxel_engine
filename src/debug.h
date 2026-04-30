@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define DEBUG_MEMORY_ALLOCATION_SIZE 10000
+#define DEBUG_MEMORY_ALLOCATION_SIZE 2000
 
 void *debug_memory_malloc(size_t size, const char *file, uint32_t line);
 void debug_print_allocated(void);

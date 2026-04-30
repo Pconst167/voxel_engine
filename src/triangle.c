@@ -590,11 +590,9 @@ inline void draw_textured_triangle_opaque(
           interpolated_u /= interpolated_reciprocal_w;
           interpolated_v /= interpolated_reciprocal_w;
 
-          // use mod operation for uv's that go above 1.0, so textures are repeated
-          int texture_u = (int)(interpolated_u * texture_width)  % texture_width;
-          int texture_v = (int)(interpolated_v * texture_height) % texture_height;
-          if(texture_u < 0) texture_u += texture_width;
-          if(texture_v < 0) texture_v += texture_height;
+          // use bit masking for UV repeating - masking also handles negative UVs
+          int texture_u = (int)(interpolated_u * texture_width)  & (texture_width - 1);
+          int texture_v = (int)(interpolated_v * texture_height) & (texture_height - 1);
 
           color_t texel = texture[texture_v * texture_width + texture_u];
 
@@ -780,11 +778,9 @@ void draw_textured_triangle_opaque_float(
           interpolated_u /= interpolated_reciprocal_w;
           interpolated_v /= interpolated_reciprocal_w;
 
-          // use mod operation for uv's that go above 1.0, so textures are repeated
-          int texture_u = (int)(interpolated_u * texture_width)  % texture_width;
-          int texture_v = (int)(interpolated_v * texture_height) % texture_height;
-          if(texture_u < 0) texture_u += texture_width;
-          if(texture_v < 0) texture_v += texture_height;
+          // use bit masking for UV repeating - masking also handles negative UVs
+          int texture_u = (int)(interpolated_u * texture_width)  & (texture_width - 1);
+          int texture_v = (int)(interpolated_v * texture_height) & (texture_height - 1);
 
           color_t texel = texture[texture_v * texture_width + texture_u];
           
@@ -963,11 +959,9 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
           interpolated_u /= interpolated_reciprocal_w;
           interpolated_v /= interpolated_reciprocal_w;
 
-          // use mod operation for uv's that go above 1.0, so textures are repeated
-          int texture_u = (int)(interpolated_u * texture_width)  % texture_width;
-          int texture_v = (int)(interpolated_v * texture_height) % texture_height;
-          if(texture_u < 0) texture_u += texture_width;
-          if(texture_v < 0) texture_v += texture_height;
+          // use bit masking for UV repeating - masking also handles negative UVs
+          int texture_u = (int)(interpolated_u * texture_width)  & (texture_width - 1);
+          int texture_v = (int)(interpolated_v * texture_height) & (texture_height - 1);
 
           color_t texel = texture[texture_v * texture_width + texture_u];
           
@@ -1145,11 +1139,9 @@ void draw_textured_triangle_alpha_test(
           interpolated_u /= interpolated_reciprocal_w;
           interpolated_v /= interpolated_reciprocal_w;
 
-          // use mod operation for uv's that go above 1.0, so textures are repeated
-          int texture_u = (int)(interpolated_u * texture_width)  % texture_width;
-          int texture_v = (int)(interpolated_v * texture_height) % texture_height;
-          if(texture_u < 0) texture_u += texture_width;
-          if(texture_v < 0) texture_v += texture_height;
+          // use bit masking for UV repeating - masking also handles negative UVs
+          int texture_u = (int)(interpolated_u * texture_width)  & (texture_width - 1);
+          int texture_v = (int)(interpolated_v * texture_height) & (texture_height - 1);
 
           color_t texel = texture[texture_v * texture_width + texture_u];
           
@@ -1330,11 +1322,9 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
           interpolated_u /= interpolated_reciprocal_w;
           interpolated_v /= interpolated_reciprocal_w;
 
-          // use mod operation for uv's that go above 1.0, so textures are repeated
-          int texture_u = (int)(interpolated_u * texture_width)  % texture_width;
-          int texture_v = (int)(interpolated_v * texture_height) % texture_height;
-          if(texture_u < 0) texture_u += texture_width;
-          if(texture_v < 0) texture_v += texture_height;
+          // use bit masking for UV repeating - masking also handles negative UVs
+          int texture_u = (int)(interpolated_u * texture_width)  & (texture_width - 1);
+          int texture_v = (int)(interpolated_v * texture_height) & (texture_height - 1);
 
           color_t texel = texture[texture_v * texture_width + texture_u];
           
@@ -1513,11 +1503,9 @@ void draw_textured_triangle_alpha_blend(
           interpolated_u /= interpolated_reciprocal_w;
           interpolated_v /= interpolated_reciprocal_w;
 
-          // use mod operation for uv's that go above 1.0, so textures are repeated
-          int texture_u = (int)(interpolated_u * texture_width)  % texture_width;
-          int texture_v = (int)(interpolated_v * texture_height) % texture_height;
-          if(texture_u < 0) texture_u += texture_width;
-          if(texture_v < 0) texture_v += texture_height;
+          // use bit masking for UV repeating - masking also handles negative UVs
+          int texture_u = (int)(interpolated_u * texture_width)  & (texture_width - 1);
+          int texture_v = (int)(interpolated_v * texture_height) & (texture_height - 1);
 
           color_t texel = texture[texture_v * texture_width + texture_u];
           
@@ -1695,11 +1683,9 @@ void draw_textured_triangle(
           interpolated_u /= interpolated_reciprocal_w;
           interpolated_v /= interpolated_reciprocal_w;
 
-          // use mod operation for uv's that go above 1.0, so textures are repeated
-          int texture_u = (int)(interpolated_u * texture_width)  % texture_width;
-          int texture_v = (int)(interpolated_v * texture_height) % texture_height;
-          if(texture_u < 0) texture_u += texture_width;
-          if(texture_v < 0) texture_v += texture_height;
+          // use bit masking for UV repeating - masking also handles negative UVs
+          int texture_u = (int)(interpolated_u * texture_width)  & (texture_width - 1);
+          int texture_v = (int)(interpolated_v * texture_height) & (texture_height - 1);
 
           color_t texel = texture[texture_v * texture_width + texture_u];
           
@@ -1869,11 +1855,9 @@ void draw_textured_triangle_affine(
           float interpolated_u = alpha * v0_u + beta * v1_u + gamma * v2_u;
           float interpolated_v = alpha * v0_v + beta * v1_v + gamma * v2_v;
 
-          // use mod operation for uv's that go above 1.0, so textures are repeated
-          int texture_u = (int)(interpolated_u * texture_width)  % texture_width;
-          int texture_v = (int)(interpolated_v * texture_height) % texture_height;
-          if(texture_u < 0) texture_u += texture_width;
-          if(texture_v < 0) texture_v += texture_height;
+          // use bit masking for UV repeating - masking also handles negative UVs
+          int texture_u = (int)(interpolated_u * texture_width)  & (texture_width - 1);
+          int texture_v = (int)(interpolated_v * texture_height) & (texture_height - 1);
 
           color_t texel = texture[texture_v * texture_width + texture_u];
           
@@ -2264,11 +2248,9 @@ void draw_textured_triangle_opaque(
         interpolated_u /= interpolated_reciprocal_w;
         interpolated_v /= interpolated_reciprocal_w;
 
-        // use mod operation for uv's that go above 1.0, so textures are repeated
-        int texture_u = (int)(interpolated_u * texture_width)  % texture_width;
-        int texture_v = (int)(interpolated_v * texture_height) % texture_height;
-        if(texture_u < 0) texture_u += texture_width;
-        if(texture_v < 0) texture_v += texture_height;
+        // use bit masking for UV repeating - masking also handles negative UVs
+        int texture_u = (int)(interpolated_u * texture_width)  & (texture_width - 1);
+        int texture_v = (int)(interpolated_v * texture_height) & (texture_height - 1);
 
         color_t texel = texture[texture_v * texture_width + texture_u];
 
