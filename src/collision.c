@@ -6,10 +6,12 @@ uint32_t collision_step = 1; /* starts at 1 because each collision aabb's initia
 
 uint32_t create_collision_aabb(
   aabb_3d_t aabb,
-  uint32_t owner_object_id
+  uint32_t owner_object_id,
+  bool active
 ){
   collision_aabbs[num_collision_aabbs].aabb            = aabb;
   collision_aabbs[num_collision_aabbs].owner_object_id = owner_object_id;
+  collision_aabbs[num_collision_aabbs].active          = active;
   collision_aabbs[num_collision_aabbs].collision_step  = 0;
 
   num_collision_aabbs++;

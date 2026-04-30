@@ -186,7 +186,7 @@ static void load_mtl_file(
   fclose(file);
 }
 
-void load_obj_file(char *filename, mesh_t *mesh){
+void load_obj_file(char *filename, mesh_t *mesh, bool invert_x){
   FILE *file = fopen(filename, "r");
   char line[1024];
   uv_t *texture_coords = NULL;
@@ -238,8 +238,10 @@ void load_obj_file(char *filename, mesh_t *mesh){
     /* vertex */
     else if(strncmp(line, "v ", 2) == 0){
       vector3_t vertex;
-      if(sscanf(line, "v %f %f %f", &vertex.x, &vertex.y, &vertex.z) == 3)
+      if(sscanf(line, "v %f %f %f", &vertex.x, &vertex.y, &vertex.z) == 3){
+        if(invert_x) vertex.x = -vertex.x;
         array_push(mesh->vertices, vertex);
+      }
     }
     /* texture coord */
     else if(strncmp(line, "vt ", 3) == 0){
@@ -259,25 +261,30 @@ void load_obj_file(char *filename, mesh_t *mesh){
 
       while(token != NULL && num_vertices < 16){
         int v = 0, vt = 0, vn = 0;
+        bool parsed_vertex_ok = false;
 
         if(sscanf(token, "%d/%d/%d", &v, &vt, &vn) == 3){
           v_idx[num_vertices]  = v;
           vt_idx[num_vertices] = vt;
+          parsed_vertex_ok = true;
         }
         else if(sscanf(token, "%d//%d", &v, &vn) == 2){
           v_idx[num_vertices]  = v;
           vt_idx[num_vertices] = 0;
+          parsed_vertex_ok = true;
         }
         else if(sscanf(token, "%d/%d", &v, &vt) == 2){
           v_idx[num_vertices]  = v;
           vt_idx[num_vertices] = vt;
+          parsed_vertex_ok = true;
         }
         else if(sscanf(token, "%d", &v) == 1){
           v_idx[num_vertices]  = v;
           vt_idx[num_vertices] = 0;
+          parsed_vertex_ok = true;
         }
 
-        num_vertices++;
+        if(parsed_vertex_ok) num_vertices++;
         token = strtok(NULL, " \n\r");
       }
 
@@ -292,21 +299,41 @@ void load_obj_file(char *filename, mesh_t *mesh){
         int vertex1_index = v_idx[i];
         int vertex2_index = v_idx[i + 1];
 
-        int vertex_count = array_length(mesh->vertices);
+        int texture0_index = vt_idx[0];
+        int texture1_index = vt_idx[i];
+        int texture2_index = vt_idx[i + 1];
 
+        int vertex_count  = array_length(mesh->vertices);
+        int texture_count = array_length(texture_coords);
+
+        // handle negative vertex indices
         if(vertex0_index < 0) vertex0_index = vertex_count + vertex0_index + 1;
         if(vertex1_index < 0) vertex1_index = vertex_count + vertex1_index + 1;
         if(vertex2_index < 0) vertex2_index = vertex_count + vertex2_index + 1;
+
+        // handle negative texture indices
+        if(texture0_index < 0) texture0_index = texture_count + texture0_index + 1;
+        if(texture1_index < 0) texture1_index = texture_count + texture1_index + 1;
+        if(texture2_index < 0) texture2_index = texture_count + texture2_index + 1;
 
         face.vertex_indices[0] = vertex0_index - 1;
         face.vertex_indices[1] = vertex1_index - 1;
         face.vertex_indices[2] = vertex2_index - 1;
 
-        if(vt_idx[0] > 0) face.uv[0] = texture_coords[vt_idx[0] - 1];
+        if(texture0_index > 0) face.uv[0] = texture_coords[texture0_index - 1];
+        if(texture1_index > 0) face.uv[1] = texture_coords[texture1_index - 1];
+        if(texture2_index > 0) face.uv[2] = texture_coords[texture2_index - 1];
 
-        if(vt_idx[i] > 0) face.uv[1] = texture_coords[vt_idx[i] - 1];
-
-        if(vt_idx[i + 1] > 0) face.uv[2] = texture_coords[vt_idx[i + 1] - 1];
+        if(invert_x){
+          uint32_t temp_vertex;
+          uv_t temp_uv;
+          temp_vertex = face.vertex_indices[1];
+          temp_uv = face.uv[1];
+          face.vertex_indices[1] = face.vertex_indices[2];
+          face.vertex_indices[2] = temp_vertex;
+          face.uv[1] = face.uv[2];
+          face.uv[2] = temp_uv;
+        }
 
         array_push(mesh->faces, face);
       }
@@ -331,7 +358,7 @@ void load_obj_file(char *filename, mesh_t *mesh){
   fclose(file);
 }
 
-mesh_t *load_mesh(char *obj_filename){
+mesh_t *load_mesh(char *obj_filename, bool invert_x){
   if(num_meshes >= MAX_NUM_MESHES){
     print_log("ERROR: max number of meshes reached %d", MAX_NUM_MESHES);
     return NULL;
@@ -342,7 +369,7 @@ mesh_t *load_mesh(char *obj_filename){
   /* grab pointer to last mesh slot */
   mesh = &meshes[num_meshes];
 
-  load_obj_file(obj_filename, mesh); // load obj file into new mesh
+  load_obj_file(obj_filename, mesh, invert_x); // load obj file into new mesh
 
   /* compute a bounding box around the mesh */
   int num_vertices = mesh->num_vertices;

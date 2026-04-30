@@ -1,7 +1,7 @@
 # Blender 4.0.2 MTL File: 'None'
 # www.blender.org
 
-newmtl ceiling.002
+newmtl ceiling.004
 Ns 0.000000
 Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000
@@ -11,7 +11,7 @@ d 1.000000
 illum 1
 map_Kd /home/pconst/Desktop/3d_game/assets/textures/server_room/ceiling.png
 
-newmtl floor.002
+newmtl floor.004
 Ns 0.000000
 Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000
@@ -21,18 +21,17 @@ d 1.000000
 illum 1
 map_Kd /home/pconst/Desktop/3d_game/assets/textures/server_room/floor2.png
 
-newmtl lights
+newmtl lights.001
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
-Kd 0.800000 0.800000 0.800000
 Ks 0.500000 0.500000 0.500000
 Ke 1.000000 1.000000 1.000000
 Ni 1.450000
 d 1.000000
-illum 0
+illum 1
 map_Kd /home/pconst/Desktop/3d_game/assets/textures/sky/sky3.png
 
-newmtl walls.002
+newmtl walls.004
 Ns 0.000000
 Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000

@@ -50,6 +50,7 @@ int32_t create_object(
   bool fixed,
   bool backface_culling,
   bool attach_collision_aabb,
+  bool collision_aabb_active,
   vector3_t collision_aabb_scale,
   vector3_t collision_aabb_translation,
 
@@ -62,5 +63,7 @@ int32_t create_object(
 
 aabb_3d_t get_object_aabb(uint32_t object_id);
 
+void object_activate_collision_aabb(uint32_t collision_aabb_id);
+void object_deactivate_collision_aabb(uint32_t collision_aabb_id);
 
 #endif

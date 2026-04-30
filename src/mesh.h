@@ -36,8 +36,8 @@ typedef struct{
 extern mesh_t meshes[MAX_NUM_MESHES];
 extern uint32_t num_meshes;
 
-void load_obj_file(char* filename, mesh_t *mesh);
-mesh_t *load_mesh(char *obj_filename);
+void load_obj_file(char* filename, mesh_t *mesh, bool invert_x);
+mesh_t *load_mesh(char *obj_filename, bool invert_x);
 
 mesh_t *create_cube_mesh(vector3_t vertex_min, vector3_t vertex_max);
 

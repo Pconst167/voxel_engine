@@ -29,6 +29,8 @@
       then for fully inside, we only test for clipping, but for intersecting chunks, clip all triangles directly.
 
     TODO:
+      add funcs to remove collision aabb from object, and change them
+
       add functions to add cube, sphere, cylinder, etc.
 
       convert other raster functions to fixed point
@@ -115,7 +117,7 @@
 // compile time enables
 #define SPECULAR_LIGHT_ENABLE 0
 
-#define PLAYER_SPEED_SHIFT_KEY_FACTOR 2.0f
+#define PLAYER_SPEED_SHIFT_KEY_FACTOR 4.0f
 #define PLAYER_ETA_DIRECTION 1.0f /* +1: mouse back looks up, -1: mouse back looks down */
 #define MOUSE_SENSITIVITY 0.005f
 #define DAY_LENGTH (1.01f * 60.0f * 60.0f / 0.016f) /* hours */
@@ -143,7 +145,7 @@ char text2[256];
 
 /* game control */
 float delta_time;
-float move_speed = 200.0f;
+float move_speed = 100.0f;
 float turn_speed = 2.0f;
 bool quit = false;
 bool is_paused = false;
@@ -474,13 +476,14 @@ void resolve_player_collisions(){
 
       for(uint32_t i = 0; i < chunk->num_collision_aabbs; i++){
         uint32_t aabb_id = chunk->collision_aabbs[i];
-        collision_aabb_t *box = &collision_aabbs[aabb_id];
+        collision_aabb_t *collision_aabb = &collision_aabbs[aabb_id];
 
-        if(box->collision_step == collision_step) continue;
-
-        box->collision_step = collision_step;
-
-        resolve_player_against_aabb_xz(box);
+        // only check collisions if collision_aabb is active
+        if(collision_aabb->active){
+          if(collision_aabb->collision_step == collision_step) continue;
+          collision_aabb->collision_step = collision_step;
+          resolve_player_against_aabb_xz(collision_aabb);
+        }
       }
     }
   }
@@ -795,8 +798,8 @@ void render_chunk(chunk_t *chunk){
 
         light_intensities field is initialized to zero below in declaration - so that the light_intensities field is all 0 in case object not reflects_light
       */
-      //vector3_t v_face_centroid = {(v_a.x + v_b.x + v_c.x) / 3.0f, (v_a.y + v_b.y + v_c.y) / 3.0f, (v_a.z + v_b.z + v_c.z) / 3.0f};
-      vector3_t v_face_centroid = v_a;
+      vector3_t v_face_centroid = {(v_a.x + v_b.x + v_c.x) / 3.0f, (v_a.y + v_b.y + v_c.y) / 3.0f, (v_a.z + v_b.z + v_c.z) / 3.0f};
+      //vector3_t v_face_centroid = v_a;
       float light_intensities[MAX_NUM_LIGHT_SOURCES] = {0.0f}; // keeps the total light intensity for this face
       if(face_material.reflects_light){
         vector3_normalize_fast_approx(&v_face_normal); /* normalize here for use below */
@@ -1615,18 +1618,20 @@ void load_voxel_world(){
   create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f,  .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.8f);
   create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.4f);
 
-  mesh = load_mesh("./assets/obj/voxels.obj");
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, false,  (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-                (vector3_t){10, 10, 10}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
-                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  mesh = load_mesh("./assets/obj/voxels.obj", false);
+  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
+                false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
+               (vector3_t){10, 10, 10}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+               (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 }
 
 void load_skybox(){
   mesh_t *mesh;
 
-  mesh = load_mesh("./assets/obj/skybox_cube.obj");
-  skybox_id = create_object(mesh, OBJECT_TYPE_SKYBOX, false, false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
+  mesh = load_mesh("./assets/obj/skybox_cube.obj", false);
+  skybox_id = create_object(mesh, OBJECT_TYPE_SKYBOX, false, false, 
+                            false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
                            (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
@@ -1637,15 +1642,16 @@ void load_server_room(){
   int32_t object_id;
 
   create_light_source(LIGHT_AMBIENT, (vector3_t){.x = 0.0f,     .y = 0.0f,   .z = 0.0f},    (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 0.05f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = 300.0f,   .y = 100.0f, .z = -50.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 50.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = -300.0f,   .y = 100.0f, .z = -50.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 50.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = 300.0f,   .y = 100.0f, .z = -50.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 300.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -300.0f,   .y = 100.0f, .z = -50.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 300.0f);
   create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 250.0f, .z = 500.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 150.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = 100.0f,  .y = 250.0f, .z = 300.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 150.0f);
+  //create_light_source(LIGHT_POINT,   (vector3_t){.x = 100.0f,  .y = 250.0f, .z = 300.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 100.0f);
 
   /* room */
-  mesh = load_mesh("./assets/obj/server_room/room2.obj");
-  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-                           (vector3_t){1300, 1500, 1300}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+  mesh = load_mesh("./assets/obj/server_room/room3.obj", false);
+  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
+                            false, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
+                           (vector3_t){1300, 1800, 1300}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
   
@@ -1657,116 +1663,144 @@ void load_server_room(){
   float thickness = 50;
   
   // x_min
-  create_collision_aabb((aabb_3d_t){
-    .x_min = x_min - thickness / 2.0f,                   
-    .x_max = x_min + thickness / 2.0f,  
-    .z_min = z_min + 300, 
-    .z_max = z_max, 
-    .y_min = 0.0f, 
-    .y_max = y_max}, 
-    object_id
+  create_collision_aabb(
+    (aabb_3d_t){
+      .x_min = x_min - thickness / 2.0f, .x_max = x_min + thickness / 2.0f,  
+      .z_min = z_min + 300,              .z_max = z_max, 
+      .y_min = 0.0f,                     .y_max = y_max
+    }, 
+    object_id,
+    true
   );
   // x_max
-  create_collision_aabb((aabb_3d_t){
-    .x_min = x_max,                  
-    .x_max = x_max + thickness, 
-    .z_min = z_min, 
-    .z_max = z_max - 280, 
-    .y_min = 0.0f, 
-    .y_max = y_max}, 
-    object_id
+  create_collision_aabb(
+    (aabb_3d_t){
+      .x_min = x_max, .x_max = x_max + thickness, 
+      .z_min = z_min, .z_max = z_max - 280, 
+      .y_min = 0.0f,  .y_max = y_max
+    }, 
+    object_id,
+    true
   );
   // z_min
-  create_collision_aabb((aabb_3d_t){
-    .x_min = x_min + 620,             
-    .x_max = x_max,             
-    .z_min = z_min - thickness, 
-    .z_max = z_min, 
-    .y_min = 0.0f, 
-    .y_max = y_max}, 
-    object_id
+  create_collision_aabb(
+    (aabb_3d_t){
+      .x_min = x_min + 620,       .x_max = x_max,             
+      .z_min = z_min - thickness, .z_max = z_min, 
+      .y_min = 0.0f,              .y_max = y_max
+    }, 
+    object_id,
+    true
   );
-  create_collision_aabb((aabb_3d_t){
-    .x_min = x_min,                   
-    .x_max = x_min + 620,        
-    .z_min = z_min + 250, 
-    .z_max = z_min + 250 + thickness, 
-    .y_min = 0.0f, 
-    .y_max = y_max}, 
-    object_id
+  create_collision_aabb(
+    (aabb_3d_t){
+      .x_min = x_min,       .x_max = x_min + 620,        
+      .z_min = z_min + 250, .z_max = z_min + 250 + thickness, 
+      .y_min = 0.0f,        .y_max = y_max
+    }, 
+    object_id,
+    true
   );
-  create_collision_aabb((aabb_3d_t){
-    .x_min = x_min + 660 - thickness, 
-    .x_max = x_min + 660,        
-    .z_min = z_min, 
-    .z_max = z_min + 300, 
-    .y_min = 0.0f, 
-    .y_max = y_max}, 
-    object_id
+  create_collision_aabb(
+    (aabb_3d_t){
+      .x_min = x_min + 660 - thickness, .x_max = x_min + 660,        
+      .z_min = z_min,                   .z_max = z_min + 300, 
+      .y_min = 0.0f,                    .y_max = y_max
+    }, 
+    object_id,
+    true
   );
   // z_max                                                                                       
-  create_collision_aabb((aabb_3d_t){
-    .x_min = x_min,                   
-    .x_max = (x_min + x_max) / 2.0f,        
-    .z_min = z_max - thickness / 2.0f, 
-    .z_max = z_max + thickness / 2.0f, 
-    .y_min = 0.0f, 
-    .y_max = y_max}, 
-    object_id
+  uint32_t aabb_back = create_collision_aabb(
+    (aabb_3d_t){
+      .x_min = x_min,                    .x_max = (x_min + x_max) / 2.0f,        
+      .z_min = z_max - thickness / 2.0f, .z_max = z_max + thickness / 2.0f, 
+      .y_min = 0.0f,                     .y_max = y_max
+    }, 
+    object_id,
+    true
   );
-  create_collision_aabb((aabb_3d_t){
-    .x_min = (x_min + x_max) / 2.0f,             
-    .x_max = x_max + thickness,             
-    .z_min = z_max - 260 - thickness / 2.0f, 
-    .z_max = z_max - 260 + thickness / 2.0f, 
-    .y_min = 0.0f, 
-    .y_max = y_max}, 
-    object_id
+  create_collision_aabb(
+    (aabb_3d_t){
+      .x_min = (x_min + x_max) / 2.0f,         .x_max = x_max + thickness,             
+      .z_min = z_max - 260 - thickness / 2.0f, .z_max = z_max - 260 + thickness / 2.0f, 
+      .y_min = 0.0f,                           .y_max = y_max
+    }, 
+    object_id,
+    true
   );
-  create_collision_aabb((aabb_3d_t){
-    .x_min = (x_min + x_max) / 2.0f, 
-    .x_max = (x_min + x_max) / 2.0f + thickness,        
-    .z_min = z_max - 270, 
-    .z_max = z_max, 
-    .y_min = 0.0f, 
-    .y_max = y_max}, 
-    object_id
+  create_collision_aabb(
+    (aabb_3d_t){
+      .x_min = (x_min + x_max) / 2.0f, .x_max = (x_min + x_max) / 2.0f + thickness,        
+      .z_min = z_max - 270,            .z_max = z_max, 
+      .y_min = 0.0f,                   .y_max = y_max
+    }, 
+    object_id,
+    true
   );
 
+  //object_deactivate_collision_aabb(aabb_back);
+
   // ibm
-  term0 = load_mesh("./assets/obj/server_room/ibm.obj");
-  object_id = create_object(term0, OBJECT_TYPE_NORMAL, true, true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.6f}, (vector3_t){0.0f, 0.0f, 20.0f},
+  mesh = load_mesh("./assets/obj/server_room/ibm.obj", true);
+  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
+                            true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.5f}, (vector3_t){0.0f, 0.0f, 20.0f},
                            (vector3_t){100, 100, 100}, (vector3_t){0, 0, 0}, (vector3_t){-300, 3, 600}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
+  // floppy
+  mesh = load_mesh("./assets/obj/server_room/floppy.obj", false);
+  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
+                            false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
+                           (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-300, 1, 450}, 
+                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  );
+  mesh = load_mesh("./assets/obj/server_room/floppy.obj", false);
+  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
+                            false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
+                           (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-250, 1, 450}, 
+                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  );
+  mesh = load_mesh("./assets/obj/server_room/floppy.obj", false);
+  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
+                            false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
+                           (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-350, 1, 450}, 
+                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  );
+
   /* mainframes */
-  term0 = load_mesh("./assets/obj/server_room/server.obj");
-  object_id = create_object(term0, OBJECT_TYPE_NORMAL, true, true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.6f}, (vector3_t){0.0f, 0.0f, 20.0f},
-                           (vector3_t){100, 80, 80}, (vector3_t){0, 0, 0}, (vector3_t){100, 3, 330}, 
+  term0 = load_mesh("./assets/obj/server_room/server.obj", false);
+  object_id = create_object(term0, OBJECT_TYPE_NORMAL, true, true, 
+                            true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 9.0f},
+                           (vector3_t){130, 110, 80}, (vector3_t){0, 0, 0}, (vector3_t){150, 3, 330}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
-  term1 = load_mesh("./assets/obj/server_room/server.obj");
-  object_id = create_object(term1, OBJECT_TYPE_NORMAL, true, true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.6f}, (vector3_t){0.0f, 0.0f, 20.0f},
-                           (vector3_t){100, 80, 80}, (vector3_t){0, 0, 0}, (vector3_t){280, 3, 330}, 
+  term1 = load_mesh("./assets/obj/server_room/server.obj", false);
+  object_id = create_object(term1, OBJECT_TYPE_NORMAL, true, true, 
+                            true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 9.0f},
+                           (vector3_t){130, 110, 80}, (vector3_t){0, 0, 0}, (vector3_t){330, 3, 330}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
-  term2 = load_mesh("./assets/obj/server_room/server.obj");
-  object_id = create_object(term2, OBJECT_TYPE_NORMAL, true, true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.6f}, (vector3_t){0.0f, 0.0f, 20.0f},
-                           (vector3_t){100, 80, 80}, (vector3_t){0, 0, 0}, (vector3_t){460, 3, 330}, 
+  term2 = load_mesh("./assets/obj/server_room/server.obj", false);
+  object_id = create_object(term2, OBJECT_TYPE_NORMAL, true, true, 
+                            true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 9.0f},
+                           (vector3_t){130, 110, 80}, (vector3_t){0, 0, 0}, (vector3_t){510, 3, 330}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
   texture_t *tex = load_texture("./assets/textures/server_room/sol1_screen.png");
-  term2->materials[2].texture = tex;
+  term2->materials[3].texture = tex;
 
-  // drone
-  mesh = load_mesh("./assets/obj/server_room/drone.obj");
-  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, false, true, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.8f}, (vector3_t){0.0f, 0.0f, 0.0f},
-                           (vector3_t){80, 80, 80}, (vector3_t){0, 0, 0}, (vector3_t){-300, 0, 250}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  );
+
+  //// drone
+  //mesh = load_mesh("./assets/obj/server_room/drone.obj", false);
+  //object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, false, 
+  //                          true, true, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.8f}, (vector3_t){0.0f, 0.0f, 0.0f},
+  //                         (vector3_t){80, 80, 80}, (vector3_t){0, 0, 0}, (vector3_t){-300, 0, 250}, 
+  //                         (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  //);
 }
 
 uint32_t chunk_num_vertices_inside_plane(chunk_t *chunk, frustrum_plane_t frustrum_plane){

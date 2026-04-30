@@ -30,6 +30,8 @@ or make monsters live coming at the player, into the base
 
 maybe add lua scripting of some sort?
 
+maybe create escape room game where player writes programs and investigate HOW to write programs to open doors,solve pizzles etc to escape?
+
 
 
 Start with primitive machine.

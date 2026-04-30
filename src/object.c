@@ -15,6 +15,7 @@ int32_t create_object(
   bool fixed,
   bool backface_culling,
   bool attach_collision_aabb,
+  bool collision_aabb_active,
   vector3_t collision_aabb_scale,
   vector3_t collision_aabb_translation,
 
@@ -100,10 +101,12 @@ int32_t create_object(
           .z_min = 0.5 * object->bbox_aabb.z_min * (1.0 + collision_aabb_scale.z) + 0.5 * object->bbox_aabb.z_max * (1.0 - collision_aabb_scale.z) + collision_aabb_translation.z,
           .z_max = 0.5 * object->bbox_aabb.z_min * (1.0 - collision_aabb_scale.z) + 0.5 * object->bbox_aabb.z_max * (1.0 + collision_aabb_scale.z) + collision_aabb_translation.z
         },
-        num_objects
+        num_objects,
+        collision_aabb_active
       );
       print_log(
-        "created and attached new collision aabb to object: %d (x_min: %.3f, x_max: %.3f, z_min: %.3f, z_max: %.3f, y_min: %.3f, y_max: %.3f)", 
+        "created and attached new (%s) collision aabb to object: %d (x_min: %.3f, x_max: %.3f, z_min: %.3f, z_max: %.3f, y_min: %.3f, y_max: %.3f)", 
+        collision_aabb_active ? "active" : "inactive",
         num_objects,
         object->bbox_aabb.x_min, object->bbox_aabb.x_max,
         object->bbox_aabb.y_min, object->bbox_aabb.y_max,
@@ -122,4 +125,12 @@ int32_t create_object(
 
 aabb_3d_t get_object_aabb(uint32_t object_id){
   return objects[object_id].bbox_aabb;
+}
+
+void object_activate_collision_aabb(uint32_t collision_aabb_id){
+  collision_aabbs[collision_aabb_id].active = true;
+}
+
+void object_deactivate_collision_aabb(uint32_t collision_aabb_id){
+  collision_aabbs[collision_aabb_id].active = false;
 }
