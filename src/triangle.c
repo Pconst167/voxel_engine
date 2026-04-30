@@ -1,14 +1,6 @@
 #include "triangle.h"
 #include "options.h"
-
-/*
-  TODO:
-  optimize all pixel drawing by passing a pointer instead of using array indexing:
-  uint32_t *row = color_buffer + y * window_width;
-  for (int x = x_start; x < x_end; x++) {
-    row[x] = color;
-  }
-*/
+#include "misc.h"
 
 #define FIXED_SHIFT 8
 #define FIXED_ONE   (1 << FIXED_SHIFT)
@@ -22,14 +14,13 @@ static inline uint8_t quantize_dither_u8(uint8_t c, int x, int y){
     { 15,  7, 13,  5 }
   };
 
-  /* 0..15 */
+  /* 0..7 */
   int threshold = bayer4x4[(y) & 3][(x) & 3];
 
-  /* 6-bit quantization with full-range ordered threshold */
-  int q = (c * 31 + threshold * 5 ) >> 8;
-  if(q > 31) q = 31;
+  int q = (c * DITHER_QUANTIZATION + threshold * 8 ) >> 8;
+  if(q > DITHER_QUANTIZATION) q = DITHER_QUANTIZATION;
 
-  return (uint8_t)((q * 255) / 31);
+  return (uint8_t)((q << 8) >> DITHER_QUANTIZATION_POWER);
 }
 
 __attribute__((optimize("Ofast")))

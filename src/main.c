@@ -1713,7 +1713,7 @@ void load_server_room(){
     true
   );
   // z_max                                                                                       
-  uint32_t aabb_back = create_collision_aabb(
+  create_collision_aabb(
     (aabb_3d_t){
       .x_min = x_min,                    .x_max = (x_min + x_max) / 2.0f,        
       .z_min = z_max - thickness / 2.0f, .z_max = z_max + thickness / 2.0f, 

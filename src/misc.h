@@ -9,6 +9,9 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
+#define DITHER_QUANTIZATION 15
+#define DITHER_QUANTIZATION_POWER 4
+
 float fmax2(float f0, float f1);
 float fmin2(float f0, float f1);
 
