@@ -136,6 +136,7 @@
 uint32_t frame_id = 1; /* start at 1, because all face_draw_stamp values are reset to 0 at object creation time */
 char fps_str[16];
 uint32_t total_triangles_rendered;
+uint32_t total_triangles_skipped;
 uint32_t total_pixels_rendered;
 uint32_t total_chunks_rendered;
 uint64_t time_count; /* keeps a count that increments every frame - used to pace events */
@@ -521,6 +522,7 @@ void render_visible_chunks2(void) {
 
   // loop through all chunks and render only ones inside or intersecting
   total_triangles_rendered = 0;
+  total_triangles_skipped = 0;
   total_pixels_rendered = 0;
   total_chunks_rendered = 0;
   for(int z_row = 0; z_row < NUM_CHUNK_DIVISIONS; z_row++){
@@ -550,6 +552,7 @@ void render_visible_chunks(void) {
   view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
 
   total_triangles_rendered = 0;
+  total_triangles_skipped = 0;
   total_pixels_rendered = 0;
   total_chunks_rendered = 0;
 
@@ -828,7 +831,10 @@ void render_chunk(chunk_t *chunk){
       // check whether face is totally outside frustrum, if so, skip face, else apply clipping
       int num_triangles_from_polygon = 0;
       int face_outside_frustrum = check_face_fully_outside_frustrum(transformed_vertices[0], transformed_vertices[1], transformed_vertices[2], znear, zfar);
-      if(face_outside_frustrum == 1) continue; // totally outside
+      if(face_outside_frustrum == 1){
+        total_triangles_skipped++;
+        continue; // totally outside
+      }
       else{ // partially outside or maybe fully inside - clip
         /* this function creates a polygon from the current face, clips against all frustrum planes,
           then re-triangularizes the polygon - it returns the number of generated triangles from the polygon */
@@ -1001,8 +1007,8 @@ void render_chunk(chunk_t *chunk){
   } /* for(uint32_t object_i = 0; object_i < num_objects_sorted; object_i++) */
   
   if((time_count & 0x1F) == 0)
-    snprintf(text0, 256, "%ut, %upx, %uc, %ufps, %d:%d, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
-      total_triangles_rendered, total_pixels_rendered, total_chunks_rendered, fps, 
+    snprintf(text0, 256, "%ut, %uts, %upx, %uc, %ufps, %d:%d, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
+      total_triangles_rendered, total_triangles_skipped, total_pixels_rendered, total_chunks_rendered, fps, 
       player_chunk_x, player_chunk_z,
       player.position.x, player.position.y, player.position.z,
       player.direction.x, player.direction.y, player.direction.z,

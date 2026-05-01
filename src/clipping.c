@@ -182,6 +182,7 @@ void clip_polygon_against_plane2(polygon_t *polygon, frustrum_plane_t plane){
   }
 }
 
+__attribute__((optimize("Ofast")))
 inline void clip_polygon_against_plane(polygon_t *polygon, frustrum_plane_t plane){
   vector3_t *vertices  = polygon->vertices;
   uv_t *text_coords  = polygon->text_coords;
@@ -254,6 +255,7 @@ inline void clip_polygon_against_plane(polygon_t *polygon, frustrum_plane_t plan
   }
 }
 
+__attribute__((optimize("Ofast")))
 void frustrum_clip_polygon(polygon_t *polygon){
   clip_polygon_against_plane(polygon, FRUSTRUM_LEFT);
   clip_polygon_against_plane(polygon, FRUSTRUM_RIGHT);
@@ -304,6 +306,7 @@ inline bool frustrum_cull_object(vector4_t *bsphere_center, float bsphere_radius
   return false;
 }
 
+__attribute__((optimize("Ofast")))
 inline int frustrum_clip_triangle_and_re_triangularize(
   vector3_t v0, 
   vector3_t v1, 
@@ -382,6 +385,7 @@ inline int frustrum_clip_triangle_and_re_triangularize(
 }
 
 /* old version */
+__attribute__((optimize("Ofast")))
 inline int frustrum_clip_triangle_and_re_triangularize2(
   vector3_t v0, 
   vector3_t v1, 
@@ -444,6 +448,7 @@ inline int frustrum_clip_triangle_and_re_triangularize2(
     totally outside: 1
     partially inside or maybe fully inside: 0
 */
+__attribute__((optimize("Ofast")))
 int check_face_fully_outside_frustrum(vector4_t v0, vector4_t v1, vector4_t v2, float znear, float zfar){
   /* NEAR */
   if(v0.z < znear && v1.z < znear && v2.z < znear) return 1;
@@ -452,27 +457,27 @@ int check_face_fully_outside_frustrum(vector4_t v0, vector4_t v1, vector4_t v2, 
   if(v0.z > zfar && v1.z > zfar && v2.z > zfar) return 1;
 
   /* LEFT */
-  if(v0.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x + v0.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z < 0.0 && 
-     v1.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x + v1.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z < 0.0 &&
-     v2.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x + v2.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z < 0.0
+  if(v0.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x + v0.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z < 0.0f && 
+     v1.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x + v1.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z < 0.0f &&
+     v2.x * view_frustrum_planes[FRUSTRUM_LEFT].normal.x + v2.z * view_frustrum_planes[FRUSTRUM_LEFT].normal.z < 0.0f
   ) return 1;
 
   /* RIGHT */
-  if(v0.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x + v0.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z < 0.0 && 
-     v1.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x + v1.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z < 0.0 &&
-     v2.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x + v2.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z < 0.0
+  if(v0.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x + v0.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z < 0.0f && 
+     v1.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x + v1.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z < 0.0f &&
+     v2.x * view_frustrum_planes[FRUSTRUM_RIGHT].normal.x + v2.z * view_frustrum_planes[FRUSTRUM_RIGHT].normal.z < 0.0f
   ) return 1;
 
   /* BOTTOM */
-  if(v0.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y + v0.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z < 0.0 && 
-     v1.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y + v1.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z < 0.0 &&
-     v2.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y + v2.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z < 0.0
+  if(v0.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y + v0.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z < 0.0f && 
+     v1.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y + v1.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z < 0.0f &&
+     v2.y * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.y + v2.z * view_frustrum_planes[FRUSTRUM_BOTTOM].normal.z < 0.0f
   ) return 1;
 
   /* TOP */
-  if(v0.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y + v0.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z < 0.0 && 
-     v1.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y + v1.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z < 0.0 &&
-     v2.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y + v2.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z < 0.0
+  if(v0.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y + v0.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z < 0.0f && 
+     v1.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y + v1.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z < 0.0f &&
+     v2.y * view_frustrum_planes[FRUSTRUM_TOP].normal.y + v2.z * view_frustrum_planes[FRUSTRUM_TOP].normal.z < 0.0f
   ) return 1;
 
   // partially, or maybe fully inside

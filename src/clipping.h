@@ -36,6 +36,7 @@ polygon_t create_polygon_from_triangle(vector3_t v0, vector3_t v1, vector3_t v2,
 void create_triangles_from_polygon(polygon_t *polygon, triangle_t *triangle_list);
 void frustrum_clip_polygon(polygon_t *polygon);
 bool frustrum_cull_object(vector4_t *bsphere_center, float bsphere_radius, float znear, float zfar);
+void clip_polygon_against_plane(polygon_t *polygon, frustrum_plane_t plane);
 
 /* combined function for creating a polygon from triangle, clipping against frustrum, and re-triangularizing 
    returns the number of triangles that were generated from the polygon */
