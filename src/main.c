@@ -194,8 +194,8 @@ void setup(void) {
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
 
   /* create objects */
-  //load_server_room();
-  load_voxel_world();
+  load_server_room();
+  //load_voxel_world();
   //load_world1();
 
   /* normalize all light direction vectors to unity */
@@ -413,7 +413,7 @@ bool resolve_player_against_aabb_xz(const collision_aabb_t *box){
   if(dist_sq >= radius_sq) return false;
 
   if(dist_sq > 0.000001f){
-    float dist = sqrtf(dist_sq);
+    float dist = 1.0f / q_rsqrt(dist_sq);
     float push = player.radius - dist;
 
     player.position.x += (dx / dist) * push;
