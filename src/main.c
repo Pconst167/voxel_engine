@@ -824,10 +824,12 @@ void render_chunk(chunk_t *chunk){
         if(dot_face_normal_cam_ray < 0.0f) continue;
       }
 
-      /* FRUSTRUM CLIPPING */
-      /* check whether face has any vertex outside frustrum, if so, apply clipping, else, render face directly */
-      int num_triangles_from_polygon;
-      if(chunk_any_face_vertex_outside_frustrum(transformed_vertices[0], transformed_vertices[1], transformed_vertices[2], znear, zfar)){
+      // FRUSTRUM CLIPPING
+      // check whether face is totally outside frustrum, if so, skip face, else apply clipping
+      int num_triangles_from_polygon = 0;
+      int face_outside_frustrum = check_face_fully_outside_frustrum(transformed_vertices[0], transformed_vertices[1], transformed_vertices[2], znear, zfar);
+      if(face_outside_frustrum == 1) continue; // totally outside
+      else{ // partially outside or maybe fully inside - clip
         /* this function creates a polygon from the current face, clips against all frustrum planes,
           then re-triangularizes the polygon - it returns the number of generated triangles from the polygon */
         num_triangles_from_polygon = frustrum_clip_triangle_and_re_triangularize(
@@ -839,15 +841,6 @@ void render_chunk(chunk_t *chunk){
           face.uv[2],
           triangles_after_clipping
         );
-      }
-      else{
-        triangles_after_clipping[0].points[0] = transformed_vertices[0];
-        triangles_after_clipping[0].points[1] = transformed_vertices[1];
-        triangles_after_clipping[0].points[2] = transformed_vertices[2];
-        triangles_after_clipping[0].uv[0] = face.uv[0],
-        triangles_after_clipping[0].uv[1] = face.uv[1];
-        triangles_after_clipping[0].uv[2] = face.uv[2];
-        num_triangles_from_polygon = 1;
       }
 
       // material for this face - either original mesh material, or object override
@@ -1709,7 +1702,6 @@ void load_skybox(){
 }
 
 void load_server_room(){
-  mesh_t *mesh;
   int32_t object_id;
 
   create_light_source(LIGHT_AMBIENT, (vector3_t){.x = 0.0f,     .y = 0.0f,   .z = 0.0f},    (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 0.05f);
@@ -1719,11 +1711,12 @@ void load_server_room(){
   //create_light_source(LIGHT_POINT,   (vector3_t){.x = 100.0f,  .y = 250.0f, .z = 300.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 100.0f);
 
   /* room */
-  mesh = load_mesh("./assets/obj/server_room/room3.obj", false);
-  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
-                            false, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-                           (vector3_t){1300, 1800, 1300}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  object_id = create_object(
+    load_mesh("./assets/obj/server_room/room3.obj", false), 
+    OBJECT_TYPE_NORMAL, true, true, 
+    false, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
+    (vector3_t){1300, 1800, 1300}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
   
   float x_min     = objects[object_id].bbox_aabb.x_min;
@@ -1813,42 +1806,46 @@ void load_server_room(){
   //object_deactivate_collision_aabb(aabb_back);
 
   // ibm
-  mesh = load_mesh("./assets/obj/server_room/ibm.obj", true);
-  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
-                            true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.4f}, (vector3_t){0.0f, 0.0f, 20.0f},
-                           (vector3_t){100, 100, 100}, (vector3_t){0, 0, 0}, (vector3_t){-300, 3, 600}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  object_id = create_object(
+    load_mesh("./assets/obj/server_room/ibm.obj", true),
+    OBJECT_TYPE_NORMAL, true, true, 
+    true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.4f}, (vector3_t){0.0f, 0.0f, 20.0f},
+    (vector3_t){100, 100, 100}, (vector3_t){0, 0, 0}, (vector3_t){-300, 3, 600}, 
+    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
   // floppy
-  mesh = load_mesh("./assets/obj/server_room/floppy.obj", false);
-  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
-                            false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-                           (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-300, 1, 450}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  create_object(
+    load_mesh("./assets/obj/server_room/floppy.obj", false), 
+    OBJECT_TYPE_NORMAL, true, true, 
+    false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
+    (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-300, 1, 450}, 
+    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
-  mesh = load_mesh("./assets/obj/server_room/floppy.obj", false);
-  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
-                            false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-                           (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-250, 1, 450}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  object_id = create_object(
+    load_mesh("./assets/obj/server_room/floppy.obj", false), 
+    OBJECT_TYPE_NORMAL, true, true, 
+    false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
+    (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-250, 1, 450}, 
+    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
-  mesh = load_mesh("./assets/obj/server_room/floppy.obj", false);
-  object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
-                            false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-                           (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-350, 1, 450}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  create_object(
+    load_mesh("./assets/obj/server_room/floppy.obj", false), 
+    OBJECT_TYPE_NORMAL, true, true, 
+    false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
+    (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-350, 1, 450}, 
+    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
   /* mainframes */
-  term0 = load_mesh("./assets/obj/server_room/server.obj", false);
-  object_id = create_object(term0, OBJECT_TYPE_NORMAL, true, true, 
-                            true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 9.0f},
-                           (vector3_t){130, 110, 80}, (vector3_t){0, 0, 0}, (vector3_t){150, 3, 330}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  create_object(
+    load_mesh("./assets/obj/server_room/server.obj", false),
+    OBJECT_TYPE_NORMAL, true, true, 
+    true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 9.0f},
+    (vector3_t){130, 110, 80}, (vector3_t){0, 0, 0}, (vector3_t){150, 3, 330}, 
+    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
-  texture_t *screen_texture = load_texture("./assets/textures/server_room/sol1_screen_green.png");
-  material_t new_material = {
+  material_t green_screen_material = {
     .material_name       = "screen2",
     .base_color          = {.uint32 = 0xFFFFFFFF},
     .emissive_color      = {.uint32 = 0xFFFFFFFF},
@@ -1858,25 +1855,38 @@ void load_server_room(){
     .specular_highlights = false,
     .blend_mode          = BLEND_MODE_OPAQUE,
     .alpha_cutoff        = DEFAULT_ALPHA_CUTOFF,
-    .texture             = screen_texture
+    .texture             = load_texture("./assets/textures/server_room/sol1_screen_green.png")
   };
-  object_override_material(object_id, "screen", new_material);
+  object_override_material(object_id, "screen", green_screen_material);
 
-
-  term1 = load_mesh("./assets/obj/server_room/server.obj", false);
-  object_id = create_object(term1, OBJECT_TYPE_NORMAL, true, true, 
-                            true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 9.0f},
-                           (vector3_t){130, 110, 80}, (vector3_t){0, 0, 0}, (vector3_t){330, 3, 330}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  object_id = create_object(
+    load_mesh("./assets/obj/server_room/server.obj", false), 
+    OBJECT_TYPE_NORMAL, true, true, 
+    true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 9.0f},
+    (vector3_t){130, 110, 80}, (vector3_t){0, 0, 0}, (vector3_t){330, 3, 330}, 
+    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
+  material_t amber_screen_material = {
+    .material_name       = "screen2",
+    .base_color          = {.uint32 = 0xFFFFFFFF},
+    .emissive_color      = {.uint32 = 0xFFFFFFFF},
+    .opacity             = 1.0f,
+    .two_sided_lighting  = false,
+    .reflects_light      = false,
+    .specular_highlights = false,
+    .blend_mode          = BLEND_MODE_OPAQUE,
+    .alpha_cutoff        = DEFAULT_ALPHA_CUTOFF,
+    .texture             = load_texture("./assets/textures/server_room/sol1_screen_amber.png")
+  };
+  object_override_material(object_id, "screen", amber_screen_material);
 
-  term2 = load_mesh("./assets/obj/server_room/server.obj", false);
-  object_id = create_object(term2, OBJECT_TYPE_NORMAL, true, true, 
-                            true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 9.0f},
-                           (vector3_t){130, 110, 80}, (vector3_t){0, 0, 0}, (vector3_t){510, 3, 330}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  create_object(
+    load_mesh("./assets/obj/server_room/server.obj", false),
+    OBJECT_TYPE_NORMAL, true, true, 
+    true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 9.0f},
+    (vector3_t){130, 110, 80}, (vector3_t){0, 0, 0}, (vector3_t){510, 3, 330}, 
+    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
-
 
   //// drone
   //mesh = load_mesh("./assets/obj/server_room/drone.obj", false);

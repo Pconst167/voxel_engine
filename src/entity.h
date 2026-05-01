@@ -40,7 +40,6 @@ typedef struct{
   entity_type_t entity_type;
   uint32_t child_object_ids[MAX_NUM_ENTITY_CHILD_OBJECTS];
   uint32_t num_child_objects;
-
   union{
     computer_entity_data_t computer;
     door_entity_data_t door;
@@ -49,5 +48,13 @@ typedef struct{
   } entity_data;
 } entity_t;
 
+extern entity_t entities[MAX_NUM_ENTITIES];
+extern uint32_t num_entities;
+
+entity_t *create_entity_computer(
+  char *computer_name,
+  texture_t *screen_texture,
+  uint32_t cycles_per_frame
+);
 
 #endif
