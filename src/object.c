@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "object.h"
 #include "array.h"
 #include "matrix.h"
@@ -31,20 +32,27 @@ int32_t create_object(
     return -1;
   }
 
+  print_log("creating new object: %d", num_objects);
+
   object_t *object = &objects[num_objects];
 
-  object->mesh                = mesh;
-  object->object_type         = object_type;
-  object->fixed               = fixed;
-  object->backface_culling    = backface_culling;
-                              
-  object->scale               = scale;
-  object->rotation            = rotation;
-  object->translation         = translation;
-  object->velocity            = velocity;
-  object->angular_velocity    = angular_velocity;
-                              
-  print_log("creating new object: %d", num_objects);
+  object->mesh                    = mesh;
+  object->object_type             = object_type;
+  object->fixed                   = fixed;
+  object->backface_culling        = backface_culling;
+                                  
+  object->scale                   = scale;
+  object->rotation                = rotation;
+  object->translation             = translation;
+  object->velocity                = velocity;
+  object->angular_velocity        = angular_velocity;
+ 
+  // set the material_overrides array to NULL
+  object->material_overrides      = NULL;
+  // allocate space for the material override flags, because these flags are tested every time to see if an object has overrides
+  // and therefore the array cannot be empty
+  object->material_override_flags = malloc(sizeof(bool) * mesh->num_materials);
+  memset(object->material_override_flags, 0x00, sizeof(bool) * mesh->num_materials);
 
   /* if object is fixed/static, bake in all the transformations beforehand! */
   if(fixed){
@@ -134,4 +142,35 @@ void object_activate_collision_aabb(uint32_t collision_aabb_id){
 
 void object_deactivate_collision_aabb(uint32_t collision_aabb_id){
   collision_aabbs[collision_aabb_id].active = false;
+}
+
+void object_override_material(uint32_t object_id, char *material_name, material_t new_material){
+  if(object_id >= num_objects){
+    print_log("ERROR: object index out of bounds: %u", object_id);
+    return;
+  }
+
+  object_t *object = &objects[object_id];
+
+  mesh_t *mesh = object->mesh;
+  if(mesh == NULL){
+    print_log("ERROR: referenced mesh in object does not exist");
+    return;
+  }
+
+  uint32_t num_mesh_materials = mesh->num_materials;
+  for(uint32_t material_i = 0; material_i < num_mesh_materials; material_i++){
+    if(!strcmp(mesh->materials[material_i].material_name, material_name)){
+      if(object->material_overrides == NULL){
+        object->material_overrides = malloc(sizeof(material_t) * num_mesh_materials);
+        memset(object->material_overrides, 0x00, sizeof(material_t) * num_mesh_materials);
+      }
+
+      object->material_overrides[material_i] = new_material;
+      object->material_override_flags[material_i] = true;
+      return;
+    }
+  }
+
+  print_log("ERROR: material not found when trying to add override: %s", material_name);
 }

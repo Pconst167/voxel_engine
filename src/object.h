@@ -1,11 +1,19 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
+/*
+  NOTES:
+    an object has overriding materials.  so an object references a mesh. a mesh has a collection of materials,
+    but an object also can have a collection of materials, such that each object can then override any of the current
+    mesh's materials.
+*/
+
 #include "mesh.h"
 #include "vector.h"
 #include "color.h"
 #include "texture.h"
 #include "aabb.h"
+#include "material.h"
 
 #define MAX_NUM_OBJECTS 1000
 
@@ -33,6 +41,9 @@ typedef struct{
   vector3_t angular_velocity;
   /* an array indicating the frame id where each object face was last drawn - used to avoid redrawing the same face in different chunks */
   uint32_t *face_draw_stamp;
+  // overriding materials
+  material_t *material_overrides;  // array of overriding materials for the object
+  bool *material_override_flags; // an override flag for each material - same number of elements as materials array
   // owner entity id
   uint32_t owner_entity;
 } object_t;
@@ -67,5 +78,6 @@ aabb_3d_t get_object_aabb(uint32_t object_id);
 
 void object_activate_collision_aabb(uint32_t collision_aabb_id);
 void object_deactivate_collision_aabb(uint32_t collision_aabb_id);
+void object_override_material(uint32_t object_id, char *material_name, material_t new_material);
 
 #endif

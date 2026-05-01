@@ -850,8 +850,12 @@ void render_chunk(chunk_t *chunk){
         num_triangles_from_polygon = 1;
       }
 
-      // material for this face
-      material_t face_material = object->mesh->materials[face.material_id];
+      // material for this face - either original mesh material, or object override
+      material_t face_material;
+      if(object->material_override_flags[face.material_id])
+        face_material = object->material_overrides[face.material_id];
+      else
+        face_material = object->mesh->materials[face.material_id];
 
       /* LIGHT CALCULATIONS */
       /*
@@ -1807,7 +1811,6 @@ void load_server_room(){
   );
 
   //object_deactivate_collision_aabb(aabb_back);
-  texture_t *tex;
 
   // ibm
   mesh = load_mesh("./assets/obj/server_room/ibm.obj", true);
@@ -1844,8 +1847,21 @@ void load_server_room(){
                            (vector3_t){130, 110, 80}, (vector3_t){0, 0, 0}, (vector3_t){150, 3, 330}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
-  tex = load_texture("./assets/textures/server_room/sol1_screen_green.png");
-  term0->materials[3].texture = tex;
+  texture_t *screen_texture = load_texture("./assets/textures/server_room/sol1_screen_green.png");
+  material_t new_material = {
+    .material_name       = "screen2",
+    .base_color          = {.uint32 = 0xFFFFFFFF},
+    .emissive_color      = {.uint32 = 0xFFFFFFFF},
+    .opacity             = 1.0f,
+    .two_sided_lighting  = false,
+    .reflects_light      = false,
+    .specular_highlights = false,
+    .blend_mode          = BLEND_MODE_OPAQUE,
+    .alpha_cutoff        = DEFAULT_ALPHA_CUTOFF,
+    .texture             = screen_texture
+  };
+  object_override_material(object_id, "screen", new_material);
+
 
   term1 = load_mesh("./assets/obj/server_room/server.obj", false);
   object_id = create_object(term1, OBJECT_TYPE_NORMAL, true, true, 
@@ -1860,8 +1876,6 @@ void load_server_room(){
                            (vector3_t){130, 110, 80}, (vector3_t){0, 0, 0}, (vector3_t){510, 3, 330}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
-  tex = load_texture("./assets/textures/server_room/sol1_screen_amber.png");
-  term2->materials[3].texture = tex;
 
 
   //// drone
