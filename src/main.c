@@ -136,6 +136,7 @@
 uint32_t frame_id = 1; /* start at 1, because all face_draw_stamp values are reset to 0 at object creation time */
 char fps_str[16];
 uint32_t total_triangles_rendered;
+uint32_t total_pixels_rendered;
 uint32_t total_chunks_rendered;
 uint64_t time_count; /* keeps a count that increments every frame - used to pace events */
 float time_of_day; /* keeps time the accumulation of  each delta_time per frame */
@@ -520,6 +521,7 @@ void render_visible_chunks2(void) {
 
   // loop through all chunks and render only ones inside or intersecting
   total_triangles_rendered = 0;
+  total_pixels_rendered = 0;
   total_chunks_rendered = 0;
   for(int z_row = 0; z_row < NUM_CHUNK_DIVISIONS; z_row++){
     for(int x_col = 0; x_col < NUM_CHUNK_DIVISIONS; x_col++){
@@ -548,6 +550,7 @@ void render_visible_chunks(void) {
   view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
 
   total_triangles_rendered = 0;
+  total_pixels_rendered = 0;
   total_chunks_rendered = 0;
 
   chunk_sort_key_t chunk_sort_keys[NUM_CHUNK_DIVISIONS * NUM_CHUNK_DIVISIONS];
@@ -905,7 +908,7 @@ void render_chunk(chunk_t *chunk){
           else if(light_sources[light_index].type == LIGHT_POINT){
             vector4_t light_position_view = matrix4_mul_vector3(&view_matrix, (vector3_t){light_sources[light_index].position.x, light_sources[light_index].position.y, light_sources[light_index].position.z});
             vector3_t lightpos_to_v_face_centroid_ray = (vector3_t){light_position_view.x - v_face_centroid.x, light_position_view.y - v_face_centroid.y, light_position_view.z - v_face_centroid.z};
-            float lightpos_to_v_face_centroid_ray_length = vector3_length(lightpos_to_v_face_centroid_ray);
+            float lightpos_to_v_face_centroid_ray_length = vector3_length_fast_approx(lightpos_to_v_face_centroid_ray);
             
             if(face_material.two_sided_lighting){
               light_intensities[light_index] = fabsf(v_face_normal.x * lightpos_to_v_face_centroid_ray.x + v_face_normal.y * lightpos_to_v_face_centroid_ray.y + v_face_normal.z * lightpos_to_v_face_centroid_ray.z) / (lightpos_to_v_face_centroid_ray_length);
@@ -977,7 +980,7 @@ void render_chunk(chunk_t *chunk){
         }
         
         /* TRIANGLE RASTERIZATION */
-        rasterize_triangle(
+        total_pixels_rendered += rasterize_triangle(
           &projected_triangle, 
           face_material,
           total_light_intensity
@@ -1001,8 +1004,8 @@ void render_chunk(chunk_t *chunk){
   } /* for(uint32_t object_i = 0; object_i < num_objects_sorted; object_i++) */
   
   if((time_count & 0x1F) == 0)
-    snprintf(text0, 128, "%u, %u, %u, %d:%d, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
-      total_triangles_rendered, total_chunks_rendered, fps, 
+    snprintf(text0, 256, "%ut, %upx, %uc, %ufps, %d:%d, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
+      total_triangles_rendered, total_pixels_rendered, total_chunks_rendered, fps, 
       player_chunk_x, player_chunk_z,
       player.position.x, player.position.y, player.position.z,
       player.direction.x, player.direction.y, player.direction.z,
@@ -1317,13 +1320,13 @@ void update_state(void){
   };
 }
 
-inline void rasterize_triangle(
+inline uint32_t rasterize_triangle(
   triangle_t *triangle, 
   material_t face_material,
   light_intensity_rgb_t total_light_intensity
 ){
   if(options.projection_mode == TEXT_FILLED || face_material.texture == NULL){
-    draw_filled_triangle(
+    return draw_filled_triangle(
       &triangle->points[0], 
       &triangle->points[1], 
       &triangle->points[2], 
@@ -1333,7 +1336,6 @@ inline void rasterize_triangle(
       face_material.reflects_light,
       options.dither
     );
-    return;
   }
   else if(options.projection_mode == TEXT_WIREFRAME){
     draw_triangle(
@@ -1342,12 +1344,12 @@ inline void rasterize_triangle(
       triangle->points[2].x, triangle->points[2].y,
       (color_t){.uint32 = 0xFFFFFFFF}
     );
-    return;
+    return 0;
   }
   else{
     switch(face_material.blend_mode){
       case BLEND_MODE_OPAQUE:
-        draw_textured_triangle_opaque(
+        return draw_textured_triangle_opaque(
           &triangle->points[0], triangle->uv[0],
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
@@ -1357,10 +1359,9 @@ inline void rasterize_triangle(
           face_material.reflects_light,
           options.dither
         );
-        return;
 
       case BLEND_MODE_ALPHA_TEST:
-        draw_textured_triangle_alpha_test(
+        return draw_textured_triangle_alpha_test(
           &triangle->points[0], triangle->uv[0],
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
@@ -1371,10 +1372,9 @@ inline void rasterize_triangle(
           options.dither,
           face_material.alpha_cutoff
         );
-        return;
 
       case BLEND_MODE_ALPHA_BLEND:
-        draw_textured_triangle_alpha_blend(
+        return draw_textured_triangle_alpha_blend(
           &triangle->points[0], triangle->uv[0],
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
@@ -1385,18 +1385,19 @@ inline void rasterize_triangle(
           options.dither,
           face_material.opacity
         );
-        return;
     }
   }
+
+  return 0;
 }
 
-inline void rasterize_triangle_no_zbuffer_write(
+inline uint32_t rasterize_triangle_no_zbuffer_write(
   triangle_t *triangle, 
   material_t face_material,
   light_intensity_rgb_t total_light_intensity
 ){
   if(options.projection_mode == TEXT_FILLED){
-    draw_filled_triangle_no_zbuffer_write(
+    return draw_filled_triangle_no_zbuffer_write(
       &triangle->points[0], 
       &triangle->points[1], 
       &triangle->points[2], 
@@ -1406,7 +1407,6 @@ inline void rasterize_triangle_no_zbuffer_write(
       face_material.reflects_light,
       options.dither
     );
-    return;
   }
   else if(options.projection_mode == TEXT_WIREFRAME){
     draw_triangle(
@@ -1415,12 +1415,12 @@ inline void rasterize_triangle_no_zbuffer_write(
       triangle->points[2].x, triangle->points[2].y,
       (color_t){.uint32 = 0xFFFFFFFF}
     );
-    return;
+    return 0;
   }
   else{
     switch(face_material.blend_mode){
       case BLEND_MODE_OPAQUE:
-        draw_textured_triangle_opaque_no_zbuffer_write(
+        return draw_textured_triangle_opaque_no_zbuffer_write(
           &triangle->points[0], triangle->uv[0],
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
@@ -1430,10 +1430,9 @@ inline void rasterize_triangle_no_zbuffer_write(
           face_material.reflects_light,
           options.dither
         );
-        return;
 
       case BLEND_MODE_ALPHA_TEST:
-        draw_textured_triangle_alpha_test_no_zbuffer_write(
+        return draw_textured_triangle_alpha_test_no_zbuffer_write(
           &triangle->points[0], triangle->uv[0],
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
@@ -1444,10 +1443,9 @@ inline void rasterize_triangle_no_zbuffer_write(
           options.dither,
           face_material.alpha_cutoff
         );
-        return;
 
       case BLEND_MODE_ALPHA_BLEND:
-        draw_textured_triangle_alpha_blend(
+        return draw_textured_triangle_alpha_blend(
           &triangle->points[0], triangle->uv[0],
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
@@ -1458,7 +1456,6 @@ inline void rasterize_triangle_no_zbuffer_write(
           options.dither,
           face_material.opacity
         );
-        return;
     }
   }
 }
@@ -1815,7 +1812,7 @@ void load_server_room(){
   // ibm
   mesh = load_mesh("./assets/obj/server_room/ibm.obj", true);
   object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
-                            true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.5f}, (vector3_t){0.0f, 0.0f, 20.0f},
+                            true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.4f}, (vector3_t){0.0f, 0.0f, 20.0f},
                            (vector3_t){100, 100, 100}, (vector3_t){0, 0, 0}, (vector3_t){-300, 3, 600}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );

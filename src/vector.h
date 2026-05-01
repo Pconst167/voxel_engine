@@ -28,6 +28,7 @@ vector2_t vector2_div(vector2_t v, float factor);
 /* vector3 functions */
 vector3_t vector3_neg(vector3_t v);
 float vector3_length(vector3_t v);
+float vector3_length_fast_approx(vector3_t v);
 float vector3_length_squarred(vector3_t v);
 void vector3_normalize(vector3_t *v);
 void vector3_normalize_fast_approx(vector3_t *v);

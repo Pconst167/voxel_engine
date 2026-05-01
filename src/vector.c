@@ -60,6 +60,10 @@ float vector3_length(vector3_t v){
   return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 
+float vector3_length_fast_approx(vector3_t v){
+  return 1.0f / q_rsqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+}
+
 float vector3_length_squarred(vector3_t v){
   return v.x * v.x + v.y * v.y + v.z * v.z;
 }

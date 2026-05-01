@@ -25,13 +25,13 @@ void update_light(void);
 void process_input(void);
 void setup(void) ;
 
-inline void rasterize_triangle(
+inline uint32_t rasterize_triangle(
   triangle_t *triangle, 
   material_t face_material,
   light_intensity_rgb_t total_light_intensity
 );
 
-inline void rasterize_triangle_no_zbuffer_write(
+inline uint32_t rasterize_triangle_no_zbuffer_write(
   triangle_t *triangle, 
   material_t face_material,
   light_intensity_rgb_t total_light_intensity

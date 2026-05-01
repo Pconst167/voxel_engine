@@ -1,6 +1,8 @@
 #ifndef MISC_H
 #define MISC_H
 
+#include <stdint.h>
+
 #define M_PI 3.14159265358979323846
 #define M_2_PI (2.0 * M_PI)
 #define M_PI_2 (M_PI / 2.0)
@@ -22,6 +24,6 @@ float q_rsqrt(float number);
 
 float fpower(float base, int exp);
 
-uint32_t rand_i(uint32_t seed){
+uint32_t rand_i(uint32_t seed);
 
 #endif

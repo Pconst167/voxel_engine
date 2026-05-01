@@ -53,7 +53,7 @@ color_t apply_dither(color_t color, int x, int y);
 void draw_triangle(float x0, float y0, float x1, float y1, float x2, float y2, color_t color);
 
 /* subpixel triangle rasterizers */
-void draw_filled_triangle(
+uint32_t draw_filled_triangle(
   vector4_t *v0, vector4_t *v1, vector4_t *v2, 
   color_t color, 
   light_intensity_rgb_t total_light_intensity,
@@ -61,7 +61,7 @@ void draw_filled_triangle(
   bool reflects_light,
   bool dither
 );
-void draw_filled_triangle_no_zbuffer_write(
+uint32_t  draw_filled_triangle_no_zbuffer_write(
   vector4_t *v0, vector4_t *v1, vector4_t *v2, 
   color_t color, 
   light_intensity_rgb_t total_light_intensity,
@@ -70,7 +70,7 @@ void draw_filled_triangle_no_zbuffer_write(
   bool dither
 );
 
-void draw_textured_triangle_opaque(
+uint32_t draw_textured_triangle_opaque(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
@@ -80,7 +80,7 @@ void draw_textured_triangle_opaque(
   bool reflects_light,
   bool dither
 );
-void draw_textured_triangle_opaque_float(
+uint32_t draw_textured_triangle_opaque_float(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
@@ -90,7 +90,7 @@ void draw_textured_triangle_opaque_float(
   bool reflects_light,
   bool dither
 );
-void draw_textured_triangle_opaque_no_zbuffer_write(
+uint32_t draw_textured_triangle_opaque_no_zbuffer_write(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
@@ -100,7 +100,7 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
   bool reflects_light,
   bool dither
 );
-void draw_textured_triangle_alpha_test(
+uint32_t draw_textured_triangle_alpha_test(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
@@ -111,7 +111,7 @@ void draw_textured_triangle_alpha_test(
   bool dither,
   uint8_t alpha_cutoff
 );
-void draw_textured_triangle_alpha_test_no_zbuffer_write(
+uint32_t draw_textured_triangle_alpha_test_no_zbuffer_write(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
@@ -122,7 +122,7 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
   bool dither,
   uint8_t alpha_cutoff
 );
-void draw_textured_triangle_alpha_blend(
+uint32_t draw_textured_triangle_alpha_blend(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
@@ -134,7 +134,7 @@ void draw_textured_triangle_alpha_blend(
   float opacity
 );
 
-void draw_textured_triangle(
+uint32_t draw_textured_triangle(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
@@ -148,7 +148,7 @@ void draw_textured_triangle(
   float opacity
 );
 
-void draw_textured_triangle_affine(
+uint32_t draw_textured_triangle_affine(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,

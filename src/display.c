@@ -18,7 +18,7 @@ int fps;
 bool initialize_window(void){
 
   window_width  = 900;
-  window_height = window_width / ASPECT_RATIO_X;
+  window_height = (float)window_width / ASPECT_RATIO_X;
 
   if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0){
     print_log("Error initializing SDL.\n");

@@ -125,7 +125,7 @@ inline void draw_triangle(
 }
 
 __attribute__((optimize("Ofast")))
-void draw_filled_triangle(
+uint32_t draw_filled_triangle(
   vector4_t *v0,
   vector4_t *v1,
   vector4_t *v2,
@@ -135,6 +135,8 @@ void draw_filled_triangle(
   bool reflects_light,
   bool dither
 ){
+  uint32_t total_pixels_rendered = 0;
+
   float parallelogram_area = edge_cross(
     &(vector2_t){v0->x, v0->y},
     &(vector2_t){v1->x, v1->y},
@@ -142,7 +144,7 @@ void draw_filled_triangle(
   );
 
   /* degenerate triangle */
-  if(parallelogram_area == 0.0f) return;
+  if(parallelogram_area == 0.0f) return 0;
 
   /* backface culling */
   //if(options.backface_culling){
@@ -223,6 +225,7 @@ void draw_filled_triangle(
 
       if(inside){
         was_inside = true;
+        total_pixels_rendered++;
         float alpha = w0 * one_over_parallelogram_area;
         float beta  = w1 * one_over_parallelogram_area;
         float gamma = w2 * one_over_parallelogram_area;
@@ -280,10 +283,11 @@ void draw_filled_triangle(
   if(options.wireframe_overlay){
     draw_triangle(v0->x, v0->y, v1->x, v1->y, v2->x, v2->y, (color_t){.uint32 = 0xFFFFFFFF});
   }
+  return total_pixels_rendered;
 }
 
 __attribute__((optimize("Ofast")))
-void draw_filled_triangle_no_zbuffer_write(
+uint32_t draw_filled_triangle_no_zbuffer_write(
   vector4_t *v0,
   vector4_t *v1,
   vector4_t *v2,
@@ -293,6 +297,8 @@ void draw_filled_triangle_no_zbuffer_write(
   bool reflects_light,
   bool dither
 ){
+  uint32_t total_pixels_rendered = 0;
+
   float parallelogram_area = edge_cross(
     &(vector2_t){v0->x, v0->y},
     &(vector2_t){v1->x, v1->y},
@@ -300,7 +306,7 @@ void draw_filled_triangle_no_zbuffer_write(
   );
 
   /* degenerate triangle */
-  if(parallelogram_area == 0.0f) return;
+  if(parallelogram_area == 0.0f) return 0;
 
   /* backface culling */
   //if(options.backface_culling){
@@ -381,6 +387,8 @@ void draw_filled_triangle_no_zbuffer_write(
 
       if(inside){
         was_inside = true;
+        total_pixels_rendered++;
+
         float alpha = w0 * one_over_parallelogram_area;
         float beta  = w1 * one_over_parallelogram_area;
         float gamma = w2 * one_over_parallelogram_area;
@@ -436,6 +444,8 @@ void draw_filled_triangle_no_zbuffer_write(
   if(options.wireframe_overlay){
     draw_triangle(v0->x, v0->y, v1->x, v1->y, v2->x, v2->y, (color_t){.uint32 = 0xFFFFFFFF});
   }
+
+  return total_pixels_rendered;
 }
 
 static inline int32_t to_fixed(float v){
@@ -462,7 +472,7 @@ static inline bool is_top_left_edge_fixed(
 }
 
 __attribute__((optimize("Ofast")))
-inline void draw_textured_triangle_opaque(
+inline uint32_t draw_textured_triangle_opaque(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
@@ -482,7 +492,7 @@ inline void draw_textured_triangle_opaque(
   if(x_max >= window_width)  x_max = window_width  - 1;
   if(y_max >= window_height) y_max = window_height - 1;
 
-  if(x_min > x_max || y_min > y_max) return;
+  if(x_min > x_max || y_min > y_max) return 0;
 
   int32_t x0 = to_fixed(v0->x);
   int32_t y0 = to_fixed(v0->y);
@@ -492,7 +502,7 @@ inline void draw_textured_triangle_opaque(
   int32_t y2 = to_fixed(v2->y);
 
   int64_t area_fixed = edge_cross_fixed(x0, y0, x1, y1, x2, y2);
-  if(area_fixed == 0) return;
+  if(area_fixed == 0) return 0;
 
   if(area_fixed < 0){
     vector4_t *tmp_v = v1;
@@ -551,6 +561,7 @@ inline void draw_textured_triangle_opaque(
   float v1_v_over_w = v1_uv.v * one_over_v1_w;
   float v2_v_over_w = v2_uv.v * one_over_v2_w;
 
+  uint32_t total_pixels_drawn = 0;
   for(int y = y_min; y <= y_max; y++){
     int64_t w0 = w0_row;
     int64_t w1 = w1_row;
@@ -567,6 +578,7 @@ inline void draw_textured_triangle_opaque(
 
       if(inside){
         was_inside = true;
+        total_pixels_drawn++;
 
         float alpha = (float)w0_unbiased * one_over_area;
         float beta  = (float)w1_unbiased * one_over_area;
@@ -641,10 +653,12 @@ inline void draw_textured_triangle_opaque(
     w1_row_unbiased += delta_w1_row;
     w2_row_unbiased += delta_w2_row;
   }
+
+  return total_pixels_drawn;
 }
 
 __attribute__((optimize("Ofast")))
-void draw_textured_triangle_opaque_float(
+uint32_t draw_textured_triangle_opaque_float(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
@@ -654,6 +668,8 @@ void draw_textured_triangle_opaque_float(
   bool reflects_light,
   bool dither
 ){
+  uint32_t total_pixels_rendered = 0;
+
   float parallelogram_area = edge_cross(
     &(vector2_t){v0->x, v0->y},
     &(vector2_t){v1->x, v1->y},
@@ -661,7 +677,7 @@ void draw_textured_triangle_opaque_float(
   );
 
   /* degenerate triangle */
-  if(parallelogram_area == 0.0f) return;
+  if(parallelogram_area == 0.0f) return 0;
 
   /* backface culling */
   //if(options.backface_culling){
@@ -756,6 +772,8 @@ void draw_textured_triangle_opaque_float(
 
       if(inside){
         was_inside = true;
+        total_pixels_rendered++;
+
         float alpha = w0 * one_over_parallelogram_area;
         float beta  = w1 * one_over_parallelogram_area;
         float gamma = w2 * one_over_parallelogram_area;
@@ -822,10 +840,12 @@ void draw_textured_triangle_opaque_float(
     w1_row += delta_w1_row;
     w2_row += delta_w2_row;
   }
+
+  return total_pixels_rendered;
 }
 
 __attribute__((optimize("Ofast")))
-void draw_textured_triangle_opaque_no_zbuffer_write(
+uint32_t draw_textured_triangle_opaque_no_zbuffer_write(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
@@ -835,6 +855,8 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
   bool reflects_light,
   bool dither
 ){
+  uint32_t total_pixels_rendered = 0;
+
   float parallelogram_area = edge_cross(
     &(vector2_t){v0->x, v0->y},
     &(vector2_t){v1->x, v1->y},
@@ -842,7 +864,7 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
   );
 
   /* degenerate triangle */
-  if(parallelogram_area == 0.0f) return;
+  if(parallelogram_area == 0.0f) return 0;
 
   /* backface culling */
   //if(options.backface_culling){
@@ -937,6 +959,8 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
 
       if(inside){
         was_inside = true;
+        total_pixels_rendered++;
+
         float alpha = w0 * one_over_parallelogram_area;
         float beta  = w1 * one_over_parallelogram_area;
         float gamma = w2 * one_over_parallelogram_area;
@@ -1001,10 +1025,12 @@ void draw_textured_triangle_opaque_no_zbuffer_write(
     w1_row += delta_w1_row;
     w2_row += delta_w2_row;
   }
+
+  return total_pixels_rendered;
 }
 
 __attribute__((optimize("Ofast")))
-void draw_textured_triangle_alpha_test(
+uint32_t draw_textured_triangle_alpha_test(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
@@ -1015,6 +1041,8 @@ void draw_textured_triangle_alpha_test(
   bool dither,
   uint8_t alpha_cutoff
 ){
+  uint32_t total_pixels_rendered = 0;
+
   float parallelogram_area = edge_cross(
     &(vector2_t){v0->x, v0->y},
     &(vector2_t){v1->x, v1->y},
@@ -1022,7 +1050,7 @@ void draw_textured_triangle_alpha_test(
   );
 
   /* degenerate triangle */
-  if(parallelogram_area == 0.0f) return;
+  if(parallelogram_area == 0.0f) return 0;
 
   /* backface culling */
   //if(options.backface_culling){
@@ -1117,6 +1145,8 @@ void draw_textured_triangle_alpha_test(
 
       if(inside){
         was_inside = true;
+        total_pixels_rendered++;
+
         float alpha = w0 * one_over_parallelogram_area;
         float beta  = w1 * one_over_parallelogram_area;
         float gamma = w2 * one_over_parallelogram_area;
@@ -1184,10 +1214,12 @@ void draw_textured_triangle_alpha_test(
     w1_row += delta_w1_row;
     w2_row += delta_w2_row;
   }
+
+  return total_pixels_rendered;
 }
 
 __attribute__((optimize("Ofast")))
-void draw_textured_triangle_alpha_test_no_zbuffer_write(
+uint32_t draw_textured_triangle_alpha_test_no_zbuffer_write(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
@@ -1198,6 +1230,8 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
   bool dither,
   uint8_t alpha_cutoff
 ){
+  uint32_t total_pixels_rendered = 0;
+
   float parallelogram_area = edge_cross(
     &(vector2_t){v0->x, v0->y},
     &(vector2_t){v1->x, v1->y},
@@ -1205,7 +1239,7 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
   );
 
   /* degenerate triangle */
-  if(parallelogram_area == 0.0f) return;
+  if(parallelogram_area == 0.0f) return 0;
 
   /* backface culling */
   //if(options.backface_culling){
@@ -1300,6 +1334,8 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
 
       if(inside){
         was_inside = true;
+        total_pixels_rendered++;
+
         float alpha = w0 * one_over_parallelogram_area;
         float beta  = w1 * one_over_parallelogram_area;
         float gamma = w2 * one_over_parallelogram_area;
@@ -1365,10 +1401,12 @@ void draw_textured_triangle_alpha_test_no_zbuffer_write(
     w1_row += delta_w1_row;
     w2_row += delta_w2_row;
   }
+
+  return total_pixels_rendered;
 }
 
 __attribute__((optimize("Ofast")))
-void draw_textured_triangle_alpha_blend(
+uint32_t draw_textured_triangle_alpha_blend(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
@@ -1379,6 +1417,8 @@ void draw_textured_triangle_alpha_blend(
   bool dither,
   float opacity
 ){
+  uint32_t total_pixels_rendered = 0;
+
   float parallelogram_area = edge_cross(
     &(vector2_t){v0->x, v0->y},
     &(vector2_t){v1->x, v1->y},
@@ -1386,7 +1426,7 @@ void draw_textured_triangle_alpha_blend(
   );
 
   /* degenerate triangle */
-  if(parallelogram_area == 0.0f) return;
+  if(parallelogram_area == 0.0f) return 0;
 
   /* backface culling */
   //if(options.backface_culling){
@@ -1543,10 +1583,12 @@ void draw_textured_triangle_alpha_blend(
     w1_row += delta_w1_row;
     w2_row += delta_w2_row;
   }
+
+  return total_pixels_rendered;
 }
 
 __attribute__((optimize("Ofast")))
-void draw_textured_triangle(
+uint32_t draw_textured_triangle(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
@@ -1559,6 +1601,8 @@ void draw_textured_triangle(
   uint8_t alpha_cutoff,
   float opacity
 ){
+  uint32_t total_pixels_rendered = 0;
+
   float parallelogram_area = edge_cross(
     &(vector2_t){v0->x, v0->y},
     &(vector2_t){v1->x, v1->y},
@@ -1566,7 +1610,7 @@ void draw_textured_triangle(
   );
 
   /* degenerate triangle */
-  if(parallelogram_area == 0.0f) return;
+  if(parallelogram_area == 0.0f) return 0;
 
   /* backface culling */
   //if(options.backface_culling){
@@ -1661,6 +1705,8 @@ void draw_textured_triangle(
 
       if(inside){
         was_inside = true;
+        total_pixels_rendered++;
+
         float alpha = w0 * one_over_parallelogram_area;
         float beta  = w1 * one_over_parallelogram_area;
         float gamma = w2 * one_over_parallelogram_area;
@@ -1723,10 +1769,12 @@ void draw_textured_triangle(
     w1_row += delta_w1_row;
     w2_row += delta_w2_row;
   }
+
+  return total_pixels_rendered;
 }
 
 __attribute__((optimize("Ofast")))
-void draw_textured_triangle_affine(
+uint32_t draw_textured_triangle_affine(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
@@ -1737,6 +1785,8 @@ void draw_textured_triangle_affine(
   uint8_t alpha_cutoff,
   float opacity
 ){
+  uint32_t total_pixels_rendered = 0;
+
   float parallelogram_area = edge_cross(
     &(vector2_t){v0->x, v0->y},
     &(vector2_t){v1->x, v1->y},
@@ -1744,7 +1794,7 @@ void draw_textured_triangle_affine(
   );
 
   /* degenerate triangle */
-  if(parallelogram_area == 0.0f) return;
+  if(parallelogram_area == 0.0f) return 0;
 
   /* backface culling */
   //if(options.backface_culling){
@@ -1836,6 +1886,8 @@ void draw_textured_triangle_affine(
 
       if(inside){
         was_inside = true;
+        total_pixels_rendered++;
+
         float alpha = w0 * one_over_parallelogram_area;
         float beta  = w1 * one_over_parallelogram_area;
         float gamma = w2 * one_over_parallelogram_area;
@@ -1884,6 +1936,8 @@ void draw_textured_triangle_affine(
     w1_row += delta_w1_row;
     w2_row += delta_w2_row;
   }
+
+  return total_pixels_rendered;
 }
 
 /*
