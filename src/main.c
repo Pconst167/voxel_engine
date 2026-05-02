@@ -1901,13 +1901,14 @@ void load_server_room(){
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
-  //// drone
-  //mesh = load_mesh("./assets/obj/server_room/drone.obj", false);
-  //object_id = create_object(mesh, OBJECT_TYPE_ROBOT, true, false, 
-  //                          true, true, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.8f}, (vector3_t){0.0f, 0.0f, 0.0f},
-  //                         (vector3_t){80, 80, 80}, (vector3_t){0, 0, 0}, (vector3_t){-300, 0, 250}, 
-  //                         (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  //);
+  // drone
+  create_object(
+    load_mesh("./assets/obj/server_room/drone.obj", false),
+    OBJECT_TYPE_ROBOT, true, false,
+    true, true, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.8f}, (vector3_t){0.0f, 0.0f, 0.0f},
+    (vector3_t){80, 80, 80}, (vector3_t){0, 0, 0}, (vector3_t){-300, 0, 250}, 
+    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  );
 }
 
 uint32_t chunk_num_vertices_inside_plane(chunk_t *chunk, frustrum_plane_t frustrum_plane){
