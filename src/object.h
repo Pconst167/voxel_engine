@@ -79,5 +79,6 @@ aabb_3d_t get_object_aabb(uint32_t object_id);
 void object_activate_collision_aabb(uint32_t collision_aabb_id);
 void object_deactivate_collision_aabb(uint32_t collision_aabb_id);
 void object_override_material(uint32_t object_id, char *material_name, material_t new_material);
+uint32_t object_get_material_id_by_name(uint32_t object_id, char *material_name);
 
 #endif

@@ -25,5 +25,8 @@ float q_rsqrt(float number);
 float fpower(float base, int exp);
 
 uint32_t rand_i(uint32_t seed);
+uint32_t xorshift32(void);
+
+float square_wave(float f);
 
 #endif

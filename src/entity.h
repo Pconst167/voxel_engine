@@ -6,7 +6,7 @@
 #include "texture.h"
 
 #define MAX_NUM_ENTITIES 100
-#define MAX_NUM_ENTITY_CHILD_OBJECTS 8
+#define MAX_NUM_ENTITY_CHILD_OBJECTS 4
 #define MAX_LEN_COMPUTER_NAME 64
 
 typedef enum{

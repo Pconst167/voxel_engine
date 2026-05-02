@@ -179,6 +179,7 @@ float sun_eta = (M_PI_2); /* sun's eta angle, start sun on horizon */
 mesh_t *term0;
 mesh_t *term1;
 mesh_t *term2;
+uint32_t serv0;
 
 void setup(void) {
   
@@ -1321,6 +1322,12 @@ void update_state(void){
     .y = sinf(player.eta),
     .z = cosf(player.eta) * player.direction.z
   };
+
+  uint32_t material_id = object_get_material_id_by_name(serv0, "screen2");
+  uint8_t color = 230 + 3*(xorshift32() & 0x07);
+  objects[serv0].material_overrides[material_id].emissive_color.rgb.red   = color;
+  objects[serv0].material_overrides[material_id].emissive_color.rgb.green = color;
+  objects[serv0].material_overrides[material_id].emissive_color.rgb.blue  = color;
 }
 
 inline uint32_t rasterize_triangle(
@@ -1647,8 +1654,8 @@ void set_title(void){
   SDL_SetWindowTitle(window, string);
 }
 
-int main(void) {
-  
+int main(void){
+
   quit = !initialize_window();
   setup();
   
@@ -1844,7 +1851,7 @@ void load_server_room(){
   );
 
   /* mainframes */
-  create_object(
+  serv0 = create_object(
     load_mesh("./assets/obj/server_room/server.obj", false),
     OBJECT_TYPE_NORMAL, true, true, 
     true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 9.0f},
@@ -1863,7 +1870,7 @@ void load_server_room(){
     .alpha_cutoff        = DEFAULT_ALPHA_CUTOFF,
     .texture             = load_texture("./assets/textures/server_room/sol1_screen_green.png")
   };
-  object_override_material(object_id, "screen", green_screen_material);
+  object_override_material(serv0, "screen", green_screen_material);
 
   object_id = create_object(
     load_mesh("./assets/obj/server_room/server.obj", false), 

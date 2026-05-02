@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "entity.h"
+#include "log.h"
 
 entity_t entities[MAX_NUM_ENTITIES];
 uint32_t num_entities;
@@ -12,6 +13,7 @@ entity_t *create_entity_computer(
   uint32_t cycles_per_frame
 ){
   if(num_entities == MAX_NUM_ENTITIES){
+    print_log("ERROR: maximum number of entities reached: %u", MAX_NUM_ENTITIES);
     return NULL;
   }
 

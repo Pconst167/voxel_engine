@@ -1,6 +1,16 @@
 # Blender 4.0.2 MTL File: 'None'
 # www.blender.org
 
+newmtl black
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.003857 0.002397 0.002045
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+
 newmtl body
 Ns 200.000000
 Ka 1.000000 1.000000 1.000000
@@ -11,17 +21,17 @@ Ni 1.450000
 d 1.000000
 illum 1
 
-newmtl floppies
-Ns 250.000000
+newmtl red
+Ns 0.000000
 Ka 1.000000 1.000000 1.000000
-Kd 0.003857 0.002397 0.002045
+Kd 0.799999 0.000000 0.000807
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 1
 
-newmtl screen.001
+newmtl screen
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000
@@ -29,4 +39,4 @@ Ke 1.000000 1.000000 1.000000
 Ni 1.450000
 d 1.000000
 illum 1
-map_Kd /home/pconst/Desktop/3d_game/assets/textures/server_room/sol1_screen_green.png
+map_Kd /home/pconst/Desktop/3d_game/assets/textures/server_room/screen.png
