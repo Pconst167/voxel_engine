@@ -32,6 +32,10 @@ maybe add lua scripting of some sort?
 
 maybe create escape room game where player writes programs and investigate HOW to write programs to open doors,solve pizzles etc to escape?
 
+game can have 2 modes, one story/puzzle and the other creative mode.
+maybe various rooms/levels so engine can cope. each level loaded independently
+
+
 
 
 Start with primitive machine.
