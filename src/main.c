@@ -1672,6 +1672,7 @@ int main(void){
     move_player();
 
     //emulator_cycle(100000);
+
     render_visible_chunks();
     
     time_count++; /* one count per frame */
@@ -1837,7 +1838,6 @@ void load_server_room(){
     (vector3_t){100, 100, 100}, (vector3_t){0, 0, 0}, (vector3_t){-300, 90, 580}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
-  computer_push(object_id);
 
   // floppy
   create_object(
@@ -1871,7 +1871,7 @@ void load_server_room(){
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
   material_t green_screen_material = {
-    .material_name       = "screen",
+    .material_name       = "",
     .base_color          = {.uint32 = 0xFFFFFFFF},
     .emissive_color      = {.uint32 = 0xFFFFFFFF},
     .opacity             = 1.0f,
@@ -1880,7 +1880,7 @@ void load_server_room(){
     .specular_highlights = false,
     .blend_mode          = BLEND_MODE_OPAQUE,
     .alpha_cutoff        = DEFAULT_ALPHA_CUTOFF,
-    .texture             = load_texture("./assets/textures/server_room/sol1_screen_green.png")
+    .texture             = create_blank_texture(100, 100, (color_t){.uint32 = 0xFF208020}) // load_texture("./assets/textures/server_room/sol1_screen_green.png")
   };
   object_override_material(object_id, "screen", green_screen_material);
   computer_push(object_id);
@@ -1893,7 +1893,7 @@ void load_server_room(){
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
   material_t amber_screen_material = {
-    .material_name       = "screen",
+    .material_name       = "",
     .base_color          = {.uint32 = 0xFFFFFFFF},
     .emissive_color      = {.uint32 = 0xFFFFFFFF},
     .opacity             = 1.0f,
@@ -1905,7 +1905,6 @@ void load_server_room(){
     .texture             = load_texture("./assets/textures/server_room/sol1_screen_amber.png")
   };
   object_override_material(object_id, "screen", amber_screen_material);
-  computer_push(object_id);
 
   object_id = create_object(
     load_mesh("./assets/obj/server_room/server.obj", false),
@@ -1914,7 +1913,6 @@ void load_server_room(){
     (vector3_t){130, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){510, 3, 300}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
-  computer_push(object_id);
 
   // drone
   create_object(

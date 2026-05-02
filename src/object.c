@@ -28,7 +28,7 @@ int32_t create_object(
   vector3_t angular_velocity
 ){
   if(num_objects >= MAX_NUM_OBJECTS){
-    print_log("ERROR: max number of objects reached %d", MAX_NUM_OBJECTS);
+    print_log("[ERROR] max number of objects reached %d", MAX_NUM_OBJECTS);
     return -1;
   }
 
@@ -144,19 +144,27 @@ void object_deactivate_collision_aabb(uint32_t collision_aabb_id){
   collision_aabbs[collision_aabb_id].active = false;
 }
 
+/*
+  add override material to object:
+    search material by name inside mesh
+    if object does not have any overriding materials yet, allocate memory for ALL slots and reset memory to 0
+    then write new overriding material slot inside object and set override flag for that material
+    NOTE: the old mesh material name is copied into new object's overriding material name
+*/
 void object_override_material(uint32_t object_id, char *material_name, material_t new_material){
   if(object_id >= num_objects){
-    print_log("ERROR: object index out of bounds: %u", object_id);
-    return;
+    print_log("[ERROR] object index out of bounds: %u", object_id);
+    exit(1);
+  }
+
+  if(new_material.material_name[0] != '\0'){
+    print_log("[ERROR] new object overriding material should not have a new name: %s", new_material.material_name);
+    exit(1);
   }
 
   object_t *object = &objects[object_id];
 
   mesh_t *mesh = object->mesh;
-  if(mesh == NULL){
-    print_log("ERROR: referenced mesh in object does not exist");
-    return;
-  }
 
   uint32_t num_mesh_materials = mesh->num_materials;
   for(uint32_t material_i = 0; material_i < num_mesh_materials; material_i++){
@@ -166,15 +174,22 @@ void object_override_material(uint32_t object_id, char *material_name, material_
         memset(object->material_overrides, 0x00, sizeof(material_t) * num_mesh_materials);
       }
 
+      // copy mesh material name into object's material name
       object->material_overrides[material_i] = new_material;
       object->material_override_flags[material_i] = true;
+      strcpy(object->material_overrides[material_i].material_name, mesh->materials[material_i].material_name);
       return;
     }
   }
 
-  print_log("[ERROR] material not found when trying to add override: %s", material_name);
+  print_log("[ERROR] material not found in mesh when trying to add object override: %s", material_name);
 }
 
+/*
+  search for a material by name - either in the object overrides or in original mesh materials
+  if material is overriden in object, return pointer to overriden object material
+  if material is not overriden, return a pointer to the mesh material
+*/
 material_t *object_get_material_ref_by_name(uint32_t object_id, char *material_name){
   object_t *object = &objects[object_id];
 
@@ -189,6 +204,8 @@ material_t *object_get_material_ref_by_name(uint32_t object_id, char *material_n
         return &object->mesh->materials[material_i];
     }
   }
+
   print_log("[ERROR] material '%s' not found either in object '%u' or its mesh", material_name, object_id);
+  exit(1);
   return NULL;
 }

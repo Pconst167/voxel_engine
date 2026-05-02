@@ -17,5 +17,10 @@ extern uint32_t num_textures;
 
 texture_t load_png_texture_data(char *filename);
 texture_t *load_texture(char *texture_filename);
+texture_t *create_blank_texture(
+  uint32_t texture_width,
+  uint32_t texture_height,
+  color_t base_color
+);
 
 #endif

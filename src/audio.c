@@ -7,12 +7,12 @@ static Mix_Music *background_music = NULL;
 
 bool audio_init(void){
   if(SDL_InitSubSystem(SDL_INIT_AUDIO) != 0){
-    print_log("ERROR: SDL audio init failed: %s\n", SDL_GetError());
+    print_log("[ERROR] SDL audio init failed: %s\n", SDL_GetError());
     return false;
   }
 
   if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0){
-    print_log("ERROR: Mix_OpenAudio failed: %s\n", Mix_GetError());
+    print_log("[ERROR] Mix_OpenAudio failed: %s\n", Mix_GetError());
     return false;
   }
 
@@ -40,7 +40,7 @@ bool audio_load_background(const char *filename){
 
   background_music = Mix_LoadMUS(filename);
   if(background_music == NULL){
-    print_log("ERROR: Mix_LoadMUS failed for %s: %s\n", filename, Mix_GetError());
+    print_log("[ERROR] Mix_LoadMUS failed for %s: %s\n", filename, Mix_GetError());
     return false;
   }
 
@@ -51,7 +51,7 @@ void audio_play_background(int loops){
   if(background_music == NULL) return;
 
   if(Mix_PlayMusic(background_music, loops) == -1){
-    print_log("ERROR: Mix_PlayMusic failed: %s\n", Mix_GetError());
+    print_log("[ERROR] Mix_PlayMusic failed: %s\n", Mix_GetError());
   }
 }
 

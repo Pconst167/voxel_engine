@@ -39,7 +39,7 @@ bool initialize_window(void){
   );
 
   if(!window){
-    print_log("ERROR: failed to create SDL window");
+    print_log("[ERROR] failed to create SDL window");
     return false;
   }
 
@@ -47,7 +47,7 @@ bool initialize_window(void){
 
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
   if(!renderer){
-    print_log("ERROR: failed to create SDL renderer");
+    print_log("[ERROR] failed to create SDL renderer");
     return false;
   }
 

@@ -1677,7 +1677,7 @@ void ide_write_to_disk(){
   FILE *fp;
 
   if((fp = fopen("disk.bin", "wb+")) == NULL){
-    printf("\nerror: unable to create local disk file.\n");
+    printf("\n[ERROR] unable to create local disk file.\n");
     return;
   }
 
@@ -1898,7 +1898,7 @@ void load_microcode_roms(void){
 
     FILE *fp = fopen(filename, "rb");
     if(!fp){
-      fprintf(stderr, "\nERROR: cannot open '%s': %s\n", filename, strerror(errno));
+      fprintf(stderr, "\n[ERROR] cannot open '%s': %s\n", filename, strerror(errno));
       exit(1);
     }
 
@@ -1930,7 +1930,7 @@ void load_microcode_roms(void){
     }
 
     if(ferror(fp)){
-      fprintf(stderr, "\nERROR: read error on '%s': %s\n", filename, strerror(errno));
+      fprintf(stderr, "\n[ERROR] read error on '%s': %s\n", filename, strerror(errno));
       fclose(fp);
       exit(1);
     }

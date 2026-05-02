@@ -51,7 +51,7 @@ static void get_directory_from_path(
   size_t len = (size_t)(last_slash - path);
   if(len >= output_size){
     output_directory[0] = '\0';
-    print_log("ERROR: path too long\n");
+    print_log("[ERROR] path too long\n");
     return;
   }
 
@@ -197,7 +197,7 @@ void load_obj_file(char *filename, mesh_t *mesh, bool invert_x){
   get_directory_from_path(filename, obj_dir, sizeof(obj_dir));
 
   if(file == NULL){
-    print_log("ERROR: could not open OBJ file: %s\n", filename);
+    print_log("[ERROR] could not open OBJ file: %s\n", filename);
     exit(1);
   }
 
@@ -345,12 +345,12 @@ void load_obj_file(char *filename, mesh_t *mesh, bool invert_x){
   mesh->num_materials = array_length(mesh->materials);
 
   if(mesh->num_vertices == 0){
-    print_log("ERROR: 0 vertices in OBJ file: %s\n", filename);
+    print_log("[ERROR] 0 vertices in OBJ file: %s\n", filename);
     exit(1);
   }
 
   if(mesh->num_faces == 0){
-    print_log("ERROR: 0 faces in OBJ file: %s\n", filename);
+    print_log("[ERROR] 0 faces in OBJ file: %s\n", filename);
     exit(1);
   }
 
@@ -360,7 +360,7 @@ void load_obj_file(char *filename, mesh_t *mesh, bool invert_x){
 
 mesh_t *load_mesh(char *obj_filename, bool invert_x){
   if(num_meshes >= MAX_NUM_MESHES){
-    print_log("ERROR: max number of meshes reached %d", MAX_NUM_MESHES);
+    print_log("[ERROR] max number of meshes reached %d", MAX_NUM_MESHES);
     return NULL;
   }
 
@@ -422,7 +422,7 @@ mesh_t *load_mesh(char *obj_filename, bool invert_x){
 
 mesh_t *create_cube_mesh(vector3_t vertex_min, vector3_t vertex_max){
   if(num_meshes >= MAX_NUM_MESHES){
-    print_log("ERROR: max number of meshes reached %d", MAX_NUM_MESHES);
+    print_log("[ERROR] max number of meshes reached %d", MAX_NUM_MESHES);
     return NULL;
   }
 
