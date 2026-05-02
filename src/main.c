@@ -1696,7 +1696,7 @@ void load_voxel_world(){
   create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.4f);
 
   mesh = load_mesh("./assets/obj/voxels.obj", false);
-  create_object(mesh, OBJECT_TYPE_NORMAL, true, true, 
+  create_object(mesh, OBJECT_TYPE_ROOM, true, true, 
                 false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
                (vector3_t){10, 10, 10}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
@@ -1726,7 +1726,7 @@ void load_server_room(){
   /* room */
   object_id = create_object(
     load_mesh("./assets/obj/server_room/room3.obj", false), 
-    OBJECT_TYPE_NORMAL, true, true, 
+    OBJECT_TYPE_ROOM, true, true, 
     false, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
     (vector3_t){1300, 1800, 1300}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
@@ -1821,7 +1821,7 @@ void load_server_room(){
   // ibm
   object_id = create_object(
     load_mesh("./assets/obj/server_room/ibm.obj", true),
-    OBJECT_TYPE_NORMAL, true, true, 
+    OBJECT_TYPE_COMPUTER, true, true, 
     true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.4f}, (vector3_t){0.0f, 0.0f, 20.0f},
     (vector3_t){100, 100, 100}, (vector3_t){0, 0, 0}, (vector3_t){-300, 3, 600}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
@@ -1830,21 +1830,21 @@ void load_server_room(){
   // floppy
   create_object(
     load_mesh("./assets/obj/server_room/floppy.obj", false), 
-    OBJECT_TYPE_NORMAL, true, true, 
+    OBJECT_TYPE_ITEM, true, true, 
     false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
     (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-300, 1, 450}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
   object_id = create_object(
     load_mesh("./assets/obj/server_room/floppy.obj", false), 
-    OBJECT_TYPE_NORMAL, true, true, 
+    OBJECT_TYPE_ITEM, true, true, 
     false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
     (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-250, 1, 450}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
   create_object(
     load_mesh("./assets/obj/server_room/floppy.obj", false), 
-    OBJECT_TYPE_NORMAL, true, true, 
+    OBJECT_TYPE_ITEM, true, true, 
     false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
     (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-350, 1, 450}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
@@ -1853,7 +1853,7 @@ void load_server_room(){
   /* mainframes */
   serv0 = create_object(
     load_mesh("./assets/obj/server_room/server.obj", false),
-    OBJECT_TYPE_NORMAL, true, true, 
+    OBJECT_TYPE_COMPUTER, true, true, 
     true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 9.0f},
     (vector3_t){130, 110, 80}, (vector3_t){0, 0, 0}, (vector3_t){150, 3, 330}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
@@ -1874,7 +1874,7 @@ void load_server_room(){
 
   object_id = create_object(
     load_mesh("./assets/obj/server_room/server.obj", false), 
-    OBJECT_TYPE_NORMAL, true, true, 
+    OBJECT_TYPE_COMPUTER, true, true, 
     true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 9.0f},
     (vector3_t){130, 110, 80}, (vector3_t){0, 0, 0}, (vector3_t){330, 3, 330}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
@@ -1895,7 +1895,7 @@ void load_server_room(){
 
   create_object(
     load_mesh("./assets/obj/server_room/server.obj", false),
-    OBJECT_TYPE_NORMAL, true, true, 
+    OBJECT_TYPE_COMPUTER, true, true, 
     true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 9.0f},
     (vector3_t){130, 110, 80}, (vector3_t){0, 0, 0}, (vector3_t){510, 3, 330}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
@@ -1903,7 +1903,7 @@ void load_server_room(){
 
   //// drone
   //mesh = load_mesh("./assets/obj/server_room/drone.obj", false);
-  //object_id = create_object(mesh, OBJECT_TYPE_NORMAL, true, false, 
+  //object_id = create_object(mesh, OBJECT_TYPE_ROBOT, true, false, 
   //                          true, true, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.8f}, (vector3_t){0.0f, 0.0f, 0.0f},
   //                         (vector3_t){80, 80, 80}, (vector3_t){0, 0, 0}, (vector3_t){-300, 0, 250}, 
   //                         (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}

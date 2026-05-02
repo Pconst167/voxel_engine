@@ -16,11 +16,44 @@
 #include "material.h"
 
 #define MAX_NUM_OBJECTS 1000
+#define MAX_LEN_OBJECT_NAME 64
 
 typedef enum{
-  OBJECT_TYPE_NORMAL,
-  OBJECT_TYPE_SKYBOX /* skyboxes are special objects that track camera movement so they are always at constant distance from camera */
+  OBJECT_TYPE_SKYBOX, /* skyboxes are special objects that track camera movement so they are always at constant distance from camera */
+  OBJECT_TYPE_ROOM,
+  OBJECT_TYPE_DOOR,
+  OBJECT_TYPE_COMPUTER,
+  OBJECT_TYPE_ROBOT,
+  OBJECT_TYPE_BUTTON,
+  OBJECT_TYPE_ITEM
 } object_type_t;
+
+typedef struct{
+  char name[MAX_LEN_OBJECT_NAME];
+  bool turned_on;
+  texture_t *screen_texture;
+  uint32_t cycles_per_frame;
+} computer_data_t;
+
+typedef struct{
+  bool open;
+} door_data_t;
+
+typedef struct{
+  bool pressed;
+} button_data_t;
+
+typedef struct{
+  char name[MAX_LEN_OBJECT_NAME];
+  bool taken;
+} item_data_t;
+
+typedef union{
+  computer_data_t as_computer;
+  door_data_t as_door;
+  button_data_t as_button;
+  item_data_t as_item;
+} gameplay_data_t;
 
 typedef struct{
   mesh_t *mesh;
@@ -44,8 +77,8 @@ typedef struct{
   // overriding materials
   material_t *material_overrides;  // array of overriding materials for the object
   bool *material_override_flags; // an override flag for each material - same number of elements as materials array
-  // owner entity id
-  uint32_t owner_entity;
+  // object's gameplay data
+  gameplay_data_t gameplay_data;
 } object_t;
 
 /* used to sort objects for rendering */
