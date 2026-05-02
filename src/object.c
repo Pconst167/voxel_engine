@@ -172,18 +172,23 @@ void object_override_material(uint32_t object_id, char *material_name, material_
     }
   }
 
-  print_log("ERROR: material not found when trying to add override: %s", material_name);
+  print_log("[ERROR] material not found when trying to add override: %s", material_name);
 }
 
-uint32_t object_get_material_id_by_name(uint32_t object_id, char *material_name){
+material_t *object_get_material_ref_by_name(uint32_t object_id, char *material_name){
   object_t *object = &objects[object_id];
 
   uint32_t num_obj_materials = object->mesh->num_materials;
   for(uint32_t material_i = 0; material_i < num_obj_materials; material_i++){
-    if(!strcmp(object->material_overrides[material_i].material_name, material_name)){
-      return material_i;
+    if(object->material_override_flags[material_i] == true){ // if object material is overriden
+      if(!strcmp(object->material_overrides[material_i].material_name, material_name))
+        return &object->material_overrides[material_i];
+    }
+    else{
+      if(!strcmp(object->mesh->materials[material_i].material_name, material_name))
+        return &object->mesh->materials[material_i];
     }
   }
-  print_log("ERROR: override material '%s' not found in object %u", material_name, object_id);
-  return -1;
+  print_log("[ERROR] material '%s' not found either in object '%u' or its mesh", material_name, object_id);
+  return NULL;
 }

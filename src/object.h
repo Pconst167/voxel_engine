@@ -21,6 +21,7 @@
 typedef enum{
   OBJECT_TYPE_SKYBOX, /* skyboxes are special objects that track camera movement so they are always at constant distance from camera */
   OBJECT_TYPE_ROOM,
+  OBJECT_TYPE_FURNITURE,
   OBJECT_TYPE_DOOR,
   OBJECT_TYPE_COMPUTER,
   OBJECT_TYPE_ROBOT,
@@ -112,6 +113,6 @@ aabb_3d_t get_object_aabb(uint32_t object_id);
 void object_activate_collision_aabb(uint32_t collision_aabb_id);
 void object_deactivate_collision_aabb(uint32_t collision_aabb_id);
 void object_override_material(uint32_t object_id, char *material_name, material_t new_material);
-uint32_t object_get_material_id_by_name(uint32_t object_id, char *material_name);
+material_t *object_get_material_ref_by_name(uint32_t object_id, char *material_name);
 
 #endif

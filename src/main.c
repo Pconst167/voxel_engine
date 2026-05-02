@@ -111,6 +111,7 @@
 #include "options.h"
 #include "log.h"
 #include "material.h"
+#include "computers.h"
 #include "emulator/emulator.h"
 #include "debug.h"
 
@@ -179,7 +180,6 @@ float sun_eta = (M_PI_2); /* sun's eta angle, start sun on horizon */
 mesh_t *term0;
 mesh_t *term1;
 mesh_t *term2;
-uint32_t serv0;
 
 void setup(void) {
   
@@ -1323,11 +1323,13 @@ void update_state(void){
     .z = cosf(player.eta) * player.direction.z
   };
 
-  uint32_t material_id = object_get_material_id_by_name(serv0, "screen2");
-  uint8_t color = 230 + 3*(xorshift32() & 0x07);
-  objects[serv0].material_overrides[material_id].emissive_color.rgb.red   = color;
-  objects[serv0].material_overrides[material_id].emissive_color.rgb.green = color;
-  objects[serv0].material_overrides[material_id].emissive_color.rgb.blue  = color;
+  for(uint32_t i = 0; i < num_computers; i++){
+    material_t *material = object_get_material_ref_by_name(computers[i].object_id, "screen");
+    uint8_t color = 200 + 7*(xorshift32() & 0x07);
+    material->emissive_color.rgb.red   = color;
+    material->emissive_color.rgb.green = color;
+    material->emissive_color.rgb.blue  = color;
+  }
 }
 
 inline uint32_t rasterize_triangle(
@@ -1669,7 +1671,7 @@ int main(void){
     update_state();
     move_player();
 
-    emulator_cycle(100000);
+    //emulator_cycle(100000);
     render_visible_chunks();
     
     time_count++; /* one count per frame */
@@ -1721,7 +1723,7 @@ void load_server_room(){
   create_light_source(LIGHT_POINT,   (vector3_t){.x = 300.0f,   .y = 50.0f, .z = -50.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 300.0f);
   create_light_source(LIGHT_POINT,   (vector3_t){.x = -300.0f,   .y = 50.0f, .z = -50.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 300.0f);
   create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 150.0f, .z = 400.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF00FF}, 150.0f);
-  //create_light_source(LIGHT_POINT,   (vector3_t){.x = 100.0f,  .y = 250.0f, .z = 300.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 100.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -300.0f,  .y = 100.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 50.0f);
 
   /* room */
   object_id = create_object(
@@ -1818,48 +1820,58 @@ void load_server_room(){
 
   //object_deactivate_collision_aabb(aabb_back);
 
-  // ibm
+  // desk
   object_id = create_object(
-    load_mesh("./assets/obj/server_room/ibm.obj", true),
-    OBJECT_TYPE_COMPUTER, true, true, 
+    load_mesh("./assets/obj/server_room/desk.obj", true),
+    OBJECT_TYPE_FURNITURE, true, true,
     true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.4f}, (vector3_t){0.0f, 0.0f, 20.0f},
-    (vector3_t){100, 100, 100}, (vector3_t){0, 0, 0}, (vector3_t){-300, 3, 600}, 
+    (vector3_t){300, 200, 240}, (vector3_t){0, 0, 0}, (vector3_t){-300, 3, 560}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
+
+  // ibm
+  object_id = create_object(
+    load_mesh("./assets/obj/server_room/ibm2.obj", true),
+    OBJECT_TYPE_COMPUTER, true, true, 
+    true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.4f}, (vector3_t){0.0f, 0.0f, 20.0f},
+    (vector3_t){100, 100, 100}, (vector3_t){0, 0, 0}, (vector3_t){-300, 90, 580}, 
+    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  );
+  computer_push(object_id);
 
   // floppy
   create_object(
     load_mesh("./assets/obj/server_room/floppy.obj", false), 
     OBJECT_TYPE_ITEM, true, true, 
     false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-    (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-300, 1, 450}, 
+    (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-360, 90, 580}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
   object_id = create_object(
     load_mesh("./assets/obj/server_room/floppy.obj", false), 
     OBJECT_TYPE_ITEM, true, true, 
     false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-    (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-250, 1, 450}, 
+    (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-360, 90, 550}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
   create_object(
     load_mesh("./assets/obj/server_room/floppy.obj", false), 
     OBJECT_TYPE_ITEM, true, true, 
     false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-    (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-350, 1, 450}, 
+    (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-360, 90, 530}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
   /* mainframes */
-  serv0 = create_object(
+  object_id = create_object(
     load_mesh("./assets/obj/server_room/server.obj", false),
     OBJECT_TYPE_COMPUTER, true, true, 
     true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 9.0f},
-    (vector3_t){130, 110, 80}, (vector3_t){0, 0, 0}, (vector3_t){150, 3, 330}, 
+    (vector3_t){130, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){150, 3, 300}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
   material_t green_screen_material = {
-    .material_name       = "screen2",
+    .material_name       = "screen",
     .base_color          = {.uint32 = 0xFFFFFFFF},
     .emissive_color      = {.uint32 = 0xFFFFFFFF},
     .opacity             = 1.0f,
@@ -1870,17 +1882,18 @@ void load_server_room(){
     .alpha_cutoff        = DEFAULT_ALPHA_CUTOFF,
     .texture             = load_texture("./assets/textures/server_room/sol1_screen_green.png")
   };
-  object_override_material(serv0, "screen", green_screen_material);
+  object_override_material(object_id, "screen", green_screen_material);
+  computer_push(object_id);
 
   object_id = create_object(
     load_mesh("./assets/obj/server_room/server.obj", false), 
     OBJECT_TYPE_COMPUTER, true, true, 
     true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 9.0f},
-    (vector3_t){130, 110, 80}, (vector3_t){0, 0, 0}, (vector3_t){330, 3, 330}, 
+    (vector3_t){130, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){330, 3, 300}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
   material_t amber_screen_material = {
-    .material_name       = "screen2",
+    .material_name       = "screen",
     .base_color          = {.uint32 = 0xFFFFFFFF},
     .emissive_color      = {.uint32 = 0xFFFFFFFF},
     .opacity             = 1.0f,
@@ -1892,14 +1905,16 @@ void load_server_room(){
     .texture             = load_texture("./assets/textures/server_room/sol1_screen_amber.png")
   };
   object_override_material(object_id, "screen", amber_screen_material);
+  computer_push(object_id);
 
-  create_object(
+  object_id = create_object(
     load_mesh("./assets/obj/server_room/server.obj", false),
     OBJECT_TYPE_COMPUTER, true, true, 
     true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 9.0f},
-    (vector3_t){130, 110, 80}, (vector3_t){0, 0, 0}, (vector3_t){510, 3, 330}, 
+    (vector3_t){130, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){510, 3, 300}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
+  computer_push(object_id);
 
   // drone
   create_object(
