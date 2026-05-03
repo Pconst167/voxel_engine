@@ -28,6 +28,9 @@ void setup(void);
 void draw_char_to_color_buffer(int x, int y, char character, color_t color, int scale);
 void draw_text_to_color_buffer(int x, int y, const char *text, color_t color, int scale);
 
+void draw_char_to_computer_screen(int x, int y, char character, color_t color, int scale, texture_t *screen);
+void draw_text_to_computer_screen(int x, int y, const char *text, color_t color, int scale, texture_t *screen);
+
 inline uint32_t rasterize_triangle(
   triangle_t *triangle, 
   material_t face_material,

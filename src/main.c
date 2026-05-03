@@ -177,9 +177,9 @@ vector3_t sun_direction; /* world-space sun direction vector */
 float sun_eta = (M_PI_2); /* sun's eta angle, start sun on horizon */
 
 // meshes / objects
-mesh_t *term0;
-mesh_t *term1;
-mesh_t *term2;
+uint32_t term0;
+uint32_t term1;
+uint32_t term2;
 
 void setup(void) {
   
@@ -1635,11 +1635,12 @@ int main(void){
     update_state();
 
     //emulator_cycle(100000);
+    draw_text_to_computer_screen(20, 40, "Hello World!\nHello World!\nHello World!\nHello World!!\nHello World!!\nHello World!!\nHello World!!\nHello World!!", (color_t){.uint32 = 0xFF0090B0}, 10, computers[0].screen_texture);
 
     render_visible_chunks();
     
     generate_game_data();
-    draw_text_to_color_buffer(10, 10, text0, (color_t){.uint32 = 0xFFFFFFFF}, 1);
+    draw_text_to_color_buffer(20, 20, text0, (color_t){.uint32 = 0xFFFFFFFF}, 1);
 
     sdl_render();
     SDL_RenderPresent(renderer);
@@ -1828,13 +1829,15 @@ void load_server_room(){
   );
 
   /* mainframes */
-  object_id = create_object(
-    load_mesh("./assets/obj/server_room/server.obj", false),
+  mesh_t *mesh = load_mesh("./assets/obj/server_room/server.obj", true);
+  term0 = create_object(
+    mesh,
     OBJECT_TYPE_COMPUTER, true, true, 
     true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 9.0f},
     (vector3_t){130, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){150, 3, 300}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
+  texture_t *screen_texture = create_blank_texture(4096, 4096, (color_t){.uint32 = 0xFF000815}); // create blank texture for computer screen
   material_t green_screen_material = {
     .material_name       = "",
     .base_color          = {.uint32 = 0xFFFFFFFF},
@@ -1845,13 +1848,13 @@ void load_server_room(){
     .specular_highlights = false,
     .blend_mode          = BLEND_MODE_OPAQUE,
     .alpha_cutoff        = DEFAULT_ALPHA_CUTOFF,
-    .texture             = create_blank_texture(100, 100, (color_t){.uint32 = 0xFF208020}) // load_texture("./assets/textures/server_room/sol1_screen_green.png")
+    .texture             = screen_texture
   };
-  object_override_material(object_id, "screen", green_screen_material);
-  computer_push(object_id);
+  object_override_material(term0, "screen", green_screen_material);
+  computer_push(term0, screen_texture);
 
   object_id = create_object(
-    load_mesh("./assets/obj/server_room/server.obj", false), 
+    mesh,
     OBJECT_TYPE_COMPUTER, true, true, 
     true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 9.0f},
     (vector3_t){130, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){330, 3, 300}, 
@@ -1872,7 +1875,7 @@ void load_server_room(){
   object_override_material(object_id, "screen", amber_screen_material);
 
   object_id = create_object(
-    load_mesh("./assets/obj/server_room/server.obj", false),
+    mesh,
     OBJECT_TYPE_COMPUTER, true, true, 
     true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 9.0f},
     (vector3_t){130, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){510, 3, 300}, 
@@ -2039,7 +2042,7 @@ void draw_char_to_color_buffer(
   color_t color,
   int scale
 ){
-  const uint8_t *glyph = get_font_5x7_char(character);
+  const uint8_t *glyph = get_font_terminal_char(character);
 
   for(int row = 0; row < FONT_HEIGHT; row++){
     uint8_t bits = glyph[row];
@@ -2079,6 +2082,48 @@ void draw_text_to_color_buffer(
     }
     else{
       draw_char_to_color_buffer(cursor_x, cursor_y, *text, color, scale);
+      cursor_x += (FONT_WIDTH + FONT_SPACING) * scale;
+    }
+
+    text++;
+  }
+}
+
+void draw_char_to_computer_screen(int x, int y, char character, color_t color, int scale, texture_t *screen){
+  const uint8_t *glyph = get_font_terminal_char(character);
+
+  for(int row = 0; row < FONT_HEIGHT; row++){
+    uint8_t bits = glyph[row];
+
+    for(int col = 0; col < FONT_WIDTH; col++){
+      if(bits & (1 << (FONT_WIDTH - 1 - col))){
+        for(int scale_y = 0; scale_y < scale; scale_y++){
+          int pixel_y = y + row * scale + scale_y;
+
+          if(pixel_y < 0 || pixel_y >= screen->texture_height) continue;
+
+          for(int scale_x = 0; scale_x < scale; scale_x++){
+            int pixel_x = x + col * scale + scale_x;
+            if(pixel_x < 0 || pixel_x >= screen->texture_width) continue;
+            screen->texture[pixel_y * screen->texture_width + pixel_x] = color;
+          }
+        }
+      }
+    }
+  }
+}
+
+void draw_text_to_computer_screen(int x, int y, const char *text, color_t color, int scale, texture_t *screen){
+  int cursor_x = x;
+  int cursor_y = y;
+
+  while(*text != '\0'){
+    if(*text == '\n'){
+      cursor_x = x;
+      cursor_y += (FONT_HEIGHT + FONT_SPACING) * scale;
+    }
+    else{
+      draw_char_to_computer_screen(cursor_x, cursor_y, *text, color, scale, screen);
       cursor_x += (FONT_WIDTH + FONT_SPACING) * scale;
     }
 

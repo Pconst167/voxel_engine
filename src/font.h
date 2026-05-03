@@ -3,10 +3,10 @@
 
 #include <stdint.h>
 
-#define FONT_WIDTH 5
-#define FONT_HEIGHT 7
-#define FONT_SPACING 1
+#define FONT_WIDTH 6
+#define FONT_HEIGHT 8
+#define FONT_SPACING 0
 
-const uint8_t *get_font_5x7_char(char character);
+const uint8_t *get_font_terminal_char(char character);
 
 #endif
