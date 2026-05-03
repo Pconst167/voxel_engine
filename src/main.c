@@ -1837,7 +1837,7 @@ void load_server_room(){
     (vector3_t){130, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){150, 3, 300}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
-  texture_t *screen_texture = load_texture("./assets/textures/server_room/screen_blank.png"); // create_blank_texture(4096, 4096, (color_t){.uint32 = 0xFF000815}); // create blank texture for computer screen
+  texture_t *screen_texture = load_texture("./assets/textures/server_room/screen_amber.png"); // create_blank_texture(4096, 4096, (color_t){.uint32 = 0xFF000815}); // create blank texture for computer screen
   material_t green_screen_material = {
     .material_name       = "",
     .base_color          = {.uint32 = 0xFFFFFFFF},
