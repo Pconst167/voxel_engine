@@ -1285,13 +1285,13 @@ void update_state(void){
     .z = cosf(player.eta) * player.direction.z
   };
 
-  for(uint32_t i = 0; i < num_computers; i++){
-    material_t *material = object_get_material_ref_by_name(computers[i].object_id, "screen");
-    uint8_t color = 200 + 7*(xorshift32() & 0x07);
-    material->emissive_color.rgb.red   = color;
-    material->emissive_color.rgb.green = color;
-    material->emissive_color.rgb.blue  = color;
-  }
+  //for(uint32_t i = 0; i < num_computers; i++){
+  //  material_t *material = object_get_material_ref_by_name(computers[i].object_id, "screen");
+  //  uint8_t color = 200 + 7*(xorshift32() & 0x07);
+  //  material->emissive_color.rgb.red   = color;
+  //  material->emissive_color.rgb.green = color;
+  //  material->emissive_color.rgb.blue  = color;
+  //}
 }
 
 inline uint32_t rasterize_triangle(
@@ -1626,6 +1626,23 @@ int main(void){
   
   //emulator_setup();
 
+  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
+  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
+  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
+  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
+  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
+  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
+  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
+  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
+  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
+  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
+  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
+  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
+  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
+  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
+  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
+  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
+
   while(!quit){
     frame_id++;
     process_frame_rate();
@@ -1634,8 +1651,7 @@ int main(void){
     move_player();
     update_state();
 
-    //emulator_cycle(100000);
-    draw_text_to_computer_screen(20, 40, "Hello Monica", (color_t){.uint32 = 0xFF0090B0}, 10, computers[0].screen_texture);
+    emulator_cycle(100000);
 
     render_visible_chunks();
     
@@ -1686,11 +1702,11 @@ void load_skybox(){
 void load_server_room(){
   int32_t object_id;
 
-  create_light_source(LIGHT_AMBIENT, (vector3_t){.x = 0.0f,     .y = 0.0f,   .z = 0.0f},    (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 0.05f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = 300.0f,   .y = 50.0f, .z = -50.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 300.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = -300.0f,   .y = 50.0f, .z = -50.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 300.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 150.0f, .z = 400.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF00FF}, 150.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = -300.0f,  .y = 100.0f, .z = 100.0f},  (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 50.0f);
+  create_light_source(LIGHT_AMBIENT, (vector3_t){.x = 0.0f,     .y = 0.0f,   .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 0.05f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = 300.0f,   .y = 50.0f,  .z = -50.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 300.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -300.0f,  .y = 50.0f,  .z = -50.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 300.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 150.0f, .z = 400.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF00FF}, 150.0f);
+  //create_light_source(LIGHT_POINT,   (vector3_t){.x = -300.0f,  .y = 100.0f, .z = 100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 50.0f);
 
   /* room */
   object_id = create_object(
@@ -1833,7 +1849,7 @@ void load_server_room(){
   term0 = create_object(
     mesh,
     OBJECT_TYPE_COMPUTER, true, true, 
-    true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 9.0f},
+    true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.5f}, (vector3_t){0.0f, -10.0f, 9.0f},
     (vector3_t){130, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){150, 3, 300}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
@@ -1851,7 +1867,7 @@ void load_server_room(){
     .texture             = screen_texture
   };
   object_override_material(term0, "screen", green_screen_material);
-  computer_push(term0, screen_texture);
+  computer_push(term0, screen_texture, 0, 0, 5);
 
   object_id = create_object(
     mesh,
@@ -2082,48 +2098,6 @@ void draw_text_to_color_buffer(
     }
     else{
       draw_char_to_color_buffer(cursor_x, cursor_y, *text, color, scale);
-      cursor_x += (FONT_WIDTH + FONT_SPACING) * scale;
-    }
-
-    text++;
-  }
-}
-
-void draw_char_to_computer_screen(int x, int y, char character, color_t color, int scale, texture_t *screen){
-  const uint8_t *glyph = get_font_terminal_char(character);
-
-  for(int row = 0; row < FONT_HEIGHT; row++){
-    uint8_t bits = glyph[row];
-
-    for(int col = 0; col < FONT_WIDTH; col++){
-      if(bits & (1 << (FONT_WIDTH - 1 - col))){
-        for(int scale_y = 0; scale_y < scale; scale_y++){
-          int pixel_y = y + row * scale + scale_y;
-
-          if(pixel_y < 0 || pixel_y >= screen->texture_height) continue;
-
-          for(int scale_x = 0; scale_x < scale; scale_x++){
-            int pixel_x = x + col * scale + scale_x;
-            if(pixel_x < 0 || pixel_x >= screen->texture_width) continue;
-            screen->texture[pixel_y * screen->texture_width + pixel_x] = color;
-          }
-        }
-      }
-    }
-  }
-}
-
-void draw_text_to_computer_screen(int x, int y, const char *text, color_t color, int scale, texture_t *screen){
-  int cursor_x = x;
-  int cursor_y = y;
-
-  while(*text != '\0'){
-    if(*text == '\n'){
-      cursor_x = x;
-      cursor_y += (FONT_HEIGHT + FONT_SPACING) * scale;
-    }
-    else{
-      draw_char_to_computer_screen(cursor_x, cursor_y, *text, color, scale, screen);
       cursor_x += (FONT_WIDTH + FONT_SPACING) * scale;
     }
 
