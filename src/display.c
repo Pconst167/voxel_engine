@@ -32,7 +32,7 @@ bool initialize_window(void){
   SDL_GetCurrentDisplayMode(0, &mode);
 
   window = SDL_CreateWindow(
-    "3D Renderer",
+    "Unitrix",
     SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
     mode.w, mode.h,
     SDL_WINDOW_RESIZABLE

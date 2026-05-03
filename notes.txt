@@ -1,6 +1,9 @@
 **********************************************************************************************
 ********** STAY ATTENTIVE TO GAME GOING VIRAL AND BE PREPARED IN CASE IT HAPENS !!!!!
 
+make it possible to set the outside environment: space, blue skies, etc
+perhaps a few sets like spaceship, house, factory etc
+
 game where you are in a kind of room with computers and servers. perhaps vintage computers?
 you program the computers etc
 programming the computer(s) may have consequences in the real world from simple control light changing lights

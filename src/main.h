@@ -23,7 +23,10 @@ void update_state(void);
 void move_player(void);
 void update_light(void);
 void process_input(void);
-void setup(void) ;
+void setup(void);
+
+void draw_char_to_color_buffer(int x, int y, char character, color_t color, int scale);
+void draw_text_to_color_buffer(int x, int y, const char *text, color_t color, int scale);
 
 inline uint32_t rasterize_triangle(
   triangle_t *triangle, 

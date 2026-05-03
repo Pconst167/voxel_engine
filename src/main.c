@@ -113,6 +113,7 @@
 #include "material.h"
 #include "computers.h"
 #include "emulator/emulator.h"
+#include "font.h"
 #include "debug.h"
 
 // compile time enables
@@ -144,7 +145,6 @@ uint64_t time_count; /* keeps a count that increments every frame - used to pace
 float time_of_day; /* keeps time the accumulation of  each delta_time per frame */
 char text0[256];
 char text1[256];
-char text2[256];
 
 /* game control */
 float delta_time;
@@ -214,17 +214,6 @@ void setup(void) {
   /* populate world with aabbs */
   populate_chunks_with_collision_aabbs();
 
-  //for(int row = 0; row < NUM_CHUNK_DIVISIONS; row++){
-  //  for(int col = 0; col < NUM_CHUNK_DIVISIONS; col++){
-  //    if(chunks[row][col].empty == false){
-  //      printf("chunk: %d %d\n", row, col);
-  //      for(uint32_t obj = 0; obj < chunks[row][col].num_chunk_objects; obj++){
-  //        printf("object idx %d, object id: %d\n", obj, chunks[row][col].chunk_object_faces[obj].object_id);
-  //      }
-  //    }
-  //  }
-  //}
-
 }
 
 void process_input(void){
@@ -244,69 +233,69 @@ void process_input(void){
         break;
 
       case SDL_KEYDOWN:
-        if(event.key.repeat == 0){
-          switch (event.key.keysym.sym){
-            case SDLK_ESCAPE: 
-              quit = true; 
-              break;
-            case SDLK_p: 
-              is_paused = !is_paused; 
-              break;
+        if(event.key.repeat) break;
 
-            case SDLK_1:{
-              options.projection_mode = TEXT_PERSPECTIVE_CORRECT; 
-              snprintf(text1, sizeof(char) * 256, " perspective");
-              break;
-            }
-            case SDLK_2:{
-              options.projection_mode = TEXT_AFFINE; 
-              snprintf(text1, sizeof(char) * 256, " affine");
-              break;
-            }
-            case SDLK_3:{
-              options.projection_mode = TEXT_FILLED; 
-              snprintf(text1, sizeof(char) * 256, " filled");
-              break;
-            }
-            case SDLK_4:{
-              options.projection_mode = TEXT_WIREFRAME; 
-              snprintf(text1, sizeof(char) * 256, " wireframe");
-              break;
-            }
+        switch(event.key.keysym.sym){
+          case SDLK_ESCAPE: 
+            quit = true; 
+            break;
+          case SDLK_p: 
+            is_paused = !is_paused; 
+            break;
 
-            case SDLK_5:{
-              options.render_collision_aabb_outlines = !options.render_collision_aabb_outlines; 
-              snprintf(text1, sizeof(char) * 256, " collision aabb outlines %s", options.render_collision_aabb_outlines ? "on" : "off");
-              break;
-            }
-            case SDLK_6:{
-              options.render_chunk_outlines = !options.render_chunk_outlines; 
-              snprintf(text1, sizeof(char) * 256, " chunk outlines %s", options.render_chunk_outlines ? "on" : "off");
-              break;
-            }
-            case SDLK_7:{
-              options.backface_culling_override = !options.backface_culling_override; 
-              snprintf(text1, sizeof(char) * 256, " bfc ovrd %s", options.backface_culling_override ? "on" : "off");
-              break;
-            }
-            case SDLK_8:{
-              options.backface_culling = !options.backface_culling; 
-              snprintf(text1, sizeof(char) * 256, " %s", options.backface_culling ? "culled" : "not culled");
-              break;
-            }
-            case SDLK_9:{
-              options.object_render_debug = !options.object_render_debug;
-              break;
-            }
-            case SDLK_0:{
-              options.wireframe_overlay = !options.wireframe_overlay; 
-              break;
-            }
+          case SDLK_1:{
+            options.projection_mode = TEXT_PERSPECTIVE_CORRECT; 
+            snprintf(text1, sizeof(char) * 256, " perspective");
+            break;
+          }
+          case SDLK_2:{
+            options.projection_mode = TEXT_AFFINE; 
+            snprintf(text1, sizeof(char) * 256, " affine");
+            break;
+          }
+          case SDLK_3:{
+            options.projection_mode = TEXT_FILLED; 
+            snprintf(text1, sizeof(char) * 256, " filled");
+            break;
+          }
+          case SDLK_4:{
+            options.projection_mode = TEXT_WIREFRAME; 
+            snprintf(text1, sizeof(char) * 256, " wireframe");
+            break;
+          }
 
-            case SDLK_t:{
-              options.dither = !options.dither;
-              break;
-            }
+          case SDLK_5:{
+            options.render_collision_aabb_outlines = !options.render_collision_aabb_outlines; 
+            snprintf(text1, sizeof(char) * 256, " collision aabb outlines %s", options.render_collision_aabb_outlines ? "on" : "off");
+            break;
+          }
+          case SDLK_6:{
+            options.render_chunk_outlines = !options.render_chunk_outlines; 
+            snprintf(text1, sizeof(char) * 256, " chunk outlines %s", options.render_chunk_outlines ? "on" : "off");
+            break;
+          }
+          case SDLK_7:{
+            options.backface_culling_override = !options.backface_culling_override; 
+            snprintf(text1, sizeof(char) * 256, " bfc ovrd %s", options.backface_culling_override ? "on" : "off");
+            break;
+          }
+          case SDLK_8:{
+            options.backface_culling = !options.backface_culling; 
+            snprintf(text1, sizeof(char) * 256, " %s", options.backface_culling ? "culled" : "not culled");
+            break;
+          }
+          case SDLK_9:{
+            options.object_render_debug = !options.object_render_debug;
+            break;
+          }
+          case SDLK_0:{
+            options.wireframe_overlay = !options.wireframe_overlay; 
+            break;
+          }
+
+          case SDLK_t:{
+            options.dither = !options.dither;
+            break;
           }
         }
     }
@@ -314,74 +303,56 @@ void process_input(void){
 }
 
 void move_player(void){
-
   const uint8_t *keys = SDL_GetKeyboardState(NULL);
   bool shift = keys[SDL_SCANCODE_LSHIFT] || keys[SDL_SCANCODE_RSHIFT];
 
-  float move_speed_delta_time = ((shift)? PLAYER_SPEED_SHIFT_KEY_FACTOR * move_speed : move_speed) * delta_time;
+  float move_speed_delta_time = ((shift) ? PLAYER_SPEED_SHIFT_KEY_FACTOR * move_speed : move_speed) * delta_time;
   float turn_speed_delta_time = turn_speed * delta_time;
 
-  /* up-down for debug */
-  if(keys[SDL_SCANCODE_E])
-    move_player_with_collision((vector3_t){
-      .x = 0.0f, 
-      .y = move_speed_delta_time, 
-      .z = 0.0f
-    });
-  else if(keys[SDL_SCANCODE_Q])
-    move_player_with_collision((vector3_t){
-      .x = 0.0f, 
-      .y = -move_speed_delta_time, 
-      .z = 0.0f
-    });
+  vector3_t movement = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
 
-  /* turning left-right */
   if(keys[SDL_SCANCODE_LEFT])
     player.theta += turn_speed_delta_time;
-  else if(keys[SDL_SCANCODE_RIGHT])
+  if(keys[SDL_SCANCODE_RIGHT])
     player.theta -= turn_speed_delta_time;
 
-  /* turning up-down */
   if(keys[SDL_SCANCODE_UP]){
     player.eta += turn_speed_delta_time;
     if(player.eta > ETA_MAX) player.eta = ETA_MAX;
   }
-  else if(keys[SDL_SCANCODE_DOWN]){
+
+  if(keys[SDL_SCANCODE_DOWN]){
     player.eta -= turn_speed_delta_time;
     if(player.eta < -ETA_MAX) player.eta = -ETA_MAX;
   }
 
-  /* strafe left-right */
+  if(keys[SDL_SCANCODE_E])
+    movement.y += move_speed_delta_time;
+  if(keys[SDL_SCANCODE_Q])
+    movement.y -= move_speed_delta_time;
+
   if(keys[SDL_SCANCODE_A]){
-    move_player_with_collision((vector3_t){
-      .x = player_direction_orthogonal_left_right.x * move_speed_delta_time, 
-      .y = 0.0f, 
-      .z = player_direction_orthogonal_left_right.z * move_speed_delta_time
-    });
-  }
-  else if(keys[SDL_SCANCODE_D]){
-    move_player_with_collision((vector3_t){
-      .x = -player_direction_orthogonal_left_right.x * move_speed_delta_time, 
-      .y = 0.0f, 
-      .z = -player_direction_orthogonal_left_right.z * move_speed_delta_time
-    });
+    movement.x += player_direction_orthogonal_left_right.x * move_speed_delta_time;
+    movement.z += player_direction_orthogonal_left_right.z * move_speed_delta_time;
   }
 
-  /* forwards-backwards */
+  if(keys[SDL_SCANCODE_D]){
+    movement.x -= player_direction_orthogonal_left_right.x * move_speed_delta_time;
+    movement.z -= player_direction_orthogonal_left_right.z * move_speed_delta_time;
+  }
+
   if(keys[SDL_SCANCODE_W]){
-    move_player_with_collision((vector3_t){
-      .x = player.direction.x * move_speed_delta_time, 
-      .y = 0.0f, 
-      .z = player.direction.z * move_speed_delta_time
-    });
+    movement.x += player.direction.x * move_speed_delta_time;
+    movement.z += player.direction.z * move_speed_delta_time;
   }
-  else if(keys[SDL_SCANCODE_S]){
-    move_player_with_collision((vector3_t){
-      .x = -player.direction.x * move_speed_delta_time, 
-      .y = 0.0f, 
-      .z = -player.direction.z * move_speed_delta_time
-    });
+
+  if(keys[SDL_SCANCODE_S]){
+    movement.x -= player.direction.x * move_speed_delta_time;
+    movement.z -= player.direction.z * move_speed_delta_time;
   }
+
+  if(movement.x != 0.0f || movement.y != 0.0f || movement.z != 0.0f)
+    move_player_with_collision(movement);
 }
 
 void move_player_with_collision(vector3_t move){
@@ -1006,15 +977,6 @@ void render_chunk(chunk_t *chunk){
       } /* for(int t = 0; t < polygon.num_vertices - 2; t++) */
     } /* for(uint32_t i = 0; i < num_faces; i++) */
   } /* for(uint32_t object_i = 0; object_i < num_objects_sorted; object_i++) */
-  
-  if((time_count & 0x1F) == 0)
-    snprintf(text0, 256, "%ut, %uts, %upx, %uc, %ufps, %d:%d, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
-      total_triangles_rendered, total_triangles_skipped, total_pixels_rendered, total_chunks_rendered, fps, 
-      player_chunk_x, player_chunk_z,
-      player.position.x, player.position.y, player.position.z,
-      player.direction.x, player.direction.y, player.direction.z,
-      player.theta, player.eta
-    );
 }
 
 void draw_chunk_outlines(void){
@@ -1641,19 +1603,20 @@ void process_frame_rate(void) {
   if(frame_time <= 0) frame_time = 1;
 
   fps = (int)(1000.0 / (double)frame_time);
-  if((time_count & 0x1F) == 0) snprintf(fps_str, sizeof(fps_str), "fps: %d", fps);
 
   delta_time = frame_time / 1000.0f;
   previous_frame_time = end_time;
 }
 
-void set_title(void){
-  char string[256] = {0};
-  if(*text0 != '\0') strcpy(string, text0);
-  if(*text1 != '\0') strcat(string, text1);
-  if(*text2 != '\0') strcat(string, text2);
-
-  SDL_SetWindowTitle(window, string);
+void generate_game_data(){
+  if((time_count & 0x1F) == 0)
+    snprintf(text0, 256, "%ut, %uts, %upx, %uc, %ufps, %d:%d, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
+      total_triangles_rendered, total_triangles_skipped, total_pixels_rendered, total_chunks_rendered, fps, 
+      player_chunk_x, player_chunk_z,
+      player.position.x, player.position.y, player.position.z,
+      player.direction.x, player.direction.y, player.direction.z,
+      player.theta, player.eta
+    );
 }
 
 int main(void){
@@ -1661,25 +1624,27 @@ int main(void){
   quit = !initialize_window();
   setup();
   
-  emulator_setup();
+  //emulator_setup();
 
   while(!quit){
     frame_id++;
     process_frame_rate();
     process_input();
 
-    update_state();
     move_player();
+    update_state();
 
     //emulator_cycle(100000);
 
     render_visible_chunks();
     
-    time_count++; /* one count per frame */
+    generate_game_data();
+    draw_text_to_color_buffer(10, 10, text0, (color_t){.uint32 = 0xFFFFFFFF}, 1);
 
     sdl_render();
-    set_title();
     SDL_RenderPresent(renderer);
+
+    time_count++; /* one count per frame */
   }
 
   emulator_finish();
@@ -1922,6 +1887,15 @@ void load_server_room(){
     (vector3_t){80, 80, 80}, (vector3_t){0, 0, 0}, (vector3_t){-300, 0, 250}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
+
+  // jupiter
+  create_object(
+    load_mesh("./assets/obj/server_room/jupiter.obj", false),
+    OBJECT_TYPE_ROBOT, true, true,
+    true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
+    (vector3_t){70, 70, 70}, (vector3_t){0, 0, 0}, (vector3_t){-1400, 200, 850}, 
+    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  );
 }
 
 uint32_t chunk_num_vertices_inside_plane(chunk_t *chunk, frustrum_plane_t frustrum_plane){
@@ -2056,4 +2030,58 @@ uint32_t chunk_num_vertices_inside_plane(chunk_t *chunk, frustrum_plane_t frustr
   }
 
   return 0;
+}
+
+void draw_char_to_color_buffer(
+  int x,
+  int y,
+  char character,
+  color_t color,
+  int scale
+){
+  const uint8_t *glyph = get_font_5x7_char(character);
+
+  for(int row = 0; row < FONT_HEIGHT; row++){
+    uint8_t bits = glyph[row];
+
+    for(int col = 0; col < FONT_WIDTH; col++){
+      if(bits & (1 << (FONT_WIDTH - 1 - col))){
+        for(int scale_y = 0; scale_y < scale; scale_y++){
+          int pixel_y = y + row * scale + scale_y;
+
+          if(pixel_y < 0 || pixel_y >= window_height) continue;
+
+          for(int scale_x = 0; scale_x < scale; scale_x++){
+            int pixel_x = x + col * scale + scale_x;
+            if(pixel_x < 0 || pixel_x >= window_width) continue;
+            color_buffer[pixel_y * window_width + pixel_x] = color;
+          }
+        }
+      }
+    }
+  }
+}
+
+void draw_text_to_color_buffer(
+  int x,
+  int y,
+  const char *text,
+  color_t color,
+  int scale
+){
+  int cursor_x = x;
+  int cursor_y = y;
+
+  while(*text != '\0'){
+    if(*text == '\n'){
+      cursor_x = x;
+      cursor_y += (FONT_HEIGHT + FONT_SPACING) * scale;
+    }
+    else{
+      draw_char_to_color_buffer(cursor_x, cursor_y, *text, color, scale);
+      cursor_x += (FONT_WIDTH + FONT_SPACING) * scale;
+    }
+
+    text++;
+  }
 }
