@@ -22,5 +22,7 @@ texture_t *create_blank_texture(
   uint32_t texture_height,
   color_t base_color
 );
+texture_t *create_texture_from_file(char *texture_filename);
+texture_t *create_texture_copy(texture_t *from_texture);
 
 #endif

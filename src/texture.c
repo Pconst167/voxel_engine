@@ -92,6 +92,10 @@ texture_t load_png_texture_data(char *filename){
   return texture;
 }
 
+/*
+  create a new texture by loading a texture from file:
+    this function checks if a texture with the same filename was loaded before and if so, returns it instead of creating a new one
+*/
 texture_t *load_texture(char *texture_filename){
   // check if texture by same name already exists and return it
   for(uint32_t i = 0; i < num_textures; i++)
@@ -113,6 +117,9 @@ texture_t *load_texture(char *texture_filename){
   return &texture_list[num_textures - 1];
 }
 
+/*
+  create a new solid color texture
+*/
 texture_t *create_blank_texture(
   uint32_t texture_width,
   uint32_t texture_height,
@@ -150,6 +157,55 @@ texture_t *create_blank_texture(
   num_textures++;
 
   print_log("[INFO] creating new blank texture: w: %u, h: %u, color: %x", texture_width, texture_height, base_color.uint32);
+
+  return new_texture;
+}
+
+texture_t *create_texture_from_file(char *texture_filename){
+  if(num_textures >= MAX_NUM_TEXTURES){
+    print_log("[ERROR] maximum number of textures reached: %d", num_textures);
+    return &default_texture;
+  }
+
+  texture_t *new_texture = &texture_list[num_textures];
+
+  // NOTE: texture filename is written in load_png_texture_data function, so below, the filename is copied char by char into new texture filename by struct copying rules
+  *new_texture = load_png_texture_data(texture_filename);
+  print_log("[INFO] creating new blank texture from file: %s, w: %u, h: %u", texture_filename, new_texture->texture_width, new_texture->texture_height);
+
+  num_textures++;
+
+  return new_texture;
+}
+
+texture_t *create_texture_copy(texture_t *from_texture){
+  if(num_textures >= MAX_NUM_TEXTURES){
+    print_log("[ERROR] maximum number of textures reached: %d", num_textures);
+    return &default_texture;
+  }
+
+  texture_t *new_texture = &texture_list[num_textures];
+
+  // allocate memory for new texture
+  color_t *new_texture_memory = (color_t *)malloc(from_texture->texture_width * from_texture->texture_height * sizeof(color_t));
+  if(new_texture_memory == NULL){
+    print_log("[ERROR] could not allocate memory for new texture");
+    return &default_texture;
+  }
+
+  // copy data from old texture to new one
+  *new_texture = *from_texture;
+
+  // override pointer
+  new_texture->texture = new_texture_memory;
+
+  // copy pixel data from old texture memory into new texture memory
+  uint32_t total_texture_pixels = from_texture->texture_width * from_texture->texture_height;
+  memcpy(new_texture->texture, from_texture->texture, total_texture_pixels * sizeof(color_t));
+
+  print_log("[INFO] creating a new texture as a copy of: %s, w: %u, h: %u", from_texture->filename, from_texture->texture_width, from_texture->texture_height);
+
+  num_textures++;
 
   return new_texture;
 }

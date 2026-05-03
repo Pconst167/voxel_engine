@@ -8,6 +8,8 @@
 #include "emulator.h"
 #include "terminal.h"
 #include "file_load.h"
+#include "../computers.h"
+#include "../color.h"
 
 #define EMU_QUIT_KEY 0x11  // Ctrl+Q
 #define MENU_KEY     0x10  // Ctrl+P
@@ -1468,7 +1470,9 @@ void process_uart_cycle(){
             if(uart0_lcr & 0x80) uart0_dlab_0 = databus;
             else{
               uart0_data = databus;
-              putchar(uart0_data);
+              //putchar(uart0_data);
+              char s[2] = {uart0_data, '\0'};
+              computer_print_line(0, s);
             }
             break;
           case 1:

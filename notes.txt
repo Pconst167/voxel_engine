@@ -1,5 +1,6 @@
 **********************************************************************************************
 ********** STAY ATTENTIVE TO GAME GOING VIRAL AND BE PREPARED IN CASE IT HAPENS !!!!!
+add locked doors, so that one computer is far away and player needs to network with another previous computer etc.
 
 make it possible to set the outside environment: space, blue skies, etc
 perhaps a few sets like spaceship, house, factory etc

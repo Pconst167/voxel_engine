@@ -8,7 +8,9 @@
 typedef struct{
   uint32_t object_id;
   texture_t *screen_texture;
+  texture_t *blank_screen_texture;
   struct{
+    color_t font_color;
     uint32_t font_size;
     uint32_t horizontal_margin;
     uint32_t vertical_margin;
@@ -25,15 +27,17 @@ extern uint32_t num_computers;
 void computer_push(
   uint32_t object_id, 
   texture_t *screen_texture,
+  texture_t *blank_screen_texture,
   uint32_t horizontal_margin,
   uint32_t vertical_margin,
-  uint32_t font_size
+  uint32_t font_size,
+  color_t font_color
 );
 void draw_char_to_computer_screen(int x, int y, char character, color_t color, int scale, texture_t *screen);
 void computer_print_line(
   uint32_t computer_id,
-  const char *text, color_t color
+  const char *text
 );
-void computer_clear_screen(texture_t *screen, color_t color);
+void computer_clear_screen(texture_t *screen_texture, texture_t *blank_screen_texture);
 
 #endif

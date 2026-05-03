@@ -1624,24 +1624,7 @@ int main(void){
   quit = !initialize_window();
   setup();
   
-  //emulator_setup();
-
-  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
-  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
-  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
-  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
-  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
-  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
-  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
-  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
-  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
-  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
-  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
-  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
-  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
-  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
-  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
-  computer_print_line(0, "Hello there!\nHello world my name is Sol-1 I am fully built and designed by Paulo Constantino and I am making my debut in a game!  I am very excited to share this news and I hope you enjoy our work!", (color_t){.uint32 = 0xFF00B0FF});
+  emulator_setup();
 
   while(!quit){
     frame_id++;
@@ -1705,7 +1688,7 @@ void load_server_room(){
   create_light_source(LIGHT_AMBIENT, (vector3_t){.x = 0.0f,     .y = 0.0f,   .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 0.05f);
   create_light_source(LIGHT_POINT,   (vector3_t){.x = 300.0f,   .y = 50.0f,  .z = -50.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 300.0f);
   create_light_source(LIGHT_POINT,   (vector3_t){.x = -300.0f,  .y = 50.0f,  .z = -50.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 300.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 150.0f, .z = 400.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF00FF}, 150.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 350.0f, .z = 500.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 300.0f);
   //create_light_source(LIGHT_POINT,   (vector3_t){.x = -300.0f,  .y = 100.0f, .z = 100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 50.0f);
 
   /* room */
@@ -1853,7 +1836,8 @@ void load_server_room(){
     (vector3_t){130, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){150, 3, 300}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
-  texture_t *screen_texture = load_texture("./assets/textures/server_room/screen_amber.png"); // create_blank_texture(4096, 4096, (color_t){.uint32 = 0xFF000815}); // create blank texture for computer screen
+  texture_t *screen_texture = load_texture("./assets/textures/server_room/screen_green.png");
+  texture_t *blank_screen_texture = create_texture_copy(screen_texture);
   material_t green_screen_material = {
     .material_name       = "",
     .base_color          = {.uint32 = 0xFFFFFFFF},
@@ -1867,7 +1851,7 @@ void load_server_room(){
     .texture             = screen_texture
   };
   object_override_material(term0, "screen", green_screen_material);
-  computer_push(term0, screen_texture, 0, 0, 5);
+  computer_push(term0, screen_texture, blank_screen_texture, 20, 20, 4, (color_t){.uint32 = 0xFFFFFF00});
 
   object_id = create_object(
     mesh,
@@ -1899,13 +1883,13 @@ void load_server_room(){
   );
 
   // drone
-  create_object(
-    load_mesh("./assets/obj/server_room/drone.obj", false),
-    OBJECT_TYPE_ROBOT, true, false,
-    true, true, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.8f}, (vector3_t){0.0f, 0.0f, 0.0f},
-    (vector3_t){80, 80, 80}, (vector3_t){0, 0, 0}, (vector3_t){-300, 0, 250}, 
-    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  );
+  //create_object(
+  //  load_mesh("./assets/obj/server_room/drone.obj", false),
+  //  OBJECT_TYPE_ROBOT, true, false,
+  //  true, true, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.8f}, (vector3_t){0.0f, 0.0f, 0.0f},
+  //  (vector3_t){80, 80, 80}, (vector3_t){0, 0, 0}, (vector3_t){-300, 0, 250}, 
+  //  (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  //);
 
   // jupiter
   create_object(

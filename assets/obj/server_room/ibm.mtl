@@ -38,5 +38,5 @@ Ks 0.500000 0.500000 0.500000
 Ke 1.000000 1.000000 1.000000
 Ni 1.450000
 d 1.000000
-illum 1
+illum 0
 map_Kd /home/pconst/Desktop/3d_game/assets/textures/server_room/screen.png
