@@ -1,5 +1,12 @@
 **********************************************************************************************
 ********** STAY ATTENTIVE TO GAME GOING VIRAL AND BE PREPARED IN CASE IT HAPENS !!!!!
+
+IDEA: after solving a puzzle in the computer, you now have an xray type vision where you can see things you couldnt see before etc, like doors, items!
+
+add multiplayer so players can chat to each other etc? maybe solve puzzles together or hack each other
+
+create rooms where each wall is a full computer screen etc
+
 add locked doors, so that one computer is far away and player needs to network with another previous computer etc.
 
 make it possible to set the outside environment: space, blue skies, etc
