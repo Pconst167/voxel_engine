@@ -11,9 +11,12 @@
 mesh_t meshes[MAX_NUM_MESHES];
 uint32_t num_meshes;
 
-static int find_mesh_material_id(mesh_t *mesh, const char *name){
-  for(int material_i = 0; material_i < array_length(mesh->materials); material_i++)
-    if(!strcmp(mesh->materials[material_i].material_name, name)) 
+// used only internally - does not print log failures because it's handled by other functions
+static int find_mesh_material_id(mesh_t *mesh, const char *material_name){
+  int mesh_num_materials = mesh->num_materials;
+
+  for(int material_i = 0; material_i < mesh_num_materials; material_i++)
+    if(!strcmp(mesh->materials[material_i].material_name, material_name)) 
       return material_i;
 
   return -1;
@@ -27,7 +30,7 @@ static uint32_t add_material_to_mesh(mesh_t *mesh, material_t material){
 
   // if material doesn't exist, add material to mesh
   array_push(mesh->materials, material);
-  mesh->num_materials = array_length(mesh->materials);
+  mesh->num_materials++;
 
   return mesh->num_materials - 1;
 }
@@ -492,4 +495,17 @@ mesh_t *create_cube_mesh(vector3_t vertex_min, vector3_t vertex_max){
 
   // return pointer to mesh
   return mesh;
+}
+
+// used by other modules to search for mesh material by name
+material_t *get_mesh_material_by_name(mesh_t *mesh, const char *material_name){
+  uint32_t mesh_num_materials = mesh->num_materials;
+
+  for(uint32_t material_i = 0; material_i < mesh_num_materials; material_i++)
+    if(!strcmp(mesh->materials[material_i].material_name, material_name)) 
+      return &mesh->materials[material_i];
+
+  print_log("[ERROR] mesh material '%s' not found by name", material_name);
+
+  return NULL;
 }

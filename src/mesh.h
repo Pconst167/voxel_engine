@@ -38,6 +38,7 @@ extern uint32_t num_meshes;
 
 void load_obj_file(char* filename, mesh_t *mesh, bool invert_x);
 mesh_t *load_mesh(char *obj_filename, bool invert_x);
+material_t *get_mesh_material_by_name(mesh_t *mesh, const char *material_name);
 
 mesh_t *create_cube_mesh(vector3_t vertex_min, vector3_t vertex_max);
 

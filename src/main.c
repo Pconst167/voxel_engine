@@ -1641,7 +1641,7 @@ int main(int argc, char *argv[]){
     render_visible_chunks();
     
     generate_game_data();
-    draw_text_to_color_buffer(20, 20, text0, (color_t){.uint32 = 0xFFFFFFFF}, 1);
+    draw_text_to_color_buffer(10, 10, text0, (color_t){.uint32 = 0xFFFFFFFF}, 1);
 
     sdl_render();
     SDL_RenderPresent(renderer);
@@ -1791,16 +1791,16 @@ void load_server_room(){
     load_mesh("./assets/obj/server_room/desk.obj", true),
     OBJECT_TYPE_FURNITURE, true, true,
     true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.4f}, (vector3_t){0.0f, 0.0f, 20.0f},
-    (vector3_t){300, 200, 240}, (vector3_t){0, 0, 0}, (vector3_t){-300, 3, 560}, 
+    (vector3_t){300, 200, 260}, (vector3_t){0, 0, 0}, (vector3_t){-300, 3, 560}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
   // ibm
   object_id = create_object(
-    load_mesh("./assets/obj/server_room/ibm2.obj", true),
+    load_mesh("./assets/obj/server_room/ibm.obj", true),
     OBJECT_TYPE_COMPUTER, true, true, 
     true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.4f}, (vector3_t){0.0f, 0.0f, 20.0f},
-    (vector3_t){100, 100, 100}, (vector3_t){0, 0, 0}, (vector3_t){-300, 90, 580}, 
+    (vector3_t){120, 120, 120}, (vector3_t){0, 0, 0}, (vector3_t){-300, 90, 580}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
@@ -1832,13 +1832,13 @@ void load_server_room(){
   term0 = create_object(
     mesh,
     OBJECT_TYPE_COMPUTER, true, true, 
-    true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.5f}, (vector3_t){0.0f, -10.0f, 9.0f},
+    true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.5f}, (vector3_t){0.0f, -10.0f, 15.0f},
     (vector3_t){130, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){150, 3, 300}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
   texture_t *screen_texture = load_texture("./assets/textures/server_room/screen_green.png");
-  texture_t *blank_screen_texture = create_texture_copy(screen_texture);
-  material_t green_screen_material = {
+  texture_t *blank_screen_texture = get_mesh_material_by_name(mesh, "screen")->texture;
+  material_t screen_material1 = {
     .material_name       = "",
     .base_color          = {.uint32 = 0xFFFFFFFF},
     .emissive_color      = {.uint32 = 0xFFFFFFFF},
@@ -1850,17 +1850,17 @@ void load_server_room(){
     .alpha_cutoff        = DEFAULT_ALPHA_CUTOFF,
     .texture             = screen_texture
   };
-  object_override_material(term0, "screen", green_screen_material);
-  computer_push(term0, screen_texture, blank_screen_texture, 20, 20, 4, (color_t){.uint32 = 0xFFFFFF00});
+  object_override_material(term0, "screen", screen_material1);
+  computer_push(term0, screen_texture, blank_screen_texture, 20, 20, 5, (color_t){.uint32 = 0xFFFFFF00});
 
   object_id = create_object(
     mesh,
     OBJECT_TYPE_COMPUTER, true, true, 
-    true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 9.0f},
+    true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 15.0f},
     (vector3_t){130, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){330, 3, 300}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
-  material_t amber_screen_material = {
+  material_t screen_material2 = {
     .material_name       = "",
     .base_color          = {.uint32 = 0xFFFFFFFF},
     .emissive_color      = {.uint32 = 0xFFFFFFFF},
@@ -1872,12 +1872,12 @@ void load_server_room(){
     .alpha_cutoff        = DEFAULT_ALPHA_CUTOFF,
     .texture             = load_texture("./assets/textures/server_room/sol1_screen_amber.png")
   };
-  object_override_material(object_id, "screen", amber_screen_material);
+  object_override_material(object_id, "screen", screen_material2);
 
   object_id = create_object(
     mesh,
     OBJECT_TYPE_COMPUTER, true, true, 
-    true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 9.0f},
+    true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 15.0f},
     (vector3_t){130, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){510, 3, 300}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
