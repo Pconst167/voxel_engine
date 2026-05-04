@@ -67,7 +67,7 @@ static void path_join(
   const char *directory, 
   const char *filename
 ){
-  // if filenamename starts with '/', then it already has a full path with directory so return filenamename
+  // if filenamename starts with '/', then it already has a full path with directory so return filename
   if(filename[0] == '/')
     snprintf(output, output_size, "%s", filename);
   // if filename does not contain a root slash '/', then join directory with filename
@@ -170,13 +170,8 @@ static void load_mtl_file(
     // texture
     else if(has_current_material && strncmp(line, "map_Kd ", 7) == 0){
       char texture_filename[512];
-
-      if(sscanf(line, "map_Kd %511[^\r\n]", texture_filename) == 1){
-        char texture_path[2048];
-        path_join(texture_path, sizeof(texture_path), obj_directory, texture_filename);
-
-        current_material.texture = load_texture(texture_path);
-      }
+      if(sscanf(line, "map_Kd %511[^\r\n]", texture_filename) == 1)
+        current_material.texture = load_texture(texture_filename);
     }
   }
 
