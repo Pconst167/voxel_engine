@@ -28,7 +28,7 @@ Ks 0.500000 0.500000 0.500000
 Ke 1.000000 1.000000 1.000000
 Ni 1.450000
 d 1.000000
-illum 1
+illum 0
 map_Kd ./assets/textures/server_room/sky1.png
 
 newmtl walls.004

@@ -1,4 +1,5 @@
 #include "font.h"
+#include "log.h"
 
 static const uint8_t unix_terminal_font_6x8[95][8] = {
   /*  32 ' ' */ {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},

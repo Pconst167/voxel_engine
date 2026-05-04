@@ -78,7 +78,7 @@ void computer_print_line(
   uint32_t cursor_x = computer->terminal.cursor_column * font_size * (FONT_WIDTH + FONT_SPACING)  + computer->terminal.horizontal_margin;
   uint32_t cursor_y = computer->terminal.cursor_line   * font_size * (FONT_HEIGHT + FONT_SPACING) + computer->terminal.vertical_margin;
 
-  while(*text != '\0'){
+  for(;;){
     if(*text == '\n'){
       num_chars_in_this_line = 0;
       cursor_x = computer->terminal.horizontal_margin;
@@ -87,6 +87,11 @@ void computer_print_line(
         cursor_y = computer->terminal.vertical_margin;
         computer_clear_screen(screen_texture, blank_screen_texture);
       }
+      text++;
+    }
+    else if(*text == '\r'){
+      num_chars_in_this_line = 0;
+      cursor_x = computer->terminal.horizontal_margin;
       text++;
     }
     else if(num_chars_in_this_line >= max_chars_per_line){
@@ -98,7 +103,12 @@ void computer_print_line(
         computer_clear_screen(screen_texture, blank_screen_texture);
       }
     }
-    
+    // clear screen
+    else if(*text == 27 && *(text+1) == '[' && *(text + 2) == '2' && *(text + 3) == 'J' && *(text + 4) == 27 && *(text + 5) == '[' && *(text + 6) == 'H'){
+      computer_clear_screen(screen_texture, blank_screen_texture);
+      text += 7;
+    }
+    if(*text == '\0') break;
     draw_char_to_computer_screen(cursor_x, cursor_y, *text, font_color, font_size, screen_texture);
     cursor_x += (FONT_WIDTH + FONT_SPACING) * font_size;
     num_chars_in_this_line++; // increment character count in this line
