@@ -9,7 +9,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 1
-map_Kd /home/pconst/Desktop/3d_game/assets/textures/server_room/ceiling.png
+map_Kd ./assets/textures/server_room/ceiling.png
 
 newmtl floor.004
 Ns 0.000000
@@ -19,7 +19,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 1
-map_Kd /home/pconst/Desktop/3d_game/assets/textures/server_room/floor2.png
+map_Kd ./assets/textures/server_room/floor2.png
 
 newmtl lights.001
 Ns 250.000000
@@ -29,7 +29,7 @@ Ke 1.000000 1.000000 1.000000
 Ni 1.450000
 d 1.000000
 illum 1
-map_Kd /home/pconst/Desktop/3d_game/assets/textures/server_room/sky1.png
+map_Kd ./assets/textures/server_room/sky1.png
 
 newmtl walls.004
 Ns 0.000000
@@ -39,4 +39,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 1
-map_Kd /home/pconst/Desktop/3d_game/assets/textures/server_room/brick.png
+map_Kd ./assets/textures/server_room/brick.png

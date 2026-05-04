@@ -9,4 +9,4 @@ Ke 1.000000 1.000000 1.000000
 Ni 1.450000
 d 1.000000
 illum 1
-map_Kd /home/pconst/Desktop/3d_game/assets/textures/server_room/jupiter.png
+map_Kd ./assets/textures/server_room/jupiter.png

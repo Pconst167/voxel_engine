@@ -8,7 +8,7 @@ Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 illum 1
-map_Kd /home/pconst/Desktop/3d_game/assets/textures/plants/potted_tree.png
+map_Kd ./assets/textures/plants/potted_tree.png
 
 newmtl Material.004
 Ns 0.000000
@@ -18,7 +18,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 1
-map_Kd /home/pconst/Desktop/3d_game/assets/textures/plants/bark2.png
+map_Kd ./assets/textures/plants/bark2.png
 
 newmtl Material.005
 Ns 0.000000
@@ -28,4 +28,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 1
-map_Kd /home/pconst/Desktop/3d_game/assets/textures/plants/potted_tree.png
+map_Kd ./assets/textures/plants/potted_tree.png

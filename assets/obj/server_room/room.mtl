@@ -7,7 +7,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 1
-map_Kd /home/pconst/Desktop/3d_game/assets/textures/server_room/floor2.png
+map_Kd ./assets/textures/server_room/floor2.png
 
 newmtl floor
 Ks 0.500000 0.500000 0.500000
@@ -15,7 +15,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 1
-map_Kd /home/pconst/Desktop/3d_game/assets/textures/floor/floor.png
+map_Kd ./assets/textures/floor/floor.png
 
 newmtl walls
 Ks 0.500000 0.500000 0.500000
@@ -23,4 +23,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 1
-map_Kd /home/pconst/Desktop/3d_game/assets/textures/walls/brick.png
+map_Kd ./assets/textures/walls/brick.png
