@@ -2,25 +2,31 @@
 # www.blender.org
 
 newmtl ceiling
-Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
-Ni 1.450000
 d 1.000000
 illum 1
-map_Kd ./assets/textures/server_room/floor2.png
+map_Kd assets/textures/server_room/ceiling.png
 
 newmtl floor
-Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
-Ni 1.450000
 d 1.000000
 illum 1
-map_Kd ./assets/textures/floor/floor.png
+map_Kd assets/textures/server_room/floor2.png
+
+newmtl lights
+Kd 1.000000 1.000000 1.000000
+Ke 0.200000 0.500000 1.000000
+d 1.000000
+illum 0
+
+newmtl sky
+Ke 1.000000 1.000000 1.000000
+d 1.000000
+illum 0
+map_Kd assets/textures/server_room/sky1.png
 
 newmtl walls
-Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
-Ni 1.450000
 d 1.000000
 illum 1
-map_Kd ./assets/textures/walls/brick.png
+map_Kd assets/textures/server_room/brick.png

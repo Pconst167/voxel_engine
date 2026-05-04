@@ -1,6 +1,8 @@
 #include "log.h"
 #include "options.h"
 
+console_t console;
+
 // print out terminal log if log options enabled
 void print_log(const char *message, ...){
   va_list args;

@@ -12,7 +12,8 @@
 #include "chunk.h"
 #include "collision.h"
 
-void render_text();
+void generate_game_data();
+void render_console();
 void free_resources(void);
 void object_quicksort(object_sort_key_t *array, int count);
 void qs(object_sort_key_t *array, int left, int right);
@@ -23,6 +24,9 @@ void update_state(void);
 void move_player(void);
 void update_light(void);
 void process_input(void);
+void process_console_input(SDL_Event *event);
+void process_computer_input(SDL_Event *event);
+void run_console_command();
 void setup(void);
 
 void draw_char_to_color_buffer(int x, int y, char character, color_t color, int scale);

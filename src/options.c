@@ -6,7 +6,6 @@ options_t options = {
   .backface_culling_override      = false,
   .backface_culling               = true,
   .dither                         = false,
-  .object_render_debug            = false,
   .render_chunk_outlines          = false,
   .render_collision_aabb_outlines = false,
   .log                            = true

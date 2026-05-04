@@ -114,6 +114,7 @@
 #include "computers.h"
 #include "emulator/emulator.h"
 #include "font.h"
+#include "game.h"
 #include "debug.h"
 
 // compile time enables
@@ -220,87 +221,178 @@ void process_input(void){
   SDL_Event event;
 
   while(SDL_PollEvent(&event)){
-    switch(event.type){
-      case SDL_QUIT:
-        quit = true;
-        break;
+    if(event.type == SDL_QUIT){
+      quit = true;
+      continue;
+    }
 
-      case SDL_MOUSEMOTION:
+    if(event.type == SDL_KEYDOWN && !event.key.repeat){
+      SDL_Keycode keycode = event.key.keysym.sym;
+      Uint16 modifiers = event.key.keysym.mod;
+
+      if(keycode == SDLK_ESCAPE){
+        if(console.is_open){
+          console.is_open = false;
+          SDL_StopTextInput();
+        }
+        else{
+          quit = true;
+        }
+        continue;
+      }
+
+      if(keycode == SDLK_BACKQUOTE && (modifiers & KMOD_CTRL)){
+        console.is_open = !console.is_open;
+
+        if(console.is_open){
+          SDL_StartTextInput();
+        }
+        else{
+          SDL_StopTextInput();
+        }
+
+        continue;
+      }
+
+      if(keycode == SDLK_i){
+        game_state.input_to_computer = !game_state.input_to_computer;
+      }
+    }
+
+    if(console.is_open){
+      process_console_input(&event);
+    }
+    else{
+      // process game input
+      if(event.type == SDL_MOUSEMOTION){
         player.theta  -= MOUSE_SENSITIVITY                        * event.motion.xrel;
         player.eta    += MOUSE_SENSITIVITY * PLAYER_ETA_DIRECTION * event.motion.yrel;
         if(player.eta  >  ETA_MAX) player.eta =  ETA_MAX;
         if(player.eta  < -ETA_MAX) player.eta = -ETA_MAX;
-        break;
-
-      case SDL_KEYDOWN:
-        if(event.key.repeat) break;
-
-        switch(event.key.keysym.sym){
-          case SDLK_ESCAPE: 
-            quit = true; 
-            break;
-          case SDLK_p: 
-            is_paused = !is_paused; 
-            break;
-
-          case SDLK_1:{
-            options.projection_mode = TEXT_PERSPECTIVE_CORRECT; 
-            snprintf(text1, sizeof(char) * 256, " perspective");
-            break;
-          }
-          case SDLK_2:{
-            options.projection_mode = TEXT_AFFINE; 
-            snprintf(text1, sizeof(char) * 256, " affine");
-            break;
-          }
-          case SDLK_3:{
-            options.projection_mode = TEXT_FILLED; 
-            snprintf(text1, sizeof(char) * 256, " filled");
-            break;
-          }
-          case SDLK_4:{
-            options.projection_mode = TEXT_WIREFRAME; 
-            snprintf(text1, sizeof(char) * 256, " wireframe");
-            break;
-          }
-
-          case SDLK_5:{
-            options.render_collision_aabb_outlines = !options.render_collision_aabb_outlines; 
-            snprintf(text1, sizeof(char) * 256, " collision aabb outlines %s", options.render_collision_aabb_outlines ? "on" : "off");
-            break;
-          }
-          case SDLK_6:{
-            options.render_chunk_outlines = !options.render_chunk_outlines; 
-            snprintf(text1, sizeof(char) * 256, " chunk outlines %s", options.render_chunk_outlines ? "on" : "off");
-            break;
-          }
-          case SDLK_7:{
-            options.backface_culling_override = !options.backface_culling_override; 
-            snprintf(text1, sizeof(char) * 256, " bfc ovrd %s", options.backface_culling_override ? "on" : "off");
-            break;
-          }
-          case SDLK_8:{
-            options.backface_culling = !options.backface_culling; 
-            snprintf(text1, sizeof(char) * 256, " %s", options.backface_culling ? "culled" : "not culled");
-            break;
-          }
-          case SDLK_9:{
-            options.object_render_debug = !options.object_render_debug;
-            break;
-          }
-          case SDLK_0:{
-            options.wireframe_overlay = !options.wireframe_overlay; 
-            break;
-          }
-
-          case SDLK_t:{
-            options.dither = !options.dither;
-            break;
-          }
-        }
+      }
     }
   }
 }
+
+void process_console_input(SDL_Event *event){
+  if(event->type == SDL_KEYDOWN && !event->key.repeat){
+    switch(event->key.keysym.sym){
+
+      case SDLK_BACKSPACE:
+        if(console.cursor_position > 0){
+          memmove(&console.input_buffer[console.cursor_position - 1], &console.input_buffer[console.cursor_position], console.input_length - console.cursor_position + 1);
+          console.cursor_position--;
+          console.input_length--;
+        }
+        break;
+
+      case SDLK_DELETE:
+        if(console.cursor_position < console.input_length){
+          memmove(&console.input_buffer[console.cursor_position], &console.input_buffer[console.cursor_position + 1], console.input_length - console.cursor_position);
+          console.input_length--;
+        }
+        break;
+
+      case SDLK_LEFT:
+        if(console.cursor_position > 0){
+          console.cursor_position--;
+        }
+        break;
+
+      case SDLK_RIGHT:
+        if(console.cursor_position < console.input_length){
+          console.cursor_position++;
+        }
+        break;
+
+      case SDLK_HOME:
+        console.cursor_position = 0;
+        break;
+
+      case SDLK_END:
+        console.cursor_position = console.input_length;
+        break;
+
+      case SDLK_RETURN:
+        run_console_command(console.input_buffer);
+
+        console.input_length = 0;
+        console.cursor_position = 0;
+        console.input_buffer[0] = '\0';
+        break;
+    }
+  }
+
+  if(event->type == SDL_TEXTINPUT){
+    const char *input_text = event->text.text;
+    int text_length = strlen(input_text);
+
+    if(console.input_length + text_length < (int)sizeof(console.input_buffer) - 1){
+      memmove(&console.input_buffer[console.cursor_position + text_length], &console.input_buffer[console.cursor_position], console.input_length - console.cursor_position + 1);
+      memcpy(&console.input_buffer[console.cursor_position], input_text, text_length);
+      console.cursor_position += text_length;
+      console.input_length += text_length;
+    }
+  }
+}
+
+void process_computer_input(SDL_Event *event){
+  if(event->type == SDL_TEXTINPUT){
+    const char *input_text = event->text.text;
+    int text_length = strlen(input_text);
+
+    if(console.input_length + text_length < (int)sizeof(console.input_buffer) - 1){
+      memmove(&console.input_buffer[console.cursor_position + text_length], &console.input_buffer[console.cursor_position], console.input_length - console.cursor_position + 1);
+      memcpy(&console.input_buffer[console.cursor_position], input_text, text_length);
+      console.cursor_position += text_length;
+      console.input_length += text_length;
+    }
+  }
+}
+
+void render_console(){
+  if(console.is_open) {
+    generate_game_data();
+    draw_rect(0, 0, window_width, 80, (color_t){.uint32 = 0xFFFF4040});
+    draw_text_to_color_buffer(10, 10, text0, (color_t){.uint32 = 0xFFFFFFFF}, 1);
+    draw_text_to_color_buffer(10, 25, "> ", (color_t){.uint32 = 0xFFFFFFFF}, 1);
+    draw_text_to_color_buffer(20, 25, console.input_buffer, (color_t){.uint32 = 0xFFFFFFFF}, 1);
+  }
+}
+
+void run_console_command(){
+  if(!strcmp(console.input_buffer, "mp")){
+    options.projection_mode = TEXT_PERSPECTIVE_CORRECT; 
+  }
+  else if(!strcmp(console.input_buffer, "ma")){
+    options.projection_mode = TEXT_AFFINE; 
+  }
+  else if(!strcmp(console.input_buffer, "mf")){
+    options.projection_mode = TEXT_FILLED; 
+  }
+  else if(!strcmp(console.input_buffer, "mw")){
+    options.projection_mode = TEXT_WIREFRAME; 
+  }
+  else if(!strcmp(console.input_buffer, "ca")){
+    options.render_collision_aabb_outlines = !options.render_collision_aabb_outlines; 
+  }
+  else if(!strcmp(console.input_buffer, "co")){
+    options.render_chunk_outlines = !options.render_chunk_outlines; 
+  }
+  else if(!strcmp(console.input_buffer, "bfc ovrd")){
+   options.backface_culling_override = !options.backface_culling_override; 
+  }
+  else if(!strcmp(console.input_buffer, "bfc")){
+   options.backface_culling = !options.backface_culling; 
+  }
+  else if(!strcmp(console.input_buffer, "wireframe")){
+    options.wireframe_overlay = !options.wireframe_overlay; 
+  }
+  else if(!strcmp(console.input_buffer, "dither")){
+    options.dither = !options.dither;
+  }
+}
+
 
 void move_player(void){
   const uint8_t *keys = SDL_GetKeyboardState(NULL);
@@ -1299,7 +1391,16 @@ inline uint32_t rasterize_triangle(
   material_t face_material,
   light_intensity_rgb_t total_light_intensity
 ){
-  if(options.projection_mode == TEXT_FILLED || face_material.texture == NULL){
+  if(options.projection_mode == TEXT_WIREFRAME){
+    draw_triangle(
+      triangle->points[0].x, triangle->points[0].y,
+      triangle->points[1].x, triangle->points[1].y,
+      triangle->points[2].x, triangle->points[2].y,
+      (color_t){.uint32 = 0xFFFFFFFF}
+    );
+    return 0;
+  }
+  else if(options.projection_mode == TEXT_FILLED || face_material.texture == NULL){
     return draw_filled_triangle(
       &triangle->points[0], 
       &triangle->points[1], 
@@ -1310,15 +1411,6 @@ inline uint32_t rasterize_triangle(
       face_material.reflects_light,
       options.dither
     );
-  }
-  else if(options.projection_mode == TEXT_WIREFRAME){
-    draw_triangle(
-      triangle->points[0].x, triangle->points[0].y,
-      triangle->points[1].x, triangle->points[1].y,
-      triangle->points[2].x, triangle->points[2].y,
-      (color_t){.uint32 = 0xFFFFFFFF}
-    );
-    return 0;
   }
   else{
     switch(face_material.blend_mode){
@@ -1628,23 +1720,19 @@ int main(int argc, char *argv[]){
   
   emulator_setup();
 
-  while(!quit){
+  for(; !quit; ){
     frame_id++;
     process_frame_rate();
     process_input();
-
-    move_player();
+    if(!console.is_open) move_player();
     update_state();
 
     emulator_cycle(100000);
 
     render_visible_chunks();
     
-    generate_game_data();
-    draw_text_to_color_buffer(10, 10, text0, (color_t){.uint32 = 0xFFFFFFFF}, 1);
-
+    render_console();
     sdl_render();
-    SDL_RenderPresent(renderer);
 
     time_count++; /* one count per frame */
   }
@@ -1688,12 +1776,12 @@ void load_server_room(){
   create_light_source(LIGHT_AMBIENT, (vector3_t){.x = 0.0f,     .y = 0.0f,   .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 0.05f);
   create_light_source(LIGHT_POINT,   (vector3_t){.x = 300.0f,   .y = 50.0f,  .z = -50.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 300.0f);
   create_light_source(LIGHT_POINT,   (vector3_t){.x = -300.0f,  .y = 50.0f,  .z = -50.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 300.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 350.0f, .z = 500.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 300.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 350.0f, .z = 500.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF00FF}, 300.0f);
   //create_light_source(LIGHT_POINT,   (vector3_t){.x = -300.0f,  .y = 100.0f, .z = 100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 50.0f);
 
   /* room */
   object_id = create_object(
-    load_mesh("./assets/obj/server_room/room3.obj", false), 
+    load_mesh("./assets/obj/server_room/room.obj", false), 
     OBJECT_TYPE_ROOM, true, true, 
     false, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
     (vector3_t){1300, 1800, 1300}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
@@ -1786,6 +1874,15 @@ void load_server_room(){
 
   //object_deactivate_collision_aabb(aabb_back);
 
+  // ghouls and ghosts
+  object_id = create_object(
+    load_mesh("./assets/obj/server_room/ghosts.obj", true), 
+    OBJECT_TYPE_FURNITURE, true, true,
+    false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
+    (vector3_t){450, 450, 100}, (vector3_t){0, M_PI, 0}, (vector3_t){320, 150, -650}, 
+    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  );
+
   // desk
   object_id = create_object(
     load_mesh("./assets/obj/server_room/desk.obj", true),
@@ -1833,7 +1930,7 @@ void load_server_room(){
     mesh,
     OBJECT_TYPE_COMPUTER, true, true, 
     true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.5f}, (vector3_t){0.0f, -10.0f, 15.0f},
-    (vector3_t){130, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){150, 3, 300}, 
+    (vector3_t){140, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){150, 3, 300}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
   texture_t *screen_texture = load_texture("./assets/textures/server_room/screen_green.png");
@@ -1857,7 +1954,7 @@ void load_server_room(){
     mesh,
     OBJECT_TYPE_COMPUTER, true, true, 
     true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 15.0f},
-    (vector3_t){130, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){330, 3, 300}, 
+    (vector3_t){140, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){330, 3, 300}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
   material_t screen_material2 = {
@@ -1878,7 +1975,7 @@ void load_server_room(){
     mesh,
     OBJECT_TYPE_COMPUTER, true, true, 
     true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 15.0f},
-    (vector3_t){130, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){510, 3, 300}, 
+    (vector3_t){140, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){510, 3, 300}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
@@ -2078,11 +2175,11 @@ void draw_text_to_color_buffer(
   while(*text != '\0'){
     if(*text == '\n'){
       cursor_x = x;
-      cursor_y += (FONT_HEIGHT + FONT_SPACING) * scale;
+      cursor_y += (FONT_HEIGHT + FONT_VER_SPACING) * scale;
     }
     else{
       draw_char_to_color_buffer(cursor_x, cursor_y, *text, color, scale);
-      cursor_x += (FONT_WIDTH + FONT_SPACING) * scale;
+      cursor_x += (FONT_WIDTH + FONT_HOR_SPACING) * scale;
     }
 
     text++;

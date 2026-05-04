@@ -1,5 +1,6 @@
 #include "display.h"
 #include "log.h"
+#include "color.h"
 #include "debug.h"
 
 #define ASPECT_RATIO_X (1920.0f / 1200.0f)
@@ -77,8 +78,9 @@ bool initialize_window(void){
 }
 
 inline void sdl_render(void){
-  SDL_UpdateTexture(color_buffer_texture, NULL, color_buffer, window_width * sizeof(uint32_t));
+  SDL_UpdateTexture(color_buffer_texture, NULL, color_buffer, window_width * sizeof(color_t));
   SDL_RenderCopy(renderer, color_buffer_texture, NULL, NULL);
+  SDL_RenderPresent(renderer);
 }
 
 void destroy_window(void){

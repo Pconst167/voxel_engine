@@ -140,16 +140,6 @@ static void load_mtl_file(
         if(opacity < 1.0f) current_material.blend_mode = BLEND_MODE_ALPHA_BLEND;
       }
     }
-    // opacity
-    else if(has_current_material && strncmp(line, "Tr ", 3) == 0){
-      float tr;
-      if(sscanf(line, "Tr %f", &tr) == 1){
-        current_material.opacity = 1.0f - tr;
-
-        // just another option for opacity, equivalent to 'd' above
-        if(current_material.opacity < 1.0f) current_material.blend_mode = BLEND_MODE_ALPHA_BLEND;
-      }
-    }
     // reflects light / specular highlights
     else if(has_current_material && strncmp(line, "illum ", 6) == 0){
       int illum;

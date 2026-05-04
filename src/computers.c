@@ -21,8 +21,8 @@ void computer_push(
   new_computer->object_id                       = object_id;
   new_computer->screen_texture                  = screen_texture;
   new_computer->blank_screen_texture            = blank_screen_texture;
-  new_computer->terminal.max_num_chars_per_line = (screen_texture->texture_width  - (2 * horizontal_margin)) / ((FONT_WIDTH + FONT_SPACING) * font_size);
-  new_computer->terminal.max_num_lines          = (screen_texture->texture_height - (2 * vertical_margin)  ) / ((FONT_HEIGHT + FONT_SPACING) * font_size);
+  new_computer->terminal.max_num_chars_per_line = (screen_texture->texture_width  - (2 * horizontal_margin)) / ((FONT_WIDTH + FONT_HOR_SPACING) * font_size);
+  new_computer->terminal.max_num_lines          = (screen_texture->texture_height - (2 * vertical_margin)  ) / ((FONT_HEIGHT + FONT_VER_SPACING) * font_size);
   new_computer->terminal.horizontal_margin      = horizontal_margin;
   new_computer->terminal.vertical_margin        = vertical_margin;
   new_computer->terminal.font_size              = font_size;
@@ -75,15 +75,15 @@ void computer_print_line(
   uint32_t font_size              = computer->terminal.font_size;
   color_t font_color              = computer->terminal.font_color;
 
-  uint32_t cursor_x = computer->terminal.cursor_column * font_size * (FONT_WIDTH + FONT_SPACING)  + computer->terminal.horizontal_margin;
-  uint32_t cursor_y = computer->terminal.cursor_line   * font_size * (FONT_HEIGHT + FONT_SPACING) + computer->terminal.vertical_margin;
+  uint32_t cursor_x = computer->terminal.cursor_column * font_size * (FONT_WIDTH + FONT_HOR_SPACING)  + computer->terminal.horizontal_margin;
+  uint32_t cursor_y = computer->terminal.cursor_line   * font_size * (FONT_HEIGHT + FONT_VER_SPACING) + computer->terminal.vertical_margin;
 
   for(;;){
     if(*text == '\n'){
       num_chars_in_this_line = 0;
       cursor_x = computer->terminal.horizontal_margin;
-      cursor_y += (FONT_HEIGHT + FONT_SPACING) * font_size;
-      if(cursor_y >= max_lines * (FONT_HEIGHT + FONT_SPACING) * font_size){
+      cursor_y += (FONT_HEIGHT + FONT_VER_SPACING) * font_size;
+      if(cursor_y >= max_lines * (FONT_HEIGHT + FONT_VER_SPACING) * font_size){
         cursor_y = computer->terminal.vertical_margin;
         computer_clear_screen(screen_texture, blank_screen_texture);
       }
@@ -97,8 +97,8 @@ void computer_print_line(
     else if(num_chars_in_this_line >= max_chars_per_line){
       num_chars_in_this_line = 0;
       cursor_x = computer->terminal.horizontal_margin;
-      cursor_y += (FONT_HEIGHT + FONT_SPACING) * font_size;
-      if(cursor_y >= max_lines * (FONT_HEIGHT + FONT_SPACING) * font_size){
+      cursor_y += (FONT_HEIGHT + FONT_VER_SPACING) * font_size;
+      if(cursor_y >= max_lines * (FONT_HEIGHT + FONT_VER_SPACING) * font_size){
         cursor_y = computer->terminal.vertical_margin;
         computer_clear_screen(screen_texture, blank_screen_texture);
       }
@@ -110,12 +110,12 @@ void computer_print_line(
     }
     if(*text == '\0') break;
     draw_char_to_computer_screen(cursor_x, cursor_y, *text, font_color, font_size, screen_texture);
-    cursor_x += (FONT_WIDTH + FONT_SPACING) * font_size;
+    cursor_x += (FONT_WIDTH + FONT_HOR_SPACING) * font_size;
     num_chars_in_this_line++; // increment character count in this line
     text++;
   }
-  computer->terminal.cursor_line   = cursor_y / ((FONT_HEIGHT + FONT_SPACING) * font_size);
-  computer->terminal.cursor_column = cursor_x / ((FONT_WIDTH + FONT_SPACING) * font_size);
+  computer->terminal.cursor_line   = cursor_y / ((FONT_HEIGHT + FONT_VER_SPACING) * font_size);
+  computer->terminal.cursor_column = cursor_x / ((FONT_WIDTH + FONT_HOR_SPACING) * font_size);
 }
 
 void computer_clear_screen(texture_t *screen_texture, texture_t *blank_screen_texture){
@@ -124,4 +124,34 @@ void computer_clear_screen(texture_t *screen_texture, texture_t *blank_screen_te
   for(uint32_t pixel_i = 0; pixel_i < total_screen_pixels; pixel_i++){
     screen_texture->texture[pixel_i] = blank_screen_texture->texture[pixel_i];
   }
+}
+
+bool computer_input_fifo_is_empty(computer_t *computer){
+  return computer->input_fifo.read_index == computer->input_fifo.write_index;
+}
+
+bool computer_input_fifo_is_full(computer_t *computer){
+  uint32_t next_write_index = (computer->input_fifo.write_index + 1) & (COMPUTER_INPUT_FIFO_SIZE - 1);
+
+  return next_write_index == computer->input_fifo.read_index;
+}
+
+bool computer_input_fifo_push(computer_t *computer, uint8_t value){
+  uint32_t next_write_index = (computer->input_fifo.write_index + 1) & (COMPUTER_INPUT_FIFO_SIZE - 1);
+
+  if(next_write_index == computer->input_fifo.read_index) return false;
+
+  computer->input_fifo.data[computer->input_fifo.write_index] = value;
+  computer->input_fifo.write_index = next_write_index;
+
+  return true;
+}
+
+bool computer_input_fifo_pop(computer_t *computer, uint8_t *value){
+  if(computer->input_fifo.read_index == computer->input_fifo.write_index) return false;
+
+  *value = computer->input_fifo.data[computer->input_fifo.read_index];
+  computer->input_fifo.read_index = (computer->input_fifo.read_index + 1) & (COMPUTER_INPUT_FIFO_SIZE - 1);
+
+  return true;
 }
