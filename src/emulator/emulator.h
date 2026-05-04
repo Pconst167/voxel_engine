@@ -383,7 +383,6 @@ void load_ide_disk();
 void load_microcode_roms();
 void emulator_cycle(int64_t num_cycles);
 int emulator_setup();
-void emulator_finish();
 
 void latch_microcode_ctrl_word();
 

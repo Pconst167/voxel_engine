@@ -6,7 +6,6 @@
 #include <fcntl.h>
 #include <time.h>
 #include "emulator.h"
-#include "terminal.h"
 #include "file_load.h"
 #include "../computers.h"
 #include "../color.h"
@@ -491,7 +490,6 @@ uint8_t debug = 0;
 
 int emulator_setup(){
   puts("Sol-1 Emulator starting...");
-  term_raw_noecho();
 
   load_microcode_roms();
   load_bios_memory();
@@ -500,10 +498,6 @@ int emulator_setup(){
   reset();
 
   return 0;
-}
-
-void emulator_finish(){
-  term_restore();
 }
 
 void emulator_cycle(int64_t num_cycles){
@@ -1407,30 +1401,30 @@ void process_uart_cycle(){
   // only poll once every 100k counts in order to speed up
   if(count % 100000 == 0){
     // uart receive character (one IRQ per key)
-    if (kbhit()) {
-      uint8_t c;
-      if (read_stdin_byte(&c)) {
-        // Map terminal Backspace (DEL) to ASCII Backspace (BS)
-        if (c == 0x7F) c = 0x08;
+    //if(kbhit()){
+    //  uint8_t c;
+    //  if(read_stdin_byte(&c)){
+    //    // Map terminal Backspace (DEL) to ASCII Backspace (BS)
+    //    if (c == 0x7F) c = 0x08;
 
-        uart0_data = c;
-        uart0_lsr |= 0x01; // data ready
+    //    uart0_data = c;
+    //    uart0_lsr |= 0x01; // data ready
 
-        // ---- QUIT SHORTCUT ----
-        if (c == EMU_QUIT_KEY) {
-          printf("\nExiting emulator (Ctrl+Q)\n");
-          exit(0);
-        }
-        // ---- MENU SHORTCUT ----
-        if (c == MENU_KEY) {
-          print_state();
-        }
+    //    // ---- QUIT SHORTCUT ----
+    //    if (c == EMU_QUIT_KEY) {
+    //      printf("\nExiting emulator (Ctrl+Q)\n");
+    //      exit(0);
+    //    }
+    //    // ---- MENU SHORTCUT ----
+    //    if (c == MENU_KEY) {
+    //      print_state();
+    //    }
 
-        if (uart0_ier) {
-          irq_inputs |= 0x80; // IRQ7
-        }
-      }
-    }
+    //    if (uart0_ier) {
+    //      irq_inputs |= 0x80; // IRQ7
+    //    }
+    //  }
+    //}
   }
 
   if(clk == CLK_NEGEDGE){

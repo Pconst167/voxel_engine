@@ -1619,7 +1619,9 @@ void generate_game_data(){
     );
 }
 
-int main(void){
+int main(int argc, char *argv[]){
+  (void)argc;
+  (void)argv;
 
   quit = !initialize_window();
   setup();
@@ -1646,8 +1648,6 @@ int main(void){
 
     time_count++; /* one count per frame */
   }
-
-  emulator_finish();
 
   destroy_window();
   free_resources();
