@@ -240,6 +240,10 @@ void process_input(void){
           console.is_open = false;
           SDL_StopTextInput();
         }
+        else if(game_state.input_to_computer){
+          game_state.input_to_computer = false;
+          SDL_StopTextInput();
+        }
         else{
           quit = true;
         }
@@ -1856,7 +1860,7 @@ int main(int argc, char *argv[]){
     if(!console.is_open && !game_state.input_to_computer) move_player();
     update_state();
 
-    emulator_cycle(50000);
+    emulator_cycle(70000);
 
     render_visible_chunks();
     
@@ -2089,7 +2093,7 @@ void load_server_room(){
     .texture             = screen_texture
   };
   object_override_material(term0, "screen", screen_material1);
-  computer_push(term0, screen_texture, blank_screen_texture, 20, 20, 5, (color_t){.uint32 = 0xFFFFFF00});
+  computer_push(term0, screen_texture, blank_screen_texture, 0, 0, 5, (color_t){.uint32 = 0xFFFFFF00});
 
   object_id = create_object(
     mesh,
