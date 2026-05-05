@@ -262,7 +262,7 @@ void process_input(void){
 
         continue;
       }
-      else if(keycode == SDLK_QUOTE && (modifiers & KMOD_CTRL)){
+      else if(keycode == SDLK_RIGHTBRACKET && (modifiers & KMOD_CTRL)){
         game_state.input_to_computer = !game_state.input_to_computer;
 
         if(game_state.input_to_computer){
@@ -2093,7 +2093,7 @@ void load_server_room(){
     .texture             = screen_texture
   };
   object_override_material(term0, "screen", screen_material1);
-  computer_push(term0, screen_texture, blank_screen_texture, 0, 0, 5, (color_t){.uint32 = 0xFFFFFF00});
+  computer_push(term0, screen_texture, blank_screen_texture, 10, 10, 5, (color_t){.uint32 = 0xFFFFFF00});
 
   object_id = create_object(
     mesh,
