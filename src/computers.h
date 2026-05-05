@@ -8,7 +8,7 @@
 #define MAX_NUM_COMPUTERS 10
 #define COMPUTER_INPUT_FIFO_SIZE 256
 
-// TERMINAL PROTOCOL KEYS
+// TERMINAL CODES
 #define TERM_ETX 0x03 // CTRL + C
 #define TERM_EOT 0x04 // end of input/transmission/EOF
 #define TERM_BEL 0x07 // bell
@@ -21,7 +21,7 @@
 #define PRINTABLE_ASCII_START 0x20
 #define PRINTABLE_ASCII_END   0x7E
 
-// terminal input keys: terminal -> CPU only
+// terminal input codes: terminal -> CPU only
 #define KEY_UP        0x80 // up arrow
 #define KEY_DOWN      0x81 // down arrow
 #define KEY_LEFT      0x82 // left arrow
@@ -33,7 +33,7 @@
 #define KEY_PAGE_DOWN 0x88 // page down
 #define KEY_INSERT    0x89 // insert
 
-// terminal commands: cpu -> terminal only
+// terminal command codes: cpu -> terminal only
 #define TERM_CMD_CLR_SCR      0xC0
 #define TERM_CMD_CURSOR_HOME  0xC1
 #define TERM_CMD_CURSOR_END   0xC2
@@ -42,7 +42,7 @@
 #define TERM_CMD_CURSOR_RIGHT 0xC5
 #define TERM_CMD_CURSOR_UP    0xC6
 #define TERM_CMD_CURSOR_DOWN  0xC7
-// parametrized commands
+// parametrized command codes
 #define TERM_CMD_SET_CURSOR_X 0xD0
 #define TERM_CMD_SET_CURSOR_Y 0xD1
 #define TERM_CMD_SET_COLOR    0xD2
