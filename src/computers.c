@@ -7,14 +7,15 @@
 computer_t computers[MAX_NUM_COMPUTERS];
 uint32_t num_computers;
 
-void computer_push(
+void computer_declare(
   uint32_t object_id, 
   texture_t *screen_texture,
   texture_t *blank_screen_texture,
   uint32_t horizontal_margin,
   uint32_t vertical_margin,
   uint32_t font_size,
-  color_t font_color
+  color_t font_color,
+  uint32_t cycles_per_frame
 ){
   computer_t *new_computer = &computers[num_computers];
 
@@ -31,6 +32,8 @@ void computer_push(
   new_computer->terminal.font_color             = font_color;
   new_computer->terminal.char_hor_pixels        = (FONT_WIDTH  + FONT_HOR_SPACING) * font_size;
   new_computer->terminal.char_ver_pixels        = (FONT_HEIGHT + FONT_VER_SPACING) * font_size;
+
+  new_computer->cycles_per_frame                = cycles_per_frame;
 
   num_computers++;
 }
@@ -59,7 +62,7 @@ void draw_char_to_computer_screen(int x, int y, char character, color_t color, i
   }
 }
 
-void computer_print_char(uint32_t computer_id, const char chr){
+void computer_print_char(uint32_t computer_id, const uint8_t chr){
   computer_t *computer            = &computers[computer_id];
   texture_t *screen_texture       = computer->screen_texture;
   texture_t *blank_screen_texture = computer->blank_screen_texture;
@@ -70,7 +73,8 @@ void computer_print_char(uint32_t computer_id, const char chr){
   color_t font_color              = computer->terminal.font_color;
 
   switch(chr){
-    case '\n':
+    // '\n'
+    case TERM_LF: 
       computer->terminal.cursor_column = 0;
       computer->terminal.cursor_line++;
       if(computer->terminal.cursor_line >= max_lines){
@@ -79,12 +83,40 @@ void computer_print_char(uint32_t computer_id, const char chr){
       }
       break;
 
-    case '\r':
+    // '\r'
+    case TERM_CR:
       computer->terminal.cursor_column = 0;
       break;
     
-    case 0x08:
+    case TERM_BS:
       if(computer->terminal.cursor_column > 0) computer->terminal.cursor_column--;
+      break;
+
+    case TERM_CMD_CLR_SCR:
+      computer_clear_screen(screen_texture, blank_screen_texture);
+      break;
+
+    case TERM_CMD_CURSOR_HOME:
+      computer->terminal.cursor_column = 0;
+      break;
+    case TERM_CMD_CURSOR_END:
+      computer->terminal.cursor_column = max_chars_per_line - 1;
+      break;
+
+    case TERM_CMD_CURSOR_LEFT:
+      computer->terminal.cursor_column--;
+      break;
+
+    case TERM_CMD_CURSOR_RIGHT:
+      computer->terminal.cursor_column++;
+      break;
+
+    case TERM_CMD_CURSOR_UP:
+      computer->terminal.cursor_line--;
+      break;
+
+    case TERM_CMD_CURSOR_DOWN:
+      computer->terminal.cursor_line++;
       break;
     
     default:

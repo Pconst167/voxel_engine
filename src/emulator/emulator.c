@@ -500,50 +500,26 @@ int emulator_setup(){
   return 0;
 }
 
-void emulator_cycle(int64_t num_cycles){
-  if(num_cycles == -1){
-    for(;;){
-      if(debug){
-        printf("\n");
-        print_clk();
-      }
-
-      procees_irqs();
-      process_cpu_cycle();
-      process_address_decoder();
-      process_memory_cycle();
-      process_ide_cycle();
-      process_uart_cycle();
-      process_rtc_cycle();
-
-      if(debug){
-        print_state();
-      }
-
-      step_clock();
+void emulator_cycle(uint32_t num_cycles){
+  for(uint32_t cycles = 0; cycles < num_cycles; cycles++){
+    if(debug){
+      printf("\n");
+      print_clk();
     }
-  }
-  else{
-    for(int64_t cycles = 0; cycles < num_cycles; cycles++){
-      if(debug){
-        printf("\n");
-        print_clk();
-      }
 
-      procees_irqs();
-      process_cpu_cycle();
-      process_address_decoder();
-      process_memory_cycle();
-      process_ide_cycle();
-      process_uart_cycle();
-      process_rtc_cycle();
+    procees_irqs();
+    process_cpu_cycle();
+    process_address_decoder();
+    process_memory_cycle();
+    process_ide_cycle();
+    process_uart_cycle();
+    process_rtc_cycle();
 
-      if(debug){
-        print_state();
-      }
-
-      step_clock();
+    if(debug){
+      print_state();
     }
+
+    step_clock();
   }
 }
 

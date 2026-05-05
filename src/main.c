@@ -1860,7 +1860,7 @@ int main(int argc, char *argv[]){
     if(!console.is_open && !game_state.input_to_computer) move_player();
     update_state();
 
-    emulator_cycle(70000);
+    emulator_cycle(computers[0].cycles_per_frame);
 
     render_visible_chunks();
     
@@ -2097,7 +2097,7 @@ void load_server_room(){
     .texture             = screen_texture
   };
   object_override_material(term0, "screen", screen_material1);
-  computer_push(term0, screen_texture, blank_screen_texture, 10, 10, 5, (color_t){.uint32 = 0xFFFFFF00});
+  computer_declare(term0, screen_texture, blank_screen_texture, 10, 10, 5, (color_t){.uint32 = 0xFFFFFF00}, 60000);
 
   object_id = create_object(
     mesh,
