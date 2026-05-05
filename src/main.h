@@ -19,6 +19,8 @@ void object_quicksort(object_sort_key_t *array, int count);
 void qs(object_sort_key_t *array, int left, int right);
 void chunk_quicksort(chunk_sort_key_t *array, int count);
 void qs_chunk(chunk_sort_key_t *array, int left, int right);
+void triangle_quicksort(triangle_t *array, int count);
+void qs_triangle(triangle_t *array, int left, int right);
 void render_sun(void);
 void update_state(void);
 void move_player(void);
@@ -32,11 +34,7 @@ void setup(void);
 void draw_char_to_color_buffer(int x, int y, char character, color_t color, int scale);
 void draw_text_to_color_buffer(int x, int y, const char *text, color_t color, int scale);
 
-inline uint32_t rasterize_triangle(
-  triangle_t *triangle, 
-  material_t face_material,
-  light_intensity_rgb_t total_light_intensity
-);
+inline uint32_t rasterize_triangle(triangle_t *triangle);
 
 inline uint32_t rasterize_triangle_no_zbuffer_write(
   triangle_t *triangle, 

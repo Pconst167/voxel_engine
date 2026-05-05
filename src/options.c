@@ -8,5 +8,6 @@ options_t options = {
   .dither                         = false,
   .render_chunk_outlines          = false,
   .render_collision_aabb_outlines = false,
-  .log                            = true
+  .log                            = true,
+  .sort                           = false
 };

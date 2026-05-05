@@ -15,7 +15,8 @@ typedef struct{
   vector4_t points[3];
   uv_t uv[3];
   float avg_w;
-  uint32_t material_id; // triangle inherits either mesh material id, or object material override id
+  material_t face_material; // triangle inherits either mesh material id, or object material override id
+  light_intensity_rgb_t total_light_intensity;
 } triangle_t;
 
 typedef struct{

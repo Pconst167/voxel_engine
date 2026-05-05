@@ -18,6 +18,7 @@ typedef struct{
   bool render_chunk_outlines;
   bool render_collision_aabb_outlines;
   bool log;
+  bool sort;
 } options_t;
 
 extern options_t options;

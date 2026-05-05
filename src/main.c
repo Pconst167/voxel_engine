@@ -182,6 +182,8 @@ uint32_t term0;
 uint32_t term1;
 uint32_t term2;
 
+triangle_t triangles_to_render[50000];
+
 void setup(void) {
   
   aspect_ratio_x = (float)window_width  / (float)window_height;
@@ -388,6 +390,9 @@ void run_console_command(){
   }
   else if(!strcmp(console.input_buffer, "dither")){
     options.dither = !options.dither;
+  }
+  else if(!strcmp(console.input_buffer, "sort")){
+    options.sort = !options.sort;
   }
 }
 
@@ -832,6 +837,7 @@ bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane
 void render_chunk(chunk_t *chunk){
   /* triangles list for clipped triangles */
   triangle_t triangles_after_clipping[MAX_NUM_POLYGON_VERTICES - 2]; /* for a polygon with N vertices, the number of nested triangles is always N-2 */
+  uint32_t total_chunk_triangles_to_render = 0;
 
   /* loop through all objects in chunk */
   uint32_t num_chunk_objects = chunk->num_chunk_objects;
@@ -1044,29 +1050,55 @@ void render_chunk(chunk_t *chunk){
           projected_triangle.uv[j]     = triangle_after_clipping->uv[j];
         }
         
-        /* TRIANGLE RASTERIZATION */
-        total_pixels_rendered += rasterize_triangle(
-          &projected_triangle, 
-          face_material,
-          total_light_intensity
-        );
+        projected_triangle.avg_w = (projected_triangle.points[0].w + projected_triangle.points[1].w + projected_triangle.points[2].w) / 3.0f;
+        projected_triangle.face_material = face_material;
+        projected_triangle.total_light_intensity = total_light_intensity;
 
-        if(options.wireframe_overlay){
-          draw_triangle(
-            projected_triangle.points[0].x,
-            projected_triangle.points[0].y, 
-            projected_triangle.points[1].x, 
-            projected_triangle.points[1].y, 
-            projected_triangle.points[2].x, 
-            projected_triangle.points[2].y, 
-            (color_t){.uint32 = 0xffffff00}
-          );
+        /* TRIANGLE RASTERIZATION */
+        // option to sort the triangles inside the chunk by average w
+        if(options.sort){
+          triangles_to_render[total_chunk_triangles_to_render] = projected_triangle;
+        }
+        else{
+          total_pixels_rendered += rasterize_triangle(&projected_triangle);
+          if(options.wireframe_overlay){
+            draw_triangle(
+              projected_triangle.points[0].x,
+              projected_triangle.points[0].y, 
+              projected_triangle.points[1].x, 
+              projected_triangle.points[1].y, 
+              projected_triangle.points[2].x, 
+              projected_triangle.points[2].y, 
+              (color_t){.uint32 = 0xffffff00}
+            );
+          }
         }
 
         total_triangles_rendered++;
+        total_chunk_triangles_to_render++;
       } /* for(int t = 0; t < polygon.num_vertices - 2; t++) */
     } /* for(uint32_t i = 0; i < num_faces; i++) */
   } /* for(uint32_t object_i = 0; object_i < num_objects_sorted; object_i++) */
+
+  // sort triangles inside this chunk by average w, and then render sorted list
+  if(options.sort){
+    triangle_quicksort(triangles_to_render, total_chunk_triangles_to_render);
+
+    for(uint32_t i = 0; i < total_chunk_triangles_to_render; i++){
+      total_pixels_rendered += rasterize_triangle(&triangles_to_render[i]);
+      if(options.wireframe_overlay){
+        draw_triangle(
+          triangles_to_render[i].points[0].x,
+          triangles_to_render[i].points[0].y, 
+          triangles_to_render[i].points[1].x, 
+          triangles_to_render[i].points[1].y, 
+          triangles_to_render[i].points[2].x, 
+          triangles_to_render[i].points[2].y, 
+          (color_t){.uint32 = 0xffffff00}
+        );
+      }
+    }
+  }
 }
 
 void draw_chunk_outlines(void){
@@ -1385,9 +1417,7 @@ void update_state(void){
 }
 
 inline uint32_t rasterize_triangle(
-  triangle_t *triangle, 
-  material_t face_material,
-  light_intensity_rgb_t total_light_intensity
+  triangle_t *triangle
 ){
   if(options.projection_mode == TEXT_WIREFRAME){
     draw_triangle(
@@ -1398,29 +1428,29 @@ inline uint32_t rasterize_triangle(
     );
     return 0;
   }
-  else if(options.projection_mode == TEXT_FILLED || face_material.texture == NULL){
+  else if(options.projection_mode == TEXT_FILLED || triangle->face_material.texture == NULL){
     return draw_filled_triangle(
       &triangle->points[0], 
       &triangle->points[1], 
       &triangle->points[2], 
-      face_material.base_color,
-      total_light_intensity,
-      face_material.emissive_color,
-      face_material.reflects_light,
+      triangle->face_material.base_color,
+      triangle->total_light_intensity,
+      triangle->face_material.emissive_color,
+      triangle->face_material.reflects_light,
       options.dither
     );
   }
   else{
-    switch(face_material.blend_mode){
+    switch(triangle->face_material.blend_mode){
       case BLEND_MODE_OPAQUE:
         return draw_textured_triangle_opaque(
           &triangle->points[0], triangle->uv[0],
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
-          face_material.texture->texture, face_material.texture->texture_width, face_material.texture->texture_height,
-          total_light_intensity,
-          face_material.emissive_color,
-          face_material.reflects_light,
+          triangle->face_material.texture->texture, triangle->face_material.texture->texture_width, triangle->face_material.texture->texture_height,
+          triangle->total_light_intensity,
+          triangle->face_material.emissive_color,
+          triangle->face_material.reflects_light,
           options.dither
         );
 
@@ -1429,12 +1459,12 @@ inline uint32_t rasterize_triangle(
           &triangle->points[0], triangle->uv[0],
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
-          face_material.texture->texture, face_material.texture->texture_width, face_material.texture->texture_height,
-          total_light_intensity,
-          face_material.emissive_color,
-          face_material.reflects_light,
+          triangle->face_material.texture->texture, triangle->face_material.texture->texture_width, triangle->face_material.texture->texture_height,
+          triangle->total_light_intensity,
+          triangle->face_material.emissive_color,
+          triangle->face_material.reflects_light,
           options.dither,
-          face_material.alpha_cutoff
+          triangle->face_material.alpha_cutoff
         );
 
       case BLEND_MODE_ALPHA_BLEND:
@@ -1442,12 +1472,12 @@ inline uint32_t rasterize_triangle(
           &triangle->points[0], triangle->uv[0],
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
-          face_material.texture->texture, face_material.texture->texture_width, face_material.texture->texture_height,
-          total_light_intensity,
-          face_material.emissive_color,
-          face_material.reflects_light,
+          triangle->face_material.texture->texture, triangle->face_material.texture->texture_width, triangle->face_material.texture->texture_height,
+          triangle->total_light_intensity,
+          triangle->face_material.emissive_color,
+          triangle->face_material.reflects_light,
           options.dither,
-          face_material.opacity
+          triangle->face_material.opacity
         );
     }
   }
@@ -1662,6 +1692,33 @@ void qs(object_sort_key_t *array, int left, int right){
 inline void object_quicksort(object_sort_key_t *array, int count){
   if(count > 1)
     qs(array, 0, count - 1);
+}
+
+void qs_triangle(triangle_t *array, int left, int right){
+  int i = left;
+  int j = right;
+  float pivot = array[(left + right) / 2].avg_w;
+
+  while(i <= j){
+    while(array[i].avg_w < pivot) i++;
+    while(array[j].avg_w > pivot) j--;
+
+    if(i <= j){
+      triangle_t tmp = array[i];
+      array[i] = array[j];
+      array[j] = tmp;
+      i++;
+      j--;
+    }
+  }
+
+  if(left < j) qs_triangle(array, left, j);
+  if(i < right) qs_triangle(array, i, right);
+}
+
+inline void triangle_quicksort(triangle_t *array, int count){
+  if(count > 1)
+    qs_triangle(array, 0, count - 1);
 }
 
 void free_resources(void){
