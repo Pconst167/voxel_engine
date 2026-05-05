@@ -26,6 +26,8 @@ typedef struct{
     uint32_t max_num_lines;
     uint32_t cursor_line;
     uint32_t cursor_column;
+    uint32_t char_hor_pixels;
+    uint32_t char_ver_pixels;
   } terminal;
 } computer_t;
 
@@ -42,6 +44,7 @@ void computer_push(
   color_t font_color
 );
 void draw_char_to_computer_screen(int x, int y, char character, color_t color, int scale, texture_t *screen);
+void computer_print_char(uint32_t computer_id, const char chr);
 void computer_print_line(uint32_t computer_id, const char *text);
 void computer_printf(uint32_t computer_id, const char *text, ...);
 void computer_clear_screen(texture_t *screen_texture, texture_t *blank_screen_texture);

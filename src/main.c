@@ -29,6 +29,9 @@
       then for fully inside, we only test for clipping, but for intersecting chunks, clip all triangles directly.
 
     TODO:
+      add a list of global blank screen textures for computers so that we can keep track of them, rather than loading one per computer and hence
+      duplicating unnecessarily, or having to keep track of them
+
       add funcs to remove collision aabb from object, and change them
 
       add functions to add cube, sphere, cylinder, etc.
@@ -255,14 +258,26 @@ void process_input(void){
 
         continue;
       }
-
-      if(keycode == SDLK_i){
+      else if(keycode == SDLK_QUOTE && (modifiers & KMOD_CTRL)){
         game_state.input_to_computer = !game_state.input_to_computer;
+
+        if(game_state.input_to_computer){
+          SDL_StartTextInput();
+        }
+        else{
+          SDL_StopTextInput();
+        }
+
+        continue;
       }
+
     }
 
     if(console.is_open){
       process_console_input(&event);
+    }
+    else if(game_state.input_to_computer){
+      process_computer_input(&event);
     }
     else{
       // process game input
@@ -339,15 +354,71 @@ void process_console_input(SDL_Event *event){
 }
 
 void process_computer_input(SDL_Event *event){
-  if(event->type == SDL_TEXTINPUT){
-    const char *input_text = event->text.text;
-    int text_length = strlen(input_text);
+  if(event->type == SDL_KEYDOWN && !event->key.repeat){
+    SDL_Keycode keycode = event->key.keysym.sym;
+    Uint16 modifiers = event->key.keysym.mod;
 
-    if(console.input_length + text_length < (int)sizeof(console.input_buffer) - 1){
-      memmove(&console.input_buffer[console.cursor_position + text_length], &console.input_buffer[console.cursor_position], console.input_length - console.cursor_position + 1);
-      memcpy(&console.input_buffer[console.cursor_position], input_text, text_length);
-      console.cursor_position += text_length;
-      console.input_length += text_length;
+    switch(keycode){
+
+      case SDLK_BACKSPACE:
+        computer_input_fifo_push(&computers[0], 0x08); // BS
+        break;
+
+      case SDLK_DELETE:
+        computer_input_fifo_push(&computers[0], 0x7F); // DEL
+        break;
+
+      case SDLK_LEFT:
+        computer_input_fifo_push(&computers[0], 0x1B);
+        computer_input_fifo_push(&computers[0], '[');
+        computer_input_fifo_push(&computers[0], 'D');
+        break;
+
+      case SDLK_RIGHT:
+        computer_input_fifo_push(&computers[0], 0x1B);
+        computer_input_fifo_push(&computers[0], '[');
+        computer_input_fifo_push(&computers[0], 'C');
+        break;
+
+      case SDLK_UP:
+        computer_input_fifo_push(&computers[0], 0x1B);
+        computer_input_fifo_push(&computers[0], '[');
+        computer_input_fifo_push(&computers[0], 'A');
+        break;
+
+      case SDLK_DOWN:
+        computer_input_fifo_push(&computers[0], 0x1B);
+        computer_input_fifo_push(&computers[0], '[');
+        computer_input_fifo_push(&computers[0], 'B');
+        break;
+
+      case SDLK_RETURN:
+        computer_input_fifo_push(&computers[0], '\r'); // CR
+        break;
+
+      case SDLK_TAB:
+        computer_input_fifo_push(&computers[0], '\t');
+        break;
+
+      case SDLK_ESCAPE:
+        computer_input_fifo_push(&computers[0], 0x1B);
+        break;
+
+      default:
+        // CTRL combinations
+        if(modifiers & KMOD_CTRL){
+          if(keycode >= SDLK_a && keycode <= SDLK_z){
+            uint8_t ctrl_char = (keycode - SDLK_a) + 1;
+            computer_input_fifo_push(&computers[0], ctrl_char);
+          }
+        }
+        break;
+    }
+  }
+
+  if(event->type == SDL_TEXTINPUT){
+    for(int char_index = 0; event->text.text[char_index] != '\0'; char_index++){
+      computer_input_fifo_push(&computers[0], (uint8_t)event->text.text[char_index]);
     }
   }
 }
@@ -393,6 +464,9 @@ void run_console_command(){
   }
   else if(!strcmp(console.input_buffer, "sort")){
     options.sort = !options.sort;
+  }
+  else if(!strcmp(console.input_buffer, "terminal")){
+    game_state.input_to_computer = !game_state.input_to_computer;
   }
 }
 
@@ -1779,7 +1853,7 @@ int main(int argc, char *argv[]){
     frame_id++;
     process_frame_rate();
     process_input();
-    if(!console.is_open) move_player();
+    if(!console.is_open && !game_state.input_to_computer) move_player();
     update_state();
 
     emulator_cycle(50000);
@@ -2001,7 +2075,7 @@ void load_server_room(){
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
   texture_t *screen_texture = load_texture("./assets/textures/server_room/screen_green.png");
-  texture_t *blank_screen_texture = get_mesh_material_by_name(mesh, "screen")->texture;
+  texture_t *blank_screen_texture = create_texture_from_file("./assets/textures/server_room/screen_green.png"); // get_mesh_material_by_name(mesh, "screen")->texture;
   material_t screen_material1 = {
     .material_name       = "",
     .base_color          = {.uint32 = 0xFFFFFFFF},
@@ -2047,13 +2121,13 @@ void load_server_room(){
   );
 
   // drone
-  create_object(
-    load_mesh("./assets/obj/server_room/drone.obj", false),
-    OBJECT_TYPE_ROBOT, true, false,
-    true, true, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.8f}, (vector3_t){0.0f, 0.0f, 0.0f},
-    (vector3_t){80, 80, 80}, (vector3_t){0, 0, 0}, (vector3_t){-300, 0, 250}, 
-    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  );
+  //create_object(
+  //  load_mesh("./assets/obj/server_room/drone.obj", false),
+  //  OBJECT_TYPE_ROBOT, true, false,
+  //  true, true, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.8f}, (vector3_t){0.0f, 0.0f, 0.0f},
+  //  (vector3_t){80, 80, 80}, (vector3_t){0, 0, 0}, (vector3_t){-300, 0, 250}, 
+  //  (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  //);
 
   // jupiter
   create_object(

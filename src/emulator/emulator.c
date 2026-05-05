@@ -1399,28 +1399,23 @@ void process_uart_cycle(){
   uart_reg_addr = physical_addr & 0x0007;
 
   // uart receive character (one IRQ per key)
-//  uint8_t c;
-//  if(read_stdin_byte(&c)){
-//    // Map terminal Backspace (DEL) to ASCII Backspace (BS)
-//    if (c == 0x7F) c = 0x08;
-//
-//    uart0_data = c;
-//    uart0_lsr |= 0x01; // data ready
-//
-//    // ---- QUIT SHORTCUT ----
-//    if (c == EMU_QUIT_KEY) {
-//      printf("\nExiting emulator (Ctrl+Q)\n");
-//      exit(0);
-//    }
-//    // ---- MENU SHORTCUT ----
-//    if (c == MENU_KEY) {
-//      print_state();
-//    }
-//
-//    if (uart0_ier) {
-//      irq_inputs |= 0x80; // IRQ7
-//    }
-//  }
+  if((uart0_lsr & 0x01) == 0){ // if any previous uart0 data has been read already, i.e uart0 data is empty, then uart0 can receive new byte
+    uint8_t received_byte;
+
+    if(computer_input_fifo_pop(&computers[0], &received_byte)){
+      uart0_data = received_byte;
+      uart0_lsr |= 0x01; // data ready
+
+      // emulator menu shortcut
+      if(received_byte == MENU_KEY){
+        print_state();
+      }
+
+      if(uart0_ier){
+        irq_inputs |= 0x80; // IRQ7
+      }
+    }
+  }
 
   if(clk == CLK_NEGEDGE){
     if(uart0_cs){
@@ -1460,8 +1455,7 @@ void process_uart_cycle(){
             else{
               uart0_data = databus;
               //putchar(uart0_data);
-              char s[2] = {uart0_data, '\0'};
-              computer_print_line(0, s);
+              computer_print_char(0, uart0_data);
             }
             break;
           case 1:

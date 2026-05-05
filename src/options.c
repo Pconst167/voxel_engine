@@ -9,5 +9,5 @@ options_t options = {
   .render_chunk_outlines          = false,
   .render_collision_aabb_outlines = false,
   .log                            = true,
-  .sort                           = false
+  .sort                           = true
 };
