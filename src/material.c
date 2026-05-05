@@ -18,6 +18,7 @@ material_t generate_default_material(const char *name){
   material.two_sided_lighting  = false;
   material.reflects_light      = true;
   material.specular_highlights = false;
+  material.dither              = false;
   material.blend_mode          = BLEND_MODE_OPAQUE;
   material.alpha_cutoff        = DEFAULT_ALPHA_CUTOFF;
   material.texture             = NULL;

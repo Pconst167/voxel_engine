@@ -23,6 +23,7 @@ typedef struct{
   bool two_sided_lighting;  // object will be lit on both sides of light equally */
   bool reflects_light;
   bool specular_highlights;
+  bool dither;              // individual faces can be dithered
   // alpha
   blend_mode_t blend_mode;
   uint8_t alpha_cutoff;

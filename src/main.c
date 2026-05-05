@@ -1515,7 +1515,7 @@ inline uint32_t rasterize_triangle(
       triangle->total_light_intensity,
       triangle->face_material.emissive_color,
       triangle->face_material.reflects_light,
-      options.dither
+      options.dither || triangle->face_material.dither
     );
   }
   else{
@@ -1529,7 +1529,7 @@ inline uint32_t rasterize_triangle(
           triangle->total_light_intensity,
           triangle->face_material.emissive_color,
           triangle->face_material.reflects_light,
-          options.dither
+          options.dither || triangle->face_material.dither
         );
 
       case BLEND_MODE_ALPHA_TEST:
@@ -1541,7 +1541,7 @@ inline uint32_t rasterize_triangle(
           triangle->total_light_intensity,
           triangle->face_material.emissive_color,
           triangle->face_material.reflects_light,
-          options.dither,
+          options.dither || triangle->face_material.dither,
           triangle->face_material.alpha_cutoff
         );
 
@@ -1554,7 +1554,7 @@ inline uint32_t rasterize_triangle(
           triangle->total_light_intensity,
           triangle->face_material.emissive_color,
           triangle->face_material.reflects_light,
-          options.dither,
+          options.dither || triangle->face_material.dither,
           triangle->face_material.opacity
         );
     }
@@ -1908,6 +1908,7 @@ void load_skybox(){
 
 void load_server_room(){
   int32_t object_id;
+  mesh_t *mesh;
 
   create_light_source(LIGHT_AMBIENT, (vector3_t){.x = 0.0f,     .y = 0.0f,   .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 0.05f);
   create_light_source(LIGHT_POINT,   (vector3_t){.x = 300.0f,   .y = 50.0f,  .z = -50.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 300.0f);
@@ -2011,13 +2012,15 @@ void load_server_room(){
   //object_deactivate_collision_aabb(aabb_back);
 
   // ghouls and ghosts
+  mesh = load_mesh("./assets/obj/server_room/ghosts.obj", true);
   object_id = create_object(
-    load_mesh("./assets/obj/server_room/ghosts.obj", true), 
+    mesh, 
     OBJECT_TYPE_FURNITURE, true, true,
     false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
     (vector3_t){450, 450, 100}, (vector3_t){0, M_PI, 0}, (vector3_t){320, 150, -650}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
+  get_mesh_material_by_name(mesh, "picture")->dither = true;
 
   // desk
   object_id = create_object(
@@ -2047,7 +2050,7 @@ void load_server_room(){
   );
 
   // floppy disks
-  create_object(
+  object_id = create_object(
     load_mesh("./assets/obj/server_room/floppy.obj", false), 
     OBJECT_TYPE_ITEM, true, true, 
     false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
@@ -2061,7 +2064,7 @@ void load_server_room(){
     (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-360, 90, 550}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
-  create_object(
+  object_id = create_object(
     load_mesh("./assets/obj/server_room/floppy.obj", false), 
     OBJECT_TYPE_ITEM, true, true, 
     false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
@@ -2070,7 +2073,7 @@ void load_server_room(){
   );
 
   /* mainframes */
-  mesh_t *mesh = load_mesh("./assets/obj/server_room/server.obj", true);
+  mesh = load_mesh("./assets/obj/server_room/server.obj", true);
   term0 = create_object(
     mesh,
     OBJECT_TYPE_COMPUTER, true, true, 
@@ -2088,6 +2091,7 @@ void load_server_room(){
     .two_sided_lighting  = false,
     .reflects_light      = false,
     .specular_highlights = false,
+    .dither              = true,
     .blend_mode          = BLEND_MODE_OPAQUE,
     .alpha_cutoff        = DEFAULT_ALPHA_CUTOFF,
     .texture             = screen_texture
@@ -2110,6 +2114,7 @@ void load_server_room(){
     .two_sided_lighting  = false,
     .reflects_light      = false,
     .specular_highlights = false,
+    .dither              = true,
     .blend_mode          = BLEND_MODE_OPAQUE,
     .alpha_cutoff        = DEFAULT_ALPHA_CUTOFF,
     .texture             = load_texture("./assets/textures/server_room/sol1_screen_amber.png")

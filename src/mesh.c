@@ -106,8 +106,9 @@ static void load_mtl_file(
   // start reading file lines
   while(fgets(line, sizeof(line), file)){
     if(strncmp(line, "newmtl ", 7) == 0){ // if we find 'newmtl' keyword, then if we have already parsed a previous material, commit it 
-      if(has_current_material)
+      if(has_current_material){
         add_material_to_mesh(mesh, current_material);
+      }
 
       char material_name[128];
       // if 'newmtl' keyword is found and it also has the new material name, then generate new default material
@@ -169,7 +170,9 @@ static void load_mtl_file(
   }
 
   // if file end is reached, commit current material
-  if(has_current_material) add_material_to_mesh(mesh, current_material);
+  if(has_current_material){
+    add_material_to_mesh(mesh, current_material);
+  }
 
   fclose(file);
 }
