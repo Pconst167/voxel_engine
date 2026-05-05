@@ -352,11 +352,9 @@ void process_computer_input(SDL_Event *event){
 
 void render_console(){
   if(console.is_open) {
-    generate_game_data();
     draw_rect(0, 0, window_width, 80, (color_t){.uint32 = 0xFFFF4040});
-    draw_text_to_color_buffer(10, 10, text0, (color_t){.uint32 = 0xFFFFFFFF}, 1);
-    draw_text_to_color_buffer(10, 25, "> ", (color_t){.uint32 = 0xFFFFFFFF}, 1);
-    draw_text_to_color_buffer(20, 25, console.input_buffer, (color_t){.uint32 = 0xFFFFFFFF}, 1);
+    draw_text_to_color_buffer(10, 10, "> ", (color_t){.uint32 = 0xFFFFFFFF}, 1);
+    draw_text_to_color_buffer(20, 10, console.input_buffer, (color_t){.uint32 = 0xFFFFFFFF}, 1);
   }
 }
 
@@ -1727,11 +1725,14 @@ int main(int argc, char *argv[]){
     if(!console.is_open) move_player();
     update_state();
 
-    emulator_cycle(100000);
+    emulator_cycle(50000);
 
     render_visible_chunks();
     
+    generate_game_data();
+    draw_text_to_color_buffer(10, window_height - 20, text0, (color_t){.uint32 = 0xFFFFFFFF}, 1);
     render_console();
+
     sdl_render();
 
     time_count++; /* one count per frame */
@@ -1776,7 +1777,7 @@ void load_server_room(){
   create_light_source(LIGHT_AMBIENT, (vector3_t){.x = 0.0f,     .y = 0.0f,   .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 0.05f);
   create_light_source(LIGHT_POINT,   (vector3_t){.x = 300.0f,   .y = 50.0f,  .z = -50.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 300.0f);
   create_light_source(LIGHT_POINT,   (vector3_t){.x = -300.0f,  .y = 50.0f,  .z = -50.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 300.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 350.0f, .z = 500.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF00FF}, 300.0f);
+  create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 350.0f, .z = 500.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 400.0f);
   //create_light_source(LIGHT_POINT,   (vector3_t){.x = -300.0f,  .y = 100.0f, .z = 100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 50.0f);
 
   /* room */
@@ -1901,7 +1902,16 @@ void load_server_room(){
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
-  // floppy
+  // floppy drives
+  create_object(
+    load_mesh("./assets/obj/server_room/5_25_drives.obj", true), 
+    OBJECT_TYPE_ITEM, true, true, 
+    false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
+    (vector3_t){35, 35, 35}, (vector3_t){0, 0, 0}, (vector3_t){-240, 90, 550}, 
+    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  );
+
+  // floppy disks
   create_object(
     load_mesh("./assets/obj/server_room/floppy.obj", false), 
     OBJECT_TYPE_ITEM, true, true, 
@@ -1980,13 +1990,13 @@ void load_server_room(){
   );
 
   // drone
-  //create_object(
-  //  load_mesh("./assets/obj/server_room/drone.obj", false),
-  //  OBJECT_TYPE_ROBOT, true, false,
-  //  true, true, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.8f}, (vector3_t){0.0f, 0.0f, 0.0f},
-  //  (vector3_t){80, 80, 80}, (vector3_t){0, 0, 0}, (vector3_t){-300, 0, 250}, 
-  //  (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  //);
+  create_object(
+    load_mesh("./assets/obj/server_room/drone.obj", false),
+    OBJECT_TYPE_ROBOT, true, false,
+    true, true, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.8f}, (vector3_t){0.0f, 0.0f, 0.0f},
+    (vector3_t){80, 80, 80}, (vector3_t){0, 0, 0}, (vector3_t){-300, 0, 250}, 
+    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  );
 
   // jupiter
   create_object(
@@ -2133,11 +2143,9 @@ uint32_t chunk_num_vertices_inside_plane(chunk_t *chunk, frustrum_plane_t frustr
 }
 
 void draw_char_to_color_buffer(
-  int x,
-  int y,
-  char character,
-  color_t color,
-  int scale
+  int x, int y,
+  char character, 
+  color_t color, int scale
 ){
   const uint8_t *glyph = get_font_terminal_char(character);
 
@@ -2163,11 +2171,9 @@ void draw_char_to_color_buffer(
 }
 
 void draw_text_to_color_buffer(
-  int x,
-  int y,
-  const char *text,
-  color_t color,
-  int scale
+  int x, int y,
+  const char *text, 
+  color_t color, int scale
 ){
   int cursor_x = x;
   int cursor_y = y;

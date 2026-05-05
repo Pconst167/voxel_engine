@@ -2,6 +2,7 @@
 #define COMPUTERS_H
 
 #include <stdbool.h>
+#include <stdarg.h>
 #include "texture.h"
 
 #define MAX_NUM_COMPUTERS 10
@@ -42,6 +43,7 @@ void computer_push(
 );
 void draw_char_to_computer_screen(int x, int y, char character, color_t color, int scale, texture_t *screen);
 void computer_print_line(uint32_t computer_id, const char *text);
+void computer_printf(uint32_t computer_id, const char *text, ...);
 void computer_clear_screen(texture_t *screen_texture, texture_t *blank_screen_texture);
 
 bool computer_input_fifo_is_empty(computer_t *computer);

@@ -57,10 +57,18 @@ void draw_char_to_computer_screen(int x, int y, char character, color_t color, i
   }
 }
 
-void computer_print_line(
-  uint32_t computer_id,
-  const char *text
-){
+void computer_printf(uint32_t computer_id, const char *text, ...){
+  va_list args;
+  char formatted_text[512] = {0};
+
+  va_start(args, text);
+  vsprintf(formatted_text, text, args);
+  va_end(args);
+
+  computer_print_line(computer_id, formatted_text);
+}
+
+void computer_print_line(uint32_t computer_id, const char *text){
   if(computer_id >= num_computers){
     print_log("[ERROR] computer id out of bounds: %u", computer_id);
     exit(1);

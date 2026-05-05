@@ -1,0 +1,14 @@
+# Blender 4.0.2 MTL File: 'None'
+# www.blender.org
+
+newmtl drive1
+Ke 0.000000 0.000000 0.000000
+d 1.000000
+illum 1
+map_Kd ./assets/textures/server_room/floppy_drive1.png
+
+newmtl drive2
+Ke 0.000000 0.000000 0.000000
+d 1.000000
+illum 1
+map_Kd ./assets/textures/server_room/floppy_drive2.png

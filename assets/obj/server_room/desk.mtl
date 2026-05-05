@@ -1,12 +1,14 @@
 # Blender 4.0.2 MTL File: 'None'
 # www.blender.org
 
-newmtl desk
-Ns 0.000000
-Ka 1.000000 1.000000 1.000000
-Ks 0.373364 0.373364 0.373364
+newmtl brown
+Kd 0.010809 0.001150 0.000000
 Ke 0.000000 0.000000 0.000000
-Ni 1.500000
 d 1.000000
 illum 1
-map_Kd ./assets/textures/server_room/desk.png
+
+newmtl desk
+Ke 0.000000 0.000000 0.000000
+d 1.000000
+illum 1
+map_Kd assets/textures/server_room/desk.png

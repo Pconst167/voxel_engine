@@ -1,6 +1,11 @@
 **********************************************************************************************
 ********** STAY ATTENTIVE TO GAME GOING VIRAL AND BE PREPARED IN CASE IT HAPENS !!!!!
 
+IDEA: add a computer in the corner that is a log room computer, that processes logs and has a prompt but for the game itself! like texture error messages etc
+or any logs pertaining to the game engine itself etc
+
+IDEA: puzzles where player has to decrypt text etc. maybe alien language puzzles. start with simple decruptions like A becomes A-1 in ascii etc
+
 IDEA: after solving a puzzle in the computer, you now have an xray type vision where you can see things you couldnt see before etc, like doors, items!
 
 add multiplayer so players can chat to each other etc? maybe solve puzzles together or hack each other
@@ -89,6 +94,10 @@ watching plants and trees grow etc, get polynated by bees, eaten by animals etc
 make a meme game kinda like megabonk but with meme bosses like stonks head, vance thank you etc
 
 
+
+GAME TESTINGl
+TEST ON MULTIPLE PCS, CPUS ETC
+SEND TO A FEW PEOPLE TO TEST
 
 
 
