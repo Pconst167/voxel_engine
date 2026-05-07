@@ -394,6 +394,7 @@ void process_ide_cycle();
 void ide_write_to_disk();
 void process_uart_cycle();
 void process_rtc_cycle();
+void process_gameport_cycle();
 
 void print_clk();
 void print_state();

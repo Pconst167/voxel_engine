@@ -107,7 +107,7 @@ uint16_t main(void){
   try_create_file(".shellrc",  "../solix/etc/.shellrc",        etc_id, 0x03);
 
   // bin
-  try_create_file("float",     "../ccompiler/out/obj/float.obj", bin_id, 0x07);
+  try_create_file("gameport",  "../software/obj/gameport.obj", bin_id, 0x07);
   try_create_file("primes",    "../ccompiler/out/obj/primes.obj", bin_id, 0x07);
   try_create_file("base64",    "../ccompiler/out/obj/base64.obj", bin_id, 0x07);
   try_create_file("rsa",       "../ccompiler/out/obj/rsa.obj", bin_id, 0x07);

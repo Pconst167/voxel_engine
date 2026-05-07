@@ -1,5 +1,5 @@
 0001   0000             ; --- FILENAME: programs/primes.c
-0002   0000             ; --- DATE:     07-05-2026 at 11:26:35
+0002   0000             ; --- DATE:     07-05-2026 at 12:40:44
 0003   0000             .include "lib/asm/kernel.exp"
 0001+  0000             fdc_al_restore   .EQU  $0000
 0002+  0000             fdc_al_step      .EQU  $0001

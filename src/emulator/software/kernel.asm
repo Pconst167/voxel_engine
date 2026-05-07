@@ -12,6 +12,7 @@
 ; ------------------------------------------------------------------------------------------------------------------;
 ; ff80 - uart 0 (16550)
 ; ff88 - uart 1 (16550)
+; ff90 - game port
 ; ffa0 - rtc    (m48t02)
 ; ffb0 - pio 0  (8255)
 ; ffc0 - fdd    (5.25" floppy drive block)
@@ -74,6 +75,8 @@ _timer_c_0        .equ $ffe0         ; timer counter 0
 _timer_c_1        .equ $ffe1         ; timer counter 1
 _timer_c_2        .equ $ffe2         ; timer counter 2
 _timer_ctrl       .equ $ffe3         ; timer control register
+
+_gameport         .equ $ff90         ; game port registers
 
 _stack_begin      .equ $f7ff         ; beginning of stack
 _fifo_size        .equ 4096

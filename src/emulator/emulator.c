@@ -9,6 +9,7 @@
 #include "file_load.h"
 #include "../computers.h"
 #include "../color.h"
+#include "../light.h"
 
 #define EMU_QUIT_KEY 0x11  // Ctrl+Q
 #define MENU_KEY     0x10  // Ctrl+P
@@ -420,6 +421,7 @@ uint8_t uart0_cs;
 uint8_t uart1_cs;
 uint8_t ide_cs;
 uint8_t rtc_cs;
+uint8_t game_port_cs;
 
 // buses
 uint8_t xbus, ybus;
@@ -513,6 +515,7 @@ void emulator_cycle(uint32_t num_cycles){
     process_memory_cycle();
     process_ide_cycle();
     process_uart_cycle();
+    process_gameport_cycle();
     process_rtc_cycle();
 
     if(debug){
@@ -1320,6 +1323,37 @@ void process_address_decoder(){
   ide_cs         = devices_select && (physical_addr & 0x00000070) == 0x00000050; // phys[6:4] == 5
 
   rtc_cs         = devices_select && (physical_addr & 0x00000070) == 0x00000020; // phys[6:4] == 2
+
+  game_port_cs   = devices_select && (physical_addr & 0x00000070) == 0x00000010; // phys[6:4] == 1
+}
+
+void process_gameport_cycle(){
+  uint8_t port_addr;
+
+  port_addr = physical_addr & 0x000F; // ffa0..ffaf -> low nibble 0..15
+
+  if(clk == CLK_NEGEDGE){
+    if(game_port_cs){
+      if(rd_r){
+        databus = 0xEF;
+      }
+      else if(wr_r){
+        switch(port_addr){
+          case 0x00:
+            uint8_t val = databus;
+            if(light_sources[3].color.uint32 == 0xFFFFFFFF)
+              light_sources[3].color = (color_t){.uint32 = 0xFFFF0000};
+            else
+              light_sources[3].color = (color_t){.uint32 = 0xFFFFFFFF};
+            computer_printf(0, "\nHello from game port address 0x00, value: %d\n", val);
+            break;
+
+          default:
+            break;
+        }
+      }
+    }
+  }
 }
 
 void process_memory_cycle(){
@@ -1647,7 +1681,7 @@ void ide_write_to_disk(){
   fwrite(ide_disk, sizeof(uint8_t), IDE_DISK_SIZE, fp);
 }
 
-// rtc emulation - added with chatgpt
+// rtc emulation
 void process_rtc_cycle(){
   uint8_t rtc_reg_addr;
 
