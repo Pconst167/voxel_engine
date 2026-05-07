@@ -62,6 +62,14 @@ uint32_t draw_filled_triangle(
   bool reflects_light,
   bool dither
 );
+uint32_t draw_filled_triangle_float(
+  vector4_t *v0, vector4_t *v1, vector4_t *v2, 
+  color_t color, 
+  light_intensity_rgb_t total_light_intensity,
+  color_t emissive_color,
+  bool reflects_light,
+  bool dither
+);
 uint32_t  draw_filled_triangle_no_zbuffer_write(
   vector4_t *v0, vector4_t *v1, vector4_t *v2, 
   color_t color, 

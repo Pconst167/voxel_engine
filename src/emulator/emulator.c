@@ -1341,6 +1341,7 @@ void process_gameport_cycle(){
         switch(port_addr){
           case 0x00:
             uint8_t val = databus;
+            create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 350.0f, .z = 500.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 400.0f);
             if(light_sources[3].color.uint32 == 0xFFFFFFFF)
               light_sources[3].color = (color_t){.uint32 = 0xFFFF0000};
             else

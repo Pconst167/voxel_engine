@@ -128,7 +128,7 @@
 #define MOUSE_SENSITIVITY 0.005f
 #define DAY_LENGTH (1.01f * 60.0f * 60.0f / 0.016f) /* hours */
 
-#define FOV_Y_DEG 90.0
+#define FOV_Y_DEG 70.0
 #define FOV_Y (FOV_Y_DEG * M_PI / 180.0)
 #define ZNEAR 1.0f
 #define ZFAR 18000.0f
@@ -2078,11 +2078,11 @@ void load_server_room(){
     mesh,
     OBJECT_TYPE_COMPUTER, true, true, 
     true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.5f}, (vector3_t){0.0f, -10.0f, 15.0f},
-    (vector3_t){140, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){150, 3, 300}, 
+    (vector3_t){110, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){150, 3, 300}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
-  color_t screen_color = {.uint32 = 0xFF080800};
-  texture_t *screen_texture = create_blank_texture(1024, 1024, screen_color);
+  texture_t *screen_texture = load_texture("./assets/textures/server_room/screen_green.png");
+  texture_t *blank_screen_texture = create_texture_copy(screen_texture);
   color_t font_color = {.uint32 = 0xFF60FF00};
   material_t screen_material1 = {
     .material_name       = "",
@@ -2098,7 +2098,7 @@ void load_server_room(){
     .texture             = screen_texture
   };
   object_override_material(term0, "screen", screen_material1);
-  computer_declare(term0, screen_texture, 100000, screen_color, font_color, 2, 10, 10);
+  computer_declare(term0, screen_texture, blank_screen_texture, 100000, font_color, 4, 40, 40);
 
   object_id = create_object(
     mesh,

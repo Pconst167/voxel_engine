@@ -10,8 +10,8 @@ uint32_t num_computers;
 void computer_declare(
   uint32_t object_id, 
   texture_t *screen_texture,
+  texture_t *blank_screen_texture,
   uint32_t cycles_per_frame,
-  color_t screen_color,
   color_t font_color,
   uint32_t font_size,
   uint32_t horizontal_margin,
@@ -21,9 +21,9 @@ void computer_declare(
 
   new_computer->object_id                       = object_id;
   new_computer->screen_texture                  = screen_texture;
+  new_computer->blank_screen_texture            = blank_screen_texture;
   new_computer->cycles_per_frame                = cycles_per_frame;
 
-  new_computer->terminal.screen_color           = screen_color;
   new_computer->terminal.font_color             = font_color;
   new_computer->terminal.font_size              = font_size;
 
@@ -163,10 +163,10 @@ void computer_print_line(uint32_t computer_id, const char *text){
 
 void computer_clear_screen(computer_t *computer){
   uint32_t total_screen_pixels = computer->screen_texture->texture_width * computer->screen_texture->texture_height;
-  color_t screen_color =  computer->terminal.screen_color;
+  texture_t *blank_screen = computer->blank_screen_texture;
 
   for(uint32_t pixel_i = 0; pixel_i < total_screen_pixels; pixel_i++){
-    computer->screen_texture->texture[pixel_i] = screen_color;
+    computer->screen_texture->texture[pixel_i] = blank_screen->texture[pixel_i];
   }
 }
 

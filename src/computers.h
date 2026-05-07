@@ -51,6 +51,7 @@
 typedef struct{
   uint32_t object_id;               // owner object
   texture_t *screen_texture;        // screen texture that text is written on
+  texture_t *blank_screen_texture;  // used to clear screen
   uint32_t cycles_per_frame;        // how many cycles execute for each frame
   struct{
     uint8_t data[COMPUTER_INPUT_FIFO_SIZE];
@@ -58,7 +59,6 @@ typedef struct{
     uint32_t write_index;
   } input_fifo;
   struct{
-    color_t screen_color;
     color_t font_color;
     uint32_t font_size;
     uint32_t horizontal_margin;
@@ -78,8 +78,8 @@ extern uint32_t num_computers;
 void computer_declare(
   uint32_t object_id, 
   texture_t *screen_texture,
+  texture_t *blank_screen_texture,
   uint32_t cycles_per_frame,
-  color_t screen_color,
   color_t font_color,
   uint32_t font_size,
   uint32_t horizontal_margin,
