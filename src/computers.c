@@ -10,30 +10,31 @@ uint32_t num_computers;
 void computer_declare(
   uint32_t object_id, 
   texture_t *screen_texture,
-  texture_t *blank_screen_texture,
-  uint32_t horizontal_margin,
-  uint32_t vertical_margin,
-  uint32_t font_size,
+  uint32_t cycles_per_frame,
+  color_t screen_color,
   color_t font_color,
-  uint32_t cycles_per_frame
+  uint32_t font_size,
+  uint32_t horizontal_margin,
+  uint32_t vertical_margin
 ){
   computer_t *new_computer = &computers[num_computers];
 
   new_computer->object_id                       = object_id;
   new_computer->screen_texture                  = screen_texture;
-  new_computer->blank_screen_texture            = blank_screen_texture;
+  new_computer->cycles_per_frame                = cycles_per_frame;
+
+  new_computer->terminal.screen_color           = screen_color;
+  new_computer->terminal.font_color             = font_color;
+  new_computer->terminal.font_size              = font_size;
+
   new_computer->terminal.max_num_chars_per_line = (screen_texture->texture_width  - (2 * horizontal_margin)) / ((FONT_WIDTH  + FONT_HOR_SPACING) * font_size);
   new_computer->terminal.max_num_lines          = (screen_texture->texture_height - (2 * vertical_margin)  ) / ((FONT_HEIGHT + FONT_VER_SPACING) * font_size);
   new_computer->terminal.horizontal_margin      = horizontal_margin;
   new_computer->terminal.vertical_margin        = vertical_margin;
-  new_computer->terminal.font_size              = font_size;
   new_computer->terminal.cursor_line            = 0;
   new_computer->terminal.cursor_column          = 0;
-  new_computer->terminal.font_color             = font_color;
   new_computer->terminal.char_hor_pixels        = (FONT_WIDTH  + FONT_HOR_SPACING) * font_size;
   new_computer->terminal.char_ver_pixels        = (FONT_HEIGHT + FONT_VER_SPACING) * font_size;
-
-  new_computer->cycles_per_frame                = cycles_per_frame;
 
   num_computers++;
 }
@@ -65,7 +66,6 @@ void draw_char_to_computer_screen(int x, int y, char character, color_t color, i
 void computer_print_char(uint32_t computer_id, const uint8_t chr){
   computer_t *computer            = &computers[computer_id];
   texture_t *screen_texture       = computer->screen_texture;
-  texture_t *blank_screen_texture = computer->blank_screen_texture;
 
   uint32_t max_lines              = computer->terminal.max_num_lines;
   uint32_t max_chars_per_line     = computer->terminal.max_num_chars_per_line;
@@ -79,7 +79,7 @@ void computer_print_char(uint32_t computer_id, const uint8_t chr){
       computer->terminal.cursor_line++;
       if(computer->terminal.cursor_line >= max_lines){
         computer->terminal.cursor_line = 0;
-        computer_clear_screen(screen_texture, blank_screen_texture);
+        computer_clear_screen(computer);
       }
       break;
 
@@ -93,7 +93,7 @@ void computer_print_char(uint32_t computer_id, const uint8_t chr){
       break;
 
     case TERM_CMD_CLR_SCR:
-      computer_clear_screen(screen_texture, blank_screen_texture);
+      computer_clear_screen(computer);
       break;
 
     case TERM_CMD_CURSOR_HOME:
@@ -131,7 +131,7 @@ void computer_print_char(uint32_t computer_id, const uint8_t chr){
         computer->terminal.cursor_line++;
         if(computer->terminal.cursor_line >= max_lines){
           computer->terminal.cursor_line = 0;
-          computer_clear_screen(screen_texture, blank_screen_texture);
+          computer_clear_screen(computer);
         }
       }
   }
@@ -161,11 +161,12 @@ void computer_print_line(uint32_t computer_id, const char *text){
   }
 }
 
-void computer_clear_screen(texture_t *screen_texture, texture_t *blank_screen_texture){
-  uint32_t total_screen_pixels = screen_texture->texture_width * screen_texture->texture_height;
+void computer_clear_screen(computer_t *computer){
+  uint32_t total_screen_pixels = computer->screen_texture->texture_width * computer->screen_texture->texture_height;
+  color_t screen_color =  computer->terminal.screen_color;
 
   for(uint32_t pixel_i = 0; pixel_i < total_screen_pixels; pixel_i++){
-    screen_texture->texture[pixel_i] = blank_screen_texture->texture[pixel_i];
+    computer->screen_texture->texture[pixel_i] = screen_color;
   }
 }
 

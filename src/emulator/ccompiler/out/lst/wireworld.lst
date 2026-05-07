@@ -1,5 +1,5 @@
 0001   0000             ; --- FILENAME: programs/wireworld.c
-0002   0000             ; --- DATE:     04-07-2025 at 00:37:38
+0002   0000             ; --- DATE:     07-05-2026 at 11:26:38
 0003   0000             .include "lib/asm/kernel.exp"
 0001+  0000             fdc_al_restore   .EQU  $0000
 0002+  0000             fdc_al_step      .EQU  $0001
@@ -7,38 +7,48 @@
 0004+  0000             fdc_al_step_out  .EQU  $0003
 0005+  0000             fdc_al_seek      .EQU  $0004
 0006+  0000             fdc_al_format_128 .EQU  $0005
-0007+  0000             fdc_al_format_512 .EQU  $0006
-0008+  0000             fdc_al_read_addr .EQU  $0007
-0009+  0000             fdc_al_read_track .EQU  $0008
-0010+  0000             fdc_al_read_sect .EQU  $0009
-0011+  0000             fdc_al_write_sect .EQU  $000a
-0012+  0000             fdc_al_force_int .EQU  $000b
-0013+  0000             fdc_al_status0   .EQU  $000c
-0014+  0000             fdc_al_status1   .EQU  $000d
-0015+  0000             noname._fdc_config .EQU  $ffc0
-0016+  0000             noname._fdc_status_0 .EQU  $ffc1
-0017+  0000             noname._fdc_stat_cmd .EQU  $ffc8
-0018+  0000             sys_break        .EQU  $0000
-0019+  0000             sys_rtc          .EQU  $0001
-0020+  0000             sys_ide          .EQU  $0002
-0021+  0000             sys_io           .EQU  $0003
-0022+  0000             sys_filesystem   .EQU  $0004
-0023+  0000             sys_create_proc  .EQU  $0005
-0024+  0000             sys_list_proc    .EQU  $0006
-0025+  0000             sys_datetime     .EQU  $0007
-0026+  0000             sys_reboot       .EQU  $0008
-0027+  0000             sys_pause_proc   .EQU  $0009
-0028+  0000             sys_resume_proc  .EQU  $000a
-0029+  0000             sys_terminate_proc .EQU  $000b
-0030+  0000             sys_system       .EQU  $000c
-0031+  0000             sys_fdc          .EQU  $000d
-0032+  0000             text_org         .EQU  $0400
+0007+  0000             fdc_al_formatdisk_128 .EQU  $0006
+0008+  0000             fdc_al_format_512 .EQU  $0007
+0009+  0000             fdc_al_formatdisk_512 .EQU  $0008
+0010+  0000             fdc_al_read_addr .EQU  $0009
+0011+  0000             fdc_al_read_track .EQU  $000a
+0012+  0000             fdc_al_read_sect .EQU  $000b
+0013+  0000             fdc_al_write_sect .EQU  $000c
+0014+  0000             fdc_al_force_int .EQU  $000d
+0015+  0000             fdc_al_status0   .EQU  $000e
+0016+  0000             fdc_al_status1   .EQU  $000f
+0017+  0000             noname._til311_display .EQU  $ffb0
+0018+  0000             noname._fdc_config .EQU  $ffc0
+0019+  0000             noname._fdc_status_0 .EQU  $ffc1
+0020+  0000             noname._fdc_stat_cmd .EQU  $ffc8
+0021+  0000             sys_break        .EQU  $0000
+0022+  0000             sys_rtc          .EQU  $0001
+0023+  0000             sys_ide          .EQU  $0002
+0024+  0000             sys_io           .EQU  $0003
+0025+  0000             sys_filesystem   .EQU  $0004
+0026+  0000             sys_create_proc  .EQU  $0005
+0027+  0000             sys_list_proc    .EQU  $0006
+0028+  0000             sys_datetime     .EQU  $0007
+0029+  0000             sys_reboot       .EQU  $0008
+0030+  0000             sys_pause_proc   .EQU  $0009
+0031+  0000             sys_resume_proc  .EQU  $000a
+0032+  0000             sys_terminate_proc .EQU  $000b
+0033+  0000             sys_system       .EQU  $000c
+0034+  0000             sys_fdc          .EQU  $000d
+0035+  0000             text_org         .EQU  $0400
 0004   0000             .include "lib/asm/bios.exp"
-0001+  0000             bios_reset_vector .equ  $01c0
-0002+  0000             ide_buffer       .equ  $8204
-0003+  0000             boot_origin      .equ  $8004
-0004+  0000             bios_uart        .equ  $0002
-0005+  0000             bios_ide         .equ  $0003
+0001+  0000             boot_origin      .EQU  $8004
+0002+  0000             bios_uart        .EQU  $0002
+0003+  0000             bios_ide         .EQU  $0003
+0004+  0000             bios_reset_vector .EQU  $0190
+0005+  0000             ide_buffer       .EQU  $8404
+0006+  0000             inode_buffer     .EQU  $8c04
+0007+  0000             noname._stack_start .EQU  $ff7f
+0008+  0000             noname._ram_start .EQU  $8000
+0009+  0000             noname.__print_u16x .EQU  $0230
+0010+  0000             noname.__xput_u8 .EQU  $0278
+0011+  0000             noname.__puts    .EQU  $028c
+0012+  0000             noname.__print_u16d .EQU  $03b3
 0005   0000             
 0006   0000             ; --- BEGIN TEXT SEGMENT
 0007   0400             .org text_org
@@ -48,7 +58,7 @@
 0011   0408             ; int i; 
 0012   0408 52 02 00      sub sp, 2
 0013   040B             ; grid[5][5] = CONDUCTOR; 
-0014   040B 3B 17 0C      mov d, _grid_data ; $grid
+0014   040B 3B 08 0C      mov d, _grid_data ; $grid
 0015   040E D7            push a
 0016   040F DA            push d
 0017   0410 FD 2E 05 00   mov32 cb, $00000005
@@ -67,7 +77,7 @@
 0027   042F E7            pop d
 0028   0430 FD 43         mov [d], b
 0029   0432             ; grid[6][5] = ELECTRON_HEAD; 
-0030   0432 3B 17 0C      mov d, _grid_data ; $grid
+0030   0432 3B 08 0C      mov d, _grid_data ; $grid
 0031   0435 D7            push a
 0032   0436 DA            push d
 0033   0437 FD 2E 06 00   mov32 cb, $00000006
@@ -86,7 +96,7 @@
 0043   0456 E7            pop d
 0044   0457 FD 43         mov [d], b
 0045   0459             ; grid[7][5] = CONDUCTOR; 
-0046   0459 3B 17 0C      mov d, _grid_data ; $grid
+0046   0459 3B 08 0C      mov d, _grid_data ; $grid
 0047   045C D7            push a
 0048   045D DA            push d
 0049   045E FD 2E 07 00   mov32 cb, $00000007
@@ -105,7 +115,7 @@
 0059   047D E7            pop d
 0060   047E FD 43         mov [d], b
 0061   0480             ; grid[6][6] = ELECTRON_TAIL; 
-0062   0480 3B 17 0C      mov d, _grid_data ; $grid
+0062   0480 3B 08 0C      mov d, _grid_data ; $grid
 0063   0483 D7            push a
 0064   0484 DA            push d
 0065   0485 FD 2E 06 00   mov32 cb, $00000006
@@ -124,7 +134,7 @@
 0075   04A4 E7            pop d
 0076   04A5 FD 43         mov [d], b
 0077   04A7             ; grid[6][7] = CONDUCTOR; 
-0078   04A7 3B 17 0C      mov d, _grid_data ; $grid
+0078   04A7 3B 08 0C      mov d, _grid_data ; $grid
 0079   04AA D7            push a
 0080   04AB DA            push d
 0081   04AC FD 2E 06 00   mov32 cb, $00000006
@@ -143,7 +153,7 @@
 0091   04CB E7            pop d
 0092   04CC FD 43         mov [d], b
 0093   04CE             ; grid[5][10] = CONDUCTOR; 
-0094   04CE 3B 17 0C      mov d, _grid_data ; $grid
+0094   04CE 3B 08 0C      mov d, _grid_data ; $grid
 0095   04D1 D7            push a
 0096   04D2 DA            push d
 0097   04D3 FD 2E 05 00   mov32 cb, $00000005
@@ -162,7 +172,7 @@
 0107   04F2 E7            pop d
 0108   04F3 FD 43         mov [d], b
 0109   04F5             ; grid[6][10] = ELECTRON_HEAD; 
-0110   04F5 3B 17 0C      mov d, _grid_data ; $grid
+0110   04F5 3B 08 0C      mov d, _grid_data ; $grid
 0111   04F8 D7            push a
 0112   04F9 DA            push d
 0113   04FA FD 2E 06 00   mov32 cb, $00000006
@@ -181,7 +191,7 @@
 0123   0519 E7            pop d
 0124   051A FD 43         mov [d], b
 0125   051C             ; grid[7][10] = CONDUCTOR; 
-0126   051C 3B 17 0C      mov d, _grid_data ; $grid
+0126   051C 3B 08 0C      mov d, _grid_data ; $grid
 0127   051F D7            push a
 0128   0520 DA            push d
 0129   0521 FD 2E 07 00   mov32 cb, $00000007
@@ -200,7 +210,7 @@
 0139   0540 E7            pop d
 0140   0541 FD 43         mov [d], b
 0141   0543             ; grid[6][11] = ELECTRON_TAIL; 
-0142   0543 3B 17 0C      mov d, _grid_data ; $grid
+0142   0543 3B 08 0C      mov d, _grid_data ; $grid
 0143   0546 D7            push a
 0144   0547 DA            push d
 0145   0548 FD 2E 06 00   mov32 cb, $00000006
@@ -219,7 +229,7 @@
 0155   0567 E7            pop d
 0156   0568 FD 43         mov [d], b
 0157   056A             ; grid[6][12] = CONDUCTOR; 
-0158   056A 3B 17 0C      mov d, _grid_data ; $grid
+0158   056A 3B 08 0C      mov d, _grid_data ; $grid
 0159   056D D7            push a
 0160   056E DA            push d
 0161   056F FD 2E 06 00   mov32 cb, $00000006
@@ -259,10 +269,10 @@
 0190   05B0 E4            pop a
 0191   05B1             ; --- END RELATIONAL
 0192   05B1 C0 00 00      cmp b, 0
-0193   05B4 C6 F2 05      je _for1_exit
+0193   05B4 C6 EF 05      je _for1_exit
 0194   05B7             _for1_block:
 0195   05B7             ; grid[7][i] = CONDUCTOR; 
-0196   05B7 3B 17 0C      mov d, _grid_data ; $grid
+0196   05B7 3B 08 0C      mov d, _grid_data ; $grid
 0197   05BA D7            push a
 0198   05BB DA            push d
 0199   05BC FD 2E 07 00   mov32 cb, $00000007
@@ -287,1753 +297,1748 @@
 0216   05E3 38 00 00      mov c, 0
 0217   05E6 11            mov a, b
 0218   05E7 FD 77         inc b
-0219   05E9 FA FF FF      lea d, [bp + -1] ; $i
-0220   05EC FD 43         mov [d], b
-0221   05EE 27            mov b, a
-0222   05EF 0A 9E 05      jmp _for1_cond
-0223   05F2             _for1_exit:
-0224   05F2             ; grid[7][15] = CONDUCTOR; 
-0225   05F2 3B 17 0C      mov d, _grid_data ; $grid
-0226   05F5 D7            push a
-0227   05F6 DA            push d
-0228   05F7 FD 2E 07 00   mov32 cb, $00000007
-0228   05FB 00 00 
-0229   05FD E7            pop d
-0230   05FE FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
-0231   0602 DA            push d
-0232   0603 FD 2E 0F 00   mov32 cb, $0000000f
-0232   0607 00 00 
-0233   0609 E7            pop d
-0234   060A FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
-0235   060E E4            pop a
-0236   060F DA            push d
-0237   0610 FD 2E 01 00   mov32 cb, $1 ; enum element: CONDUCTOR
-0237   0614 00 00 
-0238   0616 E7            pop d
-0239   0617 FD 43         mov [d], b
-0240   0619             ; grid[6][15] = ELECTRON_TAIL; 
-0241   0619 3B 17 0C      mov d, _grid_data ; $grid
-0242   061C D7            push a
-0243   061D DA            push d
-0244   061E FD 2E 06 00   mov32 cb, $00000006
-0244   0622 00 00 
-0245   0624 E7            pop d
-0246   0625 FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
-0247   0629 DA            push d
-0248   062A FD 2E 0F 00   mov32 cb, $0000000f
-0248   062E 00 00 
-0249   0630 E7            pop d
-0250   0631 FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
-0251   0635 E4            pop a
-0252   0636 DA            push d
-0253   0637 FD 2E 03 00   mov32 cb, $3 ; enum element: ELECTRON_TAIL
-0253   063B 00 00 
-0254   063D E7            pop d
-0255   063E FD 43         mov [d], b
-0256   0640             ; grid[8][15] = ELECTRON_TAIL; 
-0257   0640 3B 17 0C      mov d, _grid_data ; $grid
-0258   0643 D7            push a
-0259   0644 DA            push d
-0260   0645 FD 2E 08 00   mov32 cb, $00000008
-0260   0649 00 00 
-0261   064B E7            pop d
-0262   064C FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
-0263   0650 DA            push d
-0264   0651 FD 2E 0F 00   mov32 cb, $0000000f
-0264   0655 00 00 
-0265   0657 E7            pop d
-0266   0658 FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
-0267   065C E4            pop a
-0268   065D DA            push d
-0269   065E FD 2E 03 00   mov32 cb, $3 ; enum element: ELECTRON_TAIL
-0269   0662 00 00 
-0270   0664 E7            pop d
-0271   0665 FD 43         mov [d], b
-0272   0667             ; grid[6][16] = CONDUCTOR; 
-0273   0667 3B 17 0C      mov d, _grid_data ; $grid
-0274   066A D7            push a
-0275   066B DA            push d
-0276   066C FD 2E 06 00   mov32 cb, $00000006
-0276   0670 00 00 
-0277   0672 E7            pop d
-0278   0673 FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
-0279   0677 DA            push d
-0280   0678 FD 2E 10 00   mov32 cb, $00000010
-0280   067C 00 00 
-0281   067E E7            pop d
-0282   067F FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
-0283   0683 E4            pop a
-0284   0684 DA            push d
-0285   0685 FD 2E 01 00   mov32 cb, $1 ; enum element: CONDUCTOR
-0285   0689 00 00 
-0286   068B E7            pop d
-0287   068C FD 43         mov [d], b
-0288   068E             ; grid[8][16] = CONDUCTOR; 
-0289   068E 3B 17 0C      mov d, _grid_data ; $grid
-0290   0691 D7            push a
-0291   0692 DA            push d
-0292   0693 FD 2E 08 00   mov32 cb, $00000008
-0292   0697 00 00 
-0293   0699 E7            pop d
-0294   069A FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
-0295   069E DA            push d
-0296   069F FD 2E 10 00   mov32 cb, $00000010
-0296   06A3 00 00 
-0297   06A5 E7            pop d
-0298   06A6 FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
-0299   06AA E4            pop a
-0300   06AB DA            push d
-0301   06AC FD 2E 01 00   mov32 cb, $1 ; enum element: CONDUCTOR
-0301   06B0 00 00 
-0302   06B2 E7            pop d
-0303   06B3 FD 43         mov [d], b
-0304   06B5             ; for (i = 17; i <= 25; i++) { 
-0305   06B5             _for2_init:
-0306   06B5 FA FF FF      lea d, [bp + -1] ; $i
-0307   06B8 DA            push d
-0308   06B9 FD 2E 11 00   mov32 cb, $00000011
-0308   06BD 00 00 
-0309   06BF E7            pop d
-0310   06C0 FD 43         mov [d], b
-0311   06C2             _for2_cond:
-0312   06C2 FA FF FF      lea d, [bp + -1] ; $i
-0313   06C5 2A            mov b, [d]
-0314   06C6 38 00 00      mov c, 0
-0315   06C9             ; --- START RELATIONAL
-0316   06C9 D7            push a
-0317   06CA 11            mov a, b
-0318   06CB FD 2E 19 00   mov32 cb, $00000019
-0318   06CF 00 00 
-0319   06D1 B0            cmp a, b
-0320   06D2 FD 74         sle ; <= (signed)
-0321   06D4 E4            pop a
-0322   06D5             ; --- END RELATIONAL
-0323   06D5 C0 00 00      cmp b, 0
-0324   06D8 C6 16 07      je _for2_exit
-0325   06DB             _for2_block:
-0326   06DB             ; grid[7][i] = CONDUCTOR; 
-0327   06DB 3B 17 0C      mov d, _grid_data ; $grid
-0328   06DE D7            push a
-0329   06DF DA            push d
-0330   06E0 FD 2E 07 00   mov32 cb, $00000007
-0330   06E4 00 00 
-0331   06E6 E7            pop d
-0332   06E7 FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
-0333   06EB DA            push d
-0334   06EC FA FF FF      lea d, [bp + -1] ; $i
-0335   06EF 2A            mov b, [d]
-0336   06F0 38 00 00      mov c, 0
-0337   06F3 E7            pop d
-0338   06F4 FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
-0339   06F8 E4            pop a
-0340   06F9 DA            push d
-0341   06FA FD 2E 01 00   mov32 cb, $1 ; enum element: CONDUCTOR
-0341   06FE 00 00 
-0342   0700 E7            pop d
-0343   0701 FD 43         mov [d], b
-0344   0703             _for2_update:
-0345   0703 FA FF FF      lea d, [bp + -1] ; $i
-0346   0706 2A            mov b, [d]
-0347   0707 38 00 00      mov c, 0
-0348   070A 11            mov a, b
-0349   070B FD 77         inc b
-0350   070D FA FF FF      lea d, [bp + -1] ; $i
-0351   0710 FD 43         mov [d], b
-0352   0712 27            mov b, a
-0353   0713 0A C2 06      jmp _for2_cond
-0354   0716             _for2_exit:
-0355   0716             ; while (1) { 
-0356   0716             _while3_cond:
-0357   0716 FD 2E 01 00   mov32 cb, $00000001
-0357   071A 00 00 
-0358   071C C0 00 00      cmp b, 0
-0359   071F C6 2B 07      je _while3_exit
-0360   0722             _while3_block:
-0361   0722             ; print_grid(); 
-0362   0722             ; --- START FUNCTION CALL
-0363   0722 07 34 07      call print_grid
-0364   0725             ; iterate(); 
-0365   0725             ; --- START FUNCTION CALL
-0366   0725 07 3C 08      call iterate
-0367   0728 0A 16 07      jmp _while3_cond
-0368   072B             _while3_exit:
-0369   072B             ; return 0; 
-0370   072B FD 2E 00 00   mov32 cb, $00000000
-0370   072F 00 00 
-0371   0731 F9            leave
-0372   0732 05 0B         syscall sys_terminate_proc
-0373   0734             
-0374   0734             print_grid:
-0375   0734 F8 00 00      enter 0 ; (push bp; mov bp, sp)
-0376   0737             ; for (y = 0; y < 20; ++y) { 
-0377   0737             _for4_init:
-0378   0737 3B 99 18      mov d, _y ; $y
-0379   073A DA            push d
-0380   073B FD 2E 00 00   mov32 cb, $00000000
-0380   073F 00 00 
-0381   0741 E7            pop d
-0382   0742 FD 43         mov [d], b
-0383   0744             _for4_cond:
-0384   0744 3B 99 18      mov d, _y ; $y
-0385   0747 2A            mov b, [d]
-0386   0748 38 00 00      mov c, 0
-0387   074B             ; --- START RELATIONAL
-0388   074B D7            push a
-0389   074C 11            mov a, b
-0390   074D FD 2E 14 00   mov32 cb, $00000014
-0390   0751 00 00 
-0391   0753 B0            cmp a, b
-0392   0754 FD 73         slt ; < (signed)
-0393   0756 E4            pop a
-0394   0757             ; --- END RELATIONAL
-0395   0757 C0 00 00      cmp b, 0
-0396   075A C6 3A 08      je _for4_exit
-0397   075D             _for4_block:
-0398   075D             ; for (x = 0; x < 40; ++x) { 
-0399   075D             _for5_init:
-0400   075D 3B 97 18      mov d, _x ; $x
-0401   0760 DA            push d
-0402   0761 FD 2E 00 00   mov32 cb, $00000000
-0402   0765 00 00 
-0403   0767 E7            pop d
-0404   0768 FD 43         mov [d], b
-0405   076A             _for5_cond:
-0406   076A 3B 97 18      mov d, _x ; $x
-0407   076D 2A            mov b, [d]
-0408   076E 38 00 00      mov c, 0
-0409   0771             ; --- START RELATIONAL
-0410   0771 D7            push a
-0411   0772 11            mov a, b
-0412   0773 FD 2E 28 00   mov32 cb, $00000028
-0412   0777 00 00 
-0413   0779 B0            cmp a, b
-0414   077A FD 73         slt ; < (signed)
-0415   077C E4            pop a
-0416   077D             ; --- END RELATIONAL
-0417   077D C0 00 00      cmp b, 0
-0418   0780 C6 1F 08      je _for5_exit
-0419   0783             _for5_block:
-0420   0783             ; switch (grid[y][x]) { 
-0421   0783             _switch6_expr:
-0422   0783 3B 17 0C      mov d, _grid_data ; $grid
-0423   0786 D7            push a
-0424   0787 DA            push d
-0425   0788 3B 99 18      mov d, _y ; $y
-0426   078B 2A            mov b, [d]
-0427   078C 38 00 00      mov c, 0
-0428   078F E7            pop d
-0429   0790 FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
-0430   0794 DA            push d
-0431   0795 3B 97 18      mov d, _x ; $x
-0432   0798 2A            mov b, [d]
-0433   0799 38 00 00      mov c, 0
-0434   079C E7            pop d
-0435   079D FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
-0436   07A1 E4            pop a
-0437   07A2 2A            mov b, [d]
-0438   07A3 38 00 00      mov c, 0
-0439   07A6             _switch6_comparisons:
-0440   07A6 C0 00 00      cmp b, 0
-0441   07A9 C6 C1 07      je _switch6_case0
-0442   07AC C0 01 00      cmp b, 1
-0443   07AF C6 D1 07      je _switch6_case1
-0444   07B2 C0 02 00      cmp b, 2
-0445   07B5 C6 E1 07      je _switch6_case2
-0446   07B8 C0 03 00      cmp b, 3
-0447   07BB C6 F1 07      je _switch6_case3
-0448   07BE 0A 01 08      jmp _switch6_exit
-0449   07C1             _switch6_case0:
-0450   07C1             ; c = ' '; break; 
-0451   07C1 3B A5 18      mov d, _c ; $c
-0452   07C4 DA            push d
-0453   07C5 FD 2E 20 00   mov32 cb, $00000020
-0453   07C9 00 00 
-0454   07CB E7            pop d
-0455   07CC FD 3E         mov [d], bl
-0456   07CE             ; break; 
-0457   07CE 0A 01 08      jmp _switch6_exit ; case break
-0458   07D1             _switch6_case1:
-0459   07D1             ; c = '*'; break; 
-0460   07D1 3B A5 18      mov d, _c ; $c
-0461   07D4 DA            push d
-0462   07D5 FD 2E 2A 00   mov32 cb, $0000002a
-0462   07D9 00 00 
-0463   07DB E7            pop d
-0464   07DC FD 3E         mov [d], bl
-0465   07DE             ; break; 
-0466   07DE 0A 01 08      jmp _switch6_exit ; case break
-0467   07E1             _switch6_case2:
-0468   07E1             ; c = 'H'; break; 
-0469   07E1 3B A5 18      mov d, _c ; $c
-0470   07E4 DA            push d
-0471   07E5 FD 2E 48 00   mov32 cb, $00000048
-0471   07E9 00 00 
-0472   07EB E7            pop d
-0473   07EC FD 3E         mov [d], bl
-0474   07EE             ; break; 
-0475   07EE 0A 01 08      jmp _switch6_exit ; case break
-0476   07F1             _switch6_case3:
-0477   07F1             ; c = 'T'; break; 
-0478   07F1 3B A5 18      mov d, _c ; $c
-0479   07F4 DA            push d
-0480   07F5 FD 2E 54 00   mov32 cb, $00000054
-0480   07F9 00 00 
-0481   07FB E7            pop d
-0482   07FC FD 3E         mov [d], bl
-0483   07FE             ; break; 
-0484   07FE 0A 01 08      jmp _switch6_exit ; case break
-0485   0801             _switch6_exit:
-0486   0801             ; putchar(c); 
-0487   0801             ; --- START FUNCTION CALL
-0488   0801 3B A5 18      mov d, _c ; $c
-0489   0804 32            mov bl, [d]
-0490   0805 A7 00         mov bh, 0
-0491   0807 38 00 00      mov c, 0
-0492   080A DD            push bl
-0493   080B 07 09 0C      call putchar
-0494   080E 51 01 00      add sp, 1
-0495   0811             ; --- END FUNCTION CALL
-0496   0811             _for5_update:
-0497   0811 3B 97 18      mov d, _x ; $x
-0498   0814 2A            mov b, [d]
-0499   0815 FD 77         inc b
-0500   0817 3B 97 18      mov d, _x ; $x
-0501   081A FD 43         mov [d], b
-0502   081C 0A 6A 07      jmp _for5_cond
-0503   081F             _for5_exit:
-0504   081F             ; putchar('\n'); 
-0505   081F             ; --- START FUNCTION CALL
-0506   081F FD 2E 0A 00   mov32 cb, $0000000a
-0506   0823 00 00 
-0507   0825 DD            push bl
-0508   0826 07 09 0C      call putchar
-0509   0829 51 01 00      add sp, 1
-0510   082C             ; --- END FUNCTION CALL
-0511   082C             _for4_update:
-0512   082C 3B 99 18      mov d, _y ; $y
-0513   082F 2A            mov b, [d]
-0514   0830 FD 77         inc b
-0515   0832 3B 99 18      mov d, _y ; $y
-0516   0835 FD 43         mov [d], b
-0517   0837 0A 44 07      jmp _for4_cond
-0518   083A             _for4_exit:
-0519   083A             ; return; 
-0520   083A F9            leave
-0521   083B 09            ret
-0522   083C             
-0523   083C             iterate:
-0524   083C F8 00 00      enter 0 ; (push bp; mov bp, sp)
-0525   083F             ; for (y = 0; y < 20; ++y){ 
-0526   083F             _for7_init:
-0527   083F 3B 99 18      mov d, _y ; $y
-0528   0842 DA            push d
-0529   0843 FD 2E 00 00   mov32 cb, $00000000
-0529   0847 00 00 
-0530   0849 E7            pop d
-0531   084A FD 43         mov [d], b
-0532   084C             _for7_cond:
-0533   084C 3B 99 18      mov d, _y ; $y
-0534   084F 2A            mov b, [d]
-0535   0850 38 00 00      mov c, 0
-0536   0853             ; --- START RELATIONAL
-0537   0853 D7            push a
-0538   0854 11            mov a, b
-0539   0855 FD 2E 14 00   mov32 cb, $00000014
-0539   0859 00 00 
-0540   085B B0            cmp a, b
-0541   085C FD 73         slt ; < (signed)
-0542   085E E4            pop a
-0543   085F             ; --- END RELATIONAL
-0544   085F C0 00 00      cmp b, 0
-0545   0862 C6 59 0B      je _for7_exit
-0546   0865             _for7_block:
-0547   0865             ; for (x = 0; x < 40; ++x){ 
-0548   0865             _for8_init:
-0549   0865 3B 97 18      mov d, _x ; $x
-0550   0868 DA            push d
-0551   0869 FD 2E 00 00   mov32 cb, $00000000
-0551   086D 00 00 
-0552   086F E7            pop d
-0553   0870 FD 43         mov [d], b
-0554   0872             _for8_cond:
-0555   0872 3B 97 18      mov d, _x ; $x
-0556   0875 2A            mov b, [d]
-0557   0876 38 00 00      mov c, 0
-0558   0879             ; --- START RELATIONAL
-0559   0879 D7            push a
-0560   087A 11            mov a, b
-0561   087B FD 2E 28 00   mov32 cb, $00000028
-0561   087F 00 00 
-0562   0881 B0            cmp a, b
-0563   0882 FD 73         slt ; < (signed)
-0564   0884 E4            pop a
-0565   0885             ; --- END RELATIONAL
-0566   0885 C0 00 00      cmp b, 0
-0567   0888 C6 4B 0B      je _for8_exit
-0568   088B             _for8_block:
-0569   088B             ; head_count = 0; 
-0570   088B 3B A3 18      mov d, _head_count ; $head_count
-0571   088E DA            push d
-0572   088F FD 2E 00 00   mov32 cb, $00000000
-0572   0893 00 00 
-0573   0895 E7            pop d
-0574   0896 FD 43         mov [d], b
-0575   0898             ; for (dy = -1; dy <= 1; dy++){ 
-0576   0898             _for9_init:
-0577   0898 3B 9D 18      mov d, _dy ; $dy
-0578   089B DA            push d
-0579   089C FD 2E FF FF   mov32 cb, $ffffffff
-0579   08A0 FF FF 
-0580   08A2 E7            pop d
-0581   08A3 FD 43         mov [d], b
-0582   08A5             _for9_cond:
-0583   08A5 3B 9D 18      mov d, _dy ; $dy
-0584   08A8 2A            mov b, [d]
-0585   08A9 38 00 00      mov c, 0
-0586   08AC             ; --- START RELATIONAL
-0587   08AC D7            push a
-0588   08AD 11            mov a, b
-0589   08AE FD 2E 01 00   mov32 cb, $00000001
-0589   08B2 00 00 
-0590   08B4 B0            cmp a, b
-0591   08B5 FD 74         sle ; <= (signed)
-0592   08B7 E4            pop a
-0593   08B8             ; --- END RELATIONAL
-0594   08B8 C0 00 00      cmp b, 0
-0595   08BB C6 15 0A      je _for9_exit
-0596   08BE             _for9_block:
-0597   08BE             ; for (dx = -1; dx <= 1; dx++) { 
-0598   08BE             _for10_init:
-0599   08BE 3B 9B 18      mov d, _dx ; $dx
-0600   08C1 DA            push d
-0601   08C2 FD 2E FF FF   mov32 cb, $ffffffff
-0601   08C6 FF FF 
-0602   08C8 E7            pop d
-0603   08C9 FD 43         mov [d], b
-0604   08CB             _for10_cond:
-0605   08CB 3B 9B 18      mov d, _dx ; $dx
-0606   08CE 2A            mov b, [d]
-0607   08CF 38 00 00      mov c, 0
-0608   08D2             ; --- START RELATIONAL
-0609   08D2 D7            push a
-0610   08D3 11            mov a, b
-0611   08D4 FD 2E 01 00   mov32 cb, $00000001
-0611   08D8 00 00 
-0612   08DA B0            cmp a, b
-0613   08DB FD 74         sle ; <= (signed)
-0614   08DD E4            pop a
-0615   08DE             ; --- END RELATIONAL
-0616   08DE C0 00 00      cmp b, 0
-0617   08E1 C6 02 0A      je _for10_exit
-0618   08E4             _for10_block:
-0619   08E4             ; if (dx == 0 && dy == 0) continue; 
-0620   08E4             _if11_cond:
-0621   08E4 3B 9B 18      mov d, _dx ; $dx
-0622   08E7 2A            mov b, [d]
-0623   08E8 38 00 00      mov c, 0
-0624   08EB             ; --- START RELATIONAL
-0625   08EB D7            push a
-0626   08EC 11            mov a, b
-0627   08ED FD 2E 00 00   mov32 cb, $00000000
-0627   08F1 00 00 
-0628   08F3 B0            cmp a, b
-0629   08F4 FD 71         seq ; ==
-0630   08F6 E4            pop a
-0631   08F7             ; --- END RELATIONAL
-0632   08F7             ; --- START LOGICAL AND
-0633   08F7 D7            push a
-0634   08F8 11            mov a, b
-0635   08F9 3B 9D 18      mov d, _dy ; $dy
-0636   08FC 2A            mov b, [d]
-0637   08FD 38 00 00      mov c, 0
-0638   0900             ; --- START RELATIONAL
-0639   0900 D7            push a
-0640   0901 11            mov a, b
-0641   0902 FD 2E 00 00   mov32 cb, $00000000
-0641   0906 00 00 
-0642   0908 B0            cmp a, b
-0643   0909 FD 71         seq ; ==
-0644   090B E4            pop a
-0645   090C             ; --- END RELATIONAL
-0646   090C FD A7         sand a, b
-0647   090E E4            pop a
-0648   090F             ; --- END LOGICAL AND
-0649   090F C0 00 00      cmp b, 0
-0650   0912 C6 1B 09      je _if11_exit
-0651   0915             _if11_TRUE:
-0652   0915             ; continue; 
-0653   0915 0A EF 09      jmp _for10_update ; for continue
-0654   0918 0A 1B 09      jmp _if11_exit
-0655   091B             _if11_exit:
-0656   091B             ; nx = x + dx; 
-0657   091B 3B 9F 18      mov d, _nx ; $nx
-0658   091E DA            push d
-0659   091F 3B 97 18      mov d, _x ; $x
-0660   0922 2A            mov b, [d]
-0661   0923 38 00 00      mov c, 0
-0662   0926             ; --- START TERMS
-0663   0926 D7            push a
-0664   0927 11            mov a, b
-0665   0928 3B 9B 18      mov d, _dx ; $dx
-0666   092B 2A            mov b, [d]
-0667   092C 38 00 00      mov c, 0
-0668   092F 56            add b, a
-0669   0930 E4            pop a
-0670   0931             ; --- END TERMS
-0671   0931 E7            pop d
-0672   0932 FD 43         mov [d], b
-0673   0934             ; ny = y + dy; 
-0674   0934 3B A1 18      mov d, _ny ; $ny
-0675   0937 DA            push d
-0676   0938 3B 99 18      mov d, _y ; $y
-0677   093B 2A            mov b, [d]
-0678   093C 38 00 00      mov c, 0
-0679   093F             ; --- START TERMS
-0680   093F D7            push a
-0681   0940 11            mov a, b
-0682   0941 3B 9D 18      mov d, _dy ; $dy
-0683   0944 2A            mov b, [d]
-0684   0945 38 00 00      mov c, 0
-0685   0948 56            add b, a
-0686   0949 E4            pop a
-0687   094A             ; --- END TERMS
-0688   094A E7            pop d
-0689   094B FD 43         mov [d], b
-0690   094D             ; if (nx >= 0 && nx < 40 && ny >= 0 && ny < 20 && grid[ny][nx] == ELECTRON_HEAD){ 
-0691   094D             _if12_cond:
-0692   094D 3B 9F 18      mov d, _nx ; $nx
-0693   0950 2A            mov b, [d]
-0694   0951 38 00 00      mov c, 0
-0695   0954             ; --- START RELATIONAL
-0696   0954 D7            push a
-0697   0955 11            mov a, b
-0698   0956 FD 2E 00 00   mov32 cb, $00000000
-0698   095A 00 00 
-0699   095C B0            cmp a, b
-0700   095D FD 80         sge ; >=
-0701   095F E4            pop a
-0702   0960             ; --- END RELATIONAL
-0703   0960             ; --- START LOGICAL AND
-0704   0960 D7            push a
-0705   0961 11            mov a, b
-0706   0962 3B 9F 18      mov d, _nx ; $nx
-0707   0965 2A            mov b, [d]
-0708   0966 38 00 00      mov c, 0
-0709   0969             ; --- START RELATIONAL
-0710   0969 D7            push a
-0711   096A 11            mov a, b
-0712   096B FD 2E 28 00   mov32 cb, $00000028
-0712   096F 00 00 
-0713   0971 B0            cmp a, b
-0714   0972 FD 73         slt ; < (signed)
-0715   0974 E4            pop a
-0716   0975             ; --- END RELATIONAL
-0717   0975 FD A7         sand a, b
-0718   0977 11            mov a, b
-0719   0978 3B A1 18      mov d, _ny ; $ny
-0720   097B 2A            mov b, [d]
-0721   097C 38 00 00      mov c, 0
-0722   097F             ; --- START RELATIONAL
-0723   097F D7            push a
-0724   0980 11            mov a, b
-0725   0981 FD 2E 00 00   mov32 cb, $00000000
-0725   0985 00 00 
-0726   0987 B0            cmp a, b
-0727   0988 FD 80         sge ; >=
-0728   098A E4            pop a
-0729   098B             ; --- END RELATIONAL
-0730   098B FD A7         sand a, b
-0731   098D 11            mov a, b
-0732   098E 3B A1 18      mov d, _ny ; $ny
-0733   0991 2A            mov b, [d]
-0734   0992 38 00 00      mov c, 0
-0735   0995             ; --- START RELATIONAL
-0736   0995 D7            push a
-0737   0996 11            mov a, b
-0738   0997 FD 2E 14 00   mov32 cb, $00000014
-0738   099B 00 00 
-0739   099D B0            cmp a, b
-0740   099E FD 73         slt ; < (signed)
-0741   09A0 E4            pop a
-0742   09A1             ; --- END RELATIONAL
-0743   09A1 FD A7         sand a, b
-0744   09A3 11            mov a, b
-0745   09A4 3B 17 0C      mov d, _grid_data ; $grid
-0746   09A7 D7            push a
-0747   09A8 DA            push d
-0748   09A9 3B A1 18      mov d, _ny ; $ny
-0749   09AC 2A            mov b, [d]
-0750   09AD 38 00 00      mov c, 0
-0751   09B0 E7            pop d
-0752   09B1 FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
-0753   09B5 DA            push d
-0754   09B6 3B 9F 18      mov d, _nx ; $nx
-0755   09B9 2A            mov b, [d]
-0756   09BA 38 00 00      mov c, 0
-0757   09BD E7            pop d
-0758   09BE FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
-0759   09C2 E4            pop a
-0760   09C3 2A            mov b, [d]
-0761   09C4 38 00 00      mov c, 0
-0762   09C7             ; --- START RELATIONAL
-0763   09C7 D7            push a
-0764   09C8 11            mov a, b
-0765   09C9 FD 2E 02 00   mov32 cb, $2 ; enum element: ELECTRON_HEAD
-0765   09CD 00 00 
-0766   09CF B0            cmp a, b
-0767   09D0 FD 71         seq ; ==
-0768   09D2 E4            pop a
-0769   09D3             ; --- END RELATIONAL
-0770   09D3 FD A7         sand a, b
-0771   09D5 E4            pop a
-0772   09D6             ; --- END LOGICAL AND
-0773   09D6 C0 00 00      cmp b, 0
-0774   09D9 C6 EF 09      je _if12_exit
-0775   09DC             _if12_TRUE:
-0776   09DC             ; head_count++; 
-0777   09DC 3B A3 18      mov d, _head_count ; $head_count
-0778   09DF 2A            mov b, [d]
-0779   09E0 38 00 00      mov c, 0
-0780   09E3 11            mov a, b
-0781   09E4 FD 77         inc b
-0782   09E6 3B A3 18      mov d, _head_count ; $head_count
-0783   09E9 FD 43         mov [d], b
-0784   09EB 27            mov b, a
-0785   09EC 0A EF 09      jmp _if12_exit
-0786   09EF             _if12_exit:
-0787   09EF             _for10_update:
-0788   09EF 3B 9B 18      mov d, _dx ; $dx
-0789   09F2 2A            mov b, [d]
-0790   09F3 38 00 00      mov c, 0
-0791   09F6 11            mov a, b
-0792   09F7 FD 77         inc b
-0793   09F9 3B 9B 18      mov d, _dx ; $dx
-0794   09FC FD 43         mov [d], b
-0795   09FE 27            mov b, a
-0796   09FF 0A CB 08      jmp _for10_cond
-0797   0A02             _for10_exit:
-0798   0A02             _for9_update:
-0799   0A02 3B 9D 18      mov d, _dy ; $dy
-0800   0A05 2A            mov b, [d]
-0801   0A06 38 00 00      mov c, 0
-0802   0A09 11            mov a, b
-0803   0A0A FD 77         inc b
-0804   0A0C 3B 9D 18      mov d, _dy ; $dy
-0805   0A0F FD 43         mov [d], b
-0806   0A11 27            mov b, a
-0807   0A12 0A A5 08      jmp _for9_cond
-0808   0A15             _for9_exit:
-0809   0A15             ; switch (grid[y][x]) { 
-0810   0A15             _switch13_expr:
-0811   0A15 3B 17 0C      mov d, _grid_data ; $grid
-0812   0A18 D7            push a
-0813   0A19 DA            push d
-0814   0A1A 3B 99 18      mov d, _y ; $y
-0815   0A1D 2A            mov b, [d]
-0816   0A1E 38 00 00      mov c, 0
-0817   0A21 E7            pop d
-0818   0A22 FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
-0819   0A26 DA            push d
-0820   0A27 3B 97 18      mov d, _x ; $x
-0821   0A2A 2A            mov b, [d]
-0822   0A2B 38 00 00      mov c, 0
-0823   0A2E E7            pop d
-0824   0A2F FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
-0825   0A33 E4            pop a
-0826   0A34 2A            mov b, [d]
-0827   0A35 38 00 00      mov c, 0
-0828   0A38             _switch13_comparisons:
-0829   0A38 C0 00 00      cmp b, 0
-0830   0A3B C6 53 0A      je _switch13_case0
-0831   0A3E C0 01 00      cmp b, 1
-0832   0A41 C6 7F 0A      je _switch13_case1
-0833   0A44 C0 02 00      cmp b, 2
-0834   0A47 C6 E5 0A      je _switch13_case2
-0835   0A4A C0 03 00      cmp b, 3
-0836   0A4D C6 11 0B      je _switch13_case3
-0837   0A50 0A 3D 0B      jmp _switch13_exit
-0838   0A53             _switch13_case0:
-0839   0A53             ; new_grid[y][x] = EMPTY; break; 
-0840   0A53 3B 57 12      mov d, _new_grid_data ; $new_grid
-0841   0A56 D7            push a
-0842   0A57 DA            push d
-0843   0A58 3B 99 18      mov d, _y ; $y
-0844   0A5B 2A            mov b, [d]
-0845   0A5C 38 00 00      mov c, 0
-0846   0A5F E7            pop d
-0847   0A60 FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
-0848   0A64 DA            push d
-0849   0A65 3B 97 18      mov d, _x ; $x
-0850   0A68 2A            mov b, [d]
-0851   0A69 38 00 00      mov c, 0
-0852   0A6C E7            pop d
-0853   0A6D FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
-0854   0A71 E4            pop a
-0855   0A72 DA            push d
-0856   0A73 FD 2E 00 00   mov32 cb, $0 ; enum element: EMPTY
-0856   0A77 00 00 
-0857   0A79 E7            pop d
-0858   0A7A FD 43         mov [d], b
-0859   0A7C             ; break; 
-0860   0A7C 0A 3D 0B      jmp _switch13_exit ; case break
-0861   0A7F             _switch13_case1:
-0862   0A7F             ; new_grid[y][x] = (head_count == 1 || head_count == 2) ? ELECTRON_HEAD : CONDUCTOR; break; 
-0863   0A7F 3B 57 12      mov d, _new_grid_data ; $new_grid
-0864   0A82 D7            push a
-0865   0A83 DA            push d
-0866   0A84 3B 99 18      mov d, _y ; $y
-0867   0A87 2A            mov b, [d]
-0868   0A88 38 00 00      mov c, 0
-0869   0A8B E7            pop d
-0870   0A8C FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
-0871   0A90 DA            push d
-0872   0A91 3B 97 18      mov d, _x ; $x
-0873   0A94 2A            mov b, [d]
-0874   0A95 38 00 00      mov c, 0
-0875   0A98 E7            pop d
-0876   0A99 FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
-0877   0A9D E4            pop a
-0878   0A9E DA            push d
-0879   0A9F             _ternary14_cond:
-0880   0A9F 3B A3 18      mov d, _head_count ; $head_count
-0881   0AA2 2A            mov b, [d]
-0882   0AA3 38 00 00      mov c, 0
-0883   0AA6             ; --- START RELATIONAL
-0884   0AA6 D7            push a
-0885   0AA7 11            mov a, b
-0886   0AA8 FD 2E 01 00   mov32 cb, $00000001
-0886   0AAC 00 00 
-0887   0AAE B0            cmp a, b
-0888   0AAF FD 71         seq ; ==
-0889   0AB1 E4            pop a
-0890   0AB2             ; --- END RELATIONAL
-0891   0AB2             ; --- START LOGICAL OR
-0892   0AB2 D7            push a
-0893   0AB3 11            mov a, b
-0894   0AB4 3B A3 18      mov d, _head_count ; $head_count
-0895   0AB7 2A            mov b, [d]
-0896   0AB8 38 00 00      mov c, 0
-0897   0ABB             ; --- START RELATIONAL
-0898   0ABB D7            push a
-0899   0ABC 11            mov a, b
-0900   0ABD FD 2E 02 00   mov32 cb, $00000002
-0900   0AC1 00 00 
-0901   0AC3 B0            cmp a, b
-0902   0AC4 FD 71         seq ; ==
-0903   0AC6 E4            pop a
-0904   0AC7             ; --- END RELATIONAL
-0905   0AC7 FD A8         sor a, b ; ||
-0906   0AC9 E4            pop a
-0907   0ACA             ; --- END LOGICAL OR
-0908   0ACA C0 00 00      cmp b, 0
-0909   0ACD C6 D9 0A      je _ternary14_FALSE
-0910   0AD0             _ternary14_TRUE:
-0911   0AD0 FD 2E 02 00   mov32 cb, $2 ; enum element: ELECTRON_HEAD
-0911   0AD4 00 00 
-0912   0AD6 0A DF 0A      jmp _ternary14_exit
-0913   0AD9             _ternary14_FALSE:
-0914   0AD9 FD 2E 01 00   mov32 cb, $1 ; enum element: CONDUCTOR
-0914   0ADD 00 00 
-0915   0ADF             _ternary14_exit:
-0916   0ADF E7            pop d
-0917   0AE0 FD 43         mov [d], b
-0918   0AE2             ; break; 
-0919   0AE2 0A 3D 0B      jmp _switch13_exit ; case break
-0920   0AE5             _switch13_case2:
-0921   0AE5             ; new_grid[y][x] = ELECTRON_TAIL; break; 
-0922   0AE5 3B 57 12      mov d, _new_grid_data ; $new_grid
-0923   0AE8 D7            push a
-0924   0AE9 DA            push d
-0925   0AEA 3B 99 18      mov d, _y ; $y
-0926   0AED 2A            mov b, [d]
-0927   0AEE 38 00 00      mov c, 0
-0928   0AF1 E7            pop d
-0929   0AF2 FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
-0930   0AF6 DA            push d
-0931   0AF7 3B 97 18      mov d, _x ; $x
-0932   0AFA 2A            mov b, [d]
-0933   0AFB 38 00 00      mov c, 0
-0934   0AFE E7            pop d
-0935   0AFF FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
-0936   0B03 E4            pop a
-0937   0B04 DA            push d
-0938   0B05 FD 2E 03 00   mov32 cb, $3 ; enum element: ELECTRON_TAIL
-0938   0B09 00 00 
-0939   0B0B E7            pop d
-0940   0B0C FD 43         mov [d], b
-0941   0B0E             ; break; 
-0942   0B0E 0A 3D 0B      jmp _switch13_exit ; case break
-0943   0B11             _switch13_case3:
-0944   0B11             ; new_grid[y][x] = CONDUCTOR; break; 
-0945   0B11 3B 57 12      mov d, _new_grid_data ; $new_grid
-0946   0B14 D7            push a
-0947   0B15 DA            push d
-0948   0B16 3B 99 18      mov d, _y ; $y
-0949   0B19 2A            mov b, [d]
-0950   0B1A 38 00 00      mov c, 0
-0951   0B1D E7            pop d
-0952   0B1E FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
-0953   0B22 DA            push d
-0954   0B23 3B 97 18      mov d, _x ; $x
-0955   0B26 2A            mov b, [d]
-0956   0B27 38 00 00      mov c, 0
-0957   0B2A E7            pop d
-0958   0B2B FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
-0959   0B2F E4            pop a
-0960   0B30 DA            push d
-0961   0B31 FD 2E 01 00   mov32 cb, $1 ; enum element: CONDUCTOR
-0961   0B35 00 00 
-0962   0B37 E7            pop d
-0963   0B38 FD 43         mov [d], b
-0964   0B3A             ; break; 
-0965   0B3A 0A 3D 0B      jmp _switch13_exit ; case break
-0966   0B3D             _switch13_exit:
-0967   0B3D             _for8_update:
-0968   0B3D 3B 97 18      mov d, _x ; $x
-0969   0B40 2A            mov b, [d]
-0970   0B41 FD 77         inc b
-0971   0B43 3B 97 18      mov d, _x ; $x
-0972   0B46 FD 43         mov [d], b
-0973   0B48 0A 72 08      jmp _for8_cond
-0974   0B4B             _for8_exit:
-0975   0B4B             _for7_update:
-0976   0B4B 3B 99 18      mov d, _y ; $y
-0977   0B4E 2A            mov b, [d]
-0978   0B4F FD 77         inc b
-0979   0B51 3B 99 18      mov d, _y ; $y
-0980   0B54 FD 43         mov [d], b
-0981   0B56 0A 4C 08      jmp _for7_cond
-0982   0B59             _for7_exit:
-0983   0B59             ; for (y = 0; y < 20; ++y) { 
-0984   0B59             _for15_init:
-0985   0B59 3B 99 18      mov d, _y ; $y
-0986   0B5C DA            push d
-0987   0B5D FD 2E 00 00   mov32 cb, $00000000
-0987   0B61 00 00 
-0988   0B63 E7            pop d
-0989   0B64 FD 43         mov [d], b
-0990   0B66             _for15_cond:
-0991   0B66 3B 99 18      mov d, _y ; $y
-0992   0B69 2A            mov b, [d]
-0993   0B6A 38 00 00      mov c, 0
-0994   0B6D             ; --- START RELATIONAL
-0995   0B6D D7            push a
-0996   0B6E 11            mov a, b
-0997   0B6F FD 2E 14 00   mov32 cb, $00000014
-0997   0B73 00 00 
-0998   0B75 B0            cmp a, b
-0999   0B76 FD 73         slt ; < (signed)
-1000   0B78 E4            pop a
-1001   0B79             ; --- END RELATIONAL
-1002   0B79 C0 00 00      cmp b, 0
-1003   0B7C C6 07 0C      je _for15_exit
-1004   0B7F             _for15_block:
-1005   0B7F             ; for (x = 0; x < 40; ++x) { 
-1006   0B7F             _for16_init:
-1007   0B7F 3B 97 18      mov d, _x ; $x
-1008   0B82 DA            push d
-1009   0B83 FD 2E 00 00   mov32 cb, $00000000
-1009   0B87 00 00 
-1010   0B89 E7            pop d
-1011   0B8A FD 43         mov [d], b
-1012   0B8C             _for16_cond:
-1013   0B8C 3B 97 18      mov d, _x ; $x
-1014   0B8F 2A            mov b, [d]
-1015   0B90 38 00 00      mov c, 0
-1016   0B93             ; --- START RELATIONAL
-1017   0B93 D7            push a
-1018   0B94 11            mov a, b
-1019   0B95 FD 2E 28 00   mov32 cb, $00000028
-1019   0B99 00 00 
-1020   0B9B B0            cmp a, b
-1021   0B9C FD 73         slt ; < (signed)
-1022   0B9E E4            pop a
-1023   0B9F             ; --- END RELATIONAL
-1024   0B9F C0 00 00      cmp b, 0
-1025   0BA2 C6 F9 0B      je _for16_exit
-1026   0BA5             _for16_block:
-1027   0BA5             ; grid[y][x] = new_grid[y][x]; 
-1028   0BA5 3B 17 0C      mov d, _grid_data ; $grid
-1029   0BA8 D7            push a
-1030   0BA9 DA            push d
-1031   0BAA 3B 99 18      mov d, _y ; $y
-1032   0BAD 2A            mov b, [d]
-1033   0BAE 38 00 00      mov c, 0
-1034   0BB1 E7            pop d
-1035   0BB2 FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
-1036   0BB6 DA            push d
-1037   0BB7 3B 97 18      mov d, _x ; $x
-1038   0BBA 2A            mov b, [d]
-1039   0BBB 38 00 00      mov c, 0
-1040   0BBE E7            pop d
-1041   0BBF FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
-1042   0BC3 E4            pop a
-1043   0BC4 DA            push d
-1044   0BC5 3B 57 12      mov d, _new_grid_data ; $new_grid
-1045   0BC8 D7            push a
-1046   0BC9 DA            push d
-1047   0BCA 3B 99 18      mov d, _y ; $y
-1048   0BCD 2A            mov b, [d]
-1049   0BCE 38 00 00      mov c, 0
-1050   0BD1 E7            pop d
-1051   0BD2 FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
-1052   0BD6 DA            push d
-1053   0BD7 3B 97 18      mov d, _x ; $x
-1054   0BDA 2A            mov b, [d]
-1055   0BDB 38 00 00      mov c, 0
-1056   0BDE E7            pop d
-1057   0BDF FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
-1058   0BE3 E4            pop a
-1059   0BE4 2A            mov b, [d]
-1060   0BE5 38 00 00      mov c, 0
-1061   0BE8 E7            pop d
-1062   0BE9 FD 43         mov [d], b
-1063   0BEB             _for16_update:
-1064   0BEB 3B 97 18      mov d, _x ; $x
-1065   0BEE 2A            mov b, [d]
-1066   0BEF FD 77         inc b
-1067   0BF1 3B 97 18      mov d, _x ; $x
-1068   0BF4 FD 43         mov [d], b
-1069   0BF6 0A 8C 0B      jmp _for16_cond
-1070   0BF9             _for16_exit:
-1071   0BF9             _for15_update:
-1072   0BF9 3B 99 18      mov d, _y ; $y
-1073   0BFC 2A            mov b, [d]
-1074   0BFD FD 77         inc b
-1075   0BFF 3B 99 18      mov d, _y ; $y
-1076   0C02 FD 43         mov [d], b
-1077   0C04 0A 66 0B      jmp _for15_cond
-1078   0C07             _for15_exit:
-1079   0C07             ; return; 
-1080   0C07 F9            leave
-1081   0C08 09            ret
-1082   0C09             
-1083   0C09             putchar:
-1084   0C09 F8 00 00      enter 0 ; (push bp; mov bp, sp)
-1085   0C0C             ; --- BEGIN INLINE ASM SEGMENT
-1086   0C0C FA 05 00      lea d, [bp + 5] ; $c
-1087   0C0F 1E            mov al, [d]
-1088   0C10 23            mov ah, al
-1089   0C11 19 00         mov al, 0
-1090   0C13 05 03         syscall sys_io      ; char in AH
-1091   0C15             ; --- END INLINE ASM SEGMENT
-1092   0C15 F9            leave
-1093   0C16 09            ret
-1094   0C17             ; --- END TEXT SEGMENT
-1095   0C17             
-1096   0C17             ; --- BEGIN DATA SEGMENT
-1097   0C17 00 00 00 00 _grid_data: .fill 1600, 0
-1097   0C1B 00 00 00 00 
-1097   0C1F 00 00 00 00 
-1097   0C23 00 00 00 00 
-1097   0C27 00 00 00 00 
-1097   0C2B 00 00 00 00 
-1097   0C2F 00 00 00 00 
-1097   0C33 00 00 00 00 
-1097   0C37 00 00 00 00 
-1097   0C3B 00 00 00 00 
-1097   0C3F 00 00 00 00 
-1097   0C43 00 00 00 00 
-1097   0C47 00 00 00 00 
-1097   0C4B 00 00 00 00 
-1097   0C4F 00 00 00 00 
-1097   0C53 00 00 00 00 
-1097   0C57 00 00 00 00 
-1097   0C5B 00 00 00 00 
-1097   0C5F 00 00 00 00 
-1097   0C63 00 00 00 00 
-1097   0C67 00 00 00 00 
-1097   0C6B 00 00 00 00 
-1097   0C6F 00 00 00 00 
-1097   0C73 00 00 00 00 
-1097   0C77 00 00 00 00 
-1097   0C7B 00 00 00 00 
-1097   0C7F 00 00 00 00 
-1097   0C83 00 00 00 00 
-1097   0C87 00 00 00 00 
-1097   0C8B 00 00 00 00 
-1097   0C8F 00 00 00 00 
-1097   0C93 00 00 00 00 
-1097   0C97 00 00 00 00 
-1097   0C9B 00 00 00 00 
-1097   0C9F 00 00 00 00 
-1097   0CA3 00 00 00 00 
-1097   0CA7 00 00 00 00 
-1097   0CAB 00 00 00 00 
-1097   0CAF 00 00 00 00 
-1097   0CB3 00 00 00 00 
-1097   0CB7 00 00 00 00 
-1097   0CBB 00 00 00 00 
-1097   0CBF 00 00 00 00 
-1097   0CC3 00 00 00 00 
-1097   0CC7 00 00 00 00 
-1097   0CCB 00 00 00 00 
-1097   0CCF 00 00 00 00 
-1097   0CD3 00 00 00 00 
-1097   0CD7 00 00 00 00 
-1097   0CDB 00 00 00 00 
-1097   0CDF 00 00 00 00 
-1097   0CE3 00 00 00 00 
-1097   0CE7 00 00 00 00 
-1097   0CEB 00 00 00 00 
-1097   0CEF 00 00 00 00 
-1097   0CF3 00 00 00 00 
-1097   0CF7 00 00 00 00 
-1097   0CFB 00 00 00 00 
-1097   0CFF 00 00 00 00 
-1097   0D03 00 00 00 00 
-1097   0D07 00 00 00 00 
-1097   0D0B 00 00 00 00 
-1097   0D0F 00 00 00 00 
-1097   0D13 00 00 00 00 
-1097   0D17 00 00 00 00 
-1097   0D1B 00 00 00 00 
-1097   0D1F 00 00 00 00 
-1097   0D23 00 00 00 00 
-1097   0D27 00 00 00 00 
-1097   0D2B 00 00 00 00 
-1097   0D2F 00 00 00 00 
-1097   0D33 00 00 00 00 
-1097   0D37 00 00 00 00 
-1097   0D3B 00 00 00 00 
-1097   0D3F 00 00 00 00 
-1097   0D43 00 00 00 00 
-1097   0D47 00 00 00 00 
-1097   0D4B 00 00 00 00 
-1097   0D4F 00 00 00 00 
-1097   0D53 00 00 00 00 
-1097   0D57 00 00 00 00 
-1097   0D5B 00 00 00 00 
-1097   0D5F 00 00 00 00 
-1097   0D63 00 00 00 00 
-1097   0D67 00 00 00 00 
-1097   0D6B 00 00 00 00 
-1097   0D6F 00 00 00 00 
-1097   0D73 00 00 00 00 
-1097   0D77 00 00 00 00 
-1097   0D7B 00 00 00 00 
-1097   0D7F 00 00 00 00 
-1097   0D83 00 00 00 00 
-1097   0D87 00 00 00 00 
-1097   0D8B 00 00 00 00 
-1097   0D8F 00 00 00 00 
-1097   0D93 00 00 00 00 
-1097   0D97 00 00 00 00 
-1097   0D9B 00 00 00 00 
-1097   0D9F 00 00 00 00 
-1097   0DA3 00 00 00 00 
-1097   0DA7 00 00 00 00 
-1097   0DAB 00 00 00 00 
-1097   0DAF 00 00 00 00 
-1097   0DB3 00 00 00 00 
-1097   0DB7 00 00 00 00 
-1097   0DBB 00 00 00 00 
-1097   0DBF 00 00 00 00 
-1097   0DC3 00 00 00 00 
-1097   0DC7 00 00 00 00 
-1097   0DCB 00 00 00 00 
-1097   0DCF 00 00 00 00 
-1097   0DD3 00 00 00 00 
-1097   0DD7 00 00 00 00 
-1097   0DDB 00 00 00 00 
-1097   0DDF 00 00 00 00 
-1097   0DE3 00 00 00 00 
-1097   0DE7 00 00 00 00 
-1097   0DEB 00 00 00 00 
-1097   0DEF 00 00 00 00 
-1097   0DF3 00 00 00 00 
-1097   0DF7 00 00 00 00 
-1097   0DFB 00 00 00 00 
-1097   0DFF 00 00 00 00 
-1097   0E03 00 00 00 00 
-1097   0E07 00 00 00 00 
-1097   0E0B 00 00 00 00 
-1097   0E0F 00 00 00 00 
-1097   0E13 00 00 00 00 
-1097   0E17 00 00 00 00 
-1097   0E1B 00 00 00 00 
-1097   0E1F 00 00 00 00 
-1097   0E23 00 00 00 00 
-1097   0E27 00 00 00 00 
-1097   0E2B 00 00 00 00 
-1097   0E2F 00 00 00 00 
-1097   0E33 00 00 00 00 
-1097   0E37 00 00 00 00 
-1097   0E3B 00 00 00 00 
-1097   0E3F 00 00 00 00 
-1097   0E43 00 00 00 00 
-1097   0E47 00 00 00 00 
-1097   0E4B 00 00 00 00 
-1097   0E4F 00 00 00 00 
-1097   0E53 00 00 00 00 
-1097   0E57 00 00 00 00 
-1097   0E5B 00 00 00 00 
-1097   0E5F 00 00 00 00 
-1097   0E63 00 00 00 00 
-1097   0E67 00 00 00 00 
-1097   0E6B 00 00 00 00 
-1097   0E6F 00 00 00 00 
-1097   0E73 00 00 00 00 
-1097   0E77 00 00 00 00 
-1097   0E7B 00 00 00 00 
-1097   0E7F 00 00 00 00 
-1097   0E83 00 00 00 00 
-1097   0E87 00 00 00 00 
-1097   0E8B 00 00 00 00 
-1097   0E8F 00 00 00 00 
-1097   0E93 00 00 00 00 
-1097   0E97 00 00 00 00 
-1097   0E9B 00 00 00 00 
-1097   0E9F 00 00 00 00 
-1097   0EA3 00 00 00 00 
-1097   0EA7 00 00 00 00 
-1097   0EAB 00 00 00 00 
-1097   0EAF 00 00 00 00 
-1097   0EB3 00 00 00 00 
-1097   0EB7 00 00 00 00 
-1097   0EBB 00 00 00 00 
-1097   0EBF 00 00 00 00 
-1097   0EC3 00 00 00 00 
-1097   0EC7 00 00 00 00 
-1097   0ECB 00 00 00 00 
-1097   0ECF 00 00 00 00 
-1097   0ED3 00 00 00 00 
-1097   0ED7 00 00 00 00 
-1097   0EDB 00 00 00 00 
-1097   0EDF 00 00 00 00 
-1097   0EE3 00 00 00 00 
-1097   0EE7 00 00 00 00 
-1097   0EEB 00 00 00 00 
-1097   0EEF 00 00 00 00 
-1097   0EF3 00 00 00 00 
-1097   0EF7 00 00 00 00 
-1097   0EFB 00 00 00 00 
-1097   0EFF 00 00 00 00 
-1097   0F03 00 00 00 00 
-1097   0F07 00 00 00 00 
-1097   0F0B 00 00 00 00 
-1097   0F0F 00 00 00 00 
-1097   0F13 00 00 00 00 
-1097   0F17 00 00 00 00 
-1097   0F1B 00 00 00 00 
-1097   0F1F 00 00 00 00 
-1097   0F23 00 00 00 00 
-1097   0F27 00 00 00 00 
-1097   0F2B 00 00 00 00 
-1097   0F2F 00 00 00 00 
-1097   0F33 00 00 00 00 
-1097   0F37 00 00 00 00 
-1097   0F3B 00 00 00 00 
-1097   0F3F 00 00 00 00 
-1097   0F43 00 00 00 00 
-1097   0F47 00 00 00 00 
-1097   0F4B 00 00 00 00 
-1097   0F4F 00 00 00 00 
-1097   0F53 00 00 00 00 
-1097   0F57 00 00 00 00 
-1097   0F5B 00 00 00 00 
-1097   0F5F 00 00 00 00 
-1097   0F63 00 00 00 00 
-1097   0F67 00 00 00 00 
-1097   0F6B 00 00 00 00 
-1097   0F6F 00 00 00 00 
-1097   0F73 00 00 00 00 
-1097   0F77 00 00 00 00 
-1097   0F7B 00 00 00 00 
-1097   0F7F 00 00 00 00 
-1097   0F83 00 00 00 00 
-1097   0F87 00 00 00 00 
-1097   0F8B 00 00 00 00 
-1097   0F8F 00 00 00 00 
-1097   0F93 00 00 00 00 
-1097   0F97 00 00 00 00 
-1097   0F9B 00 00 00 00 
-1097   0F9F 00 00 00 00 
-1097   0FA3 00 00 00 00 
-1097   0FA7 00 00 00 00 
-1097   0FAB 00 00 00 00 
-1097   0FAF 00 00 00 00 
-1097   0FB3 00 00 00 00 
-1097   0FB7 00 00 00 00 
-1097   0FBB 00 00 00 00 
-1097   0FBF 00 00 00 00 
-1097   0FC3 00 00 00 00 
-1097   0FC7 00 00 00 00 
-1097   0FCB 00 00 00 00 
-1097   0FCF 00 00 00 00 
-1097   0FD3 00 00 00 00 
-1097   0FD7 00 00 00 00 
-1097   0FDB 00 00 00 00 
-1097   0FDF 00 00 00 00 
-1097   0FE3 00 00 00 00 
-1097   0FE7 00 00 00 00 
-1097   0FEB 00 00 00 00 
-1097   0FEF 00 00 00 00 
-1097   0FF3 00 00 00 00 
-1097   0FF7 00 00 00 00 
-1097   0FFB 00 00 00 00 
-1097   0FFF 00 00 00 00 
-1097   1003 00 00 00 00 
-1097   1007 00 00 00 00 
-1097   100B 00 00 00 00 
-1097   100F 00 00 00 00 
-1097   1013 00 00 00 00 
-1097   1017 00 00 00 00 
-1097   101B 00 00 00 00 
-1097   101F 00 00 00 00 
-1097   1023 00 00 00 00 
-1097   1027 00 00 00 00 
-1097   102B 00 00 00 00 
-1097   102F 00 00 00 00 
-1097   1033 00 00 00 00 
-1097   1037 00 00 00 00 
-1097   103B 00 00 00 00 
-1097   103F 00 00 00 00 
-1097   1043 00 00 00 00 
-1097   1047 00 00 00 00 
-1097   104B 00 00 00 00 
-1097   104F 00 00 00 00 
-1097   1053 00 00 00 00 
-1097   1057 00 00 00 00 
-1097   105B 00 00 00 00 
-1097   105F 00 00 00 00 
-1097   1063 00 00 00 00 
-1097   1067 00 00 00 00 
-1097   106B 00 00 00 00 
-1097   106F 00 00 00 00 
-1097   1073 00 00 00 00 
-1097   1077 00 00 00 00 
-1097   107B 00 00 00 00 
-1097   107F 00 00 00 00 
-1097   1083 00 00 00 00 
-1097   1087 00 00 00 00 
-1097   108B 00 00 00 00 
-1097   108F 00 00 00 00 
-1097   1093 00 00 00 00 
-1097   1097 00 00 00 00 
-1097   109B 00 00 00 00 
-1097   109F 00 00 00 00 
-1097   10A3 00 00 00 00 
-1097   10A7 00 00 00 00 
-1097   10AB 00 00 00 00 
-1097   10AF 00 00 00 00 
-1097   10B3 00 00 00 00 
-1097   10B7 00 00 00 00 
-1097   10BB 00 00 00 00 
-1097   10BF 00 00 00 00 
-1097   10C3 00 00 00 00 
-1097   10C7 00 00 00 00 
-1097   10CB 00 00 00 00 
-1097   10CF 00 00 00 00 
-1097   10D3 00 00 00 00 
-1097   10D7 00 00 00 00 
-1097   10DB 00 00 00 00 
-1097   10DF 00 00 00 00 
-1097   10E3 00 00 00 00 
-1097   10E7 00 00 00 00 
-1097   10EB 00 00 00 00 
-1097   10EF 00 00 00 00 
-1097   10F3 00 00 00 00 
-1097   10F7 00 00 00 00 
-1097   10FB 00 00 00 00 
-1097   10FF 00 00 00 00 
-1097   1103 00 00 00 00 
-1097   1107 00 00 00 00 
-1097   110B 00 00 00 00 
-1097   110F 00 00 00 00 
-1097   1113 00 00 00 00 
-1097   1117 00 00 00 00 
-1097   111B 00 00 00 00 
-1097   111F 00 00 00 00 
-1097   1123 00 00 00 00 
-1097   1127 00 00 00 00 
-1097   112B 00 00 00 00 
-1097   112F 00 00 00 00 
-1097   1133 00 00 00 00 
-1097   1137 00 00 00 00 
-1097   113B 00 00 00 00 
-1097   113F 00 00 00 00 
-1097   1143 00 00 00 00 
-1097   1147 00 00 00 00 
-1097   114B 00 00 00 00 
-1097   114F 00 00 00 00 
-1097   1153 00 00 00 00 
-1097   1157 00 00 00 00 
-1097   115B 00 00 00 00 
-1097   115F 00 00 00 00 
-1097   1163 00 00 00 00 
-1097   1167 00 00 00 00 
-1097   116B 00 00 00 00 
-1097   116F 00 00 00 00 
-1097   1173 00 00 00 00 
-1097   1177 00 00 00 00 
-1097   117B 00 00 00 00 
-1097   117F 00 00 00 00 
-1097   1183 00 00 00 00 
-1097   1187 00 00 00 00 
-1097   118B 00 00 00 00 
-1097   118F 00 00 00 00 
-1097   1193 00 00 00 00 
-1097   1197 00 00 00 00 
-1097   119B 00 00 00 00 
-1097   119F 00 00 00 00 
-1097   11A3 00 00 00 00 
-1097   11A7 00 00 00 00 
-1097   11AB 00 00 00 00 
-1097   11AF 00 00 00 00 
-1097   11B3 00 00 00 00 
-1097   11B7 00 00 00 00 
-1097   11BB 00 00 00 00 
-1097   11BF 00 00 00 00 
-1097   11C3 00 00 00 00 
-1097   11C7 00 00 00 00 
-1097   11CB 00 00 00 00 
-1097   11CF 00 00 00 00 
-1097   11D3 00 00 00 00 
-1097   11D7 00 00 00 00 
-1097   11DB 00 00 00 00 
-1097   11DF 00 00 00 00 
-1097   11E3 00 00 00 00 
-1097   11E7 00 00 00 00 
-1097   11EB 00 00 00 00 
-1097   11EF 00 00 00 00 
-1097   11F3 00 00 00 00 
-1097   11F7 00 00 00 00 
-1097   11FB 00 00 00 00 
-1097   11FF 00 00 00 00 
-1097   1203 00 00 00 00 
-1097   1207 00 00 00 00 
-1097   120B 00 00 00 00 
-1097   120F 00 00 00 00 
-1097   1213 00 00 00 00 
-1097   1217 00 00 00 00 
-1097   121B 00 00 00 00 
-1097   121F 00 00 00 00 
-1097   1223 00 00 00 00 
-1097   1227 00 00 00 00 
-1097   122B 00 00 00 00 
-1097   122F 00 00 00 00 
-1097   1233 00 00 00 00 
-1097   1237 00 00 00 00 
-1097   123B 00 00 00 00 
-1097   123F 00 00 00 00 
-1097   1243 00 00 00 00 
-1097   1247 00 00 00 00 
-1097   124B 00 00 00 00 
-1097   124F 00 00 00 00 
-1097   1253 00 00 00 00 
-1098   1257 00 00 00 00 _new_grid_data: .fill 1600, 0
-1098   125B 00 00 00 00 
-1098   125F 00 00 00 00 
-1098   1263 00 00 00 00 
-1098   1267 00 00 00 00 
-1098   126B 00 00 00 00 
-1098   126F 00 00 00 00 
-1098   1273 00 00 00 00 
-1098   1277 00 00 00 00 
-1098   127B 00 00 00 00 
-1098   127F 00 00 00 00 
-1098   1283 00 00 00 00 
-1098   1287 00 00 00 00 
-1098   128B 00 00 00 00 
-1098   128F 00 00 00 00 
-1098   1293 00 00 00 00 
-1098   1297 00 00 00 00 
-1098   129B 00 00 00 00 
-1098   129F 00 00 00 00 
-1098   12A3 00 00 00 00 
-1098   12A7 00 00 00 00 
-1098   12AB 00 00 00 00 
-1098   12AF 00 00 00 00 
-1098   12B3 00 00 00 00 
-1098   12B7 00 00 00 00 
-1098   12BB 00 00 00 00 
-1098   12BF 00 00 00 00 
-1098   12C3 00 00 00 00 
-1098   12C7 00 00 00 00 
-1098   12CB 00 00 00 00 
-1098   12CF 00 00 00 00 
-1098   12D3 00 00 00 00 
-1098   12D7 00 00 00 00 
-1098   12DB 00 00 00 00 
-1098   12DF 00 00 00 00 
-1098   12E3 00 00 00 00 
-1098   12E7 00 00 00 00 
-1098   12EB 00 00 00 00 
-1098   12EF 00 00 00 00 
-1098   12F3 00 00 00 00 
-1098   12F7 00 00 00 00 
-1098   12FB 00 00 00 00 
-1098   12FF 00 00 00 00 
-1098   1303 00 00 00 00 
-1098   1307 00 00 00 00 
-1098   130B 00 00 00 00 
-1098   130F 00 00 00 00 
-1098   1313 00 00 00 00 
-1098   1317 00 00 00 00 
-1098   131B 00 00 00 00 
-1098   131F 00 00 00 00 
-1098   1323 00 00 00 00 
-1098   1327 00 00 00 00 
-1098   132B 00 00 00 00 
-1098   132F 00 00 00 00 
-1098   1333 00 00 00 00 
-1098   1337 00 00 00 00 
-1098   133B 00 00 00 00 
-1098   133F 00 00 00 00 
-1098   1343 00 00 00 00 
-1098   1347 00 00 00 00 
-1098   134B 00 00 00 00 
-1098   134F 00 00 00 00 
-1098   1353 00 00 00 00 
-1098   1357 00 00 00 00 
-1098   135B 00 00 00 00 
-1098   135F 00 00 00 00 
-1098   1363 00 00 00 00 
-1098   1367 00 00 00 00 
-1098   136B 00 00 00 00 
-1098   136F 00 00 00 00 
-1098   1373 00 00 00 00 
-1098   1377 00 00 00 00 
-1098   137B 00 00 00 00 
-1098   137F 00 00 00 00 
-1098   1383 00 00 00 00 
-1098   1387 00 00 00 00 
-1098   138B 00 00 00 00 
-1098   138F 00 00 00 00 
-1098   1393 00 00 00 00 
-1098   1397 00 00 00 00 
-1098   139B 00 00 00 00 
-1098   139F 00 00 00 00 
-1098   13A3 00 00 00 00 
-1098   13A7 00 00 00 00 
-1098   13AB 00 00 00 00 
-1098   13AF 00 00 00 00 
-1098   13B3 00 00 00 00 
-1098   13B7 00 00 00 00 
-1098   13BB 00 00 00 00 
-1098   13BF 00 00 00 00 
-1098   13C3 00 00 00 00 
-1098   13C7 00 00 00 00 
-1098   13CB 00 00 00 00 
-1098   13CF 00 00 00 00 
-1098   13D3 00 00 00 00 
-1098   13D7 00 00 00 00 
-1098   13DB 00 00 00 00 
-1098   13DF 00 00 00 00 
-1098   13E3 00 00 00 00 
-1098   13E7 00 00 00 00 
-1098   13EB 00 00 00 00 
-1098   13EF 00 00 00 00 
-1098   13F3 00 00 00 00 
-1098   13F7 00 00 00 00 
-1098   13FB 00 00 00 00 
-1098   13FF 00 00 00 00 
-1098   1403 00 00 00 00 
-1098   1407 00 00 00 00 
-1098   140B 00 00 00 00 
-1098   140F 00 00 00 00 
-1098   1413 00 00 00 00 
-1098   1417 00 00 00 00 
-1098   141B 00 00 00 00 
-1098   141F 00 00 00 00 
-1098   1423 00 00 00 00 
-1098   1427 00 00 00 00 
-1098   142B 00 00 00 00 
-1098   142F 00 00 00 00 
-1098   1433 00 00 00 00 
-1098   1437 00 00 00 00 
-1098   143B 00 00 00 00 
-1098   143F 00 00 00 00 
-1098   1443 00 00 00 00 
-1098   1447 00 00 00 00 
-1098   144B 00 00 00 00 
-1098   144F 00 00 00 00 
-1098   1453 00 00 00 00 
-1098   1457 00 00 00 00 
-1098   145B 00 00 00 00 
-1098   145F 00 00 00 00 
-1098   1463 00 00 00 00 
-1098   1467 00 00 00 00 
-1098   146B 00 00 00 00 
-1098   146F 00 00 00 00 
-1098   1473 00 00 00 00 
-1098   1477 00 00 00 00 
-1098   147B 00 00 00 00 
-1098   147F 00 00 00 00 
-1098   1483 00 00 00 00 
-1098   1487 00 00 00 00 
-1098   148B 00 00 00 00 
-1098   148F 00 00 00 00 
-1098   1493 00 00 00 00 
-1098   1497 00 00 00 00 
-1098   149B 00 00 00 00 
-1098   149F 00 00 00 00 
-1098   14A3 00 00 00 00 
-1098   14A7 00 00 00 00 
-1098   14AB 00 00 00 00 
-1098   14AF 00 00 00 00 
-1098   14B3 00 00 00 00 
-1098   14B7 00 00 00 00 
-1098   14BB 00 00 00 00 
-1098   14BF 00 00 00 00 
-1098   14C3 00 00 00 00 
-1098   14C7 00 00 00 00 
-1098   14CB 00 00 00 00 
-1098   14CF 00 00 00 00 
-1098   14D3 00 00 00 00 
-1098   14D7 00 00 00 00 
-1098   14DB 00 00 00 00 
-1098   14DF 00 00 00 00 
-1098   14E3 00 00 00 00 
-1098   14E7 00 00 00 00 
-1098   14EB 00 00 00 00 
-1098   14EF 00 00 00 00 
-1098   14F3 00 00 00 00 
-1098   14F7 00 00 00 00 
-1098   14FB 00 00 00 00 
-1098   14FF 00 00 00 00 
-1098   1503 00 00 00 00 
-1098   1507 00 00 00 00 
-1098   150B 00 00 00 00 
-1098   150F 00 00 00 00 
-1098   1513 00 00 00 00 
-1098   1517 00 00 00 00 
-1098   151B 00 00 00 00 
-1098   151F 00 00 00 00 
-1098   1523 00 00 00 00 
-1098   1527 00 00 00 00 
-1098   152B 00 00 00 00 
-1098   152F 00 00 00 00 
-1098   1533 00 00 00 00 
-1098   1537 00 00 00 00 
-1098   153B 00 00 00 00 
-1098   153F 00 00 00 00 
-1098   1543 00 00 00 00 
-1098   1547 00 00 00 00 
-1098   154B 00 00 00 00 
-1098   154F 00 00 00 00 
-1098   1553 00 00 00 00 
-1098   1557 00 00 00 00 
-1098   155B 00 00 00 00 
-1098   155F 00 00 00 00 
-1098   1563 00 00 00 00 
-1098   1567 00 00 00 00 
-1098   156B 00 00 00 00 
-1098   156F 00 00 00 00 
-1098   1573 00 00 00 00 
-1098   1577 00 00 00 00 
-1098   157B 00 00 00 00 
-1098   157F 00 00 00 00 
-1098   1583 00 00 00 00 
-1098   1587 00 00 00 00 
-1098   158B 00 00 00 00 
-1098   158F 00 00 00 00 
-1098   1593 00 00 00 00 
-1098   1597 00 00 00 00 
-1098   159B 00 00 00 00 
-1098   159F 00 00 00 00 
-1098   15A3 00 00 00 00 
-1098   15A7 00 00 00 00 
-1098   15AB 00 00 00 00 
-1098   15AF 00 00 00 00 
-1098   15B3 00 00 00 00 
-1098   15B7 00 00 00 00 
-1098   15BB 00 00 00 00 
-1098   15BF 00 00 00 00 
-1098   15C3 00 00 00 00 
-1098   15C7 00 00 00 00 
-1098   15CB 00 00 00 00 
-1098   15CF 00 00 00 00 
-1098   15D3 00 00 00 00 
-1098   15D7 00 00 00 00 
-1098   15DB 00 00 00 00 
-1098   15DF 00 00 00 00 
-1098   15E3 00 00 00 00 
-1098   15E7 00 00 00 00 
-1098   15EB 00 00 00 00 
-1098   15EF 00 00 00 00 
-1098   15F3 00 00 00 00 
-1098   15F7 00 00 00 00 
-1098   15FB 00 00 00 00 
-1098   15FF 00 00 00 00 
-1098   1603 00 00 00 00 
-1098   1607 00 00 00 00 
-1098   160B 00 00 00 00 
-1098   160F 00 00 00 00 
-1098   1613 00 00 00 00 
-1098   1617 00 00 00 00 
-1098   161B 00 00 00 00 
-1098   161F 00 00 00 00 
-1098   1623 00 00 00 00 
-1098   1627 00 00 00 00 
-1098   162B 00 00 00 00 
-1098   162F 00 00 00 00 
-1098   1633 00 00 00 00 
-1098   1637 00 00 00 00 
-1098   163B 00 00 00 00 
-1098   163F 00 00 00 00 
-1098   1643 00 00 00 00 
-1098   1647 00 00 00 00 
-1098   164B 00 00 00 00 
-1098   164F 00 00 00 00 
-1098   1653 00 00 00 00 
-1098   1657 00 00 00 00 
-1098   165B 00 00 00 00 
-1098   165F 00 00 00 00 
-1098   1663 00 00 00 00 
-1098   1667 00 00 00 00 
-1098   166B 00 00 00 00 
-1098   166F 00 00 00 00 
-1098   1673 00 00 00 00 
-1098   1677 00 00 00 00 
-1098   167B 00 00 00 00 
-1098   167F 00 00 00 00 
-1098   1683 00 00 00 00 
-1098   1687 00 00 00 00 
-1098   168B 00 00 00 00 
-1098   168F 00 00 00 00 
-1098   1693 00 00 00 00 
-1098   1697 00 00 00 00 
-1098   169B 00 00 00 00 
-1098   169F 00 00 00 00 
-1098   16A3 00 00 00 00 
-1098   16A7 00 00 00 00 
-1098   16AB 00 00 00 00 
-1098   16AF 00 00 00 00 
-1098   16B3 00 00 00 00 
-1098   16B7 00 00 00 00 
-1098   16BB 00 00 00 00 
-1098   16BF 00 00 00 00 
-1098   16C3 00 00 00 00 
-1098   16C7 00 00 00 00 
-1098   16CB 00 00 00 00 
-1098   16CF 00 00 00 00 
-1098   16D3 00 00 00 00 
-1098   16D7 00 00 00 00 
-1098   16DB 00 00 00 00 
-1098   16DF 00 00 00 00 
-1098   16E3 00 00 00 00 
-1098   16E7 00 00 00 00 
-1098   16EB 00 00 00 00 
-1098   16EF 00 00 00 00 
-1098   16F3 00 00 00 00 
-1098   16F7 00 00 00 00 
-1098   16FB 00 00 00 00 
-1098   16FF 00 00 00 00 
-1098   1703 00 00 00 00 
-1098   1707 00 00 00 00 
-1098   170B 00 00 00 00 
-1098   170F 00 00 00 00 
-1098   1713 00 00 00 00 
-1098   1717 00 00 00 00 
-1098   171B 00 00 00 00 
-1098   171F 00 00 00 00 
-1098   1723 00 00 00 00 
-1098   1727 00 00 00 00 
-1098   172B 00 00 00 00 
-1098   172F 00 00 00 00 
-1098   1733 00 00 00 00 
-1098   1737 00 00 00 00 
-1098   173B 00 00 00 00 
-1098   173F 00 00 00 00 
-1098   1743 00 00 00 00 
-1098   1747 00 00 00 00 
-1098   174B 00 00 00 00 
-1098   174F 00 00 00 00 
-1098   1753 00 00 00 00 
-1098   1757 00 00 00 00 
-1098   175B 00 00 00 00 
-1098   175F 00 00 00 00 
-1098   1763 00 00 00 00 
-1098   1767 00 00 00 00 
-1098   176B 00 00 00 00 
-1098   176F 00 00 00 00 
-1098   1773 00 00 00 00 
-1098   1777 00 00 00 00 
-1098   177B 00 00 00 00 
-1098   177F 00 00 00 00 
-1098   1783 00 00 00 00 
-1098   1787 00 00 00 00 
-1098   178B 00 00 00 00 
-1098   178F 00 00 00 00 
-1098   1793 00 00 00 00 
-1098   1797 00 00 00 00 
-1098   179B 00 00 00 00 
-1098   179F 00 00 00 00 
-1098   17A3 00 00 00 00 
-1098   17A7 00 00 00 00 
-1098   17AB 00 00 00 00 
-1098   17AF 00 00 00 00 
-1098   17B3 00 00 00 00 
-1098   17B7 00 00 00 00 
-1098   17BB 00 00 00 00 
-1098   17BF 00 00 00 00 
-1098   17C3 00 00 00 00 
-1098   17C7 00 00 00 00 
-1098   17CB 00 00 00 00 
-1098   17CF 00 00 00 00 
-1098   17D3 00 00 00 00 
-1098   17D7 00 00 00 00 
-1098   17DB 00 00 00 00 
-1098   17DF 00 00 00 00 
-1098   17E3 00 00 00 00 
-1098   17E7 00 00 00 00 
-1098   17EB 00 00 00 00 
-1098   17EF 00 00 00 00 
-1098   17F3 00 00 00 00 
-1098   17F7 00 00 00 00 
-1098   17FB 00 00 00 00 
-1098   17FF 00 00 00 00 
-1098   1803 00 00 00 00 
-1098   1807 00 00 00 00 
-1098   180B 00 00 00 00 
-1098   180F 00 00 00 00 
-1098   1813 00 00 00 00 
-1098   1817 00 00 00 00 
-1098   181B 00 00 00 00 
-1098   181F 00 00 00 00 
-1098   1823 00 00 00 00 
-1098   1827 00 00 00 00 
-1098   182B 00 00 00 00 
-1098   182F 00 00 00 00 
-1098   1833 00 00 00 00 
-1098   1837 00 00 00 00 
-1098   183B 00 00 00 00 
-1098   183F 00 00 00 00 
-1098   1843 00 00 00 00 
-1098   1847 00 00 00 00 
-1098   184B 00 00 00 00 
-1098   184F 00 00 00 00 
-1098   1853 00 00 00 00 
-1098   1857 00 00 00 00 
-1098   185B 00 00 00 00 
-1098   185F 00 00 00 00 
-1098   1863 00 00 00 00 
-1098   1867 00 00 00 00 
-1098   186B 00 00 00 00 
-1098   186F 00 00 00 00 
-1098   1873 00 00 00 00 
-1098   1877 00 00 00 00 
-1098   187B 00 00 00 00 
-1098   187F 00 00 00 00 
-1098   1883 00 00 00 00 
-1098   1887 00 00 00 00 
-1098   188B 00 00 00 00 
-1098   188F 00 00 00 00 
-1098   1893 00 00 00 00 
-1099   1897 00 00       _x: .fill 2, 0
-1100   1899 00 00       _y: .fill 2, 0
-1101   189B 00 00       _dx: .fill 2, 0
-1102   189D 00 00       _dy: .fill 2, 0
-1103   189F 00 00       _nx: .fill 2, 0
-1104   18A1 00 00       _ny: .fill 2, 0
-1105   18A3 00 00       _head_count: .fill 2, 0
-1106   18A5 00          _c: .fill 1, 0
-1107   18A6             
-1108   18A6 A8 18       _heap_top: .dw _heap
-1109   18A8 00          _heap: .db 0
-1110   18A9             ; --- END DATA SEGMENT
-1111   18A9             
-1112   18A9             .end
+0219   05E9 FD 43         mov [d], b
+0220   05EB 27            mov b, a
+0221   05EC 0A 9E 05      jmp _for1_cond
+0222   05EF             _for1_exit:
+0223   05EF             ; grid[7][15] = CONDUCTOR; 
+0224   05EF 3B 08 0C      mov d, _grid_data ; $grid
+0225   05F2 D7            push a
+0226   05F3 DA            push d
+0227   05F4 FD 2E 07 00   mov32 cb, $00000007
+0227   05F8 00 00 
+0228   05FA E7            pop d
+0229   05FB FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
+0230   05FF DA            push d
+0231   0600 FD 2E 0F 00   mov32 cb, $0000000f
+0231   0604 00 00 
+0232   0606 E7            pop d
+0233   0607 FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
+0234   060B E4            pop a
+0235   060C DA            push d
+0236   060D FD 2E 01 00   mov32 cb, $1 ; enum element: CONDUCTOR
+0236   0611 00 00 
+0237   0613 E7            pop d
+0238   0614 FD 43         mov [d], b
+0239   0616             ; grid[6][15] = ELECTRON_TAIL; 
+0240   0616 3B 08 0C      mov d, _grid_data ; $grid
+0241   0619 D7            push a
+0242   061A DA            push d
+0243   061B FD 2E 06 00   mov32 cb, $00000006
+0243   061F 00 00 
+0244   0621 E7            pop d
+0245   0622 FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
+0246   0626 DA            push d
+0247   0627 FD 2E 0F 00   mov32 cb, $0000000f
+0247   062B 00 00 
+0248   062D E7            pop d
+0249   062E FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
+0250   0632 E4            pop a
+0251   0633 DA            push d
+0252   0634 FD 2E 03 00   mov32 cb, $3 ; enum element: ELECTRON_TAIL
+0252   0638 00 00 
+0253   063A E7            pop d
+0254   063B FD 43         mov [d], b
+0255   063D             ; grid[8][15] = ELECTRON_TAIL; 
+0256   063D 3B 08 0C      mov d, _grid_data ; $grid
+0257   0640 D7            push a
+0258   0641 DA            push d
+0259   0642 FD 2E 08 00   mov32 cb, $00000008
+0259   0646 00 00 
+0260   0648 E7            pop d
+0261   0649 FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
+0262   064D DA            push d
+0263   064E FD 2E 0F 00   mov32 cb, $0000000f
+0263   0652 00 00 
+0264   0654 E7            pop d
+0265   0655 FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
+0266   0659 E4            pop a
+0267   065A DA            push d
+0268   065B FD 2E 03 00   mov32 cb, $3 ; enum element: ELECTRON_TAIL
+0268   065F 00 00 
+0269   0661 E7            pop d
+0270   0662 FD 43         mov [d], b
+0271   0664             ; grid[6][16] = CONDUCTOR; 
+0272   0664 3B 08 0C      mov d, _grid_data ; $grid
+0273   0667 D7            push a
+0274   0668 DA            push d
+0275   0669 FD 2E 06 00   mov32 cb, $00000006
+0275   066D 00 00 
+0276   066F E7            pop d
+0277   0670 FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
+0278   0674 DA            push d
+0279   0675 FD 2E 10 00   mov32 cb, $00000010
+0279   0679 00 00 
+0280   067B E7            pop d
+0281   067C FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
+0282   0680 E4            pop a
+0283   0681 DA            push d
+0284   0682 FD 2E 01 00   mov32 cb, $1 ; enum element: CONDUCTOR
+0284   0686 00 00 
+0285   0688 E7            pop d
+0286   0689 FD 43         mov [d], b
+0287   068B             ; grid[8][16] = CONDUCTOR; 
+0288   068B 3B 08 0C      mov d, _grid_data ; $grid
+0289   068E D7            push a
+0290   068F DA            push d
+0291   0690 FD 2E 08 00   mov32 cb, $00000008
+0291   0694 00 00 
+0292   0696 E7            pop d
+0293   0697 FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
+0294   069B DA            push d
+0295   069C FD 2E 10 00   mov32 cb, $00000010
+0295   06A0 00 00 
+0296   06A2 E7            pop d
+0297   06A3 FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
+0298   06A7 E4            pop a
+0299   06A8 DA            push d
+0300   06A9 FD 2E 01 00   mov32 cb, $1 ; enum element: CONDUCTOR
+0300   06AD 00 00 
+0301   06AF E7            pop d
+0302   06B0 FD 43         mov [d], b
+0303   06B2             ; for (i = 17; i <= 25; i++) { 
+0304   06B2             _for2_init:
+0305   06B2 FA FF FF      lea d, [bp + -1] ; $i
+0306   06B5 DA            push d
+0307   06B6 FD 2E 11 00   mov32 cb, $00000011
+0307   06BA 00 00 
+0308   06BC E7            pop d
+0309   06BD FD 43         mov [d], b
+0310   06BF             _for2_cond:
+0311   06BF FA FF FF      lea d, [bp + -1] ; $i
+0312   06C2 2A            mov b, [d]
+0313   06C3 38 00 00      mov c, 0
+0314   06C6             ; --- START RELATIONAL
+0315   06C6 D7            push a
+0316   06C7 11            mov a, b
+0317   06C8 FD 2E 19 00   mov32 cb, $00000019
+0317   06CC 00 00 
+0318   06CE B0            cmp a, b
+0319   06CF FD 74         sle ; <= (signed)
+0320   06D1 E4            pop a
+0321   06D2             ; --- END RELATIONAL
+0322   06D2 C0 00 00      cmp b, 0
+0323   06D5 C6 10 07      je _for2_exit
+0324   06D8             _for2_block:
+0325   06D8             ; grid[7][i] = CONDUCTOR; 
+0326   06D8 3B 08 0C      mov d, _grid_data ; $grid
+0327   06DB D7            push a
+0328   06DC DA            push d
+0329   06DD FD 2E 07 00   mov32 cb, $00000007
+0329   06E1 00 00 
+0330   06E3 E7            pop d
+0331   06E4 FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
+0332   06E8 DA            push d
+0333   06E9 FA FF FF      lea d, [bp + -1] ; $i
+0334   06EC 2A            mov b, [d]
+0335   06ED 38 00 00      mov c, 0
+0336   06F0 E7            pop d
+0337   06F1 FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
+0338   06F5 E4            pop a
+0339   06F6 DA            push d
+0340   06F7 FD 2E 01 00   mov32 cb, $1 ; enum element: CONDUCTOR
+0340   06FB 00 00 
+0341   06FD E7            pop d
+0342   06FE FD 43         mov [d], b
+0343   0700             _for2_update:
+0344   0700 FA FF FF      lea d, [bp + -1] ; $i
+0345   0703 2A            mov b, [d]
+0346   0704 38 00 00      mov c, 0
+0347   0707 11            mov a, b
+0348   0708 FD 77         inc b
+0349   070A FD 43         mov [d], b
+0350   070C 27            mov b, a
+0351   070D 0A BF 06      jmp _for2_cond
+0352   0710             _for2_exit:
+0353   0710             ; while (1) { 
+0354   0710             _while3_cond:
+0355   0710 FD 2E 01 00   mov32 cb, $00000001
+0355   0714 00 00 
+0356   0716 C0 00 00      cmp b, 0
+0357   0719 C6 25 07      je _while3_exit
+0358   071C             _while3_block:
+0359   071C             ; print_grid(); 
+0360   071C             ; --- START FUNCTION CALL
+0361   071C 07 2E 07      call print_grid
+0362   071F             ; iterate(); 
+0363   071F             ; --- START FUNCTION CALL
+0364   071F 07 36 08      call iterate
+0365   0722 0A 10 07      jmp _while3_cond
+0366   0725             _while3_exit:
+0367   0725             ; return 0; 
+0368   0725 FD 2E 00 00   mov32 cb, $00000000
+0368   0729 00 00 
+0369   072B F9            leave
+0370   072C 05 0B         syscall sys_terminate_proc
+0371   072E             
+0372   072E             print_grid:
+0373   072E F8 00 00      enter 0 ; (push bp; mov bp, sp)
+0374   0731             ; for (y = 0; y < 20; ++y) { 
+0375   0731             _for4_init:
+0376   0731 3B 8A 18      mov d, _y ; $y
+0377   0734 DA            push d
+0378   0735 FD 2E 00 00   mov32 cb, $00000000
+0378   0739 00 00 
+0379   073B E7            pop d
+0380   073C FD 43         mov [d], b
+0381   073E             _for4_cond:
+0382   073E 3B 8A 18      mov d, _y ; $y
+0383   0741 2A            mov b, [d]
+0384   0742 38 00 00      mov c, 0
+0385   0745             ; --- START RELATIONAL
+0386   0745 D7            push a
+0387   0746 11            mov a, b
+0388   0747 FD 2E 14 00   mov32 cb, $00000014
+0388   074B 00 00 
+0389   074D B0            cmp a, b
+0390   074E FD 73         slt ; < (signed)
+0391   0750 E4            pop a
+0392   0751             ; --- END RELATIONAL
+0393   0751 C0 00 00      cmp b, 0
+0394   0754 C6 34 08      je _for4_exit
+0395   0757             _for4_block:
+0396   0757             ; for (x = 0; x < 40; ++x) { 
+0397   0757             _for5_init:
+0398   0757 3B 88 18      mov d, _x ; $x
+0399   075A DA            push d
+0400   075B FD 2E 00 00   mov32 cb, $00000000
+0400   075F 00 00 
+0401   0761 E7            pop d
+0402   0762 FD 43         mov [d], b
+0403   0764             _for5_cond:
+0404   0764 3B 88 18      mov d, _x ; $x
+0405   0767 2A            mov b, [d]
+0406   0768 38 00 00      mov c, 0
+0407   076B             ; --- START RELATIONAL
+0408   076B D7            push a
+0409   076C 11            mov a, b
+0410   076D FD 2E 28 00   mov32 cb, $00000028
+0410   0771 00 00 
+0411   0773 B0            cmp a, b
+0412   0774 FD 73         slt ; < (signed)
+0413   0776 E4            pop a
+0414   0777             ; --- END RELATIONAL
+0415   0777 C0 00 00      cmp b, 0
+0416   077A C6 19 08      je _for5_exit
+0417   077D             _for5_block:
+0418   077D             ; switch (grid[y][x]) { 
+0419   077D             _switch6_expr:
+0420   077D 3B 08 0C      mov d, _grid_data ; $grid
+0421   0780 D7            push a
+0422   0781 DA            push d
+0423   0782 3B 8A 18      mov d, _y ; $y
+0424   0785 2A            mov b, [d]
+0425   0786 38 00 00      mov c, 0
+0426   0789 E7            pop d
+0427   078A FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
+0428   078E DA            push d
+0429   078F 3B 88 18      mov d, _x ; $x
+0430   0792 2A            mov b, [d]
+0431   0793 38 00 00      mov c, 0
+0432   0796 E7            pop d
+0433   0797 FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
+0434   079B E4            pop a
+0435   079C 2A            mov b, [d]
+0436   079D 38 00 00      mov c, 0
+0437   07A0             _switch6_comparisons:
+0438   07A0 C0 00 00      cmp b, 0
+0439   07A3 C6 BB 07      je _switch6_case0
+0440   07A6 C0 01 00      cmp b, 1
+0441   07A9 C6 CB 07      je _switch6_case1
+0442   07AC C0 02 00      cmp b, 2
+0443   07AF C6 DB 07      je _switch6_case2
+0444   07B2 C0 03 00      cmp b, 3
+0445   07B5 C6 EB 07      je _switch6_case3
+0446   07B8 0A FB 07      jmp _switch6_exit
+0447   07BB             _switch6_case0:
+0448   07BB             ; c = ' '; break; 
+0449   07BB 3B 96 18      mov d, _c ; $c
+0450   07BE DA            push d
+0451   07BF FD 2E 20 00   mov32 cb, $00000020
+0451   07C3 00 00 
+0452   07C5 E7            pop d
+0453   07C6 FD 3E         mov [d], bl
+0454   07C8             ; break; 
+0455   07C8 0A FB 07      jmp _switch6_exit ; case break
+0456   07CB             _switch6_case1:
+0457   07CB             ; c = '*'; break; 
+0458   07CB 3B 96 18      mov d, _c ; $c
+0459   07CE DA            push d
+0460   07CF FD 2E 2A 00   mov32 cb, $0000002a
+0460   07D3 00 00 
+0461   07D5 E7            pop d
+0462   07D6 FD 3E         mov [d], bl
+0463   07D8             ; break; 
+0464   07D8 0A FB 07      jmp _switch6_exit ; case break
+0465   07DB             _switch6_case2:
+0466   07DB             ; c = 'H'; break; 
+0467   07DB 3B 96 18      mov d, _c ; $c
+0468   07DE DA            push d
+0469   07DF FD 2E 48 00   mov32 cb, $00000048
+0469   07E3 00 00 
+0470   07E5 E7            pop d
+0471   07E6 FD 3E         mov [d], bl
+0472   07E8             ; break; 
+0473   07E8 0A FB 07      jmp _switch6_exit ; case break
+0474   07EB             _switch6_case3:
+0475   07EB             ; c = 'T'; break; 
+0476   07EB 3B 96 18      mov d, _c ; $c
+0477   07EE DA            push d
+0478   07EF FD 2E 54 00   mov32 cb, $00000054
+0478   07F3 00 00 
+0479   07F5 E7            pop d
+0480   07F6 FD 3E         mov [d], bl
+0481   07F8             ; break; 
+0482   07F8 0A FB 07      jmp _switch6_exit ; case break
+0483   07FB             _switch6_exit:
+0484   07FB             ; putchar(c); 
+0485   07FB             ; --- START FUNCTION CALL
+0486   07FB 3B 96 18      mov d, _c ; $c
+0487   07FE 32            mov bl, [d]
+0488   07FF A7 00         mov bh, 0
+0489   0801 38 00 00      mov c, 0
+0490   0804 DD            push bl
+0491   0805 07 FA 0B      call putchar
+0492   0808 51 01 00      add sp, 1
+0493   080B             ; --- END FUNCTION CALL
+0494   080B             _for5_update:
+0495   080B 3B 88 18      mov d, _x ; $x
+0496   080E 2A            mov b, [d]
+0497   080F FD 77         inc b
+0498   0811 3B 88 18      mov d, _x ; $x
+0499   0814 FD 43         mov [d], b
+0500   0816 0A 64 07      jmp _for5_cond
+0501   0819             _for5_exit:
+0502   0819             ; putchar('\n'); 
+0503   0819             ; --- START FUNCTION CALL
+0504   0819 FD 2E 0A 00   mov32 cb, $0000000a
+0504   081D 00 00 
+0505   081F DD            push bl
+0506   0820 07 FA 0B      call putchar
+0507   0823 51 01 00      add sp, 1
+0508   0826             ; --- END FUNCTION CALL
+0509   0826             _for4_update:
+0510   0826 3B 8A 18      mov d, _y ; $y
+0511   0829 2A            mov b, [d]
+0512   082A FD 77         inc b
+0513   082C 3B 8A 18      mov d, _y ; $y
+0514   082F FD 43         mov [d], b
+0515   0831 0A 3E 07      jmp _for4_cond
+0516   0834             _for4_exit:
+0517   0834             ; return; 
+0518   0834 F9            leave
+0519   0835 09            ret
+0520   0836             
+0521   0836             iterate:
+0522   0836 F8 00 00      enter 0 ; (push bp; mov bp, sp)
+0523   0839             ; for (y = 0; y < 20; ++y){ 
+0524   0839             _for7_init:
+0525   0839 3B 8A 18      mov d, _y ; $y
+0526   083C DA            push d
+0527   083D FD 2E 00 00   mov32 cb, $00000000
+0527   0841 00 00 
+0528   0843 E7            pop d
+0529   0844 FD 43         mov [d], b
+0530   0846             _for7_cond:
+0531   0846 3B 8A 18      mov d, _y ; $y
+0532   0849 2A            mov b, [d]
+0533   084A 38 00 00      mov c, 0
+0534   084D             ; --- START RELATIONAL
+0535   084D D7            push a
+0536   084E 11            mov a, b
+0537   084F FD 2E 14 00   mov32 cb, $00000014
+0537   0853 00 00 
+0538   0855 B0            cmp a, b
+0539   0856 FD 73         slt ; < (signed)
+0540   0858 E4            pop a
+0541   0859             ; --- END RELATIONAL
+0542   0859 C0 00 00      cmp b, 0
+0543   085C C6 4A 0B      je _for7_exit
+0544   085F             _for7_block:
+0545   085F             ; for (x = 0; x < 40; ++x){ 
+0546   085F             _for8_init:
+0547   085F 3B 88 18      mov d, _x ; $x
+0548   0862 DA            push d
+0549   0863 FD 2E 00 00   mov32 cb, $00000000
+0549   0867 00 00 
+0550   0869 E7            pop d
+0551   086A FD 43         mov [d], b
+0552   086C             _for8_cond:
+0553   086C 3B 88 18      mov d, _x ; $x
+0554   086F 2A            mov b, [d]
+0555   0870 38 00 00      mov c, 0
+0556   0873             ; --- START RELATIONAL
+0557   0873 D7            push a
+0558   0874 11            mov a, b
+0559   0875 FD 2E 28 00   mov32 cb, $00000028
+0559   0879 00 00 
+0560   087B B0            cmp a, b
+0561   087C FD 73         slt ; < (signed)
+0562   087E E4            pop a
+0563   087F             ; --- END RELATIONAL
+0564   087F C0 00 00      cmp b, 0
+0565   0882 C6 3C 0B      je _for8_exit
+0566   0885             _for8_block:
+0567   0885             ; head_count = 0; 
+0568   0885 3B 94 18      mov d, _head_count ; $head_count
+0569   0888 DA            push d
+0570   0889 FD 2E 00 00   mov32 cb, $00000000
+0570   088D 00 00 
+0571   088F E7            pop d
+0572   0890 FD 43         mov [d], b
+0573   0892             ; for (dy = -1; dy <= 1; dy++){ 
+0574   0892             _for9_init:
+0575   0892 3B 8E 18      mov d, _dy ; $dy
+0576   0895 DA            push d
+0577   0896 FD 2E FF FF   mov32 cb, $ffffffff
+0577   089A FF FF 
+0578   089C E7            pop d
+0579   089D FD 43         mov [d], b
+0580   089F             _for9_cond:
+0581   089F 3B 8E 18      mov d, _dy ; $dy
+0582   08A2 2A            mov b, [d]
+0583   08A3 38 00 00      mov c, 0
+0584   08A6             ; --- START RELATIONAL
+0585   08A6 D7            push a
+0586   08A7 11            mov a, b
+0587   08A8 FD 2E 01 00   mov32 cb, $00000001
+0587   08AC 00 00 
+0588   08AE B0            cmp a, b
+0589   08AF FD 74         sle ; <= (signed)
+0590   08B1 E4            pop a
+0591   08B2             ; --- END RELATIONAL
+0592   08B2 C0 00 00      cmp b, 0
+0593   08B5 C6 06 0A      je _for9_exit
+0594   08B8             _for9_block:
+0595   08B8             ; for (dx = -1; dx <= 1; dx++) { 
+0596   08B8             _for10_init:
+0597   08B8 3B 8C 18      mov d, _dx ; $dx
+0598   08BB DA            push d
+0599   08BC FD 2E FF FF   mov32 cb, $ffffffff
+0599   08C0 FF FF 
+0600   08C2 E7            pop d
+0601   08C3 FD 43         mov [d], b
+0602   08C5             _for10_cond:
+0603   08C5 3B 8C 18      mov d, _dx ; $dx
+0604   08C8 2A            mov b, [d]
+0605   08C9 38 00 00      mov c, 0
+0606   08CC             ; --- START RELATIONAL
+0607   08CC D7            push a
+0608   08CD 11            mov a, b
+0609   08CE FD 2E 01 00   mov32 cb, $00000001
+0609   08D2 00 00 
+0610   08D4 B0            cmp a, b
+0611   08D5 FD 74         sle ; <= (signed)
+0612   08D7 E4            pop a
+0613   08D8             ; --- END RELATIONAL
+0614   08D8 C0 00 00      cmp b, 0
+0615   08DB C6 F6 09      je _for10_exit
+0616   08DE             _for10_block:
+0617   08DE             ; if (dx == 0 && dy == 0) continue; 
+0618   08DE             _if11_cond:
+0619   08DE 3B 8C 18      mov d, _dx ; $dx
+0620   08E1 2A            mov b, [d]
+0621   08E2 38 00 00      mov c, 0
+0622   08E5             ; --- START RELATIONAL
+0623   08E5 D7            push a
+0624   08E6 11            mov a, b
+0625   08E7 FD 2E 00 00   mov32 cb, $00000000
+0625   08EB 00 00 
+0626   08ED B0            cmp a, b
+0627   08EE FD 71         seq ; ==
+0628   08F0 E4            pop a
+0629   08F1             ; --- END RELATIONAL
+0630   08F1             ; --- START LOGICAL AND
+0631   08F1 D7            push a
+0632   08F2 11            mov a, b
+0633   08F3 3B 8E 18      mov d, _dy ; $dy
+0634   08F6 2A            mov b, [d]
+0635   08F7 38 00 00      mov c, 0
+0636   08FA             ; --- START RELATIONAL
+0637   08FA D7            push a
+0638   08FB 11            mov a, b
+0639   08FC FD 2E 00 00   mov32 cb, $00000000
+0639   0900 00 00 
+0640   0902 B0            cmp a, b
+0641   0903 FD 71         seq ; ==
+0642   0905 E4            pop a
+0643   0906             ; --- END RELATIONAL
+0644   0906 FD A7         sand a, b
+0645   0908 E4            pop a
+0646   0909             ; --- END LOGICAL AND
+0647   0909 C0 00 00      cmp b, 0
+0648   090C C6 15 09      je _if11_exit
+0649   090F             _if11_TRUE:
+0650   090F             ; continue; 
+0651   090F 0A E6 09      jmp _for10_update ; for continue
+0652   0912 0A 15 09      jmp _if11_exit
+0653   0915             _if11_exit:
+0654   0915             ; nx = x + dx; 
+0655   0915 3B 90 18      mov d, _nx ; $nx
+0656   0918 DA            push d
+0657   0919 3B 88 18      mov d, _x ; $x
+0658   091C 2A            mov b, [d]
+0659   091D 38 00 00      mov c, 0
+0660   0920             ; --- START TERMS
+0661   0920 D7            push a
+0662   0921 11            mov a, b
+0663   0922 3B 8C 18      mov d, _dx ; $dx
+0664   0925 2A            mov b, [d]
+0665   0926 38 00 00      mov c, 0
+0666   0929 56            add b, a
+0667   092A E4            pop a
+0668   092B             ; --- END TERMS
+0669   092B E7            pop d
+0670   092C FD 43         mov [d], b
+0671   092E             ; ny = y + dy; 
+0672   092E 3B 92 18      mov d, _ny ; $ny
+0673   0931 DA            push d
+0674   0932 3B 8A 18      mov d, _y ; $y
+0675   0935 2A            mov b, [d]
+0676   0936 38 00 00      mov c, 0
+0677   0939             ; --- START TERMS
+0678   0939 D7            push a
+0679   093A 11            mov a, b
+0680   093B 3B 8E 18      mov d, _dy ; $dy
+0681   093E 2A            mov b, [d]
+0682   093F 38 00 00      mov c, 0
+0683   0942 56            add b, a
+0684   0943 E4            pop a
+0685   0944             ; --- END TERMS
+0686   0944 E7            pop d
+0687   0945 FD 43         mov [d], b
+0688   0947             ; if (nx >= 0 && nx < 40 && ny >= 0 && ny < 20 && grid[ny][nx] == ELECTRON_HEAD){ 
+0689   0947             _if12_cond:
+0690   0947 3B 90 18      mov d, _nx ; $nx
+0691   094A 2A            mov b, [d]
+0692   094B 38 00 00      mov c, 0
+0693   094E             ; --- START RELATIONAL
+0694   094E D7            push a
+0695   094F 11            mov a, b
+0696   0950 FD 2E 00 00   mov32 cb, $00000000
+0696   0954 00 00 
+0697   0956 B0            cmp a, b
+0698   0957 FD 80         sge ; >=
+0699   0959 E4            pop a
+0700   095A             ; --- END RELATIONAL
+0701   095A             ; --- START LOGICAL AND
+0702   095A D7            push a
+0703   095B 11            mov a, b
+0704   095C 3B 90 18      mov d, _nx ; $nx
+0705   095F 2A            mov b, [d]
+0706   0960 38 00 00      mov c, 0
+0707   0963             ; --- START RELATIONAL
+0708   0963 D7            push a
+0709   0964 11            mov a, b
+0710   0965 FD 2E 28 00   mov32 cb, $00000028
+0710   0969 00 00 
+0711   096B B0            cmp a, b
+0712   096C FD 73         slt ; < (signed)
+0713   096E E4            pop a
+0714   096F             ; --- END RELATIONAL
+0715   096F FD A7         sand a, b
+0716   0971 11            mov a, b
+0717   0972 3B 92 18      mov d, _ny ; $ny
+0718   0975 2A            mov b, [d]
+0719   0976 38 00 00      mov c, 0
+0720   0979             ; --- START RELATIONAL
+0721   0979 D7            push a
+0722   097A 11            mov a, b
+0723   097B FD 2E 00 00   mov32 cb, $00000000
+0723   097F 00 00 
+0724   0981 B0            cmp a, b
+0725   0982 FD 80         sge ; >=
+0726   0984 E4            pop a
+0727   0985             ; --- END RELATIONAL
+0728   0985 FD A7         sand a, b
+0729   0987 11            mov a, b
+0730   0988 3B 92 18      mov d, _ny ; $ny
+0731   098B 2A            mov b, [d]
+0732   098C 38 00 00      mov c, 0
+0733   098F             ; --- START RELATIONAL
+0734   098F D7            push a
+0735   0990 11            mov a, b
+0736   0991 FD 2E 14 00   mov32 cb, $00000014
+0736   0995 00 00 
+0737   0997 B0            cmp a, b
+0738   0998 FD 73         slt ; < (signed)
+0739   099A E4            pop a
+0740   099B             ; --- END RELATIONAL
+0741   099B FD A7         sand a, b
+0742   099D 11            mov a, b
+0743   099E 3B 08 0C      mov d, _grid_data ; $grid
+0744   09A1 D7            push a
+0745   09A2 DA            push d
+0746   09A3 3B 92 18      mov d, _ny ; $ny
+0747   09A6 2A            mov b, [d]
+0748   09A7 38 00 00      mov c, 0
+0749   09AA E7            pop d
+0750   09AB FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
+0751   09AF DA            push d
+0752   09B0 3B 90 18      mov d, _nx ; $nx
+0753   09B3 2A            mov b, [d]
+0754   09B4 38 00 00      mov c, 0
+0755   09B7 E7            pop d
+0756   09B8 FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
+0757   09BC E4            pop a
+0758   09BD 2A            mov b, [d]
+0759   09BE 38 00 00      mov c, 0
+0760   09C1             ; --- START RELATIONAL
+0761   09C1 D7            push a
+0762   09C2 11            mov a, b
+0763   09C3 FD 2E 02 00   mov32 cb, $2 ; enum element: ELECTRON_HEAD
+0763   09C7 00 00 
+0764   09C9 B0            cmp a, b
+0765   09CA FD 71         seq ; ==
+0766   09CC E4            pop a
+0767   09CD             ; --- END RELATIONAL
+0768   09CD FD A7         sand a, b
+0769   09CF E4            pop a
+0770   09D0             ; --- END LOGICAL AND
+0771   09D0 C0 00 00      cmp b, 0
+0772   09D3 C6 E6 09      je _if12_exit
+0773   09D6             _if12_TRUE:
+0774   09D6             ; head_count++; 
+0775   09D6 3B 94 18      mov d, _head_count ; $head_count
+0776   09D9 2A            mov b, [d]
+0777   09DA 38 00 00      mov c, 0
+0778   09DD 11            mov a, b
+0779   09DE FD 77         inc b
+0780   09E0 FD 43         mov [d], b
+0781   09E2 27            mov b, a
+0782   09E3 0A E6 09      jmp _if12_exit
+0783   09E6             _if12_exit:
+0784   09E6             _for10_update:
+0785   09E6 3B 8C 18      mov d, _dx ; $dx
+0786   09E9 2A            mov b, [d]
+0787   09EA 38 00 00      mov c, 0
+0788   09ED 11            mov a, b
+0789   09EE FD 77         inc b
+0790   09F0 FD 43         mov [d], b
+0791   09F2 27            mov b, a
+0792   09F3 0A C5 08      jmp _for10_cond
+0793   09F6             _for10_exit:
+0794   09F6             _for9_update:
+0795   09F6 3B 8E 18      mov d, _dy ; $dy
+0796   09F9 2A            mov b, [d]
+0797   09FA 38 00 00      mov c, 0
+0798   09FD 11            mov a, b
+0799   09FE FD 77         inc b
+0800   0A00 FD 43         mov [d], b
+0801   0A02 27            mov b, a
+0802   0A03 0A 9F 08      jmp _for9_cond
+0803   0A06             _for9_exit:
+0804   0A06             ; switch (grid[y][x]) { 
+0805   0A06             _switch13_expr:
+0806   0A06 3B 08 0C      mov d, _grid_data ; $grid
+0807   0A09 D7            push a
+0808   0A0A DA            push d
+0809   0A0B 3B 8A 18      mov d, _y ; $y
+0810   0A0E 2A            mov b, [d]
+0811   0A0F 38 00 00      mov c, 0
+0812   0A12 E7            pop d
+0813   0A13 FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
+0814   0A17 DA            push d
+0815   0A18 3B 88 18      mov d, _x ; $x
+0816   0A1B 2A            mov b, [d]
+0817   0A1C 38 00 00      mov c, 0
+0818   0A1F E7            pop d
+0819   0A20 FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
+0820   0A24 E4            pop a
+0821   0A25 2A            mov b, [d]
+0822   0A26 38 00 00      mov c, 0
+0823   0A29             _switch13_comparisons:
+0824   0A29 C0 00 00      cmp b, 0
+0825   0A2C C6 44 0A      je _switch13_case0
+0826   0A2F C0 01 00      cmp b, 1
+0827   0A32 C6 70 0A      je _switch13_case1
+0828   0A35 C0 02 00      cmp b, 2
+0829   0A38 C6 D6 0A      je _switch13_case2
+0830   0A3B C0 03 00      cmp b, 3
+0831   0A3E C6 02 0B      je _switch13_case3
+0832   0A41 0A 2E 0B      jmp _switch13_exit
+0833   0A44             _switch13_case0:
+0834   0A44             ; new_grid[y][x] = EMPTY; break; 
+0835   0A44 3B 48 12      mov d, _new_grid_data ; $new_grid
+0836   0A47 D7            push a
+0837   0A48 DA            push d
+0838   0A49 3B 8A 18      mov d, _y ; $y
+0839   0A4C 2A            mov b, [d]
+0840   0A4D 38 00 00      mov c, 0
+0841   0A50 E7            pop d
+0842   0A51 FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
+0843   0A55 DA            push d
+0844   0A56 3B 88 18      mov d, _x ; $x
+0845   0A59 2A            mov b, [d]
+0846   0A5A 38 00 00      mov c, 0
+0847   0A5D E7            pop d
+0848   0A5E FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
+0849   0A62 E4            pop a
+0850   0A63 DA            push d
+0851   0A64 FD 2E 00 00   mov32 cb, $0 ; enum element: EMPTY
+0851   0A68 00 00 
+0852   0A6A E7            pop d
+0853   0A6B FD 43         mov [d], b
+0854   0A6D             ; break; 
+0855   0A6D 0A 2E 0B      jmp _switch13_exit ; case break
+0856   0A70             _switch13_case1:
+0857   0A70             ; new_grid[y][x] = (head_count == 1 || head_count == 2) ? ELECTRON_HEAD : CONDUCTOR; break; 
+0858   0A70 3B 48 12      mov d, _new_grid_data ; $new_grid
+0859   0A73 D7            push a
+0860   0A74 DA            push d
+0861   0A75 3B 8A 18      mov d, _y ; $y
+0862   0A78 2A            mov b, [d]
+0863   0A79 38 00 00      mov c, 0
+0864   0A7C E7            pop d
+0865   0A7D FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
+0866   0A81 DA            push d
+0867   0A82 3B 88 18      mov d, _x ; $x
+0868   0A85 2A            mov b, [d]
+0869   0A86 38 00 00      mov c, 0
+0870   0A89 E7            pop d
+0871   0A8A FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
+0872   0A8E E4            pop a
+0873   0A8F DA            push d
+0874   0A90             _ternary14_cond:
+0875   0A90 3B 94 18      mov d, _head_count ; $head_count
+0876   0A93 2A            mov b, [d]
+0877   0A94 38 00 00      mov c, 0
+0878   0A97             ; --- START RELATIONAL
+0879   0A97 D7            push a
+0880   0A98 11            mov a, b
+0881   0A99 FD 2E 01 00   mov32 cb, $00000001
+0881   0A9D 00 00 
+0882   0A9F B0            cmp a, b
+0883   0AA0 FD 71         seq ; ==
+0884   0AA2 E4            pop a
+0885   0AA3             ; --- END RELATIONAL
+0886   0AA3             ; --- START LOGICAL OR
+0887   0AA3 D7            push a
+0888   0AA4 11            mov a, b
+0889   0AA5 3B 94 18      mov d, _head_count ; $head_count
+0890   0AA8 2A            mov b, [d]
+0891   0AA9 38 00 00      mov c, 0
+0892   0AAC             ; --- START RELATIONAL
+0893   0AAC D7            push a
+0894   0AAD 11            mov a, b
+0895   0AAE FD 2E 02 00   mov32 cb, $00000002
+0895   0AB2 00 00 
+0896   0AB4 B0            cmp a, b
+0897   0AB5 FD 71         seq ; ==
+0898   0AB7 E4            pop a
+0899   0AB8             ; --- END RELATIONAL
+0900   0AB8 FD A8         sor a, b ; ||
+0901   0ABA E4            pop a
+0902   0ABB             ; --- END LOGICAL OR
+0903   0ABB C0 00 00      cmp b, 0
+0904   0ABE C6 CA 0A      je _ternary14_FALSE
+0905   0AC1             _ternary14_TRUE:
+0906   0AC1 FD 2E 02 00   mov32 cb, $2 ; enum element: ELECTRON_HEAD
+0906   0AC5 00 00 
+0907   0AC7 0A D0 0A      jmp _ternary14_exit
+0908   0ACA             _ternary14_FALSE:
+0909   0ACA FD 2E 01 00   mov32 cb, $1 ; enum element: CONDUCTOR
+0909   0ACE 00 00 
+0910   0AD0             _ternary14_exit:
+0911   0AD0 E7            pop d
+0912   0AD1 FD 43         mov [d], b
+0913   0AD3             ; break; 
+0914   0AD3 0A 2E 0B      jmp _switch13_exit ; case break
+0915   0AD6             _switch13_case2:
+0916   0AD6             ; new_grid[y][x] = ELECTRON_TAIL; break; 
+0917   0AD6 3B 48 12      mov d, _new_grid_data ; $new_grid
+0918   0AD9 D7            push a
+0919   0ADA DA            push d
+0920   0ADB 3B 8A 18      mov d, _y ; $y
+0921   0ADE 2A            mov b, [d]
+0922   0ADF 38 00 00      mov c, 0
+0923   0AE2 E7            pop d
+0924   0AE3 FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
+0925   0AE7 DA            push d
+0926   0AE8 3B 88 18      mov d, _x ; $x
+0927   0AEB 2A            mov b, [d]
+0928   0AEC 38 00 00      mov c, 0
+0929   0AEF E7            pop d
+0930   0AF0 FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
+0931   0AF4 E4            pop a
+0932   0AF5 DA            push d
+0933   0AF6 FD 2E 03 00   mov32 cb, $3 ; enum element: ELECTRON_TAIL
+0933   0AFA 00 00 
+0934   0AFC E7            pop d
+0935   0AFD FD 43         mov [d], b
+0936   0AFF             ; break; 
+0937   0AFF 0A 2E 0B      jmp _switch13_exit ; case break
+0938   0B02             _switch13_case3:
+0939   0B02             ; new_grid[y][x] = CONDUCTOR; break; 
+0940   0B02 3B 48 12      mov d, _new_grid_data ; $new_grid
+0941   0B05 D7            push a
+0942   0B06 DA            push d
+0943   0B07 3B 8A 18      mov d, _y ; $y
+0944   0B0A 2A            mov b, [d]
+0945   0B0B 38 00 00      mov c, 0
+0946   0B0E E7            pop d
+0947   0B0F FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
+0948   0B13 DA            push d
+0949   0B14 3B 88 18      mov d, _x ; $x
+0950   0B17 2A            mov b, [d]
+0951   0B18 38 00 00      mov c, 0
+0952   0B1B E7            pop d
+0953   0B1C FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
+0954   0B20 E4            pop a
+0955   0B21 DA            push d
+0956   0B22 FD 2E 01 00   mov32 cb, $1 ; enum element: CONDUCTOR
+0956   0B26 00 00 
+0957   0B28 E7            pop d
+0958   0B29 FD 43         mov [d], b
+0959   0B2B             ; break; 
+0960   0B2B 0A 2E 0B      jmp _switch13_exit ; case break
+0961   0B2E             _switch13_exit:
+0962   0B2E             _for8_update:
+0963   0B2E 3B 88 18      mov d, _x ; $x
+0964   0B31 2A            mov b, [d]
+0965   0B32 FD 77         inc b
+0966   0B34 3B 88 18      mov d, _x ; $x
+0967   0B37 FD 43         mov [d], b
+0968   0B39 0A 6C 08      jmp _for8_cond
+0969   0B3C             _for8_exit:
+0970   0B3C             _for7_update:
+0971   0B3C 3B 8A 18      mov d, _y ; $y
+0972   0B3F 2A            mov b, [d]
+0973   0B40 FD 77         inc b
+0974   0B42 3B 8A 18      mov d, _y ; $y
+0975   0B45 FD 43         mov [d], b
+0976   0B47 0A 46 08      jmp _for7_cond
+0977   0B4A             _for7_exit:
+0978   0B4A             ; for (y = 0; y < 20; ++y) { 
+0979   0B4A             _for15_init:
+0980   0B4A 3B 8A 18      mov d, _y ; $y
+0981   0B4D DA            push d
+0982   0B4E FD 2E 00 00   mov32 cb, $00000000
+0982   0B52 00 00 
+0983   0B54 E7            pop d
+0984   0B55 FD 43         mov [d], b
+0985   0B57             _for15_cond:
+0986   0B57 3B 8A 18      mov d, _y ; $y
+0987   0B5A 2A            mov b, [d]
+0988   0B5B 38 00 00      mov c, 0
+0989   0B5E             ; --- START RELATIONAL
+0990   0B5E D7            push a
+0991   0B5F 11            mov a, b
+0992   0B60 FD 2E 14 00   mov32 cb, $00000014
+0992   0B64 00 00 
+0993   0B66 B0            cmp a, b
+0994   0B67 FD 73         slt ; < (signed)
+0995   0B69 E4            pop a
+0996   0B6A             ; --- END RELATIONAL
+0997   0B6A C0 00 00      cmp b, 0
+0998   0B6D C6 F8 0B      je _for15_exit
+0999   0B70             _for15_block:
+1000   0B70             ; for (x = 0; x < 40; ++x) { 
+1001   0B70             _for16_init:
+1002   0B70 3B 88 18      mov d, _x ; $x
+1003   0B73 DA            push d
+1004   0B74 FD 2E 00 00   mov32 cb, $00000000
+1004   0B78 00 00 
+1005   0B7A E7            pop d
+1006   0B7B FD 43         mov [d], b
+1007   0B7D             _for16_cond:
+1008   0B7D 3B 88 18      mov d, _x ; $x
+1009   0B80 2A            mov b, [d]
+1010   0B81 38 00 00      mov c, 0
+1011   0B84             ; --- START RELATIONAL
+1012   0B84 D7            push a
+1013   0B85 11            mov a, b
+1014   0B86 FD 2E 28 00   mov32 cb, $00000028
+1014   0B8A 00 00 
+1015   0B8C B0            cmp a, b
+1016   0B8D FD 73         slt ; < (signed)
+1017   0B8F E4            pop a
+1018   0B90             ; --- END RELATIONAL
+1019   0B90 C0 00 00      cmp b, 0
+1020   0B93 C6 EA 0B      je _for16_exit
+1021   0B96             _for16_block:
+1022   0B96             ; grid[y][x] = new_grid[y][x]; 
+1023   0B96 3B 08 0C      mov d, _grid_data ; $grid
+1024   0B99 D7            push a
+1025   0B9A DA            push d
+1026   0B9B 3B 8A 18      mov d, _y ; $y
+1027   0B9E 2A            mov b, [d]
+1028   0B9F 38 00 00      mov c, 0
+1029   0BA2 E7            pop d
+1030   0BA3 FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
+1031   0BA7 DA            push d
+1032   0BA8 3B 88 18      mov d, _x ; $x
+1033   0BAB 2A            mov b, [d]
+1034   0BAC 38 00 00      mov c, 0
+1035   0BAF E7            pop d
+1036   0BB0 FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
+1037   0BB4 E4            pop a
+1038   0BB5 DA            push d
+1039   0BB6 3B 48 12      mov d, _new_grid_data ; $new_grid
+1040   0BB9 D7            push a
+1041   0BBA DA            push d
+1042   0BBB 3B 8A 18      mov d, _y ; $y
+1043   0BBE 2A            mov b, [d]
+1044   0BBF 38 00 00      mov c, 0
+1045   0BC2 E7            pop d
+1046   0BC3 FD 13 50 00   mma 80 ; mov a, 80; mul a, b; add d, b
+1047   0BC7 DA            push d
+1048   0BC8 3B 88 18      mov d, _x ; $x
+1049   0BCB 2A            mov b, [d]
+1050   0BCC 38 00 00      mov c, 0
+1051   0BCF E7            pop d
+1052   0BD0 FD 13 02 00   mma 2 ; mov a, 2; mul a, b; add d, b
+1053   0BD4 E4            pop a
+1054   0BD5 2A            mov b, [d]
+1055   0BD6 38 00 00      mov c, 0
+1056   0BD9 E7            pop d
+1057   0BDA FD 43         mov [d], b
+1058   0BDC             _for16_update:
+1059   0BDC 3B 88 18      mov d, _x ; $x
+1060   0BDF 2A            mov b, [d]
+1061   0BE0 FD 77         inc b
+1062   0BE2 3B 88 18      mov d, _x ; $x
+1063   0BE5 FD 43         mov [d], b
+1064   0BE7 0A 7D 0B      jmp _for16_cond
+1065   0BEA             _for16_exit:
+1066   0BEA             _for15_update:
+1067   0BEA 3B 8A 18      mov d, _y ; $y
+1068   0BED 2A            mov b, [d]
+1069   0BEE FD 77         inc b
+1070   0BF0 3B 8A 18      mov d, _y ; $y
+1071   0BF3 FD 43         mov [d], b
+1072   0BF5 0A 57 0B      jmp _for15_cond
+1073   0BF8             _for15_exit:
+1074   0BF8             ; return; 
+1075   0BF8 F9            leave
+1076   0BF9 09            ret
+1077   0BFA             
+1078   0BFA             putchar:
+1079   0BFA F8 00 00      enter 0 ; (push bp; mov bp, sp)
+1080   0BFD             ; --- BEGIN INLINE ASM SEGMENT
+1081   0BFD FA 05 00      lea d, [bp + 5] ; $c
+1082   0C00 1E            mov al, [d]
+1083   0C01 23            mov ah, al
+1084   0C02 19 00         mov al, 0
+1085   0C04 05 03         syscall sys_io      ; char in AH
+1086   0C06             ; --- END INLINE ASM SEGMENT
+1087   0C06 F9            leave
+1088   0C07 09            ret
+1089   0C08             ; --- END TEXT SEGMENT
+1090   0C08             
+1091   0C08             ; --- BEGIN DATA SEGMENT
+1092   0C08 00 00 00 00 _grid_data: .fill 1600, 0
+1092   0C0C 00 00 00 00 
+1092   0C10 00 00 00 00 
+1092   0C14 00 00 00 00 
+1092   0C18 00 00 00 00 
+1092   0C1C 00 00 00 00 
+1092   0C20 00 00 00 00 
+1092   0C24 00 00 00 00 
+1092   0C28 00 00 00 00 
+1092   0C2C 00 00 00 00 
+1092   0C30 00 00 00 00 
+1092   0C34 00 00 00 00 
+1092   0C38 00 00 00 00 
+1092   0C3C 00 00 00 00 
+1092   0C40 00 00 00 00 
+1092   0C44 00 00 00 00 
+1092   0C48 00 00 00 00 
+1092   0C4C 00 00 00 00 
+1092   0C50 00 00 00 00 
+1092   0C54 00 00 00 00 
+1092   0C58 00 00 00 00 
+1092   0C5C 00 00 00 00 
+1092   0C60 00 00 00 00 
+1092   0C64 00 00 00 00 
+1092   0C68 00 00 00 00 
+1092   0C6C 00 00 00 00 
+1092   0C70 00 00 00 00 
+1092   0C74 00 00 00 00 
+1092   0C78 00 00 00 00 
+1092   0C7C 00 00 00 00 
+1092   0C80 00 00 00 00 
+1092   0C84 00 00 00 00 
+1092   0C88 00 00 00 00 
+1092   0C8C 00 00 00 00 
+1092   0C90 00 00 00 00 
+1092   0C94 00 00 00 00 
+1092   0C98 00 00 00 00 
+1092   0C9C 00 00 00 00 
+1092   0CA0 00 00 00 00 
+1092   0CA4 00 00 00 00 
+1092   0CA8 00 00 00 00 
+1092   0CAC 00 00 00 00 
+1092   0CB0 00 00 00 00 
+1092   0CB4 00 00 00 00 
+1092   0CB8 00 00 00 00 
+1092   0CBC 00 00 00 00 
+1092   0CC0 00 00 00 00 
+1092   0CC4 00 00 00 00 
+1092   0CC8 00 00 00 00 
+1092   0CCC 00 00 00 00 
+1092   0CD0 00 00 00 00 
+1092   0CD4 00 00 00 00 
+1092   0CD8 00 00 00 00 
+1092   0CDC 00 00 00 00 
+1092   0CE0 00 00 00 00 
+1092   0CE4 00 00 00 00 
+1092   0CE8 00 00 00 00 
+1092   0CEC 00 00 00 00 
+1092   0CF0 00 00 00 00 
+1092   0CF4 00 00 00 00 
+1092   0CF8 00 00 00 00 
+1092   0CFC 00 00 00 00 
+1092   0D00 00 00 00 00 
+1092   0D04 00 00 00 00 
+1092   0D08 00 00 00 00 
+1092   0D0C 00 00 00 00 
+1092   0D10 00 00 00 00 
+1092   0D14 00 00 00 00 
+1092   0D18 00 00 00 00 
+1092   0D1C 00 00 00 00 
+1092   0D20 00 00 00 00 
+1092   0D24 00 00 00 00 
+1092   0D28 00 00 00 00 
+1092   0D2C 00 00 00 00 
+1092   0D30 00 00 00 00 
+1092   0D34 00 00 00 00 
+1092   0D38 00 00 00 00 
+1092   0D3C 00 00 00 00 
+1092   0D40 00 00 00 00 
+1092   0D44 00 00 00 00 
+1092   0D48 00 00 00 00 
+1092   0D4C 00 00 00 00 
+1092   0D50 00 00 00 00 
+1092   0D54 00 00 00 00 
+1092   0D58 00 00 00 00 
+1092   0D5C 00 00 00 00 
+1092   0D60 00 00 00 00 
+1092   0D64 00 00 00 00 
+1092   0D68 00 00 00 00 
+1092   0D6C 00 00 00 00 
+1092   0D70 00 00 00 00 
+1092   0D74 00 00 00 00 
+1092   0D78 00 00 00 00 
+1092   0D7C 00 00 00 00 
+1092   0D80 00 00 00 00 
+1092   0D84 00 00 00 00 
+1092   0D88 00 00 00 00 
+1092   0D8C 00 00 00 00 
+1092   0D90 00 00 00 00 
+1092   0D94 00 00 00 00 
+1092   0D98 00 00 00 00 
+1092   0D9C 00 00 00 00 
+1092   0DA0 00 00 00 00 
+1092   0DA4 00 00 00 00 
+1092   0DA8 00 00 00 00 
+1092   0DAC 00 00 00 00 
+1092   0DB0 00 00 00 00 
+1092   0DB4 00 00 00 00 
+1092   0DB8 00 00 00 00 
+1092   0DBC 00 00 00 00 
+1092   0DC0 00 00 00 00 
+1092   0DC4 00 00 00 00 
+1092   0DC8 00 00 00 00 
+1092   0DCC 00 00 00 00 
+1092   0DD0 00 00 00 00 
+1092   0DD4 00 00 00 00 
+1092   0DD8 00 00 00 00 
+1092   0DDC 00 00 00 00 
+1092   0DE0 00 00 00 00 
+1092   0DE4 00 00 00 00 
+1092   0DE8 00 00 00 00 
+1092   0DEC 00 00 00 00 
+1092   0DF0 00 00 00 00 
+1092   0DF4 00 00 00 00 
+1092   0DF8 00 00 00 00 
+1092   0DFC 00 00 00 00 
+1092   0E00 00 00 00 00 
+1092   0E04 00 00 00 00 
+1092   0E08 00 00 00 00 
+1092   0E0C 00 00 00 00 
+1092   0E10 00 00 00 00 
+1092   0E14 00 00 00 00 
+1092   0E18 00 00 00 00 
+1092   0E1C 00 00 00 00 
+1092   0E20 00 00 00 00 
+1092   0E24 00 00 00 00 
+1092   0E28 00 00 00 00 
+1092   0E2C 00 00 00 00 
+1092   0E30 00 00 00 00 
+1092   0E34 00 00 00 00 
+1092   0E38 00 00 00 00 
+1092   0E3C 00 00 00 00 
+1092   0E40 00 00 00 00 
+1092   0E44 00 00 00 00 
+1092   0E48 00 00 00 00 
+1092   0E4C 00 00 00 00 
+1092   0E50 00 00 00 00 
+1092   0E54 00 00 00 00 
+1092   0E58 00 00 00 00 
+1092   0E5C 00 00 00 00 
+1092   0E60 00 00 00 00 
+1092   0E64 00 00 00 00 
+1092   0E68 00 00 00 00 
+1092   0E6C 00 00 00 00 
+1092   0E70 00 00 00 00 
+1092   0E74 00 00 00 00 
+1092   0E78 00 00 00 00 
+1092   0E7C 00 00 00 00 
+1092   0E80 00 00 00 00 
+1092   0E84 00 00 00 00 
+1092   0E88 00 00 00 00 
+1092   0E8C 00 00 00 00 
+1092   0E90 00 00 00 00 
+1092   0E94 00 00 00 00 
+1092   0E98 00 00 00 00 
+1092   0E9C 00 00 00 00 
+1092   0EA0 00 00 00 00 
+1092   0EA4 00 00 00 00 
+1092   0EA8 00 00 00 00 
+1092   0EAC 00 00 00 00 
+1092   0EB0 00 00 00 00 
+1092   0EB4 00 00 00 00 
+1092   0EB8 00 00 00 00 
+1092   0EBC 00 00 00 00 
+1092   0EC0 00 00 00 00 
+1092   0EC4 00 00 00 00 
+1092   0EC8 00 00 00 00 
+1092   0ECC 00 00 00 00 
+1092   0ED0 00 00 00 00 
+1092   0ED4 00 00 00 00 
+1092   0ED8 00 00 00 00 
+1092   0EDC 00 00 00 00 
+1092   0EE0 00 00 00 00 
+1092   0EE4 00 00 00 00 
+1092   0EE8 00 00 00 00 
+1092   0EEC 00 00 00 00 
+1092   0EF0 00 00 00 00 
+1092   0EF4 00 00 00 00 
+1092   0EF8 00 00 00 00 
+1092   0EFC 00 00 00 00 
+1092   0F00 00 00 00 00 
+1092   0F04 00 00 00 00 
+1092   0F08 00 00 00 00 
+1092   0F0C 00 00 00 00 
+1092   0F10 00 00 00 00 
+1092   0F14 00 00 00 00 
+1092   0F18 00 00 00 00 
+1092   0F1C 00 00 00 00 
+1092   0F20 00 00 00 00 
+1092   0F24 00 00 00 00 
+1092   0F28 00 00 00 00 
+1092   0F2C 00 00 00 00 
+1092   0F30 00 00 00 00 
+1092   0F34 00 00 00 00 
+1092   0F38 00 00 00 00 
+1092   0F3C 00 00 00 00 
+1092   0F40 00 00 00 00 
+1092   0F44 00 00 00 00 
+1092   0F48 00 00 00 00 
+1092   0F4C 00 00 00 00 
+1092   0F50 00 00 00 00 
+1092   0F54 00 00 00 00 
+1092   0F58 00 00 00 00 
+1092   0F5C 00 00 00 00 
+1092   0F60 00 00 00 00 
+1092   0F64 00 00 00 00 
+1092   0F68 00 00 00 00 
+1092   0F6C 00 00 00 00 
+1092   0F70 00 00 00 00 
+1092   0F74 00 00 00 00 
+1092   0F78 00 00 00 00 
+1092   0F7C 00 00 00 00 
+1092   0F80 00 00 00 00 
+1092   0F84 00 00 00 00 
+1092   0F88 00 00 00 00 
+1092   0F8C 00 00 00 00 
+1092   0F90 00 00 00 00 
+1092   0F94 00 00 00 00 
+1092   0F98 00 00 00 00 
+1092   0F9C 00 00 00 00 
+1092   0FA0 00 00 00 00 
+1092   0FA4 00 00 00 00 
+1092   0FA8 00 00 00 00 
+1092   0FAC 00 00 00 00 
+1092   0FB0 00 00 00 00 
+1092   0FB4 00 00 00 00 
+1092   0FB8 00 00 00 00 
+1092   0FBC 00 00 00 00 
+1092   0FC0 00 00 00 00 
+1092   0FC4 00 00 00 00 
+1092   0FC8 00 00 00 00 
+1092   0FCC 00 00 00 00 
+1092   0FD0 00 00 00 00 
+1092   0FD4 00 00 00 00 
+1092   0FD8 00 00 00 00 
+1092   0FDC 00 00 00 00 
+1092   0FE0 00 00 00 00 
+1092   0FE4 00 00 00 00 
+1092   0FE8 00 00 00 00 
+1092   0FEC 00 00 00 00 
+1092   0FF0 00 00 00 00 
+1092   0FF4 00 00 00 00 
+1092   0FF8 00 00 00 00 
+1092   0FFC 00 00 00 00 
+1092   1000 00 00 00 00 
+1092   1004 00 00 00 00 
+1092   1008 00 00 00 00 
+1092   100C 00 00 00 00 
+1092   1010 00 00 00 00 
+1092   1014 00 00 00 00 
+1092   1018 00 00 00 00 
+1092   101C 00 00 00 00 
+1092   1020 00 00 00 00 
+1092   1024 00 00 00 00 
+1092   1028 00 00 00 00 
+1092   102C 00 00 00 00 
+1092   1030 00 00 00 00 
+1092   1034 00 00 00 00 
+1092   1038 00 00 00 00 
+1092   103C 00 00 00 00 
+1092   1040 00 00 00 00 
+1092   1044 00 00 00 00 
+1092   1048 00 00 00 00 
+1092   104C 00 00 00 00 
+1092   1050 00 00 00 00 
+1092   1054 00 00 00 00 
+1092   1058 00 00 00 00 
+1092   105C 00 00 00 00 
+1092   1060 00 00 00 00 
+1092   1064 00 00 00 00 
+1092   1068 00 00 00 00 
+1092   106C 00 00 00 00 
+1092   1070 00 00 00 00 
+1092   1074 00 00 00 00 
+1092   1078 00 00 00 00 
+1092   107C 00 00 00 00 
+1092   1080 00 00 00 00 
+1092   1084 00 00 00 00 
+1092   1088 00 00 00 00 
+1092   108C 00 00 00 00 
+1092   1090 00 00 00 00 
+1092   1094 00 00 00 00 
+1092   1098 00 00 00 00 
+1092   109C 00 00 00 00 
+1092   10A0 00 00 00 00 
+1092   10A4 00 00 00 00 
+1092   10A8 00 00 00 00 
+1092   10AC 00 00 00 00 
+1092   10B0 00 00 00 00 
+1092   10B4 00 00 00 00 
+1092   10B8 00 00 00 00 
+1092   10BC 00 00 00 00 
+1092   10C0 00 00 00 00 
+1092   10C4 00 00 00 00 
+1092   10C8 00 00 00 00 
+1092   10CC 00 00 00 00 
+1092   10D0 00 00 00 00 
+1092   10D4 00 00 00 00 
+1092   10D8 00 00 00 00 
+1092   10DC 00 00 00 00 
+1092   10E0 00 00 00 00 
+1092   10E4 00 00 00 00 
+1092   10E8 00 00 00 00 
+1092   10EC 00 00 00 00 
+1092   10F0 00 00 00 00 
+1092   10F4 00 00 00 00 
+1092   10F8 00 00 00 00 
+1092   10FC 00 00 00 00 
+1092   1100 00 00 00 00 
+1092   1104 00 00 00 00 
+1092   1108 00 00 00 00 
+1092   110C 00 00 00 00 
+1092   1110 00 00 00 00 
+1092   1114 00 00 00 00 
+1092   1118 00 00 00 00 
+1092   111C 00 00 00 00 
+1092   1120 00 00 00 00 
+1092   1124 00 00 00 00 
+1092   1128 00 00 00 00 
+1092   112C 00 00 00 00 
+1092   1130 00 00 00 00 
+1092   1134 00 00 00 00 
+1092   1138 00 00 00 00 
+1092   113C 00 00 00 00 
+1092   1140 00 00 00 00 
+1092   1144 00 00 00 00 
+1092   1148 00 00 00 00 
+1092   114C 00 00 00 00 
+1092   1150 00 00 00 00 
+1092   1154 00 00 00 00 
+1092   1158 00 00 00 00 
+1092   115C 00 00 00 00 
+1092   1160 00 00 00 00 
+1092   1164 00 00 00 00 
+1092   1168 00 00 00 00 
+1092   116C 00 00 00 00 
+1092   1170 00 00 00 00 
+1092   1174 00 00 00 00 
+1092   1178 00 00 00 00 
+1092   117C 00 00 00 00 
+1092   1180 00 00 00 00 
+1092   1184 00 00 00 00 
+1092   1188 00 00 00 00 
+1092   118C 00 00 00 00 
+1092   1190 00 00 00 00 
+1092   1194 00 00 00 00 
+1092   1198 00 00 00 00 
+1092   119C 00 00 00 00 
+1092   11A0 00 00 00 00 
+1092   11A4 00 00 00 00 
+1092   11A8 00 00 00 00 
+1092   11AC 00 00 00 00 
+1092   11B0 00 00 00 00 
+1092   11B4 00 00 00 00 
+1092   11B8 00 00 00 00 
+1092   11BC 00 00 00 00 
+1092   11C0 00 00 00 00 
+1092   11C4 00 00 00 00 
+1092   11C8 00 00 00 00 
+1092   11CC 00 00 00 00 
+1092   11D0 00 00 00 00 
+1092   11D4 00 00 00 00 
+1092   11D8 00 00 00 00 
+1092   11DC 00 00 00 00 
+1092   11E0 00 00 00 00 
+1092   11E4 00 00 00 00 
+1092   11E8 00 00 00 00 
+1092   11EC 00 00 00 00 
+1092   11F0 00 00 00 00 
+1092   11F4 00 00 00 00 
+1092   11F8 00 00 00 00 
+1092   11FC 00 00 00 00 
+1092   1200 00 00 00 00 
+1092   1204 00 00 00 00 
+1092   1208 00 00 00 00 
+1092   120C 00 00 00 00 
+1092   1210 00 00 00 00 
+1092   1214 00 00 00 00 
+1092   1218 00 00 00 00 
+1092   121C 00 00 00 00 
+1092   1220 00 00 00 00 
+1092   1224 00 00 00 00 
+1092   1228 00 00 00 00 
+1092   122C 00 00 00 00 
+1092   1230 00 00 00 00 
+1092   1234 00 00 00 00 
+1092   1238 00 00 00 00 
+1092   123C 00 00 00 00 
+1092   1240 00 00 00 00 
+1092   1244 00 00 00 00 
+1093   1248 00 00 00 00 _new_grid_data: .fill 1600, 0
+1093   124C 00 00 00 00 
+1093   1250 00 00 00 00 
+1093   1254 00 00 00 00 
+1093   1258 00 00 00 00 
+1093   125C 00 00 00 00 
+1093   1260 00 00 00 00 
+1093   1264 00 00 00 00 
+1093   1268 00 00 00 00 
+1093   126C 00 00 00 00 
+1093   1270 00 00 00 00 
+1093   1274 00 00 00 00 
+1093   1278 00 00 00 00 
+1093   127C 00 00 00 00 
+1093   1280 00 00 00 00 
+1093   1284 00 00 00 00 
+1093   1288 00 00 00 00 
+1093   128C 00 00 00 00 
+1093   1290 00 00 00 00 
+1093   1294 00 00 00 00 
+1093   1298 00 00 00 00 
+1093   129C 00 00 00 00 
+1093   12A0 00 00 00 00 
+1093   12A4 00 00 00 00 
+1093   12A8 00 00 00 00 
+1093   12AC 00 00 00 00 
+1093   12B0 00 00 00 00 
+1093   12B4 00 00 00 00 
+1093   12B8 00 00 00 00 
+1093   12BC 00 00 00 00 
+1093   12C0 00 00 00 00 
+1093   12C4 00 00 00 00 
+1093   12C8 00 00 00 00 
+1093   12CC 00 00 00 00 
+1093   12D0 00 00 00 00 
+1093   12D4 00 00 00 00 
+1093   12D8 00 00 00 00 
+1093   12DC 00 00 00 00 
+1093   12E0 00 00 00 00 
+1093   12E4 00 00 00 00 
+1093   12E8 00 00 00 00 
+1093   12EC 00 00 00 00 
+1093   12F0 00 00 00 00 
+1093   12F4 00 00 00 00 
+1093   12F8 00 00 00 00 
+1093   12FC 00 00 00 00 
+1093   1300 00 00 00 00 
+1093   1304 00 00 00 00 
+1093   1308 00 00 00 00 
+1093   130C 00 00 00 00 
+1093   1310 00 00 00 00 
+1093   1314 00 00 00 00 
+1093   1318 00 00 00 00 
+1093   131C 00 00 00 00 
+1093   1320 00 00 00 00 
+1093   1324 00 00 00 00 
+1093   1328 00 00 00 00 
+1093   132C 00 00 00 00 
+1093   1330 00 00 00 00 
+1093   1334 00 00 00 00 
+1093   1338 00 00 00 00 
+1093   133C 00 00 00 00 
+1093   1340 00 00 00 00 
+1093   1344 00 00 00 00 
+1093   1348 00 00 00 00 
+1093   134C 00 00 00 00 
+1093   1350 00 00 00 00 
+1093   1354 00 00 00 00 
+1093   1358 00 00 00 00 
+1093   135C 00 00 00 00 
+1093   1360 00 00 00 00 
+1093   1364 00 00 00 00 
+1093   1368 00 00 00 00 
+1093   136C 00 00 00 00 
+1093   1370 00 00 00 00 
+1093   1374 00 00 00 00 
+1093   1378 00 00 00 00 
+1093   137C 00 00 00 00 
+1093   1380 00 00 00 00 
+1093   1384 00 00 00 00 
+1093   1388 00 00 00 00 
+1093   138C 00 00 00 00 
+1093   1390 00 00 00 00 
+1093   1394 00 00 00 00 
+1093   1398 00 00 00 00 
+1093   139C 00 00 00 00 
+1093   13A0 00 00 00 00 
+1093   13A4 00 00 00 00 
+1093   13A8 00 00 00 00 
+1093   13AC 00 00 00 00 
+1093   13B0 00 00 00 00 
+1093   13B4 00 00 00 00 
+1093   13B8 00 00 00 00 
+1093   13BC 00 00 00 00 
+1093   13C0 00 00 00 00 
+1093   13C4 00 00 00 00 
+1093   13C8 00 00 00 00 
+1093   13CC 00 00 00 00 
+1093   13D0 00 00 00 00 
+1093   13D4 00 00 00 00 
+1093   13D8 00 00 00 00 
+1093   13DC 00 00 00 00 
+1093   13E0 00 00 00 00 
+1093   13E4 00 00 00 00 
+1093   13E8 00 00 00 00 
+1093   13EC 00 00 00 00 
+1093   13F0 00 00 00 00 
+1093   13F4 00 00 00 00 
+1093   13F8 00 00 00 00 
+1093   13FC 00 00 00 00 
+1093   1400 00 00 00 00 
+1093   1404 00 00 00 00 
+1093   1408 00 00 00 00 
+1093   140C 00 00 00 00 
+1093   1410 00 00 00 00 
+1093   1414 00 00 00 00 
+1093   1418 00 00 00 00 
+1093   141C 00 00 00 00 
+1093   1420 00 00 00 00 
+1093   1424 00 00 00 00 
+1093   1428 00 00 00 00 
+1093   142C 00 00 00 00 
+1093   1430 00 00 00 00 
+1093   1434 00 00 00 00 
+1093   1438 00 00 00 00 
+1093   143C 00 00 00 00 
+1093   1440 00 00 00 00 
+1093   1444 00 00 00 00 
+1093   1448 00 00 00 00 
+1093   144C 00 00 00 00 
+1093   1450 00 00 00 00 
+1093   1454 00 00 00 00 
+1093   1458 00 00 00 00 
+1093   145C 00 00 00 00 
+1093   1460 00 00 00 00 
+1093   1464 00 00 00 00 
+1093   1468 00 00 00 00 
+1093   146C 00 00 00 00 
+1093   1470 00 00 00 00 
+1093   1474 00 00 00 00 
+1093   1478 00 00 00 00 
+1093   147C 00 00 00 00 
+1093   1480 00 00 00 00 
+1093   1484 00 00 00 00 
+1093   1488 00 00 00 00 
+1093   148C 00 00 00 00 
+1093   1490 00 00 00 00 
+1093   1494 00 00 00 00 
+1093   1498 00 00 00 00 
+1093   149C 00 00 00 00 
+1093   14A0 00 00 00 00 
+1093   14A4 00 00 00 00 
+1093   14A8 00 00 00 00 
+1093   14AC 00 00 00 00 
+1093   14B0 00 00 00 00 
+1093   14B4 00 00 00 00 
+1093   14B8 00 00 00 00 
+1093   14BC 00 00 00 00 
+1093   14C0 00 00 00 00 
+1093   14C4 00 00 00 00 
+1093   14C8 00 00 00 00 
+1093   14CC 00 00 00 00 
+1093   14D0 00 00 00 00 
+1093   14D4 00 00 00 00 
+1093   14D8 00 00 00 00 
+1093   14DC 00 00 00 00 
+1093   14E0 00 00 00 00 
+1093   14E4 00 00 00 00 
+1093   14E8 00 00 00 00 
+1093   14EC 00 00 00 00 
+1093   14F0 00 00 00 00 
+1093   14F4 00 00 00 00 
+1093   14F8 00 00 00 00 
+1093   14FC 00 00 00 00 
+1093   1500 00 00 00 00 
+1093   1504 00 00 00 00 
+1093   1508 00 00 00 00 
+1093   150C 00 00 00 00 
+1093   1510 00 00 00 00 
+1093   1514 00 00 00 00 
+1093   1518 00 00 00 00 
+1093   151C 00 00 00 00 
+1093   1520 00 00 00 00 
+1093   1524 00 00 00 00 
+1093   1528 00 00 00 00 
+1093   152C 00 00 00 00 
+1093   1530 00 00 00 00 
+1093   1534 00 00 00 00 
+1093   1538 00 00 00 00 
+1093   153C 00 00 00 00 
+1093   1540 00 00 00 00 
+1093   1544 00 00 00 00 
+1093   1548 00 00 00 00 
+1093   154C 00 00 00 00 
+1093   1550 00 00 00 00 
+1093   1554 00 00 00 00 
+1093   1558 00 00 00 00 
+1093   155C 00 00 00 00 
+1093   1560 00 00 00 00 
+1093   1564 00 00 00 00 
+1093   1568 00 00 00 00 
+1093   156C 00 00 00 00 
+1093   1570 00 00 00 00 
+1093   1574 00 00 00 00 
+1093   1578 00 00 00 00 
+1093   157C 00 00 00 00 
+1093   1580 00 00 00 00 
+1093   1584 00 00 00 00 
+1093   1588 00 00 00 00 
+1093   158C 00 00 00 00 
+1093   1590 00 00 00 00 
+1093   1594 00 00 00 00 
+1093   1598 00 00 00 00 
+1093   159C 00 00 00 00 
+1093   15A0 00 00 00 00 
+1093   15A4 00 00 00 00 
+1093   15A8 00 00 00 00 
+1093   15AC 00 00 00 00 
+1093   15B0 00 00 00 00 
+1093   15B4 00 00 00 00 
+1093   15B8 00 00 00 00 
+1093   15BC 00 00 00 00 
+1093   15C0 00 00 00 00 
+1093   15C4 00 00 00 00 
+1093   15C8 00 00 00 00 
+1093   15CC 00 00 00 00 
+1093   15D0 00 00 00 00 
+1093   15D4 00 00 00 00 
+1093   15D8 00 00 00 00 
+1093   15DC 00 00 00 00 
+1093   15E0 00 00 00 00 
+1093   15E4 00 00 00 00 
+1093   15E8 00 00 00 00 
+1093   15EC 00 00 00 00 
+1093   15F0 00 00 00 00 
+1093   15F4 00 00 00 00 
+1093   15F8 00 00 00 00 
+1093   15FC 00 00 00 00 
+1093   1600 00 00 00 00 
+1093   1604 00 00 00 00 
+1093   1608 00 00 00 00 
+1093   160C 00 00 00 00 
+1093   1610 00 00 00 00 
+1093   1614 00 00 00 00 
+1093   1618 00 00 00 00 
+1093   161C 00 00 00 00 
+1093   1620 00 00 00 00 
+1093   1624 00 00 00 00 
+1093   1628 00 00 00 00 
+1093   162C 00 00 00 00 
+1093   1630 00 00 00 00 
+1093   1634 00 00 00 00 
+1093   1638 00 00 00 00 
+1093   163C 00 00 00 00 
+1093   1640 00 00 00 00 
+1093   1644 00 00 00 00 
+1093   1648 00 00 00 00 
+1093   164C 00 00 00 00 
+1093   1650 00 00 00 00 
+1093   1654 00 00 00 00 
+1093   1658 00 00 00 00 
+1093   165C 00 00 00 00 
+1093   1660 00 00 00 00 
+1093   1664 00 00 00 00 
+1093   1668 00 00 00 00 
+1093   166C 00 00 00 00 
+1093   1670 00 00 00 00 
+1093   1674 00 00 00 00 
+1093   1678 00 00 00 00 
+1093   167C 00 00 00 00 
+1093   1680 00 00 00 00 
+1093   1684 00 00 00 00 
+1093   1688 00 00 00 00 
+1093   168C 00 00 00 00 
+1093   1690 00 00 00 00 
+1093   1694 00 00 00 00 
+1093   1698 00 00 00 00 
+1093   169C 00 00 00 00 
+1093   16A0 00 00 00 00 
+1093   16A4 00 00 00 00 
+1093   16A8 00 00 00 00 
+1093   16AC 00 00 00 00 
+1093   16B0 00 00 00 00 
+1093   16B4 00 00 00 00 
+1093   16B8 00 00 00 00 
+1093   16BC 00 00 00 00 
+1093   16C0 00 00 00 00 
+1093   16C4 00 00 00 00 
+1093   16C8 00 00 00 00 
+1093   16CC 00 00 00 00 
+1093   16D0 00 00 00 00 
+1093   16D4 00 00 00 00 
+1093   16D8 00 00 00 00 
+1093   16DC 00 00 00 00 
+1093   16E0 00 00 00 00 
+1093   16E4 00 00 00 00 
+1093   16E8 00 00 00 00 
+1093   16EC 00 00 00 00 
+1093   16F0 00 00 00 00 
+1093   16F4 00 00 00 00 
+1093   16F8 00 00 00 00 
+1093   16FC 00 00 00 00 
+1093   1700 00 00 00 00 
+1093   1704 00 00 00 00 
+1093   1708 00 00 00 00 
+1093   170C 00 00 00 00 
+1093   1710 00 00 00 00 
+1093   1714 00 00 00 00 
+1093   1718 00 00 00 00 
+1093   171C 00 00 00 00 
+1093   1720 00 00 00 00 
+1093   1724 00 00 00 00 
+1093   1728 00 00 00 00 
+1093   172C 00 00 00 00 
+1093   1730 00 00 00 00 
+1093   1734 00 00 00 00 
+1093   1738 00 00 00 00 
+1093   173C 00 00 00 00 
+1093   1740 00 00 00 00 
+1093   1744 00 00 00 00 
+1093   1748 00 00 00 00 
+1093   174C 00 00 00 00 
+1093   1750 00 00 00 00 
+1093   1754 00 00 00 00 
+1093   1758 00 00 00 00 
+1093   175C 00 00 00 00 
+1093   1760 00 00 00 00 
+1093   1764 00 00 00 00 
+1093   1768 00 00 00 00 
+1093   176C 00 00 00 00 
+1093   1770 00 00 00 00 
+1093   1774 00 00 00 00 
+1093   1778 00 00 00 00 
+1093   177C 00 00 00 00 
+1093   1780 00 00 00 00 
+1093   1784 00 00 00 00 
+1093   1788 00 00 00 00 
+1093   178C 00 00 00 00 
+1093   1790 00 00 00 00 
+1093   1794 00 00 00 00 
+1093   1798 00 00 00 00 
+1093   179C 00 00 00 00 
+1093   17A0 00 00 00 00 
+1093   17A4 00 00 00 00 
+1093   17A8 00 00 00 00 
+1093   17AC 00 00 00 00 
+1093   17B0 00 00 00 00 
+1093   17B4 00 00 00 00 
+1093   17B8 00 00 00 00 
+1093   17BC 00 00 00 00 
+1093   17C0 00 00 00 00 
+1093   17C4 00 00 00 00 
+1093   17C8 00 00 00 00 
+1093   17CC 00 00 00 00 
+1093   17D0 00 00 00 00 
+1093   17D4 00 00 00 00 
+1093   17D8 00 00 00 00 
+1093   17DC 00 00 00 00 
+1093   17E0 00 00 00 00 
+1093   17E4 00 00 00 00 
+1093   17E8 00 00 00 00 
+1093   17EC 00 00 00 00 
+1093   17F0 00 00 00 00 
+1093   17F4 00 00 00 00 
+1093   17F8 00 00 00 00 
+1093   17FC 00 00 00 00 
+1093   1800 00 00 00 00 
+1093   1804 00 00 00 00 
+1093   1808 00 00 00 00 
+1093   180C 00 00 00 00 
+1093   1810 00 00 00 00 
+1093   1814 00 00 00 00 
+1093   1818 00 00 00 00 
+1093   181C 00 00 00 00 
+1093   1820 00 00 00 00 
+1093   1824 00 00 00 00 
+1093   1828 00 00 00 00 
+1093   182C 00 00 00 00 
+1093   1830 00 00 00 00 
+1093   1834 00 00 00 00 
+1093   1838 00 00 00 00 
+1093   183C 00 00 00 00 
+1093   1840 00 00 00 00 
+1093   1844 00 00 00 00 
+1093   1848 00 00 00 00 
+1093   184C 00 00 00 00 
+1093   1850 00 00 00 00 
+1093   1854 00 00 00 00 
+1093   1858 00 00 00 00 
+1093   185C 00 00 00 00 
+1093   1860 00 00 00 00 
+1093   1864 00 00 00 00 
+1093   1868 00 00 00 00 
+1093   186C 00 00 00 00 
+1093   1870 00 00 00 00 
+1093   1874 00 00 00 00 
+1093   1878 00 00 00 00 
+1093   187C 00 00 00 00 
+1093   1880 00 00 00 00 
+1093   1884 00 00 00 00 
+1094   1888 00 00       _x: .fill 2, 0
+1095   188A 00 00       _y: .fill 2, 0
+1096   188C 00 00       _dx: .fill 2, 0
+1097   188E 00 00       _dy: .fill 2, 0
+1098   1890 00 00       _nx: .fill 2, 0
+1099   1892 00 00       _ny: .fill 2, 0
+1100   1894 00 00       _head_count: .fill 2, 0
+1101   1896 00          _c: .fill 1, 0
+1102   1897             
+1103   1897 99 18       _heap_top: .dw _heap
+1104   1899 00          _heap: .db 0
+1105   189A             ; --- END DATA SEGMENT
+1106   189A             
+1107   189A             .end
 tasm: Number of errors = 0

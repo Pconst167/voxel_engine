@@ -1,5 +1,5 @@
 ; --- FILENAME: programs/wumpus.c
-; --- DATE:     26-07-2025 at 17:28:21
+; --- DATE:     07-05-2026 at 11:26:38
 .include "lib/asm/kernel.exp"
 .include "lib/asm/bios.exp"
 
@@ -576,7 +576,6 @@ _for4_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -3] ; $k
   mov [d], b
   mov b, a
   jmp _for4_cond
@@ -1173,7 +1172,6 @@ _if16_exit:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -15] ; $k
   mov [d], b
   mov b, a
   jmp _while15_cond
@@ -1491,7 +1489,6 @@ _for17_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -15] ; $k
   mov [d], b
   mov b, a
   jmp _for17_cond
@@ -2005,7 +2002,6 @@ rand2:
   mov c, 0
   mov a, b
   inc b
-  mov d, _rand_inc ; $rand_inc
   mov [d], b
   mov b, a
 ; return rand_val; 
@@ -2208,7 +2204,6 @@ _for39_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -3] ; $k
   mov [d], b
   mov b, a
   jmp _for39_cond
@@ -2221,7 +2216,6 @@ _for35_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -1] ; $j
   mov [d], b
   mov b, a
   jmp _for35_cond
@@ -2634,14 +2628,15 @@ print_unsigned:
   enter 0 ; (push bp; mov bp, sp)
 ; char digits[5]; 
   sub sp, 5
-; int i; 
+; int i = 0; 
   sub sp, 2
-; i = 0; 
+; --- START LOCAL VAR INITIALIZATION
   lea d, [bp + -6] ; $i
   push d
   mov32 cb, $00000000
   pop d
   mov [d], b
+; --- END LOCAL VAR INITIALIZATION
 ; if(num == 0){ 
 _if47_cond:
   lea d, [bp + 5] ; $num
@@ -2686,13 +2681,17 @@ _while48_cond:
   cmp b, 0
   je _while48_exit
 _while48_block:
-; digits[i] = '0' + (num % 10); 
+; digits[i++] = '0' + (num % 10); 
   lea d, [bp + -4] ; $digits
   push a
   push d
   lea d, [bp + -6] ; $i
   mov b, [d]
   mov c, 0
+  mov a, b
+  inc b
+  mov [d], b
+  mov b, a
   pop d
   add d, b
   pop a
@@ -2746,15 +2745,6 @@ _while48_block:
 ; --- END FACTORS
   pop d
   mov [d], b
-; i++; 
-  lea d, [bp + -6] ; $i
-  mov b, [d]
-  mov c, 0
-  mov a, b
-  inc b
-  lea d, [bp + -6] ; $i
-  mov [d], b
-  mov b, a
   jmp _while48_cond
 _while48_exit:
 ; while (i > 0) { 
@@ -2773,23 +2763,16 @@ _while55_cond:
   cmp b, 0
   je _while55_exit
 _while55_block:
-; i--; 
-  lea d, [bp + -6] ; $i
-  mov b, [d]
-  mov c, 0
-  mov a, b
-  dec b
-  lea d, [bp + -6] ; $i
-  mov [d], b
-  mov b, a
-; putchar(digits[i]); 
+; putchar(digits[--i]); 
 ; --- START FUNCTION CALL
   lea d, [bp + -4] ; $digits
   push a
   push d
   lea d, [bp + -6] ; $i
   mov b, [d]
-  mov c, 0
+  dec b
+  lea d, [bp + -6] ; $i
+  mov [d], b
   pop d
   add d, b
   pop a
@@ -2990,6 +2973,8 @@ _cave_data: .dw $0001,$0004,$0007,$0000,$0002,$0009,$0001,$0003,$000b,$0002,$000
 .dw $0004,$0006,$000e,$0005,$0007,$0010,$0000,$0006,$0008,$0007,$0009,$0011,$0001,$0008,$000a,$0009,
 .dw $000b,$0012,$0002,$000a,$000c,$000b,$000d,$0013,$0003,$000c,$000e,$0005,$000d,$000f,$000e,$0010,
 .dw $0013,$0006,$000f,$0011,$0008,$0010,$0012,$000a,$0011,$0013,$000c,$000f,$0012,
+_rng_state: .dw $0000
+_free_list: .dw 0
 _s0: .db "INSTRUCTIONS (Y-N): ", 0
 _s1: .db "NEW GAME (Y-N): ", 0
 _s2: .db "\n\n", 0

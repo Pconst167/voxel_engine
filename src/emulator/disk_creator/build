@@ -1,0 +1,32 @@
+#! /usr/bin/bash
+
+make
+
+echo "compiling C programs..."
+for f in $(ls ../ccompiler/programs/*.c); do
+  base=$(basename "$f")
+  (
+    cd ../ccompiler
+    ./build programs/$base
+    echo ""
+  )
+  echo "done."
+  echo ""
+  echo ""
+done
+
+echo "building assembly programs..."
+for f in $(ls ../software/*.asm); do
+  base=$(basename "$f")
+  (
+    cd ../software
+    ./build $base
+    echo ""
+  )
+  echo "done."
+  echo ""
+  echo ""
+done
+
+
+./sol1_disk_creator 

@@ -1,5 +1,5 @@
 ; --- FILENAME: programs/primes.c
-; --- DATE:     21-11-2025 at 08:25:47
+; --- DATE:     07-05-2026 at 11:26:35
 .include "lib/asm/kernel.exp"
 .include "lib/asm/bios.exp"
 
@@ -93,7 +93,6 @@ _for1_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -3] ; $i
   mov [d], b
   mov b, a
   jmp _for1_cond
@@ -638,7 +637,6 @@ _for25_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -1] ; $i
   mov [d], b
   mov b, a
   jmp _for25_cond
@@ -722,7 +720,6 @@ _if33_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -3] ; $format_p
   mov [d], b
   dec b
 ; switch(*format_p){ 
@@ -762,7 +759,6 @@ _switch34_case1:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -3] ; $format_p
   mov [d], b
   dec b
 ; if(*format_p == 'd' || *format_p == 'i') 
@@ -1119,7 +1115,6 @@ _if32_exit:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -3] ; $format_p
   mov [d], b
   dec b
 _for31_update:
@@ -1291,7 +1286,6 @@ _while40_block:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -11] ; $i
   mov [d], b
   mov b, a
   pop d
@@ -1483,7 +1477,6 @@ _while49_block:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -11] ; $i
   mov [d], b
   mov b, a
   pop d
@@ -1804,7 +1797,6 @@ _while59_block:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -6] ; $i
   mov [d], b
   mov b, a
   pop d
@@ -1969,7 +1961,6 @@ _while68_block:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -6] ; $i
   mov [d], b
   mov b, a
   pop d

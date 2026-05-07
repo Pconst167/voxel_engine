@@ -9,19 +9,19 @@ int main() {
     struct t_float16 a, b;
     struct t_float16 sum;
 
-    printf("a mantissa: ");
+    printf("\na mantissa: ");
     a.mantissa = scann();
-    printf("a exponent: ");
+    printf("\na exponent: ");
     a.exponent = scann();
-    printf("b mantissa: ");
+    printf("\nb mantissa: ");
     b.mantissa = scann();
-    printf("b exponent: ");
+    printf("\nb exponent: ");
     b.exponent = scann();
 
     sum = add(a, b);
 
-    printf("Sum mantissa: %d\n", sum.mantissa);
-    printf("Sum exponent: %d\n", sum.exponent);
+    printf("\nSum mantissa: %d\n", sum.mantissa);
+    printf("\nSum exponent: %d\n", sum.exponent);
 
     return 0;
 }

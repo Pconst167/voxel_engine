@@ -1857,7 +1857,7 @@ void load_microcode_roms(void){
 
   computer_print_line(0, "Loading microcode ROMS...");
   for(int rom = 0; rom < 14; rom++){
-    snprintf(filename, sizeof(filename), "./src/emulator/photon/roms/rom%d", rom);
+    snprintf(filename, sizeof(filename), "./src/emulator/microcode_assembler/output/sol-1_ROM%d.bin", rom);
 
     FILE *fp = fopen(filename, "rb");
     if(!fp){
@@ -1911,14 +1911,14 @@ void load_bios_memory(void){
 }
 
 void load_ide_disk(void){
-  FILE *fp = fopen("disk.bin", "r");
+  FILE *fp = fopen("./src/emulator/disk_creator/solix.img", "r");
   size_t n;
   char *ide_filename = "./src/emulator/disk_backups/03Oct2023";
 
   /* File may be any size; read only up to IDE_DISK_SIZE bytes. */
   if(fp){
     computer_print_line(0, "Loading IDE disk image: disk.bin");
-    n = read_file_up_to_fgetc_or_die("disk.bin", ide_disk, (size_t)IDE_DISK_SIZE);
+    n = read_file_up_to_fgetc_or_die("./src/emulator/disk_creator/solix.img", ide_disk, (size_t)IDE_DISK_SIZE);
     fclose(fp);
   }
   else{

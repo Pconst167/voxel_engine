@@ -1,5 +1,5 @@
 ; --- FILENAME: programs/wireworld.c
-; --- DATE:     04-07-2025 at 00:37:38
+; --- DATE:     07-05-2026 at 11:26:38
 .include "lib/asm/kernel.exp"
 .include "lib/asm/bios.exp"
 
@@ -216,7 +216,6 @@ _for1_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -1] ; $i
   mov [d], b
   mov b, a
   jmp _for1_cond
@@ -347,7 +346,6 @@ _for2_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -1] ; $i
   mov [d], b
   mov b, a
   jmp _for2_cond
@@ -779,7 +777,6 @@ _if12_TRUE:
   mov c, 0
   mov a, b
   inc b
-  mov d, _head_count ; $head_count
   mov [d], b
   mov b, a
   jmp _if12_exit
@@ -790,7 +787,6 @@ _for10_update:
   mov c, 0
   mov a, b
   inc b
-  mov d, _dx ; $dx
   mov [d], b
   mov b, a
   jmp _for10_cond
@@ -801,7 +797,6 @@ _for9_update:
   mov c, 0
   mov a, b
   inc b
-  mov d, _dy ; $dy
   mov [d], b
   mov b, a
   jmp _for9_cond

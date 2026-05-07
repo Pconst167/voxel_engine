@@ -1,5 +1,5 @@
 ; --- FILENAME: programs/life_faster.c
-; --- DATE:     11-11-2025 at 18:59:29
+; --- DATE:     07-05-2026 at 11:26:33
 .include "lib/asm/kernel.exp"
 .include "lib/asm/bios.exp"
 
@@ -109,7 +109,6 @@ _for2_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -3] ; $j
   mov [d], b
   mov b, a
   jmp _for2_cond
@@ -120,7 +119,6 @@ _for1_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -1] ; $i
   mov [d], b
   mov b, a
   jmp _for1_cond
@@ -373,7 +371,6 @@ _for5_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -3] ; $j
   mov [d], b
   mov b, a
   jmp _for5_cond
@@ -384,7 +381,6 @@ _for4_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -1] ; $i
   mov [d], b
   mov b, a
   jmp _for4_cond
@@ -478,7 +474,6 @@ _if12_TRUE:
   mov c, 0
   mov a, b
   dec b
-  lea d, [bp + -7] ; $min_i
   mov [d], b
   mov b, a
   jmp _if12_exit
@@ -513,7 +508,6 @@ _if13_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -9] ; $max_i
   mov [d], b
   mov b, a
   jmp _if13_exit
@@ -540,7 +534,6 @@ _if14_TRUE:
   mov c, 0
   mov a, b
   dec b
-  lea d, [bp + -11] ; $min_j
   mov [d], b
   mov b, a
   jmp _if14_exit
@@ -575,7 +568,6 @@ _if15_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -13] ; $max_j
   mov [d], b
   mov b, a
   jmp _if15_exit
@@ -691,7 +683,6 @@ _if18_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -5] ; $n
   mov [d], b
   mov b, a
   jmp _if18_exit
@@ -741,7 +732,6 @@ _if19_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -5] ; $n
   mov [d], b
   mov b, a
   jmp _if19_exit
@@ -798,7 +788,6 @@ _if20_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -5] ; $n
   mov [d], b
   mov b, a
   jmp _if20_exit
@@ -848,7 +837,6 @@ _if21_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -5] ; $n
   mov [d], b
   mov b, a
   jmp _if21_exit
@@ -897,7 +885,6 @@ _if22_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -5] ; $n
   mov [d], b
   mov b, a
   jmp _if22_exit
@@ -954,7 +941,6 @@ _if23_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -5] ; $n
   mov [d], b
   mov b, a
   jmp _if23_exit
@@ -1003,7 +989,6 @@ _if24_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -5] ; $n
   mov [d], b
   mov b, a
   jmp _if24_exit
@@ -1059,7 +1044,6 @@ _if25_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -5] ; $n
   mov [d], b
   mov b, a
   jmp _if25_exit
@@ -1199,7 +1183,6 @@ _for17_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -3] ; $j
   mov [d], b
   mov b, a
   jmp _for17_cond
@@ -1210,7 +1193,6 @@ _for16_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -1] ; $i
   mov [d], b
   mov b, a
   jmp _for16_cond
@@ -1436,7 +1418,6 @@ _for30_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -3] ; $j
   mov [d], b
   mov b, a
   jmp _for30_cond
@@ -1447,7 +1428,6 @@ _for29_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -1] ; $i
   mov [d], b
   mov b, a
   jmp _for29_cond
@@ -1547,7 +1527,6 @@ _for37_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -3] ; $j
   mov [d], b
   mov b, a
   jmp _for37_cond
@@ -1558,7 +1537,6 @@ _for36_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -1] ; $i
   mov [d], b
   mov b, a
   jmp _for36_cond
@@ -1686,10 +1664,10 @@ _same_signs_41:
 printf:
   enter 0 ; (push bp; mov bp, sp)
 ; char *p, *format_p; 
-  sub sp, 1
+  sub sp, 2
   sub sp, 2
 ; format_p = format; 
-  lea d, [bp + -2] ; $format_p
+  lea d, [bp + -3] ; $format_p
   push d
   lea d, [bp + 5] ; $format
   mov b, [d]
@@ -1697,7 +1675,7 @@ printf:
   pop d
   mov [d], b
 ; p = &format + 2; 
-  lea d, [bp + 0] ; $p
+  lea d, [bp + -1] ; $p
   push d
   lea d, [bp + 5] ; $format
   mov b, d
@@ -1709,14 +1687,14 @@ printf:
   pop a
 ; --- END TERMS
   pop d
-  mov [d], bl
+  mov [d], b
 ; for(;;){ 
 _for42_init:
 _for42_cond:
 _for42_block:
 ; if(!*format_p) break; 
 _if43_cond:
-  lea d, [bp + -2] ; $format_p
+  lea d, [bp + -3] ; $format_p
   mov b, [d]
   mov c, 0
   mov d, b
@@ -1734,7 +1712,7 @@ _if43_TRUE:
 _if43_else:
 ; if(*format_p == '%'){ 
 _if44_cond:
-  lea d, [bp + -2] ; $format_p
+  lea d, [bp + -3] ; $format_p
   mov b, [d]
   mov c, 0
   mov d, b
@@ -1753,16 +1731,15 @@ _if44_cond:
   je _if44_else
 _if44_TRUE:
 ; format_p++; 
-  lea d, [bp + -2] ; $format_p
+  lea d, [bp + -3] ; $format_p
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -2] ; $format_p
   mov [d], b
   dec b
 ; switch(*format_p){ 
 _switch45_expr:
-  lea d, [bp + -2] ; $format_p
+  lea d, [bp + -3] ; $format_p
   mov b, [d]
   mov c, 0
   mov d, b
@@ -1793,16 +1770,15 @@ _switch45_comparisons:
 _switch45_case0:
 _switch45_case1:
 ; format_p++; 
-  lea d, [bp + -2] ; $format_p
+  lea d, [bp + -3] ; $format_p
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -2] ; $format_p
   mov [d], b
   dec b
 ; if(*format_p == 'd' || *format_p == 'i') 
 _if46_cond:
-  lea d, [bp + -2] ; $format_p
+  lea d, [bp + -3] ; $format_p
   mov b, [d]
   mov c, 0
   mov d, b
@@ -1820,7 +1796,7 @@ _if46_cond:
 ; --- START LOGICAL OR
   push a
   mov a, b
-  lea d, [bp + -2] ; $format_p
+  lea d, [bp + -3] ; $format_p
   mov b, [d]
   mov c, 0
   mov d, b
@@ -1843,9 +1819,8 @@ _if46_cond:
 _if46_TRUE:
 ; print_signed_long(*(long int*)p); 
 ; --- START FUNCTION CALL
-  lea d, [bp + 0] ; $p
-  mov bl, [d]
-  mov bh, 0
+  lea d, [bp + -1] ; $p
+  mov b, [d]
   mov c, 0
   mov d, b
   mov b, [d + 2] ; Upper Word of the Long Int
@@ -1863,7 +1838,7 @@ _if46_TRUE:
 _if46_else:
 ; if(*format_p == 'u') 
 _if47_cond:
-  lea d, [bp + -2] ; $format_p
+  lea d, [bp + -3] ; $format_p
   mov b, [d]
   mov c, 0
   mov d, b
@@ -1883,9 +1858,8 @@ _if47_cond:
 _if47_TRUE:
 ; print_unsigned_long(*(unsigned long int*)p); 
 ; --- START FUNCTION CALL
-  lea d, [bp + 0] ; $p
-  mov bl, [d]
-  mov bh, 0
+  lea d, [bp + -1] ; $p
+  mov b, [d]
   mov c, 0
   mov d, b
   mov b, [d + 2] ; Upper Word of the Long Int
@@ -1903,7 +1877,7 @@ _if47_TRUE:
 _if47_else:
 ; if(*format_p == 'x') 
 _if48_cond:
-  lea d, [bp + -2] ; $format_p
+  lea d, [bp + -3] ; $format_p
   mov b, [d]
   mov c, 0
   mov d, b
@@ -1923,9 +1897,8 @@ _if48_cond:
 _if48_TRUE:
 ; printx32(*(long int *)p); 
 ; --- START FUNCTION CALL
-  lea d, [bp + 0] ; $p
-  mov bl, [d]
-  mov bh, 0
+  lea d, [bp + -1] ; $p
+  mov b, [d]
   mov c, 0
   mov d, b
   mov b, [d + 2] ; Upper Word of the Long Int
@@ -1953,11 +1926,10 @@ _if48_exit:
 _if47_exit:
 _if46_exit:
 ; p = p + 4; 
-  lea d, [bp + 0] ; $p
+  lea d, [bp + -1] ; $p
   push d
-  lea d, [bp + 0] ; $p
-  mov bl, [d]
-  mov bh, 0
+  lea d, [bp + -1] ; $p
+  mov b, [d]
   mov c, 0
 ; --- START TERMS
   push a
@@ -1967,16 +1939,15 @@ _if46_exit:
   pop a
 ; --- END TERMS
   pop d
-  mov [d], bl
+  mov [d], b
 ; break; 
   jmp _switch45_exit ; case break
 _switch45_case2:
 _switch45_case3:
 ; print_signed(*(int*)p); 
 ; --- START FUNCTION CALL
-  lea d, [bp + 0] ; $p
-  mov bl, [d]
-  mov bh, 0
+  lea d, [bp + -1] ; $p
+  mov b, [d]
   mov c, 0
   mov d, b
   mov b, [d]
@@ -1987,11 +1958,10 @@ _switch45_case3:
   add sp, 2
 ; --- END FUNCTION CALL
 ; p = p + 2; 
-  lea d, [bp + 0] ; $p
+  lea d, [bp + -1] ; $p
   push d
-  lea d, [bp + 0] ; $p
-  mov bl, [d]
-  mov bh, 0
+  lea d, [bp + -1] ; $p
+  mov b, [d]
   mov c, 0
 ; --- START TERMS
   push a
@@ -2001,15 +1971,14 @@ _switch45_case3:
   pop a
 ; --- END TERMS
   pop d
-  mov [d], bl
+  mov [d], b
 ; break; 
   jmp _switch45_exit ; case break
 _switch45_case4:
 ; print_unsigned(*(unsigned int*)p); 
 ; --- START FUNCTION CALL
-  lea d, [bp + 0] ; $p
-  mov bl, [d]
-  mov bh, 0
+  lea d, [bp + -1] ; $p
+  mov b, [d]
   mov c, 0
   mov d, b
   mov b, [d]
@@ -2020,11 +1989,10 @@ _switch45_case4:
   add sp, 2
 ; --- END FUNCTION CALL
 ; p = p + 2; 
-  lea d, [bp + 0] ; $p
+  lea d, [bp + -1] ; $p
   push d
-  lea d, [bp + 0] ; $p
-  mov bl, [d]
-  mov bh, 0
+  lea d, [bp + -1] ; $p
+  mov b, [d]
   mov c, 0
 ; --- START TERMS
   push a
@@ -2034,16 +2002,15 @@ _switch45_case4:
   pop a
 ; --- END TERMS
   pop d
-  mov [d], bl
+  mov [d], b
 ; break; 
   jmp _switch45_exit ; case break
 _switch45_case5:
 _switch45_case6:
 ; printx16(*(int*)p); 
 ; --- START FUNCTION CALL
-  lea d, [bp + 0] ; $p
-  mov bl, [d]
-  mov bh, 0
+  lea d, [bp + -1] ; $p
+  mov b, [d]
   mov c, 0
   mov d, b
   mov b, [d]
@@ -2054,11 +2021,10 @@ _switch45_case6:
   add sp, 2
 ; --- END FUNCTION CALL
 ; p = p + 2; 
-  lea d, [bp + 0] ; $p
+  lea d, [bp + -1] ; $p
   push d
-  lea d, [bp + 0] ; $p
-  mov bl, [d]
-  mov bh, 0
+  lea d, [bp + -1] ; $p
+  mov b, [d]
   mov c, 0
 ; --- START TERMS
   push a
@@ -2068,15 +2034,14 @@ _switch45_case6:
   pop a
 ; --- END TERMS
   pop d
-  mov [d], bl
+  mov [d], b
 ; break; 
   jmp _switch45_exit ; case break
 _switch45_case7:
 ; putchar(*(char*)p); 
 ; --- START FUNCTION CALL
-  lea d, [bp + 0] ; $p
-  mov bl, [d]
-  mov bh, 0
+  lea d, [bp + -1] ; $p
+  mov b, [d]
   mov c, 0
   mov d, b
   mov bl, [d]
@@ -2087,11 +2052,10 @@ _switch45_case7:
   add sp, 1
 ; --- END FUNCTION CALL
 ; p = p + 2; 
-  lea d, [bp + 0] ; $p
+  lea d, [bp + -1] ; $p
   push d
-  lea d, [bp + 0] ; $p
-  mov bl, [d]
-  mov bh, 0
+  lea d, [bp + -1] ; $p
+  mov b, [d]
   mov c, 0
 ; --- START TERMS
   push a
@@ -2101,15 +2065,14 @@ _switch45_case7:
   pop a
 ; --- END TERMS
   pop d
-  mov [d], bl
+  mov [d], b
 ; break; 
   jmp _switch45_exit ; case break
 _switch45_case8:
 ; print(*(char**)p); 
 ; --- START FUNCTION CALL
-  lea d, [bp + 0] ; $p
-  mov bl, [d]
-  mov bh, 0
+  lea d, [bp + -1] ; $p
+  mov b, [d]
   mov c, 0
   mov d, b
   mov b, [d]
@@ -2119,11 +2082,10 @@ _switch45_case8:
   add sp, 2
 ; --- END FUNCTION CALL
 ; p = p + 2; 
-  lea d, [bp + 0] ; $p
+  lea d, [bp + -1] ; $p
   push d
-  lea d, [bp + 0] ; $p
-  mov bl, [d]
-  mov bh, 0
+  lea d, [bp + -1] ; $p
+  mov b, [d]
   mov c, 0
 ; --- START TERMS
   push a
@@ -2133,7 +2095,7 @@ _switch45_case8:
   pop a
 ; --- END TERMS
   pop d
-  mov [d], bl
+  mov [d], b
 ; break; 
   jmp _switch45_exit ; case break
 _switch45_default:
@@ -2150,7 +2112,7 @@ _switch45_exit:
 _if44_else:
 ; putchar(*format_p); 
 ; --- START FUNCTION CALL
-  lea d, [bp + -2] ; $format_p
+  lea d, [bp + -3] ; $format_p
   mov b, [d]
   mov c, 0
   mov d, b
@@ -2164,11 +2126,10 @@ _if44_else:
 _if44_exit:
 _if43_exit:
 ; format_p++; 
-  lea d, [bp + -2] ; $format_p
+  lea d, [bp + -3] ; $format_p
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -2] ; $format_p
   mov [d], b
   dec b
 _for42_update:
@@ -2340,7 +2301,6 @@ _while51_block:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -11] ; $i
   mov [d], b
   mov b, a
   pop d
@@ -2532,7 +2492,6 @@ _while60_block:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -11] ; $i
   mov [d], b
   mov b, a
   pop d
@@ -2853,7 +2812,6 @@ _while70_block:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -6] ; $i
   mov [d], b
   mov b, a
   pop d
@@ -3018,7 +2976,6 @@ _while79_block:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -6] ; $i
   mov [d], b
   mov b, a
   pop d

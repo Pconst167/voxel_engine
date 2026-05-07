@@ -429,7 +429,7 @@ void process_computer_input(SDL_Event *event){
 
 void render_console(){
   if(console.is_open) {
-    draw_rect(0, 0, window_width, 80, (color_t){.uint32 = 0xFFFF4040});
+    draw_rect(0, 0, window_width, 80, (color_t){.uint32 = 0xFF000000});
     draw_text_to_color_buffer(10, 10, "> ", (color_t){.uint32 = 0xFFFFFFFF}, 1);
     draw_text_to_color_buffer(20, 10, console.input_buffer, (color_t){.uint32 = 0xFFFFFFFF}, 1);
   }
@@ -2081,8 +2081,9 @@ void load_server_room(){
     (vector3_t){140, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){150, 3, 300}, 
     (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
-  texture_t *screen_texture = load_texture("./assets/textures/server_room/screen_green.png");
-  texture_t *blank_screen_texture = create_texture_from_file("./assets/textures/server_room/screen_green.png"); // get_mesh_material_by_name(mesh, "screen")->texture;
+  color_t screen_color = {.uint32 = 0xFF080800};
+  texture_t *screen_texture = create_blank_texture(1024, 1024, screen_color);
+  color_t font_color = {.uint32 = 0xFF60FF00};
   material_t screen_material1 = {
     .material_name       = "",
     .base_color          = {.uint32 = 0xFFFFFFFF},
@@ -2091,13 +2092,13 @@ void load_server_room(){
     .two_sided_lighting  = false,
     .reflects_light      = false,
     .specular_highlights = false,
-    .dither              = true,
+    .dither              = false,
     .blend_mode          = BLEND_MODE_OPAQUE,
     .alpha_cutoff        = DEFAULT_ALPHA_CUTOFF,
     .texture             = screen_texture
   };
   object_override_material(term0, "screen", screen_material1);
-  computer_declare(term0, screen_texture, blank_screen_texture, 10, 10, 5, (color_t){.uint32 = 0xFFFFFF00}, 60000);
+  computer_declare(term0, screen_texture, 100000, screen_color, font_color, 2, 10, 10);
 
   object_id = create_object(
     mesh,
@@ -2114,7 +2115,7 @@ void load_server_room(){
     .two_sided_lighting  = false,
     .reflects_light      = false,
     .specular_highlights = false,
-    .dither              = true,
+    .dither              = false,
     .blend_mode          = BLEND_MODE_OPAQUE,
     .alpha_cutoff        = DEFAULT_ALPHA_CUTOFF,
     .texture             = load_texture("./assets/textures/server_room/sol1_screen_amber.png")

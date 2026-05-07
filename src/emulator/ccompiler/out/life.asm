@@ -1,5 +1,5 @@
 ; --- FILENAME: programs/life.c
-; --- DATE:     19-11-2025 at 06:55:59
+; --- DATE:     07-05-2026 at 11:26:33
 .include "lib/asm/kernel.exp"
 .include "lib/asm/bios.exp"
 
@@ -109,7 +109,6 @@ _for2_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -3] ; $j
   mov [d], b
   mov b, a
   jmp _for2_cond
@@ -120,7 +119,6 @@ _for1_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -1] ; $i
   mov [d], b
   mov b, a
   jmp _for1_cond
@@ -237,7 +235,6 @@ _if6_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -5] ; $n
   mov [d], b
   mov b, a
   jmp _if6_exit
@@ -293,7 +290,6 @@ _if7_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -5] ; $n
   mov [d], b
   mov b, a
   jmp _if7_exit
@@ -349,7 +345,6 @@ _if8_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -5] ; $n
   mov [d], b
   mov b, a
   jmp _if8_exit
@@ -398,7 +393,6 @@ _if9_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -5] ; $n
   mov [d], b
   mov b, a
   jmp _if9_exit
@@ -447,7 +441,6 @@ _if10_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -5] ; $n
   mov [d], b
   mov b, a
   jmp _if10_exit
@@ -503,7 +496,6 @@ _if11_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -5] ; $n
   mov [d], b
   mov b, a
   jmp _if11_exit
@@ -552,7 +544,6 @@ _if12_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -5] ; $n
   mov [d], b
   mov b, a
   jmp _if12_exit
@@ -608,7 +599,6 @@ _if13_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -5] ; $n
   mov [d], b
   mov b, a
   jmp _if13_exit
@@ -713,7 +703,6 @@ _for5_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -3] ; $j
   mov [d], b
   mov b, a
   jmp _for5_cond
@@ -724,7 +713,6 @@ _for4_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -1] ; $i
   mov [d], b
   mov b, a
   jmp _for4_cond
@@ -830,7 +818,6 @@ _for17_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -3] ; $j
   mov [d], b
   mov b, a
   jmp _for17_cond
@@ -841,7 +828,6 @@ _for16_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -1] ; $i
   mov [d], b
   mov b, a
   jmp _for16_cond
@@ -954,7 +940,6 @@ _for19_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -3] ; $j
   mov [d], b
   mov b, a
   jmp _for19_cond
@@ -973,7 +958,6 @@ _for18_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -1] ; $i
   mov [d], b
   mov b, a
   jmp _for18_cond
@@ -1065,7 +1049,6 @@ _if23_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -3] ; $format_p
   mov [d], b
   dec b
 ; switch(*format_p){ 
@@ -1105,7 +1088,6 @@ _switch24_case1:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -3] ; $format_p
   mov [d], b
   dec b
 ; if(*format_p == 'd' || *format_p == 'i') 
@@ -1462,7 +1444,6 @@ _if22_exit:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -3] ; $format_p
   mov [d], b
   dec b
 _for21_update:
@@ -1634,7 +1615,6 @@ _while30_block:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -11] ; $i
   mov [d], b
   mov b, a
   pop d
@@ -1826,7 +1806,6 @@ _while39_block:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -11] ; $i
   mov [d], b
   mov b, a
   pop d
@@ -2147,7 +2126,6 @@ _while49_block:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -6] ; $i
   mov [d], b
   mov b, a
   pop d
@@ -2312,7 +2290,6 @@ _while58_block:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -6] ; $i
   mov [d], b
   mov b, a
   pop d

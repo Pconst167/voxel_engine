@@ -22,88 +22,6 @@ _ide_r5          .equ _ide_base + 5    ; sector address lba 2 [16:23]
 _ide_r6          .equ _ide_base + 6    ; sector address lba 3 [24:27 (lsb)]
 _ide_r7          .equ _ide_base + 7    ; read: status, write: command
 
-inode_table_start .equ 2048 * 7
-inode_table_sect_start .equ 28 ; inode table starts at sector 28
-
-;  ------------------------------------------------------------------------------------------------------------------;
-;  DISK LAYOUT:
-;  Metadata               | Size (bytes)      | Blocks (2048 bytes)              |Start Block |  Comment
-;  ---------------------- | ----------------- | -------------------------------- |------------|-----------------------------------
-;  Bootloader/MBR         | 1024 bytes        | 0.5 (2 sectors)                  |  0         |
-;  Superblock             | 1024 bytes        | 1 block (2048 bytes, must align) |  0         |
-;                         |                   | 1 block (2048 bytes)             |  1         | reserved
-;  Block Bitmap           | 8,192 bytes       | 4 blocks                         |  2         | 4*2048*8 = 4*16384 = 65536 raw data blocks.  65536*2048 bytes = 134217728 bytes of disk space = 128MB
-;  Inode Bitmap           | 2,048 bytes       | 1 block                          |  6         | 2048*8=16384. total of 16384 bits, meaning 16384 inodes, which is 1 inode per 8KB of disk space
-;  Inode Table            | 2,097,152 bytes   | 1024 blocks                      |  7         | 128bytes per inode entry. 2097152 / 128 = 16384 inodes
-;  Data Blocks            | 134,217,728 bytes | 65528 blocks                     | 1031       | 65528 blocks = 134,201,344 bytes
-;  
-;  first 960 bytes: bootloader from 0 to 959, MBR partition table from 960 to 1023 (64 bytes)
-;  up to 4 partitions, each 16 bytes long
-;  MBR:
-;  Byte | Description
-;  -----|----------------------------
-;  0    | Boot flag (0x80 active, 0x00 inactive)
-;  1-3  | Start CHS (head, sector, cylinder)
-;  4    | Partition type (filesystem ID)
-;    0x83 = Linux native (ext2/3/4)
-;    0x07 = NTFS/exFAT
-;    0x0B = FAT32 CHS
-;    0x0C = FAT32 LBA
-;    0x05 = Extended partition
-;    0x86 = Sol-1 partition
-;  5-7  | End CHS
-;  8-11 | Start LBA (little endian)
-;  12-15| Size in sectors (little endian)
-;  
-;  
-;  the superblock describers the filesystem as a whole such as inode count, free inode count, location of the raw data bitmap, inode table, etc.  
-;  SUPERBLOCK:
-;  | Field               | Description                               | Typical Size (bytes) | Notes                           |
-;  | ------------------- | ----------------------------------------- | -------------------- | ------------------------------- |
-;  | inodes_count        | Total number of inodes in the filesystem  | 2                    | 16-bit unsigned int             |
-;  | blocks_count        | Total number of data blocks               | 2                    | 16-bit unsigned int             |
-;  | free_inodes_count   | Number of free inodes                     | 2                    | 16-bit unsigned int             |
-;  | free_blocks_count   | Number of free blocks                     | 2                    | 16-bit unsigned int             |
-;  | block_bitmap        | Block ID of the **block bitmap**          | 2                    | 16-bit unsigned int
-;  | inode_bitmap        | Block ID of the **inode bitmap**          | 2                    | 16-bit unsigned int
-;  | inode_table         | Block ID of **inode table**               | 2                    | 16-bit unsigned int
-;  | first_data_block    | Block ID of the data blocks area          | 2                    | 16-bit unsigned int             |
-;  | used_dirs_count     | Number of inodes allocated to directories | 2
-;  | log_block_size      | Block size = 1024 << `s_log_block_size    | 2                    | 16-bit unsigned int             |
-;  | mtime               | Last mount time                           | 4                    | 32-bit unsigned int (Unix time) |
-;  | wtime               | Last write time                           | 4                    | 32-bit unsigned int (Unix time) |
-;  | uuid                | Unique ID of the filesystem               | 16                   | 128-bit UUID                    |
-;  | volume_name         | Label of the filesystem                   | 16                   | Usually ASCII, padded           |
-;  | feature_flags       | Compatibility flags                       | 4                    | 32-bit unsigned int             |
-;  
-;  inode for root dir is #2, #0 and #1 not used
-;  raw data block #0 is not used. because 0 as a block ID means not used
-;  block size: 2048
-;  inode-table format:
-;  | Field         | Size (bytes) | Description                                                                                  |
-;  | ------------- | ------------ | -------------------------------------------------------------------------------------------- |
-;  | `mode`        | 2            | File type and permissions                                                                    |
-;  | `uid`         | 2            | Owner user ID                                                                                |
-;  | `size`        | 4            | Size of the file in bytes                                                                    |
-;  | `atime`       | 4            | Last access time (timestamp)                                                                 |
-;  | `ctime`       | 4            | Creation time (timestamp)                                                                    |
-;  | `mtime`       | 4            | Last modification time (timestamp)                                                           |
-;  | `dtime`       | 4            | Deletion time (timestamp)                                                                    |
-;  | `gid`         | 2            | Group ID                                                                                     |
-;  | `links_count` | 2            | Number of hard links                                                                         |
-;  | `blocks`      | 2            | Number of 2048-byte blocks allocated                                                         |
-;  | `flags`       | 4            | File flags                                                                                   |
-;  | `block`       | 47 * 2 = 94  | Pointers to data blocks (47 direct only) 
-;
-;
-;  DIRECTORY ENTRY
-;  this is the structure for file entries inside a directory.
-;  2048 / 64 = 32 entries
-;
-;  each entry is 64 bytes wide
-;  uint16_t inode;      // Inode number (0 if entry is unused)
-;  char     name[62];   // File name (null terminated)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; setting up kernel process.
 ; 32 pages of 2kb = 64kb
@@ -117,10 +35,10 @@ inode_table_sect_start .equ 28 ; inode table starts at sector 28
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 setup_kernel_mem:
   mov d, s_boot1
-  call __puts
+  call _puts
   
   mov d, s_kernel_setup
-  call __puts
+  call _puts
 ; map pages 0 to 30 to normal kernel ram memory.
   mov bl, 0             ; set ptb = 0 for kernel
   mov bh, 0             ; start at page 0
@@ -140,167 +58,112 @@ map_kernel_mem_l1:
   setptb                ; set process number to 0 (strictly not needed since we are in supervisor mode)
                         ; which forces the page number to 0
   mov d, s_boot
-  call __puts
+  call _puts
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;  
+; we read sector 0, in order to obtain the lba location of the kernel in the disk
+; this kernel lba is actually the second sector because the first sector is the usual file block
+; header and has no useful kernel data.
+  mov c, 0
+  mov b, 0                   ; start at disk sector 1
+  mov d, ide_buffer          ; we read into the bios ide buffer
+  mov a, $0102               ; disk read, 1 sector
+  syscall bios_ide           ; read sector
+  mov a, [ide_buffer + 510]  ; here we now have the kernel's lba location in disk
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  mov b, a                   ; transfer the sector number into register b for use below
+  push a                     ; also, save the lba value for later
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;  
+; having obtained the first kernel sector address,
+; we read the first kernel sector, in order to obtain the reset vector at location $10
+  mov c, 0
+  mov d, ide_buffer           ; we read into the bios ide buffer
+  mov a, $0102                ; disk read, 1 sector
+  syscall bios_ide            ; read sector
+  mov a, [ide_buffer + $10]   ; here we now have the kernel reset vector
+  mov g, a                    ; save reset vector in g  
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  
+; read operating system into kernel memory
+  pop b                       ; pop the kernel's starting lba address that we pushed into the stack earlier
+                              ; as we now need to load the kernel from disk, from that lba address
+  mov c, 0
+  mov d, ide_buffer           ; we read into the bios ide buffer
+  mov a, $1F02                ; disk read, 31 sectors. 31 sectors because the first sector of the kernel is just a file block header
+                              ; used to tell whether that block is taken. so the file really has 31 sectors 
+                              ; in this current file system (which is a hack and is temporary)
+  syscall bios_ide            ; read sector
+  mov c, 512 * 31             ; 31 sectors to copy
+  mov si, ide_buffer
+  mov di, 0                   ; start at kernel memory address 0
+  supcpy                      ; now copy data from bios mem to kernel mem
 
-  ; load kernel from disk
-  mov a, [boot_origin + 1022] ; get kernel inode number from bootloader chunk in ram
-
-  call get_ino_entry_sect_ofst ; sector in a, remainder in bl
-  add a, inode_table_sect_start  ; add start lba of inode table
-  push bl                        ; save entry offset  
-  mov b, a                       
-  mov c, 0                       ; set sector number
-  mov d, inode_buffer    ; we read into the inode buffer
-  mov a, $0102        ; disk read, 1 sector
-  syscall bios_ide      ; read sector 
-
-  mov d, inode_buffer
-  pop bl
-  mov bh, 0
-  shl b, 7          ; multiply the offset integer by 128
-  add d, b          ; inode entry plus entry offset: points at kernel inode entry
-  push d
-
-  mov d, s_filesize
-  call __puts
-  pop d
-  mov b, [d + 4]
-  push d
-  call __print_u16x
-  mov d, s_comma
-  call __puts
-  pop d
-  mov b, [d + 28]
-  mov [kernel_blocks], b   ; save the number of blocks that make up kernel file
-  push d
-  call __print_u16x
-
-  mov d, s_kernel_blocks
-  call __puts
-
-  ; now read the block numbers from the inode entry
-  pop d
-  add d, 34
-  mov b, 0
-loop_block:
-  push d
-  mov d, s_hash
-  call __puts
-  pop d      
-  mov a, [d]
-  call __print_u16d  ; print block number
-  push d
-  mov d, s_read_ok
-  call __puts
-  ; now using the pointers to the kernel blocks, load the kernel file into ram
-  ; Data Blocks            | 134,217,728 bytes | 65528 blocks                     | 1031       | 65528 blocks = 134,201,344 bytes
-  push b
-  call load_block_and_copy  ; copy the block from disk to kernel memory
-  pop b
-  call test_blk0_copy_rst_vec ; this function tests for block #0 and if so, copies kernel reset vector into kernel_reset_vector variable
-  pop d
-  add d, 2
-  inc b
-  mov a, [kernel_blocks]
-  cmp a, b      ; see if we reached the total number of kernel blocks that compose the file
-  jne loop_block
-
-
+; interrupt masks  
+  mov al, $ff
+  stomsk                      ; store masks
+  mov d, s_masks
+  call _puts
+  
   mov d, s_bios2
-  call __puts
+  call _puts
 
 ; now we start the kernel.
-  mov a, [kernel_reset_vector] ; retrieve kernel reset vector
+  mov a, g                    ; retrieve kernel reset vector
 
   push word $ffff             ; stack. dummy value since the real value is set in the kernel code
-  push byte %00001000         ; mode=supervisor, paging=on
+  push byte %00001000         ; mode =supervisor, paging=on
   push a                      ; pc
   sysret
 
-; this function exists solely to test if we have just read block 0 
-; and if so, then copy the kernel reset vector from location 16 in it
-test_blk0_copy_rst_vec:
-  cmp b, 0       ; if block number is 0
-  je copy_reset_vec
-  ret
-copy_reset_vec:
-  mov a, [ide_buffer + 16]   ; kernel reset vector always at location 16 = 0x10
-  mov [kernel_reset_vector], a
-  mov d, s_reset_vec
-  call __puts
-  push b
-  mov b, a
-  call __print_u16x
-  pop b
-  mov d, s_nl
-  call __puts
-  ret
-
-; inputs:
-;   a: block number in disk
-;   b: block cycle number for loading blocks into kernel memory in sequence
-load_block_and_copy:
-  push b
-  ;          CH       CL       BH       BL
-  ;form:  00000000 000000bb bbbbbbbb bbbbbb00
-  mov b, 0
-  mov cl, 1
-  shl a
-  rlc b, cl
-  shl a
-  rlc b, cl
-  mov c, b
-  mov b, a
-  add b, 4124 ; add to c|b the start LBA offset of the data blocks section of the disk. 1031 * 2048 / 512 = 4124
-  adc c, 0
-  mov d, ide_buffer           ; we read into the bios ide buffer
-  mov a, $0402                ; disk read, 4 sectors = 1 block
-  syscall bios_ide            ; read sector
-
-  ; now copy block from bios memory to kernel process memory
-  mov c, 2048                 ; 4 sectors = 1 block to copy
-  mov si, ide_buffer
-  pop a                       ; pop 'b' that we pushed earlier into 'a'
-  shl a, 11                   ; multiply cycle number by 2048
-  mov di, a                  
-  supcpy                      ; now copy data from bios mem to kernel mem
-  ret
-
-; inputs:
-; a: inode number
-; outputs:
-; bl: offset/remainder
-; a: sector
-get_ino_entry_sect_ofst:
-  push a                       ; save inode in stack
-  and al, %00000011            ; he least 2 bits are the remainder mod 128
-  mov bl, al
+  
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; print null terminated string
+; pointer in d
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+_puts:
+  push a
+  push d
+  pushf
+_puts_l1:
+  mov al, [d]
+  cmp al, 0
+  jz _puts_end
+_puts_l2:
+  mov al, [_uart0_lsr]      ; read line status register
+  test al, $20              ; isolate transmitter empty
+  jz _puts_l2    
+  mov al, [d]
+  mov [_uart0_data], al     ; write char to transmitter holding register
+  inc d  
+  jmp _puts_l1
+_puts_end:
+  popf
+  pop d
   pop a
-  shr a, 2                     ; shifting right by 2, gives the multiple of 512 which represents the sector number
+  ret
+  
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; _putchar
+; char in ah
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+_putchar:
+  push a
+  pushf
+_putchar_l1:
+  mov al, [_uart0_lsr]    ; read line status register
+  test al, 20h            ; isolate transmitter empty
+  jz _putchar_l1    
+  mov al, ah
+  mov [_uart0_data], al   ; write char to transmitter holding register
+  popf
+  pop a
   ret
 
-kernel_blocks:       .dw 0
-kernel_reset_vector: .dw 0
-
-s_boot1:        .db "starting bootloader...\n", 0
-s_kernel_setup: .db "mapping virtual memory table...\n", 0
-s_boot:         .db "loading kernel from disk...\n", 0
-s_filesize:     .db "kernel file size, number of blocks: ", 0
-s_kernel_blocks:.db "\nreading kernel blocks...\n", 0
-s_read_ok:      .db " read OK.\n", 0
-s_bios2:        .db "entering protected-mode\n"
-                .db "now starting kernel...\n\n", 0
-s_reset_vec:    .db "found kernel reset vector: ", 0
-
-s_hex_digits:   .db "0123456789ABCDEF"
-
-s_hash:         .db "#", 0
-s_colon:        .db ": ", 0
-s_comma:        .db ", ", 0
-s_sp:           .db " ", 0
-s_nl:           .db "\n", 0
-
-
+s_boot1:         .db "executing bootloader\n\r", 0
+s_kernel_setup:  .db "mapping kernel page-table to physical RAM\n\r", 0
+s_masks:         .db "\n\rinterrupt masks register set to 0xFF\n\r", 0
+s_boot:          .db "loading kernel from disk ", 0
+s_bios2:         .db "entering protected-mode\n\r"
+                 .db "starting kernel\n\r", 0
 
 .end

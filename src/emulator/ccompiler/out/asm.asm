@@ -1,5 +1,5 @@
-; --- FILENAME: ../solarium/asm/asm.c
-; --- DATE:     22-10-2025 at 19:31:29
+; --- FILENAME: ../solix/asm/asm.c
+; --- DATE:     06-05-2026 at 22:53:21
 .include "lib/asm/kernel.exp"
 .include "lib/asm/bios.exp"
 
@@ -105,7 +105,6 @@ _while1_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $p
   mov [d], b
   dec b
   jmp _while1_cond
@@ -132,7 +131,6 @@ _while2_block:
   mov b, [d]
   mov c, 0
   dec b
-  lea d, [bp + -1] ; $p
   mov [d], b
   inc b
   jmp _while2_cond
@@ -142,7 +140,6 @@ _while2_exit:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $p
   mov [d], b
   dec b
 ; *p = '\0'; 
@@ -1354,7 +1351,6 @@ _for37_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -3] ; $i
   mov [d], b
   mov b, a
   jmp _for37_cond
@@ -1811,7 +1807,6 @@ _if48_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -123] ; $num_operands
   mov [d], b
   mov b, a
   jmp _if48_exit
@@ -2173,7 +2168,6 @@ _same_signs_65:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -129] ; $j
   mov [d], b
   mov b, a
   jmp _if53_exit
@@ -2419,7 +2413,6 @@ _if71_exit:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -129] ; $j
   mov [d], b
   mov b, a
   jmp _if70_exit
@@ -2515,7 +2508,6 @@ _if74_exit:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -129] ; $j
   mov [d], b
   mov b, a
   jmp _if73_exit
@@ -2532,7 +2524,6 @@ _for50_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -127] ; $i
   mov [d], b
   mov b, a
   jmp _for50_cond
@@ -2885,7 +2876,6 @@ _if83_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -123] ; $instr_len
   mov [d], b
   mov b, a
 ; emit_byte(0xFD, emit_override); 
@@ -3032,7 +3022,6 @@ _if87_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -125] ; $num_operands
   mov [d], b
   mov b, a
   jmp _if87_exit
@@ -3385,7 +3374,6 @@ _same_signs_104:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -131] ; $j
   mov [d], b
   mov b, a
   jmp _if92_exit
@@ -3488,7 +3476,6 @@ _if106_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -123] ; $instr_len
   mov [d], b
   mov b, a
   jmp _if106_exit
@@ -3696,7 +3683,6 @@ _if111_exit:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -131] ; $j
   mov [d], b
   mov b, a
   jmp _if110_exit
@@ -3794,7 +3780,6 @@ _if115_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -123] ; $instr_len
   mov [d], b
   mov b, a
   jmp _if115_exit
@@ -3863,7 +3848,6 @@ _if115_exit:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -131] ; $j
   mov [d], b
   mov b, a
   jmp _if114_exit
@@ -3914,7 +3898,6 @@ _for89_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -129] ; $i
   mov [d], b
   mov b, a
   jmp _for89_cond
@@ -4411,7 +4394,6 @@ _if128_exit:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -3] ; $p
   mov [d], b
   dec b
 _for127_update:
@@ -4970,7 +4952,6 @@ _for129_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -1] ; $i
   mov [d], b
   mov b, a
   jmp _for129_cond
@@ -5055,7 +5036,6 @@ _for131_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -1] ; $i
   mov [d], b
   mov b, a
   jmp _for131_cond
@@ -5144,7 +5124,6 @@ _for133_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -1] ; $i
   mov [d], b
   mov b, a
   jmp _for133_cond
@@ -5221,7 +5200,6 @@ _while136_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -32] ; $op_p
   mov [d], b
   dec b
   push b
@@ -5229,7 +5207,6 @@ _while136_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -34] ; $tbl_p
   mov [d], b
   dec b
   mov d, b
@@ -5245,7 +5222,6 @@ _while136_exit:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -32] ; $op_p
   mov [d], b
   dec b
   push b
@@ -5253,7 +5229,6 @@ _while136_exit:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -34] ; $tbl_p
   mov [d], b
   dec b
   mov d, b
@@ -5287,7 +5262,6 @@ _while137_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -32] ; $op_p
   mov [d], b
   dec b
   push b
@@ -5295,7 +5269,6 @@ _while137_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -34] ; $tbl_p
   mov [d], b
   dec b
   mov d, b
@@ -5374,7 +5347,6 @@ _while139_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -34] ; $tbl_p
   mov [d], b
   dec b
   jmp _while139_cond
@@ -5401,7 +5373,6 @@ _while140_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -30] ; $hex_p
   mov [d], b
   dec b
   push b
@@ -5409,7 +5380,6 @@ _while140_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -34] ; $tbl_p
   mov [d], b
   dec b
   mov d, b
@@ -5545,7 +5515,6 @@ _while142_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -34] ; $tbl_p
   mov [d], b
   dec b
   jmp _while142_cond
@@ -5575,7 +5544,6 @@ _while143_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -34] ; $tbl_p
   mov [d], b
   dec b
   jmp _while143_cond
@@ -5777,7 +5745,6 @@ _while147_block:
   mov b, [d]
   mov c, 0
   dec b
-  mov d, _prog ; $prog
   mov [d], b
   inc b
 ; t++; 
@@ -5785,7 +5752,6 @@ _while147_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   jmp _while147_cond
@@ -5847,7 +5813,6 @@ _while148_block:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   jmp _while148_cond
@@ -5991,7 +5956,6 @@ _while150_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -5999,7 +5963,6 @@ _while150_block:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   mov d, b
@@ -6252,7 +6215,6 @@ _while153_block:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   jmp _while153_cond
@@ -6266,7 +6228,6 @@ _if152_else:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -6274,7 +6235,6 @@ _if152_else:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   mov d, b
@@ -6357,7 +6317,6 @@ _while155_block:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   jmp _while155_cond
@@ -6407,7 +6366,6 @@ _while157_block:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   jmp _while157_cond
@@ -6437,7 +6395,6 @@ _if158_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   jmp _if158_exit
@@ -6570,7 +6527,6 @@ _while161_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -6578,7 +6534,6 @@ _while161_block:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   mov d, b
@@ -6753,7 +6708,6 @@ _if164_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -6761,7 +6715,6 @@ _if164_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   mov d, b
@@ -6783,7 +6736,6 @@ _if164_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -6791,7 +6743,6 @@ _if164_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -67] ; $p
   mov [d], b
   dec b
   push b
@@ -6799,7 +6750,6 @@ _if164_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   mov d, b
@@ -6832,7 +6782,6 @@ _while165_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -6840,7 +6789,6 @@ _while165_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -67] ; $p
   mov [d], b
   dec b
   push b
@@ -6848,7 +6796,6 @@ _while165_block:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   mov d, b
@@ -6913,7 +6860,6 @@ _while166_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -6921,7 +6867,6 @@ _while166_block:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   mov d, b
@@ -6988,7 +6933,6 @@ _if167_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -7000,7 +6944,6 @@ _if167_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
 ; if(*prog == '\\'){ 
@@ -7028,7 +6971,6 @@ _if168_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -7040,7 +6982,6 @@ _if168_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
 ; *t++ = *prog++; 
@@ -7048,7 +6989,6 @@ _if168_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -7056,7 +6996,6 @@ _if168_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   mov d, b
@@ -7072,7 +7011,6 @@ _if168_else:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -7080,7 +7018,6 @@ _if168_else:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   mov d, b
@@ -7125,7 +7062,6 @@ _if169_exit:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -7137,7 +7073,6 @@ _if169_exit:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
 ; toktype = CHAR_CONST; 
@@ -7184,7 +7119,6 @@ _if170_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -7196,7 +7130,6 @@ _if170_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
 ; while(*prog != '\"' && *prog){ 
@@ -7237,7 +7170,6 @@ _while171_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -7245,7 +7177,6 @@ _while171_block:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   mov d, b
@@ -7291,7 +7222,6 @@ _if172_exit:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -7303,7 +7233,6 @@ _if172_exit:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
 ; toktype = STRING_CONST; 
@@ -7350,7 +7279,6 @@ _if173_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -7358,7 +7286,6 @@ _if173_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   mov d, b
@@ -7406,7 +7333,6 @@ _if174_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -7414,7 +7340,6 @@ _if174_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   mov d, b
@@ -7462,7 +7387,6 @@ _if175_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -7470,7 +7394,6 @@ _if175_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   mov d, b
@@ -7518,7 +7441,6 @@ _if176_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -7526,7 +7448,6 @@ _if176_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   mov d, b
@@ -7574,7 +7495,6 @@ _if177_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -7582,7 +7502,6 @@ _if177_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   mov d, b
@@ -7630,7 +7549,6 @@ _if178_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -7638,7 +7556,6 @@ _if178_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   mov d, b
@@ -7686,7 +7603,6 @@ _if179_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -7694,7 +7610,6 @@ _if179_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   mov d, b
@@ -7742,7 +7657,6 @@ _if180_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -7750,7 +7664,6 @@ _if180_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   mov d, b
@@ -7798,7 +7711,6 @@ _if181_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $t
   mov [d], b
   dec b
   push b
@@ -7806,7 +7718,6 @@ _if181_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  mov d, _prog ; $prog
   mov [d], b
   dec b
   mov d, b
@@ -7975,7 +7886,6 @@ _if183_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -3] ; $t
   mov [d], b
   dec b
 ; if(*t == '\\'){ 
@@ -8003,7 +7913,6 @@ _if184_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -3] ; $t
   mov [d], b
   dec b
 ; switch(*t){ 
@@ -8045,7 +7954,6 @@ _switch185_case0:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $s
   mov [d], b
   dec b
   push b
@@ -8060,7 +7968,6 @@ _switch185_case1:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $s
   mov [d], b
   dec b
   push b
@@ -8075,7 +7982,6 @@ _switch185_case2:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $s
   mov [d], b
   dec b
   push b
@@ -8090,7 +7996,6 @@ _switch185_case3:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $s
   mov [d], b
   dec b
   push b
@@ -8105,7 +8010,6 @@ _switch185_case4:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $s
   mov [d], b
   dec b
   push b
@@ -8120,7 +8024,6 @@ _switch185_case5:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $s
   mov [d], b
   dec b
   push b
@@ -8135,7 +8038,6 @@ _switch185_case6:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $s
   mov [d], b
   dec b
   push b
@@ -8150,7 +8052,6 @@ _switch185_case7:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $s
   mov [d], b
   dec b
   push b
@@ -8165,7 +8066,6 @@ _switch185_case8:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $s
   mov [d], b
   dec b
   push b
@@ -8180,7 +8080,6 @@ _switch185_case9:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $s
   mov [d], b
   dec b
   push b
@@ -8195,7 +8094,6 @@ _switch185_case10:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $s
   mov [d], b
   dec b
   push b
@@ -8210,7 +8108,6 @@ _if184_else:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $s
   mov [d], b
   dec b
   push b
@@ -8247,7 +8144,6 @@ _if186_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -3] ; $t
   mov [d], b
   dec b
 ; while(*t != '\"' && *t){ 
@@ -8288,7 +8184,6 @@ _while187_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $s
   mov [d], b
   dec b
   push b
@@ -8296,7 +8191,6 @@ _while187_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -3] ; $t
   mov [d], b
   dec b
   mov d, b
@@ -8428,7 +8322,6 @@ _if188_exit:
   mov c, 0
   mov a, b
   inc b
-  mov d, _prog_tos ; $prog_tos
   mov [d], b
   mov b, a
   leave
@@ -8468,7 +8361,6 @@ _if189_exit:
   mov c, 0
   mov a, b
   dec b
-  mov d, _prog_tos ; $prog_tos
   mov [d], b
   mov b, a
 ; prog = prog_stack[prog_tos]; 
@@ -8576,7 +8468,6 @@ _for190_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -1] ; $i
   mov [d], b
   mov b, a
   jmp _for190_cond
@@ -8963,7 +8854,6 @@ _for192_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -3] ; $i
   mov [d], b
   mov b, a
   jmp _for192_cond
@@ -9084,7 +8974,6 @@ _for207_update:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -1] ; $i
   mov [d], b
   mov b, a
   jmp _for207_cond
@@ -9170,7 +9059,6 @@ _if212_TRUE:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -3] ; $format_p
   mov [d], b
   dec b
 ; switch(*format_p){ 
@@ -9195,10 +9083,12 @@ _switch213_comparisons:
   je _switch213_case4
   cmp bl, $78
   je _switch213_case5
-  cmp bl, $63
+  cmp bl, $70
   je _switch213_case6
-  cmp bl, $73
+  cmp bl, $63
   je _switch213_case7
+  cmp bl, $73
+  je _switch213_case8
   jmp _switch213_default
   jmp _switch213_exit
 _switch213_case0:
@@ -9208,7 +9098,6 @@ _switch213_case1:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -3] ; $format_p
   mov [d], b
   dec b
 ; if(*format_p == 'd' || *format_p == 'i') 
@@ -9441,6 +9330,7 @@ _switch213_case4:
 ; break; 
   jmp _switch213_exit ; case break
 _switch213_case5:
+_switch213_case6:
 ; printx16(*(int*)p); 
 ; --- START FUNCTION CALL
   lea d, [bp + -1] ; $p
@@ -9471,7 +9361,7 @@ _switch213_case5:
   mov [d], b
 ; break; 
   jmp _switch213_exit ; case break
-_switch213_case6:
+_switch213_case7:
 ; putchar(*(char*)p); 
 ; --- START FUNCTION CALL
   lea d, [bp + -1] ; $p
@@ -9502,7 +9392,7 @@ _switch213_case6:
   mov [d], b
 ; break; 
   jmp _switch213_exit ; case break
-_switch213_case7:
+_switch213_case8:
 ; print(*(char**)p); 
 ; --- START FUNCTION CALL
   lea d, [bp + -1] ; $p
@@ -9564,7 +9454,6 @@ _if211_exit:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -3] ; $format_p
   mov [d], b
   dec b
 _for210_update:
@@ -9736,7 +9625,6 @@ _while219_block:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -11] ; $i
   mov [d], b
   mov b, a
   pop d
@@ -9928,7 +9816,6 @@ _while228_block:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -11] ; $i
   mov [d], b
   mov b, a
   pop d
@@ -10249,7 +10136,6 @@ _while238_block:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -6] ; $i
   mov [d], b
   mov b, a
   pop d
@@ -10414,7 +10300,6 @@ _while247_block:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -6] ; $i
   mov [d], b
   mov b, a
   pop d
@@ -10627,7 +10512,6 @@ _if255_TRUE:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + 5] ; $size
   mov [d], b
   mov b, a
   jmp _if255_exit
@@ -10705,14 +10589,14 @@ _if258_else:
   pop d
   mov [d], b
 _if258_exit:
-; return (void*)(blk + 1); 
+; return (void*)(blk + sizeof(struct block)); 
   lea d, [bp + -7] ; $blk
   mov b, [d]
   mov c, 0
 ; --- START TERMS
   push a
   mov a, b
-  mov32 cb, $00000001
+  mov32 cb, 4
   add b, a
   pop a
 ; --- END TERMS
@@ -10802,7 +10686,7 @@ _if259_exit:
   mov c, 0
   pop d
   mov [d], b
-; heap_top = heap_top + sizeof(struct block) + size; 
+; heap_top = heap_top + sizeof(block_t) + size; 
   mov d, _heap_top ; $heap_top
   push d
   mov d, _heap_top ; $heap_top
@@ -10822,14 +10706,14 @@ _if259_exit:
 ; --- END TERMS
   pop d
   mov [d], b
-; return (void*)(blk + 1); 
+; return (void*)(blk + sizeof(struct block)); 
   lea d, [bp + -7] ; $blk
   mov b, [d]
   mov c, 0
 ; --- START TERMS
   push a
   mov a, b
-  mov32 cb, $00000001
+  mov32 cb, 4
   add b, a
   pop a
 ; --- END TERMS
@@ -11068,7 +10952,6 @@ _while260_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + 5] ; $s1
   mov [d], b
   dec b
 ; s2++; 
@@ -11076,7 +10959,6 @@ _while260_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + 7] ; $s2
   mov [d], b
   dec b
   jmp _while260_cond
@@ -11148,7 +11030,6 @@ _while261_block:
   mov c, 0
   mov a, b
   inc b
-  lea d, [bp + -1] ; $length
   mov [d], b
   mov b, a
   jmp _while261_cond
@@ -11205,7 +11086,6 @@ _while262_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + 5] ; $str
   mov [d], b
   dec b
   jmp _while262_cond
@@ -11284,7 +11164,6 @@ _if264_exit:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + 5] ; $str
   mov [d], b
   dec b
   jmp _if263_exit
@@ -11409,7 +11288,6 @@ _same_signs_267:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + 5] ; $str
   mov [d], b
   dec b
   jmp _while265_cond
@@ -11514,7 +11392,6 @@ _while270_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -3] ; $pdest
   mov [d], b
   dec b
   push b
@@ -11522,7 +11399,6 @@ _while270_block:
   mov b, [d]
   mov c, 0
   inc b
-  lea d, [bp + -1] ; $psrc
   mov [d], b
   dec b
   mov d, b
@@ -11718,6 +11594,7 @@ _prog_tos: .fill 2, 0
 _prog_size: .fill 2, 0
 _symbols_data: .dw _s8, _s9, _s9, _s8, _s8, _s8, _s9, _s9, 
 _rng_state: .dw $0000
+_free_list: .dw 0
 _s0: .db "org", 0
 _s1: .db "include", 0
 _s2: .db "data", 0

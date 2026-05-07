@@ -6,7 +6,7 @@
 #define FONT_WIDTH 6
 #define FONT_HEIGHT 8
 #define FONT_HOR_SPACING 1
-#define FONT_VER_SPACING 1
+#define FONT_VER_SPACING 4
 
 const uint8_t *get_font_terminal_char(char character);
 
