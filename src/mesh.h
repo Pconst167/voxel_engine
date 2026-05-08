@@ -41,5 +41,6 @@ mesh_t *load_mesh(char *obj_filename, bool invert_x);
 material_t *get_mesh_material_by_name(mesh_t *mesh, const char *material_name);
 
 mesh_t *create_cube_mesh(vector3_t vertex_min, vector3_t vertex_max);
+mesh_t *create_terrain_mesh(void);
 
 #endif

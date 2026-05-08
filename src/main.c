@@ -161,7 +161,7 @@ bool is_paused = false;
 int player_chunk_x;
 int player_chunk_z;
 
-uint8_t color_buffer_reset = 0x00; /* repeat byte for color buffer reset */
+uint8_t color_buffer_reset = 0x20; /* repeat byte for color buffer reset */
 
 /* perspective and camera */
 matrix4_t projection_matrix;
@@ -203,8 +203,9 @@ void setup(void) {
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
 
   /* create objects */
-  load_server_room();
+  //load_server_room();
   //load_voxel_world();
+  load_terrain_world();
   //load_world1();
 
   /* normalize all light direction vectors to unity */
@@ -471,6 +472,12 @@ void run_console_command(){
   }
   else if(!strcmp(console.input_buffer, "terminal")){
     game_state.input_to_computer = !game_state.input_to_computer;
+  }
+  else if(!strcmp(console.input_buffer, "inc")){
+    computers[0].cycles_per_frame += 100000;
+  }
+  else if(!strcmp(console.input_buffer, "dec")){
+    computers[0].cycles_per_frame -= 100000;
   }
 }
 
@@ -1851,7 +1858,7 @@ int main(int argc, char *argv[]){
   quit = !initialize_window();
   setup();
   
-  emulator_setup();
+  //emulator_setup();
 
   for(; !quit; ){
     frame_id++;
@@ -1860,7 +1867,7 @@ int main(int argc, char *argv[]){
     if(!console.is_open && !game_state.input_to_computer) move_player();
     update_state();
 
-    emulator_cycle(computers[0].cycles_per_frame);
+    //emulator_cycle(computers[0].cycles_per_frame);
 
     render_visible_chunks();
     
@@ -1879,6 +1886,24 @@ int main(int argc, char *argv[]){
   debug_print_allocated();
 
   return 0;
+}
+
+void load_terrain_world(){
+  mesh_t *mesh;
+
+  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f,  .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.8f);
+  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.4f);
+
+  mesh = create_terrain_mesh();
+  mesh->materials[0].texture = load_texture("./assets/textures/ground/grass.png");
+  mesh->materials[1].texture = load_texture("./assets/textures/ground/mine.png");
+  create_object(mesh, OBJECT_TYPE_ROOM, true, true,
+                false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
+               (vector3_t){3, 3, 3}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+               (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  );
+
+  mesh = load_mesh("./assets/obj/skeleton.obj", false);
 }
 
 void load_voxel_world(){
@@ -2098,7 +2123,7 @@ void load_server_room(){
     .texture             = screen_texture
   };
   object_override_material(term0, "screen", screen_material1);
-  computer_declare(term0, screen_texture, blank_screen_texture, 100000, font_color, 4, 40, 40);
+  computer_declare(term0, screen_texture, blank_screen_texture, 200000, font_color, 3, 40, 40);
 
   object_id = create_object(
     mesh,

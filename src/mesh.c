@@ -502,3 +502,334 @@ material_t *get_mesh_material_by_name(mesh_t *mesh, const char *material_name){
 
   return NULL;
 }
+static float terrain_hash_noise(int x, int z, uint32_t seed){
+  uint32_t hash = (uint32_t)x * 374761393u + (uint32_t)z * 668265263u + seed * 2246822519u;
+  hash = (hash ^ (hash >> 13u)) * 1274126177u;
+  hash = hash ^ (hash >> 16u);
+
+  return (float)(hash & 0x00FFFFFFu) / (float)0x00FFFFFFu;
+}
+
+static float terrain_smoothstep(float value){
+  return value * value * (3.0f - 2.0f * value);
+}
+
+static float terrain_lerp(float a, float b, float t){
+  return a + (b - a) * t;
+}
+
+static float terrain_value_noise(float x, float z, uint32_t seed){
+  int x0 = (int)floorf(x);
+  int z0 = (int)floorf(z);
+  int x1 = x0 + 1;
+  int z1 = z0 + 1;
+
+  float tx = terrain_smoothstep(x - (float)x0);
+  float tz = terrain_smoothstep(z - (float)z0);
+
+  float h00 = terrain_hash_noise(x0, z0, seed);
+  float h10 = terrain_hash_noise(x1, z0, seed);
+  float h01 = terrain_hash_noise(x0, z1, seed);
+  float h11 = terrain_hash_noise(x1, z1, seed);
+
+  float hx0 = terrain_lerp(h00, h10, tx);
+  float hx1 = terrain_lerp(h01, h11, tx);
+
+  return terrain_lerp(hx0, hx1, tz);
+}
+
+static float terrain_height(float x, float z, uint32_t seed){
+  float height = 0.0f;
+  float amplitude = 1.0f;
+  float frequency = 0.045f;
+  float amplitude_sum = 0.0f;
+
+  for(int octave = 0; octave < 5; octave++){
+    height += terrain_value_noise(x * frequency, z * frequency, seed + octave * 9176u) * amplitude;
+    amplitude_sum += amplitude;
+
+    amplitude *= 0.5f;
+    frequency *= 2.0f;
+  }
+
+  height /= amplitude_sum;
+
+  return height;
+}
+
+static void terrain_update_bbox(
+  vector3_t vertex,
+  vector3_t *bbox_min,
+  vector3_t *bbox_max,
+  bool *bbox_valid
+){
+  if(!(*bbox_valid)){
+    *bbox_min = vertex;
+    *bbox_max = vertex;
+    *bbox_valid = true;
+    return;
+  }
+
+  if(vertex.x < bbox_min->x) bbox_min->x = vertex.x;
+  if(vertex.y < bbox_min->y) bbox_min->y = vertex.y;
+  if(vertex.z < bbox_min->z) bbox_min->z = vertex.z;
+
+  if(vertex.x > bbox_max->x) bbox_max->x = vertex.x;
+  if(vertex.y > bbox_max->y) bbox_max->y = vertex.y;
+  if(vertex.z > bbox_max->z) bbox_max->z = vertex.z;
+}
+
+static void terrain_add_top_square(
+  mesh_t *mesh,
+  float x0,
+  float x1,
+  float z0,
+  float z1,
+  float world_y,
+  vector3_t *bbox_min,
+  vector3_t *bbox_max,
+  bool *bbox_valid
+){
+  uint32_t base_vertex_index = array_length(mesh->vertices);
+
+  vector3_t vertex0 = {.x = x0, .y = world_y, .z = z0};
+  vector3_t vertex1 = {.x = x0, .y = world_y, .z = z1};
+  vector3_t vertex2 = {.x = x1, .y = world_y, .z = z1};
+  vector3_t vertex3 = {.x = x1, .y = world_y, .z = z0};
+
+  array_push(mesh->vertices, vertex0);
+  array_push(mesh->vertices, vertex1);
+  array_push(mesh->vertices, vertex2);
+  array_push(mesh->vertices, vertex3);
+
+  terrain_update_bbox(vertex0, bbox_min, bbox_max, bbox_valid);
+  terrain_update_bbox(vertex1, bbox_min, bbox_max, bbox_valid);
+  terrain_update_bbox(vertex2, bbox_min, bbox_max, bbox_valid);
+  terrain_update_bbox(vertex3, bbox_min, bbox_max, bbox_valid);
+
+  face_t face0;
+  memset(&face0, 0, sizeof(face0));
+  face0.material_id = 0;
+  face0.vertex_indices[0] = base_vertex_index + 0;
+  face0.vertex_indices[1] = base_vertex_index + 1;
+  face0.vertex_indices[2] = base_vertex_index + 2;
+  face0.uv[0] = (uv_t){0.0f, 0.0f};
+  face0.uv[1] = (uv_t){0.0f, 1.0f};
+  face0.uv[2] = (uv_t){1.0f, 1.0f};
+  array_push(mesh->faces, face0);
+
+  face_t face1;
+  memset(&face1, 0, sizeof(face1));
+  face1.material_id = 0;
+  face1.vertex_indices[0] = base_vertex_index + 0;
+  face1.vertex_indices[1] = base_vertex_index + 2;
+  face1.vertex_indices[2] = base_vertex_index + 3;
+  face1.uv[0] = (uv_t){0.0f, 0.0f};
+  face1.uv[1] = (uv_t){1.0f, 1.0f};
+  face1.uv[2] = (uv_t){1.0f, 0.0f};
+  array_push(mesh->faces, face1);
+}
+
+static void terrain_add_vertical_wall(
+  mesh_t *mesh,
+  vector3_t bottom0,
+  vector3_t bottom1,
+  vector3_t top1,
+  vector3_t top0,
+  vector3_t *bbox_min,
+  vector3_t *bbox_max,
+  bool *bbox_valid
+){
+  uint32_t base_vertex_index = array_length(mesh->vertices);
+
+  array_push(mesh->vertices, bottom0);
+  array_push(mesh->vertices, bottom1);
+  array_push(mesh->vertices, top1);
+  array_push(mesh->vertices, top0);
+
+  terrain_update_bbox(bottom0, bbox_min, bbox_max, bbox_valid);
+  terrain_update_bbox(bottom1, bbox_min, bbox_max, bbox_valid);
+  terrain_update_bbox(top1, bbox_min, bbox_max, bbox_valid);
+  terrain_update_bbox(top0, bbox_min, bbox_max, bbox_valid);
+
+  face_t face0;
+  memset(&face0, 0, sizeof(face0));
+  face0.material_id = 1;
+  face0.vertex_indices[0] = base_vertex_index + 0;
+  face0.vertex_indices[1] = base_vertex_index + 2;
+  face0.vertex_indices[2] = base_vertex_index + 1;
+  face0.uv[0] = (uv_t){0.0f, 1.0f};
+  face0.uv[1] = (uv_t){1.0f, 0.0f};
+  face0.uv[2] = (uv_t){1.0f, 1.0f};
+  array_push(mesh->faces, face0);
+
+  face_t face1;
+  memset(&face1, 0, sizeof(face1));
+  face1.material_id = 1;
+  face1.vertex_indices[0] = base_vertex_index + 0;
+  face1.vertex_indices[1] = base_vertex_index + 3;
+  face1.vertex_indices[2] = base_vertex_index + 2;
+  face1.uv[0] = (uv_t){0.0f, 1.0f};
+  face1.uv[1] = (uv_t){0.0f, 0.0f};
+  face1.uv[2] = (uv_t){1.0f, 0.0f};
+  array_push(mesh->faces, face1);
+}
+
+mesh_t *create_terrain_mesh(void){
+  if(num_meshes >= MAX_NUM_MESHES){
+    print_log("[ERROR] max number of meshes reached %d", MAX_NUM_MESHES);
+    return NULL;
+  }
+
+  const int terrain_squares_x = 200;
+  const int terrain_squares_z = 200;
+  const float square_size = 10.0f;
+  const float maximum_height = 80.0f;
+  const float height_step = 5.0f;
+  const uint32_t seed = 12345u;
+
+  float terrain_heights[200][200];
+
+  mesh_t *mesh = &meshes[num_meshes];
+
+  add_material_to_mesh(mesh, generate_default_material("top"));
+  add_material_to_mesh(mesh, generate_default_material("sides"));
+
+  float terrain_width = (float)terrain_squares_x * square_size;
+  float terrain_depth = (float)terrain_squares_z * square_size;
+
+  float x_start = -terrain_width * 0.5f;
+  float z_start = -terrain_depth * 0.5f;
+
+  vector3_t bbox_min = {0};
+  vector3_t bbox_max = {0};
+  bool bbox_valid = false;
+
+  for(int z = 0; z < terrain_squares_z; z++){
+    for(int x = 0; x < terrain_squares_x; x++){
+      float height01 = terrain_height((float)x, (float)z, seed);
+      terrain_heights[z][x] = roundf((height01 * maximum_height) / height_step) * height_step;
+    }
+  }
+
+  for(int z = 0; z < terrain_squares_z; z++){
+    for(int x = 0; x < terrain_squares_x; x++){
+      float world_y = terrain_heights[z][x];
+
+      float x0 = x_start + (float)x * square_size;
+      float x1 = x0 + square_size;
+      float z0 = z_start + (float)z * square_size;
+      float z1 = z0 + square_size;
+
+      terrain_add_top_square(
+        mesh,
+        x0,
+        x1,
+        z0,
+        z1,
+        world_y,
+        &bbox_min,
+        &bbox_max,
+        &bbox_valid
+      );
+
+      float left_height = 0.0f;
+      if(x > 0) left_height = terrain_heights[z][x - 1];
+
+      if(world_y > left_height){
+        terrain_add_vertical_wall(
+          mesh,
+          (vector3_t){x0, left_height, z1},
+          (vector3_t){x0, left_height, z0},
+          (vector3_t){x0, world_y, z0},
+          (vector3_t){x0, world_y, z1},
+          &bbox_min,
+          &bbox_max,
+          &bbox_valid
+        );
+      }
+
+      float right_height = 0.0f;
+      if(x < terrain_squares_x - 1) right_height = terrain_heights[z][x + 1];
+
+      if(world_y > right_height){
+        terrain_add_vertical_wall(
+          mesh,
+          (vector3_t){x1, right_height, z0},
+          (vector3_t){x1, right_height, z1},
+          (vector3_t){x1, world_y, z1},
+          (vector3_t){x1, world_y, z0},
+          &bbox_min,
+          &bbox_max,
+          &bbox_valid
+        );
+      }
+
+      float back_height = 0.0f;
+      if(z > 0) back_height = terrain_heights[z - 1][x];
+
+      if(world_y > back_height){
+        terrain_add_vertical_wall(
+          mesh,
+          (vector3_t){x0, back_height, z0},
+          (vector3_t){x1, back_height, z0},
+          (vector3_t){x1, world_y, z0},
+          (vector3_t){x0, world_y, z0},
+          &bbox_min,
+          &bbox_max,
+          &bbox_valid
+        );
+      }
+
+      float front_height = 0.0f;
+      if(z < terrain_squares_z - 1) front_height = terrain_heights[z + 1][x];
+
+      if(world_y > front_height){
+        terrain_add_vertical_wall(
+          mesh,
+          (vector3_t){x1, front_height, z1},
+          (vector3_t){x0, front_height, z1},
+          (vector3_t){x0, world_y, z1},
+          (vector3_t){x1, world_y, z1},
+          &bbox_min,
+          &bbox_max,
+          &bbox_valid
+        );
+      }
+    }
+  }
+
+  mesh->num_vertices = array_length(mesh->vertices);
+  mesh->num_faces = array_length(mesh->faces);
+  mesh->num_materials = array_length(mesh->materials);
+
+  double bbox_center_x = 0.5 * ((double)bbox_min.x + (double)bbox_max.x);
+  double bbox_center_y = 0.5 * ((double)bbox_min.y + (double)bbox_max.y);
+  double bbox_center_z = 0.5 * ((double)bbox_min.z + (double)bbox_max.z);
+
+  double radius_sq = 0.0;
+  for(int i = 0; i < mesh->num_vertices; i++){
+    double dx = (double)mesh->vertices[i].x - bbox_center_x;
+    double dy = (double)mesh->vertices[i].y - bbox_center_y;
+    double dz = (double)mesh->vertices[i].z - bbox_center_z;
+
+    double dist_sq = dx*dx + dy*dy + dz*dz;
+    if(dist_sq > radius_sq) radius_sq = dist_sq;
+  }
+
+  mesh->bbox_aabb.x_min = bbox_min.x;
+  mesh->bbox_aabb.x_max = bbox_max.x;
+  mesh->bbox_aabb.y_min = bbox_min.y;
+  mesh->bbox_aabb.y_max = bbox_max.y;
+  mesh->bbox_aabb.z_min = bbox_min.z;
+  mesh->bbox_aabb.z_max = bbox_max.z;
+
+  mesh->bounding_center.x = (float)bbox_center_x;
+  mesh->bounding_center.y = (float)bbox_center_y;
+  mesh->bounding_center.z = (float)bbox_center_z;
+  mesh->bsphere_radius = (float)sqrt(radius_sq);
+
+  num_meshes++;
+
+  return mesh;
+}
