@@ -1,4 +1,4 @@
-SRC = ./src/*.c ./src/emulator/*.c
+SRC = ./src/*.c
 
 build-linux:
 	gcc $(SRC) \

@@ -4,8 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "vector.h"
-
-#define NUM_CHUNK_DIVISIONS 8 /* 10 along x, and 10 along z */
+#include "voxel.h"
 
 typedef enum{
   CHUNK_INTERSECTION_MODE_OUTSIDE,
@@ -24,6 +23,10 @@ typedef struct{
   double y_min, y_max;
   double z_min, z_max;
   bool empty;
+  uint32_t z_row_start;
+  uint32_t z_row_end;
+  uint32_t x_col_start;
+  uint32_t x_col_end;
   /* object data */
   chunk_object_faces_t *chunk_object_faces;
   uint32_t num_chunk_objects;
@@ -39,7 +42,7 @@ typedef struct{
   float sort_z;
 } chunk_sort_key_t;
 
-extern chunk_t chunks[NUM_CHUNK_DIVISIONS][NUM_CHUNK_DIVISIONS];
+extern chunk_t chunks[NUM_CHUNK_DIVISIONS_X][NUM_CHUNK_DIVISIONS_Z];
 extern double world_x_min;
 extern double world_x_max;
 extern double world_z_min;

@@ -5,11 +5,12 @@
 #include "collision.h"
 #include "log.h"
 #include "debug.h"
+#include "voxel.h"
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
-chunk_t chunks[NUM_CHUNK_DIVISIONS][NUM_CHUNK_DIVISIONS] = {0};
+chunk_t chunks[NUM_CHUNK_DIVISIONS_X][NUM_CHUNK_DIVISIONS_Z];
 
 double world_x_min;
 double world_x_max;
@@ -74,61 +75,33 @@ RENDER STAGE
 /* go through all static/chunkable objects in the world, for each object, get the face vertices
    and keep track of minimum and maximum x, and z.  use those as the world bounds */
 void calculate_world_bounds(void){
-  double x_min = 0.0f, x_max = 0.0f;
-  double z_min = 0.0f, z_max = 0.0f;
-
-  for(uint32_t i = 0; i < num_objects; i++){
-    object_t *object = &objects[i];
-    uint32_t num_vertices = object->mesh->num_vertices;
-
-    if(object->fixed){
-      for(uint32_t vertex_i = 0; vertex_i < num_vertices; vertex_i++){
-        vector3_t vertex = object->transformed_vertices[vertex_i];
-
-        if(vertex.x < x_min) x_min = vertex.x;
-        if(vertex.x > x_max) x_max = vertex.x;
-        if(vertex.z < z_min) z_min = vertex.z;
-        if(vertex.z > z_max) z_max = vertex.z;
-      }
-    }
-  }
-
   /* set world boundaries */
-  world_x_min = x_min;
-  world_x_max = x_max;
-  world_z_min = z_min;
-  world_z_max = z_max;
-
-  print_log("\nworld xmin: %f, world xmax: %f", x_min, x_max);
-  print_log("world zmin: %f, world zmax: %f\n", z_min, z_max);
+  world_x_min = 0;
+  world_x_max = MAP_NUM_VOXELS_X;
+  world_z_min = 0;
+  world_z_max = MAP_NUM_VOXELS_Z;
 }
 
 /* split the world into chunks */
 void create_world_chunks(void){
-  /* calculate chunk deltas */
-  chunk_dx = (world_x_max - world_x_min) / (double)NUM_CHUNK_DIVISIONS;
-  chunk_dz = (world_z_max - world_z_min) / (double)NUM_CHUNK_DIVISIONS;
 
   /* set the boundary of each chunk */
-  for(uint32_t z_row = 0; z_row < NUM_CHUNK_DIVISIONS; z_row++){
-    for(uint32_t x_col = 0; x_col < NUM_CHUNK_DIVISIONS; x_col++){
-      chunks[z_row][x_col].empty = true;
-      chunks[z_row][x_col].x_min = world_x_min + (x_col    ) * chunk_dx;     
-      chunks[z_row][x_col].x_max = world_x_min + (x_col + 1) * chunk_dx;     
-      chunks[z_row][x_col].z_min = world_z_min + (z_row    ) * chunk_dz;     
-      chunks[z_row][x_col].z_max = world_z_min + (z_row + 1) * chunk_dz;     
+  for(uint32_t z_row = 0; z_row < NUM_CHUNK_DIVISIONS_Z; z_row++){
+    for(uint32_t x_col = 0; x_col < NUM_CHUNK_DIVISIONS_X; x_col++){
+      chunks[z_row][x_col].empty = false;
+      chunks[z_row][x_col].x_min = world_x_min + (x_col    ) * CHUNK_SIZE;     
+      chunks[z_row][x_col].x_max = world_x_min + (x_col + 1) * CHUNK_SIZE;     
+      chunks[z_row][x_col].z_min = world_z_min + (z_row    ) * CHUNK_SIZE;     
+      chunks[z_row][x_col].z_max = world_z_min + (z_row + 1) * CHUNK_SIZE;     
 
-      //print_log("xstart: %f, xend: %f, zstart: %f, zend: %f\n", 
-      //  chunks[z_row][x_col].x_min, 
-      //  chunks[z_row][x_col].x_max, 
-      //  chunks[z_row][x_col].z_min, 
-      //  chunks[z_row][x_col].z_max 
-      //);
+      chunks[z_row][x_col].z_row_start = (z_row    ) * CHUNK_SIZE;
+      chunks[z_row][x_col].z_row_end   = (z_row + 1) * CHUNK_SIZE - 1;
+      chunks[z_row][x_col].x_col_start = (x_col    ) * CHUNK_SIZE;     
+      chunks[z_row][x_col].x_col_end   = (x_col + 1) * CHUNK_SIZE - 1;     
     }
   }
 
-  print_log("chunk_dx: %f", chunk_dx);
-  print_log("chunk_dz: %f", chunk_dz);
+  print_log("CHUNK_SIZE: %u", CHUNK_SIZE);
 }
 
 /*
@@ -168,10 +141,10 @@ void populate_chunks_with_objects(void){
         int chunk_zrow_max = (int)((face_aabb.z_max - world_z_min) / chunk_dz);
         
         /* clamp boundaries on both ends because a triangle on the boundary can give a chunk index out of range */
-        chunk_xcol_min = MAX(0, MIN(NUM_CHUNK_DIVISIONS - 1, chunk_xcol_min));
-        chunk_xcol_max = MAX(0, MIN(NUM_CHUNK_DIVISIONS - 1, chunk_xcol_max));
-        chunk_zrow_min = MAX(0, MIN(NUM_CHUNK_DIVISIONS - 1, chunk_zrow_min));
-        chunk_zrow_max = MAX(0, MIN(NUM_CHUNK_DIVISIONS - 1, chunk_zrow_max));
+        chunk_xcol_min = MAX(0, MIN(NUM_CHUNK_DIVISIONS_X - 1, chunk_xcol_min));
+        chunk_xcol_max = MAX(0, MIN(NUM_CHUNK_DIVISIONS_X - 1, chunk_xcol_max));
+        chunk_zrow_min = MAX(0, MIN(NUM_CHUNK_DIVISIONS_Z - 1, chunk_zrow_min));
+        chunk_zrow_max = MAX(0, MIN(NUM_CHUNK_DIVISIONS_Z - 1, chunk_zrow_max));
         
         /* now add reference to object and face to the chunks */
         for(int z_row = chunk_zrow_min; z_row <= chunk_zrow_max; z_row++){
@@ -197,18 +170,9 @@ void populate_chunks_with_objects(void){
             /* increment number of faces for that object in chunk */
             chunks[z_row][x_col].chunk_object_faces[chunk_object_idx].num_faces++;
 
-            /* update chunk's y-bounds with new face aabb's max/min height
-               but the very first face assigned to the chunk needs to be special and set the initial size, otherwise for example a face totally above 0.0 would not update the initial value
-            */
-            if(chunks[z_row][x_col].empty){
-              chunks[z_row][x_col].y_min = face_aabb.y_min;
-              chunks[z_row][x_col].y_max = face_aabb.y_max;
-              chunks[z_row][x_col].empty = false;
-            }
-            else{
-              if(face_aabb.y_min < chunks[z_row][x_col].y_min) chunks[z_row][x_col].y_min = face_aabb.y_min;
-              if(face_aabb.y_max > chunks[z_row][x_col].y_max) chunks[z_row][x_col].y_max = face_aabb.y_max;
-            }
+            // update chunk's y-bounds with max/min voxel height
+            chunks[z_row][x_col].y_min = 0.0;
+            chunks[z_row][x_col].y_max = MAP_NUM_VOXELS_Y;
           }
         }
       }
@@ -253,10 +217,10 @@ void populate_chunks_with_collision_aabbs(void){
     int chunk_zrow_max = (int)floor((collision_aabb->aabb.z_max - world_z_min) / chunk_dz);
     
     // clamp boundaries on both ends because an aabb on the boundary can give a chunk index out of range
-    chunk_xcol_min = MAX(0, MIN(NUM_CHUNK_DIVISIONS - 1, chunk_xcol_min));
-    chunk_xcol_max = MAX(0, MIN(NUM_CHUNK_DIVISIONS - 1, chunk_xcol_max));
-    chunk_zrow_min = MAX(0, MIN(NUM_CHUNK_DIVISIONS - 1, chunk_zrow_min));
-    chunk_zrow_max = MAX(0, MIN(NUM_CHUNK_DIVISIONS - 1, chunk_zrow_max));
+    chunk_xcol_min = MAX(0, MIN(NUM_CHUNK_DIVISIONS_X - 1, chunk_xcol_min));
+    chunk_xcol_max = MAX(0, MIN(NUM_CHUNK_DIVISIONS_X - 1, chunk_xcol_max));
+    chunk_zrow_min = MAX(0, MIN(NUM_CHUNK_DIVISIONS_Z - 1, chunk_zrow_min));
+    chunk_zrow_max = MAX(0, MIN(NUM_CHUNK_DIVISIONS_Z - 1, chunk_zrow_max));
     
     // now add reference to the collision aabb to the chunks
     for(int z_row = chunk_zrow_min; z_row <= chunk_zrow_max; z_row++){

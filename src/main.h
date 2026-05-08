@@ -27,7 +27,6 @@ void move_player(void);
 void update_light(void);
 void process_input(void);
 void process_console_input(SDL_Event *event);
-void process_computer_input(SDL_Event *event);
 void run_console_command();
 void setup(void);
 
@@ -46,7 +45,8 @@ bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane
 uint32_t chunk_num_vertices_inside_plane(chunk_t *chunk, frustrum_plane_t frustrum_plane);
 int get_chunk_intersection_mode(chunk_t *chunk);
 chunk_intersection_mode_t get_chunk_intersection_mode_fast(chunk_t *chunk);
-void render_chunk(chunk_t *chunk);
+void render_chunk_objects(chunk_t *chunk);
+void render_chunk_voxels(chunk_t *chunk);
 void render_visible_chunks(void);
 void draw_chunk_outlines(void);
 void draw_collision_aabb_outlines(void);

@@ -148,15 +148,9 @@ static void load_mtl_file(
         switch(illum){
           case 0:
             current_material.reflects_light      = false;
-            current_material.specular_highlights = false;
-            break;
-          case 1:
-            current_material.reflects_light      = true;
-            current_material.specular_highlights = false;
             break;
           default:
             current_material.reflects_light      = true;
-            current_material.specular_highlights = true;
             break;
         }
       }
@@ -675,20 +669,20 @@ static void terrain_add_vertical_wall(
   array_push(mesh->faces, face1);
 }
 
-mesh_t *create_terrain_mesh(void){
+mesh_t *create_terrain_mesh(uint32_t squares_x, uint32_t squares_z){
   if(num_meshes >= MAX_NUM_MESHES){
     print_log("[ERROR] max number of meshes reached %d", MAX_NUM_MESHES);
     return NULL;
   }
 
-  const int terrain_squares_x = 200;
-  const int terrain_squares_z = 200;
-  const float square_size = 10.0f;
-  const float maximum_height = 80.0f;
-  const float height_step = 5.0f;
+  const int terrain_squares_x = squares_x;
+  const int terrain_squares_z = squares_z;
+  const float square_size = 1.0f;
+  const float maximum_height = 10.0f;
+  const float height_step = 1.0f;
   const uint32_t seed = 12345u;
 
-  float terrain_heights[200][200];
+  float terrain_heights[squares_x][squares_z];
 
   mesh_t *mesh = &meshes[num_meshes];
 
@@ -698,8 +692,8 @@ mesh_t *create_terrain_mesh(void){
   float terrain_width = (float)terrain_squares_x * square_size;
   float terrain_depth = (float)terrain_squares_z * square_size;
 
-  float x_start = -terrain_width * 0.5f;
-  float z_start = -terrain_depth * 0.5f;
+  float x_start = 0.0f;//-terrain_width * 0.5f;
+  float z_start = 0.0f;//-terrain_depth * 0.5f;
 
   vector3_t bbox_min = {0};
   vector3_t bbox_max = {0};
@@ -808,7 +802,7 @@ mesh_t *create_terrain_mesh(void){
   double bbox_center_z = 0.5 * ((double)bbox_min.z + (double)bbox_max.z);
 
   double radius_sq = 0.0;
-  for(int i = 0; i < mesh->num_vertices; i++){
+  for(uint32_t i = 0; i < mesh->num_vertices; i++){
     double dx = (double)mesh->vertices[i].x - bbox_center_x;
     double dy = (double)mesh->vertices[i].y - bbox_center_y;
     double dz = (double)mesh->vertices[i].z - bbox_center_z;
