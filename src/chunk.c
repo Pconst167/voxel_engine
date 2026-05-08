@@ -135,10 +135,10 @@ void populate_chunks_with_objects(void){
         /* form face's 2d AABB */
         aabb_3d_t face_aabb = calculate_3d_aabb(v_a, v_b, v_c);
         /* compute the range of chunks that span across the aabb - these are the chunks that overlap with the face */
-        int chunk_xcol_min = (int)((face_aabb.x_min - world_x_min) / chunk_dx);
-        int chunk_xcol_max = (int)((face_aabb.x_max - world_x_min) / chunk_dx);
-        int chunk_zrow_min = (int)((face_aabb.z_min - world_z_min) / chunk_dz);
-        int chunk_zrow_max = (int)((face_aabb.z_max - world_z_min) / chunk_dz);
+        int chunk_xcol_min = (int)floor((face_aabb.x_min - world_x_min) / chunk_dx);
+        int chunk_xcol_max = (int)floor((face_aabb.x_max - world_x_min) / chunk_dx);
+        int chunk_zrow_min = (int)floor((face_aabb.z_min - world_z_min) / chunk_dz);
+        int chunk_zrow_max = (int)floor((face_aabb.z_max - world_z_min) / chunk_dz);
         
         /* clamp boundaries on both ends because a triangle on the boundary can give a chunk index out of range */
         chunk_xcol_min = MAX(0, MIN(NUM_CHUNK_DIVISIONS_X - 1, chunk_xcol_min));
