@@ -56,8 +56,5 @@ void move_player_with_collision(vector3_t move);
 void resolve_player_collisions();
 
 void load_skybox();
-void load_voxel_world();
-void load_server_room();
-void load_terrain_world();
 
 #endif

@@ -187,11 +187,15 @@ void setup(void) {
 
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
 
-  /* create objects */
-  //load_server_room();
-  load_voxel_world();
-  //load_terrain_world();
-  //load_world1();
+  mesh_t *mesh;
+  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f,  .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.8f);
+  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.4f);
+  mesh = load_mesh("./assets/obj/pumpkin.obj", false);
+  create_object(mesh, OBJECT_TYPE_ROOM, true, true,
+                false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
+               (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){10, 10, 10}, 
+               (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  );
 
   /* normalize all light direction vectors to unity */
   initialize_lights();
@@ -1312,18 +1316,6 @@ void render_chunk_voxels(uint32_t z_row, uint32_t x_col){
           render_face(face_left);
           render_face(face_right);
         }
-
-        //// block is solid, create the block faces
-        //triangle_t faces[12]; // top, bottom, left, right, back, front (left faces - right face order)
-        //uint32_t num_visible_faces = 12;
-        //for(uint32_t face_i = 0; face_i < 12; face_i++){
-        //  faces[face_i] = generate_voxel_face((voxel_face_t)face_i, y_plane, z_row, x_col);
-        //  faces[face_i].face_material = face_material;
-        //}
-
-        //for(uint32_t face_i = 0; face_i < num_visible_faces; face_i++){
-        //  render_face(faces[face_i]);
-        //}
       }
     }
   }
@@ -2278,52 +2270,6 @@ int main(int argc, char *argv[]){
   return 0;
 }
 
-void load_voxel_world(){
-  mesh_t *mesh;
-
-  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f,  .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.8f);
-  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.4f);
-
-  mesh = load_mesh("./assets/obj/pumpkin.obj", false);
-  create_object(mesh, OBJECT_TYPE_ROOM, true, true,
-                false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-               (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){10, 10, 10}, 
-               (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  );
-}
-
-void load_terrain_world(){
-  mesh_t *mesh;
-
-  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f,  .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.8f);
-  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.4f);
-
-  mesh = create_terrain_mesh(MAP_NUM_VOXELS_X, MAP_NUM_VOXELS_Z);
-  mesh->materials[0].texture = load_texture("./assets/textures/ground/grass.png");
-  mesh->materials[1].texture = load_texture("./assets/textures/ground/mine.png");
-  create_object(mesh, OBJECT_TYPE_ROOM, true, true,
-                false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-               (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
-               (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  );
-
-  mesh = load_mesh("./assets/obj/skeleton.obj", false);
-}
-
-void load_voxel_world2(){
-  mesh_t *mesh;
-
-  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f,  .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.8f);
-  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.4f);
-
-  mesh = load_mesh("./assets/obj/voxels.obj", false);
-  create_object(mesh, OBJECT_TYPE_ROOM, true, true, 
-                false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-               (vector3_t){10, 10, 10}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
-               (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  );
-}
-
 void load_skybox(){
   mesh_t *mesh;
 
@@ -2332,244 +2278,6 @@ void load_skybox(){
                             false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
                            (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  );
-}
-
-void load_server_room(){
-  int32_t object_id;
-  mesh_t *mesh;
-
-  create_light_source(LIGHT_AMBIENT, (vector3_t){.x = 0.0f,     .y = 0.0f,   .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 0.05f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = 300.0f,   .y = 50.0f,  .z = -50.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 300.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = -300.0f,  .y = 50.0f,  .z = -50.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFF0000}, 300.0f);
-  create_light_source(LIGHT_POINT,   (vector3_t){.x = -260.0f,  .y = 350.0f, .z = 500.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 400.0f);
-  //create_light_source(LIGHT_POINT,   (vector3_t){.x = -300.0f,  .y = 100.0f, .z = 100.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f},  (color_t){.uint32 = 0xFFFFFFFF}, 50.0f);
-
-  /* room */
-  object_id = create_object(
-    load_mesh("./assets/obj/server_room/room.obj", false), 
-    OBJECT_TYPE_ROOM, true, true, 
-    false, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-    (vector3_t){1300, 1800, 1300}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
-    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  );
-  
-  float x_min     = objects[object_id].bbox_aabb.x_min;
-  float x_max     = objects[object_id].bbox_aabb.x_max;
-  float z_min     = objects[object_id].bbox_aabb.z_min;
-  float z_max     = objects[object_id].bbox_aabb.z_max;
-  float y_max     = objects[object_id].bbox_aabb.y_max;
-  float thickness = 50;
-  
-  // x_min
-  create_collision_aabb(
-    (aabb_3d_t){
-      .x_min = x_min - thickness / 2.0f, .x_max = x_min + thickness / 2.0f,  
-      .z_min = z_min + 300,              .z_max = z_max, 
-      .y_min = 0.0f,                     .y_max = y_max
-    }, 
-    object_id,
-    true
-  );
-  // x_max
-  create_collision_aabb(
-    (aabb_3d_t){
-      .x_min = x_max, .x_max = x_max + thickness, 
-      .z_min = z_min, .z_max = z_max - 280, 
-      .y_min = 0.0f,  .y_max = y_max
-    }, 
-    object_id,
-    true
-  );
-  // z_min
-  create_collision_aabb(
-    (aabb_3d_t){
-      .x_min = x_min + 620,       .x_max = x_max,             
-      .z_min = z_min - thickness, .z_max = z_min, 
-      .y_min = 0.0f,              .y_max = y_max
-    }, 
-    object_id,
-    true
-  );
-  create_collision_aabb(
-    (aabb_3d_t){
-      .x_min = x_min,       .x_max = x_min + 620,        
-      .z_min = z_min + 250, .z_max = z_min + 250 + thickness, 
-      .y_min = 0.0f,        .y_max = y_max
-    }, 
-    object_id,
-    true
-  );
-  create_collision_aabb(
-    (aabb_3d_t){
-      .x_min = x_min + 660 - thickness, .x_max = x_min + 660,        
-      .z_min = z_min,                   .z_max = z_min + 300, 
-      .y_min = 0.0f,                    .y_max = y_max
-    }, 
-    object_id,
-    true
-  );
-  // z_max                                                                                       
-  create_collision_aabb(
-    (aabb_3d_t){
-      .x_min = x_min,                    .x_max = (x_min + x_max) / 2.0f,        
-      .z_min = z_max - thickness / 2.0f, .z_max = z_max + thickness / 2.0f, 
-      .y_min = 0.0f,                     .y_max = y_max
-    }, 
-    object_id,
-    true
-  );
-  create_collision_aabb(
-    (aabb_3d_t){
-      .x_min = (x_min + x_max) / 2.0f,         .x_max = x_max + thickness,             
-      .z_min = z_max - 260 - thickness / 2.0f, .z_max = z_max - 260 + thickness / 2.0f, 
-      .y_min = 0.0f,                           .y_max = y_max
-    }, 
-    object_id,
-    true
-  );
-  create_collision_aabb(
-    (aabb_3d_t){
-      .x_min = (x_min + x_max) / 2.0f, .x_max = (x_min + x_max) / 2.0f + thickness,        
-      .z_min = z_max - 270,            .z_max = z_max, 
-      .y_min = 0.0f,                   .y_max = y_max
-    }, 
-    object_id,
-    true
-  );
-
-  //object_deactivate_collision_aabb(aabb_back);
-
-  // ghouls and ghosts
-  mesh = load_mesh("./assets/obj/server_room/ghosts.obj", true);
-  object_id = create_object(
-    mesh, 
-    OBJECT_TYPE_FURNITURE, true, true,
-    false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-    (vector3_t){450, 450, 100}, (vector3_t){0, M_PI, 0}, (vector3_t){320, 150, -650}, 
-    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  );
-  get_mesh_material_by_name(mesh, "picture")->dither = true;
-
-  // desk
-  object_id = create_object(
-    load_mesh("./assets/obj/server_room/desk.obj", true),
-    OBJECT_TYPE_FURNITURE, true, true,
-    true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.4f}, (vector3_t){0.0f, 0.0f, 20.0f},
-    (vector3_t){300, 200, 260}, (vector3_t){0, 0, 0}, (vector3_t){-300, 3, 560}, 
-    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  );
-
-  // ibm
-  object_id = create_object(
-    load_mesh("./assets/obj/server_room/ibm.obj", true),
-    OBJECT_TYPE_COMPUTER, true, true, 
-    true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 0.4f}, (vector3_t){0.0f, 0.0f, 20.0f},
-    (vector3_t){120, 120, 120}, (vector3_t){0, 0, 0}, (vector3_t){-300, 90, 580}, 
-    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  );
-
-  // floppy drives
-  create_object(
-    load_mesh("./assets/obj/server_room/5_25_drives.obj", true), 
-    OBJECT_TYPE_ITEM, true, true, 
-    false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-    (vector3_t){35, 35, 35}, (vector3_t){0, 0, 0}, (vector3_t){-240, 90, 550}, 
-    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  );
-
-  // floppy disks
-  object_id = create_object(
-    load_mesh("./assets/obj/server_room/floppy.obj", false), 
-    OBJECT_TYPE_ITEM, true, true, 
-    false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-    (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-360, 90, 580}, 
-    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  );
-  object_id = create_object(
-    load_mesh("./assets/obj/server_room/floppy.obj", false), 
-    OBJECT_TYPE_ITEM, true, true, 
-    false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-    (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-360, 90, 550}, 
-    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  );
-  object_id = create_object(
-    load_mesh("./assets/obj/server_room/floppy.obj", false), 
-    OBJECT_TYPE_ITEM, true, true, 
-    false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-    (vector3_t){15, 15, 15}, (vector3_t){0, 0, 0}, (vector3_t){-360, 90, 530}, 
-    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  );
-
-  /* mainframes */
-  mesh = load_mesh("./assets/obj/server_room/server.obj", true);
-  term0 = create_object(
-    mesh,
-    OBJECT_TYPE_COMPUTER, true, true, 
-    true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.5f}, (vector3_t){0.0f, -10.0f, 15.0f},
-    (vector3_t){110, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){150, 3, 300}, 
-    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  );
-  texture_t *screen_texture = load_texture("./assets/textures/server_room/screen_green.png");
-  material_t screen_material1 = {
-    .material_name       = "",
-    .base_color          = {.uint32 = 0xFFFFFFFF},
-    .emissive_color      = {.uint32 = 0xFFFFFFFF},
-    .opacity             = 1.0f,
-    .two_sided_lighting  = false,
-    .reflects_light      = false,
-    .dither              = false,
-    .blend_mode          = BLEND_MODE_OPAQUE,
-    .alpha_cutoff        = DEFAULT_ALPHA_CUTOFF,
-    .texture             = screen_texture
-  };
-  object_override_material(term0, "screen", screen_material1);
-
-  object_id = create_object(
-    mesh,
-    OBJECT_TYPE_COMPUTER, true, true, 
-    true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 15.0f},
-    (vector3_t){140, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){330, 3, 300}, 
-    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  );
-  material_t screen_material2 = {
-    .material_name       = "",
-    .base_color          = {.uint32 = 0xFFFFFFFF},
-    .emissive_color      = {.uint32 = 0xFFFFFFFF},
-    .opacity             = 1.0f,
-    .two_sided_lighting  = false,
-    .reflects_light      = false,
-    .dither              = false,
-    .blend_mode          = BLEND_MODE_OPAQUE,
-    .alpha_cutoff        = DEFAULT_ALPHA_CUTOFF,
-    .texture             = load_texture("./assets/textures/server_room/sol1_screen_amber.png")
-  };
-  object_override_material(object_id, "screen", screen_material2);
-
-  object_id = create_object(
-    mesh,
-    OBJECT_TYPE_COMPUTER, true, true, 
-    true, true, (vector3_t){.x = 1.0f, .y = 0.6f, .z = 0.6f}, (vector3_t){0.0f, -10.0f, 15.0f},
-    (vector3_t){140, 110, 110}, (vector3_t){0, 0, 0}, (vector3_t){510, 3, 300}, 
-    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  );
-
-  // drone
-  //create_object(
-  //  load_mesh("./assets/obj/server_room/drone.obj", false),
-  //  OBJECT_TYPE_ROBOT, true, false,
-  //  true, true, (vector3_t){.x = 0.5f, .y = 0.8f, .z = 0.8f}, (vector3_t){0.0f, 0.0f, 0.0f},
-  //  (vector3_t){80, 80, 80}, (vector3_t){0, 0, 0}, (vector3_t){-300, 0, 250}, 
-  //  (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  //);
-
-  // jupiter
-  create_object(
-    load_mesh("./assets/obj/server_room/jupiter.obj", false),
-    OBJECT_TYPE_ROBOT, true, true,
-    true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-    (vector3_t){70, 70, 70}, (vector3_t){0, 0, 0}, (vector3_t){-1400, 200, 850}, 
-    (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 }
 

@@ -689,8 +689,8 @@ mesh_t *create_terrain_mesh(uint32_t squares_x, uint32_t squares_z){
   add_material_to_mesh(mesh, generate_default_material("top"));
   add_material_to_mesh(mesh, generate_default_material("sides"));
 
-  float terrain_width = (float)terrain_squares_x * square_size;
-  float terrain_depth = (float)terrain_squares_z * square_size;
+  //float terrain_width = (float)terrain_squares_x * square_size;
+  //float terrain_depth = (float)terrain_squares_z * square_size;
 
   float x_start = 0.0f;//-terrain_width * 0.5f;
   float z_start = 0.0f;//-terrain_depth * 0.5f;
