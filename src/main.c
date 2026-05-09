@@ -110,10 +110,10 @@
 #define MOUSE_SENSITIVITY 0.005f
 #define DAY_LENGTH (1.01f * 60.0f * 60.0f / 0.016f) /* hours */
 
-#define FOV_Y_DEG 70.0
+#define FOV_Y_DEG 90.0
 #define FOV_Y (FOV_Y_DEG * M_PI / 180.0)
-#define ZNEAR 1.0f
-#define ZFAR 18000.0f
+#define ZNEAR 0.1f
+#define ZFAR 1000.0f
 
 /* parameters for controlling the absolute ambient light */
 #define MIN_AMBIENT_LIGHT_INTENSITY 0.1f
@@ -828,7 +828,7 @@ triangle_t generate_voxel_face(voxel_face_t face_type, uint32_t y_plane, uint32_
       face.uv[2].v = 1.0f;
       return face;
       // bottom - left
-    case VOXEL_FACE_BOTTON_LEFT:
+    case VOXEL_FACE_BOTTOM_LEFT:
       face.points[0].x = x_col;
       face.points[0].y = y_plane;
       face.points[0].z = z_row;
@@ -954,7 +954,7 @@ triangle_t generate_voxel_face(voxel_face_t face_type, uint32_t y_plane, uint32_
       face.uv[2].v = 1.0f;
       return face;
       // front - left
-    case VOXEL_FACE_FRONT_LEFT:
+    case VOXEL_FACE_BACK_LEFT:
       face.points[0].x = x_col;
       face.points[0].y = y_plane;
       face.points[0].z = z_row;
@@ -975,7 +975,7 @@ triangle_t generate_voxel_face(voxel_face_t face_type, uint32_t y_plane, uint32_
       face.uv[2].v = 0.0f;
       return face;
       // front - right
-    case VOXEL_FACE_FRONT_RIGHT:
+    case VOXEL_FACE_BACK_RIGHT:
       face.points[0].x = x_col + 1.0f;
       face.points[0].y = y_plane + 1.0f;
       face.points[0].z = z_row;
@@ -996,7 +996,7 @@ triangle_t generate_voxel_face(voxel_face_t face_type, uint32_t y_plane, uint32_
       face.uv[2].v = 1.0f;
       return face;
       // back - left
-    case VOXEL_FACE_BACK_LEFT:
+    case VOXEL_FACE_FRONT_LEFT:
       face.points[0].x = x_col + 1.0f;
       face.points[0].y = y_plane;
       face.points[0].z = z_row + 1.0f;
@@ -1017,7 +1017,7 @@ triangle_t generate_voxel_face(voxel_face_t face_type, uint32_t y_plane, uint32_
       face.uv[2].v = 0.0f;
       return face;
       // back - right
-    case VOXEL_FACE_BACK_RIGHT:
+    case VOXEL_FACE_FRONT_RIGHT:
     default:
       face.points[0].x = x_col;
       face.points[0].y = y_plane + 1.0f;
@@ -1255,23 +1255,75 @@ void render_chunk_voxels(uint32_t z_row, uint32_t x_col){
   };
 
   // loop through all voxels in chunk
-  for(uint32_t y_plane = 0; y_plane < CHUNK_SIZE; y_plane++){
+  for(uint32_t y_plane = 0; y_plane < MAP_NUM_VOXELS_Y; y_plane++){
     for(uint32_t z_row = z_row_start; z_row <= z_row_end; z_row++){
       for(uint32_t x_col = x_col_start; x_col <= x_col_end; x_col++){
         
         if(voxels[y_plane][z_row][x_col].type == VOXEL_TYPE_AIR) continue;
         
-        // block is solid, create the block faces
-        triangle_t faces[12]; // top, bottom, left, right, back, front (left faces - right face order)
-        uint32_t num_visible_faces = 12;
-        for(uint32_t face_i = 0; face_i < 12; face_i++){
-          faces[face_i] = generate_voxel_face((voxel_face_t)face_i, y_plane, z_row, x_col);
-          faces[face_i].face_material = face_material;
+        int32_t left_neighbour_index    = x_col - 1;
+        int32_t right_neighbour_index   = x_col + 1;
+        int32_t top_neighbour_index     = y_plane + 1; 
+        int32_t bottom_neighbour_index  = y_plane - 1;
+        int32_t back_neighbour_index    = z_row - 1;
+        int32_t front_neighbour_index   = z_row + 1;
+
+        bool left_neighbour_air    = (left_neighbour_index < 0)                  ? true : voxels[y_plane][z_row][left_neighbour_index].type  == VOXEL_TYPE_AIR;
+        bool right_neighbour_air   = (right_neighbour_index == MAP_NUM_VOXELS_X) ? true : voxels[y_plane][z_row][right_neighbour_index].type == VOXEL_TYPE_AIR;
+        bool top_neighbour_air     = (top_neighbour_index == MAP_NUM_VOXELS_Y)   ? true : voxels[top_neighbour_index][z_row][x_col].type     == VOXEL_TYPE_AIR;
+        bool bottom_neighbour_air  = (bottom_neighbour_index < 0)                ? true : voxels[bottom_neighbour_index][z_row][x_col].type  == VOXEL_TYPE_AIR;
+        bool back_neighbour_air    = (back_neighbour_index < 0)                  ? true : voxels[y_plane][back_neighbour_index][x_col].type  == VOXEL_TYPE_AIR;
+        bool front_neighbour_air   = (front_neighbour_index == MAP_NUM_VOXELS_Z) ? true : voxels[y_plane][front_neighbour_index][x_col].type == VOXEL_TYPE_AIR;
+
+        triangle_t face_left = {.face_material = face_material}, face_right = {.face_material = face_material};
+        if(left_neighbour_air){
+          face_left  = generate_voxel_face(VOXEL_FACE_LEFT_LEFT, y_plane, z_row, x_col);
+          face_right = generate_voxel_face(VOXEL_FACE_LEFT_RIGHT, y_plane, z_row, x_col);
+          render_face(face_left);
+          render_face(face_right);
+        }
+        if(right_neighbour_air){
+          face_left  = generate_voxel_face(VOXEL_FACE_RIGHT_LEFT, y_plane, z_row, x_col);
+          face_right = generate_voxel_face(VOXEL_FACE_RIGHT_RIGHT, y_plane, z_row, x_col);
+          render_face(face_left);
+          render_face(face_right);
+        }
+        if(top_neighbour_air){
+          face_left  = generate_voxel_face(VOXEL_FACE_TOP_LEFT, y_plane, z_row, x_col);
+          face_right = generate_voxel_face(VOXEL_FACE_TOP_RIGHT, y_plane, z_row, x_col);
+          render_face(face_left);
+          render_face(face_right);
+        }
+        if(bottom_neighbour_air){
+          face_left  = generate_voxel_face(VOXEL_FACE_BOTTOM_LEFT, y_plane, z_row, x_col);
+          face_right = generate_voxel_face(VOXEL_FACE_BOTTOM_RIGHT, y_plane, z_row, x_col);
+          render_face(face_left);
+          render_face(face_right);
+        }
+        if(back_neighbour_air){
+          face_left  = generate_voxel_face(VOXEL_FACE_BACK_LEFT, y_plane, z_row, x_col);
+          face_right = generate_voxel_face(VOXEL_FACE_BACK_RIGHT, y_plane, z_row, x_col);
+          render_face(face_left);
+          render_face(face_right);
+        }
+        if(front_neighbour_air){
+          face_left  = generate_voxel_face(VOXEL_FACE_FRONT_LEFT, y_plane, z_row, x_col);
+          face_right = generate_voxel_face(VOXEL_FACE_FRONT_RIGHT, y_plane, z_row, x_col);
+          render_face(face_left);
+          render_face(face_right);
         }
 
-        for(uint32_t face_i = 0; face_i < num_visible_faces; face_i++){
-          render_face(faces[face_i]);
-        }
+        //// block is solid, create the block faces
+        //triangle_t faces[12]; // top, bottom, left, right, back, front (left faces - right face order)
+        //uint32_t num_visible_faces = 12;
+        //for(uint32_t face_i = 0; face_i < 12; face_i++){
+        //  faces[face_i] = generate_voxel_face((voxel_face_t)face_i, y_plane, z_row, x_col);
+        //  faces[face_i].face_material = face_material;
+        //}
+
+        //for(uint32_t face_i = 0; face_i < num_visible_faces; face_i++){
+        //  render_face(faces[face_i]);
+        //}
       }
     }
   }
