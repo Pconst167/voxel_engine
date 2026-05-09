@@ -5,7 +5,6 @@
 #include "collision.h"
 #include "log.h"
 #include "debug.h"
-#include "voxel.h"
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -98,6 +97,10 @@ void create_world_chunks(void){
       chunks[z_row][x_col].z_row_end   = (z_row + 1) * CHUNK_SIZE - 1;
       chunks[z_row][x_col].x_col_start = (x_col    ) * CHUNK_SIZE;     
       chunks[z_row][x_col].x_col_end   = (x_col + 1) * CHUNK_SIZE - 1;     
+
+      // update chunk's y-bounds with max/min voxel height
+      chunks[z_row][x_col].y_min = 0.0;
+      chunks[z_row][x_col].y_max = MAP_NUM_VOXELS_Y;
     }
   }
 
@@ -169,10 +172,6 @@ void populate_chunks_with_objects(void){
             array_push(chunks[z_row][x_col].chunk_object_faces[chunk_object_idx].face_indices, face_i);
             /* increment number of faces for that object in chunk */
             chunks[z_row][x_col].chunk_object_faces[chunk_object_idx].num_faces++;
-
-            // update chunk's y-bounds with max/min voxel height
-            chunks[z_row][x_col].y_min = 0.0;
-            chunks[z_row][x_col].y_max = MAP_NUM_VOXELS_Y;
           }
         }
       }

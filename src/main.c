@@ -780,6 +780,265 @@ bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane
   return false;
 }
 
+triangle_t generate_voxel_face(voxel_face_t face_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col){
+  triangle_t face;
+
+  switch(face_type){
+    // top - left
+    case VOXEL_FACE_TOP_LEFT:
+      face.points[0].x = x_col;
+      face.points[0].y = y_plane + 1.0f;
+      face.points[0].z = z_row;
+      face.points[0].w = 1.0f;
+      face.points[1].x = x_col;
+      face.points[1].y = y_plane + 1.0f;
+      face.points[1].z = z_row + 1.0f;
+      face.points[1].w = 1.0f;
+      face.points[2].x = x_col + 1.0f;
+      face.points[2].y = y_plane + 1.0f;
+      face.points[2].z = z_row;
+      face.points[2].w = 1.0f;
+      face.uv[0].u = 0.0f;
+      face.uv[0].v = 0.0f;
+      face.uv[1].u = 0.0f;
+      face.uv[1].v = 1.0f;
+      face.uv[2].u = 1.0f;
+      face.uv[2].v = 0.0f;
+      return face;
+      // top - right
+    case VOXEL_FACE_TOP_RIGHT:
+      face.points[0].x = x_col + 1.0f;
+      face.points[0].y = y_plane + 1.0f;
+      face.points[0].z = z_row + 1.0f;
+      face.points[0].w = 1.0f;
+      face.points[1].x = x_col + 1.0f;
+      face.points[1].y = y_plane + 1.0f;
+      face.points[1].z = z_row;
+      face.points[1].w = 1.0f;
+      face.points[2].x = x_col;
+      face.points[2].y = y_plane + 1.0f;
+      face.points[2].z = z_row + 1.0f;
+      face.points[2].w = 1.0f;
+      face.uv[0].u = 1.0f;
+      face.uv[0].v = 1.0f;
+      face.uv[1].u = 1.0f;
+      face.uv[1].v = 0.0f;
+      face.uv[2].u = 0.0f;
+      face.uv[2].v = 1.0f;
+      return face;
+      // bottom - left
+    case VOXEL_FACE_BOTTON_LEFT:
+      face.points[0].x = x_col;
+      face.points[0].y = y_plane;
+      face.points[0].z = z_row;
+      face.points[0].w = 1.0f;
+      face.points[1].x = x_col + 1.0f;
+      face.points[1].y = y_plane;
+      face.points[1].z = z_row;
+      face.points[1].w = 1.0f;
+      face.points[2].x = x_col;
+      face.points[2].y = y_plane;
+      face.points[2].z = z_row + 1.0f;
+      face.points[2].w = 1.0f;
+      face.uv[0].u = 0.0f;
+      face.uv[0].v = 0.0f;
+      face.uv[1].u = 1.0f;
+      face.uv[1].v = 0.0f;
+      face.uv[2].u = 0.0f;
+      face.uv[2].v = 1.0f;
+    return face;
+      // bottom - right
+    case VOXEL_FACE_BOTTOM_RIGHT:
+      face.points[0].x = x_col + 1.0f;
+      face.points[0].y = y_plane;
+      face.points[0].z = z_row + 1.0f;
+      face.points[0].w = 1.0f;
+      face.points[1].x = x_col;
+      face.points[1].y = y_plane;
+      face.points[1].z = z_row + 1.0f;
+      face.points[1].w = 1.0f;
+      face.points[2].x = x_col + 1.0f;
+      face.points[2].y = y_plane;
+      face.points[2].z = z_row;
+      face.points[2].w = 1.0f;
+      face.uv[0].u = 1.0f;
+      face.uv[0].v = 1.0f;
+      face.uv[1].u = 0.0f;
+      face.uv[1].v = 1.0f;
+      face.uv[2].u = 1.0f;
+      face.uv[2].v = 0.0f;
+      return face;
+      // left - left
+    case VOXEL_FACE_LEFT_LEFT:
+      face.points[0].x = x_col;
+      face.points[0].y = y_plane;
+      face.points[0].z = z_row + 1.0f;
+      face.points[0].w = 1.0f;
+      face.points[1].x = x_col;
+      face.points[1].y = y_plane + 1.0f;
+      face.points[1].z = z_row + 1.0f;
+      face.points[1].w = 1.0f;
+      face.points[2].x = x_col;
+      face.points[2].y = y_plane;
+      face.points[2].z = z_row;
+      face.points[2].w = 1.0f;
+      face.uv[0].u = 0.0f;
+      face.uv[0].v = 0.0f;
+      face.uv[1].u = 0.0f;
+      face.uv[1].v = 1.0f;
+      face.uv[2].u = 1.0f;
+      face.uv[2].v = 0.0f;
+      return face;
+      // left - right
+    case VOXEL_FACE_LEFT_RIGHT:
+      face.points[0].x = x_col;
+      face.points[0].y = y_plane + 1.0f;
+      face.points[0].z = z_row;
+      face.points[0].w = 1.0f;
+      face.points[1].x = x_col;
+      face.points[1].y = y_plane;
+      face.points[1].z = z_row;
+      face.points[1].w = 1.0f;
+      face.points[2].x = x_col;
+      face.points[2].y = y_plane + 1.0f;
+      face.points[2].z = z_row + 1.0f;
+      face.points[2].w = 1.0f;
+      face.uv[0].u = 1.0f;
+      face.uv[0].v = 1.0f;
+      face.uv[1].u = 1.0f;
+      face.uv[1].v = 0.0f;
+      face.uv[2].u = 0.0f;
+      face.uv[2].v = 1.0f;
+      return face;
+      // right - left
+    case VOXEL_FACE_RIGHT_LEFT:
+      face.points[0].x = x_col + 1.0f;
+      face.points[0].y = y_plane;
+      face.points[0].z = z_row;
+      face.points[0].w = 1.0f;
+      face.points[1].x = x_col + 1.0f;
+      face.points[1].y = y_plane + 1.0f;
+      face.points[1].z = z_row;
+      face.points[1].w = 1.0f;
+      face.points[2].x = x_col + 1.0f;
+      face.points[2].y = y_plane;
+      face.points[2].z = z_row + 1.0f;
+      face.points[2].w = 1.0f;
+      face.uv[0].u = 0.0f;
+      face.uv[0].v = 0.0f;
+      face.uv[1].u = 0.0f;
+      face.uv[1].v = 1.0f;
+      face.uv[2].u = 1.0f;
+      face.uv[2].v = 0.0f;
+      return face;
+      // right - right
+    case VOXEL_FACE_RIGHT_RIGHT:
+      face.points[0].x = x_col + 1.0f;
+      face.points[0].y = y_plane + 1.0f;
+      face.points[0].z = z_row + 1.0f;
+      face.points[0].w = 1.0f;
+      face.points[1].x = x_col + 1.0f;
+      face.points[1].y = y_plane;
+      face.points[1].z = z_row + 1.0f;
+      face.points[1].w = 1.0f;
+      face.points[2].x = x_col + 1.0f;
+      face.points[2].y = y_plane + 1.0f;
+      face.points[2].z = z_row;
+      face.points[2].w = 1.0f;
+      face.uv[0].u = 1.0f;
+      face.uv[0].v = 1.0f;
+      face.uv[1].u = 1.0f;
+      face.uv[1].v = 0.0f;
+      face.uv[2].u = 0.0f;
+      face.uv[2].v = 1.0f;
+      return face;
+      // front - left
+    case VOXEL_FACE_FRONT_LEFT:
+      face.points[0].x = x_col;
+      face.points[0].y = y_plane;
+      face.points[0].z = z_row;
+      face.points[0].w = 1.0f;
+      face.points[1].x = x_col;
+      face.points[1].y = y_plane + 1.0f;
+      face.points[1].z = z_row;
+      face.points[1].w = 1.0f;
+      face.points[2].x = x_col + 1.0f;
+      face.points[2].y = y_plane;
+      face.points[2].z = z_row;
+      face.points[2].w = 1.0f;
+      face.uv[0].u = 0.0f;
+      face.uv[0].v = 0.0f;
+      face.uv[1].u = 0.0f;
+      face.uv[1].v = 1.0f;
+      face.uv[2].u = 1.0f;
+      face.uv[2].v = 0.0f;
+      return face;
+      // front - right
+    case VOXEL_FACE_FRONT_RIGHT:
+      face.points[0].x = x_col + 1.0f;
+      face.points[0].y = y_plane + 1.0f;
+      face.points[0].z = z_row;
+      face.points[0].w = 1.0f;
+      face.points[1].x = x_col + 1.0f;
+      face.points[1].y = y_plane;
+      face.points[1].z = z_row;
+      face.points[1].w = 1.0f;
+      face.points[2].x = x_col;
+      face.points[2].y = y_plane + 1.0f;
+      face.points[2].z = z_row;
+      face.points[2].w = 1.0f;
+      face.uv[0].u = 1.0f;
+      face.uv[0].v = 1.0f;
+      face.uv[1].u = 1.0f;
+      face.uv[1].v = 0.0f;
+      face.uv[2].u = 0.0f;
+      face.uv[2].v = 1.0f;
+      return face;
+      // back - left
+    case VOXEL_FACE_BACK_LEFT:
+      face.points[0].x = x_col + 1.0f;
+      face.points[0].y = y_plane;
+      face.points[0].z = z_row + 1.0f;
+      face.points[0].w = 1.0f;
+      face.points[1].x = x_col + 1.0f;
+      face.points[1].y = y_plane + 1.0f;
+      face.points[1].z = z_row + 1.0f;
+      face.points[1].w = 1.0f;
+      face.points[2].x = x_col;
+      face.points[2].y = y_plane;
+      face.points[2].z = z_row + 1.0f;
+      face.points[2].w = 1.0f;
+      face.uv[0].u = 0.0f;
+      face.uv[0].v = 0.0f;
+      face.uv[1].u = 0.0f;
+      face.uv[1].v = 1.0f;
+      face.uv[2].u = 1.0f;
+      face.uv[2].v = 0.0f;
+      return face;
+      // back - right
+    case VOXEL_FACE_BACK_RIGHT:
+      face.points[0].x = x_col;
+      face.points[0].y = y_plane + 1.0f;
+      face.points[0].z = z_row + 1.0f;
+      face.points[0].w = 1.0f;
+      face.points[1].x = x_col;
+      face.points[1].y = y_plane;
+      face.points[1].z = z_row + 1.0f;
+      face.points[1].w = 1.0f;
+      face.points[2].x = x_col + 1.0f;
+      face.points[2].y = y_plane + 1.0f;
+      face.points[2].z = z_row + 1.0f;
+      face.points[2].w = 1.0f;
+      face.uv[0].u = 1.0f;
+      face.uv[0].v = 1.0f;
+      face.uv[1].u = 1.0f;
+      face.uv[1].v = 0.0f;
+      face.uv[2].u = 0.0f;
+      face.uv[2].v = 1.0f;
+      return face;
+  }
+}
+
 /*
   loop through all voxels inside chunk
   if air, ignore
@@ -817,36 +1076,20 @@ void render_chunk_voxels(chunk_t *chunk){
     for(uint32_t z_row = z_row_start; z_row <= z_row_end; z_row++){
       for(uint32_t x_col = x_col_start; x_col <= x_col_end; x_col++){
         
-        if(voxels[z_row][x_col][y_plane].type == VOXEL_TYPE_AIR){
-          continue;
+        if(voxels[y_plane][z_row][x_col].type == VOXEL_TYPE_AIR) continue;
+        
+        // block is solid, create the block faces
+        triangle_t faces[12]; // top, bottom, left, right, back, front (left faces - right face order)
+        uint32_t num_visible_faces = 12;
+        for(uint32_t face_i = 0; face_i < 12; face_i++){
+          faces[face_i] = generate_voxel_face((voxel_face_t)face_i, y_plane, z_row, x_col);
         }
-        else{
-          // block is solid, create the block faces
-          vector3_t vertices[3];
+
+        for(uint32_t face_i = 0; face_i < num_visible_faces; face_i++){
           vector4_t transformed_vertices[3];
-          uv_t uv[3];
-
-          // top faces
-          vertices[0].x = x_col;
-          vertices[0].y = y_plane + 1.0f;
-          vertices[0].z = z_row;
-          vertices[1].x = x_col;
-          vertices[1].y = y_plane + 1.0f;
-          vertices[1].z = z_row + 1.0f;
-          vertices[2].x = x_col + 1.0f;
-          vertices[2].y = y_plane + 1.0f;
-          vertices[2].z = z_row;
-
-          uv[0].u = 0.0f;
-          uv[0].v = 0.0f;
-          uv[1].u = 0.0f;
-          uv[1].v = 1.0f;
-          uv[2].u = 1.0f;
-          uv[2].v = 0.0f;
-
-          transformed_vertices[0] = matrix4_mul_vector3(&view_matrix, vertices[0]); /* affine transform so can use this faster multiply */
-          transformed_vertices[1] = matrix4_mul_vector3(&view_matrix, vertices[1]); /* affine transform so can use this faster multiply */
-          transformed_vertices[2] = matrix4_mul_vector3(&view_matrix, vertices[2]); /* affine transform so can use this faster multiply */
+          transformed_vertices[0] = matrix4_mul_vector4(&view_matrix, faces[face_i].points[0]); /* affine transform so can use this faster multiply */
+          transformed_vertices[1] = matrix4_mul_vector4(&view_matrix, faces[face_i].points[1]); /* affine transform so can use this faster multiply */
+          transformed_vertices[2] = matrix4_mul_vector4(&view_matrix, faces[face_i].points[2]); /* affine transform so can use this faster multiply */
 
           /* BACKFACE CULLING */
           /* calculate face normals for backface culling and lighting */
@@ -886,9 +1129,9 @@ void render_chunk_voxels(chunk_t *chunk){
               (vector3_t){transformed_vertices[0].x, transformed_vertices[0].y, transformed_vertices[0].z},
               (vector3_t){transformed_vertices[1].x, transformed_vertices[1].y, transformed_vertices[1].z},
               (vector3_t){transformed_vertices[2].x, transformed_vertices[2].y, transformed_vertices[2].z},
-              uv[0],
-              uv[1],
-              uv[2],
+              faces[face_i].uv[0],
+              faces[face_i].uv[1],
+              faces[face_i].uv[2],
               triangles_after_clipping
             );
           }
