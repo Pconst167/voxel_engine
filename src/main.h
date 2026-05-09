@@ -46,7 +46,7 @@ uint32_t chunk_num_vertices_inside_plane(chunk_t *chunk, frustrum_plane_t frustr
 int get_chunk_intersection_mode(chunk_t *chunk);
 chunk_intersection_mode_t get_chunk_intersection_mode_fast(chunk_t *chunk);
 void render_chunk_objects(chunk_t *chunk);
-void render_chunk_voxels(chunk_t *chunk);
+void render_chunk_voxels(uint32_t z_row, uint32_t x_col);
 void render_visible_chunks(void);
 void draw_chunk_outlines(void);
 void draw_collision_aabb_outlines(void);

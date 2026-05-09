@@ -615,8 +615,8 @@ void render_visible_chunks(void) {
     int z_row = chunk_sort_keys[i].chunk_z_row;
     int x_col = chunk_sort_keys[i].chunk_x_col;
 
-    render_chunk_objects(&chunks[z_row][x_col]);
-    render_chunk_voxels(&chunks[z_row][x_col]);
+    //render_chunk_objects(&chunks[z_row][x_col]);
+    render_chunk_voxels(z_row, x_col);
     total_chunks_rendered++;
   }
 
@@ -1017,6 +1017,7 @@ triangle_t generate_voxel_face(voxel_face_t face_type, uint32_t y_plane, uint32_
       return face;
       // back - right
     case VOXEL_FACE_BACK_RIGHT:
+    default:
       face.points[0].x = x_col;
       face.points[0].y = y_plane + 1.0f;
       face.points[0].z = z_row + 1.0f;
@@ -1046,10 +1047,12 @@ triangle_t generate_voxel_face(voxel_face_t face_type, uint32_t y_plane, uint32_
     if the immediate neighbour of a face is solid, then do not form that voxel's face etc
     if immediate neighbour is air, then form that quad with 2 faces and render
 */
-void render_chunk_voxels(chunk_t *chunk){
+void render_chunk_voxels(uint32_t z_row, uint32_t x_col){
   /* triangles list for clipped triangles */
   triangle_t triangles_after_clipping[MAX_NUM_POLYGON_VERTICES - 2]; /* for a polygon with N vertices, the number of nested triangles is always N-2 */
   uint32_t total_chunk_triangles_to_render = 0;
+  
+  chunk_t *chunk = &chunks[z_row][x_col];
 
   // find the start and end voxel indices inside chunk
   uint32_t z_row_start = chunk->z_row_start;
