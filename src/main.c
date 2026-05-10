@@ -10,10 +10,6 @@
     triangle rasterization
 
     DONE:
-      if camera is on same side as light, then we want the light to shine on the face regardeless of the face normal's direction.
-      hence we test: sgn((camera - v_a) dot normal) == sgn((light - v_a) dot normal)
-      and the final dot product intensity needs to be absolute value after that
-      (NEED TO DO SAME TO DIRECTIONAL LIGHTS)
 
       mesh ordering front to back for helping with zbuffer
 
@@ -29,6 +25,8 @@
       then for fully inside, we only test for clipping, but for intersecting chunks, clip all triangles directly.
 
     TODO:
+      ADD MIPMAPS TO HELP WITH FAR AWAY SHIMMERING 
+
       add funcs to remove collision aabb from object, and change them
 
       add functions to add cube, sphere, cylinder, etc.
@@ -110,7 +108,7 @@
 #define MOUSE_SENSITIVITY 0.005f
 #define DAY_LENGTH (1.01f * 60.0f * 60.0f / 0.016f) /* hours */
 
-#define FOV_Y_DEG 70.0
+#define FOV_Y_DEG 80.0
 #define FOV_Y (FOV_Y_DEG * M_PI / 180.0)
 #define ZNEAR 0.1f
 #define ZFAR 1000.0f
@@ -1045,50 +1043,53 @@ void render_voxel_quad(voxel_quad_t voxel_quad, voxel_material_t *voxel_material
     the view_matrix translation part should be ignored, and hence why the w component of vector in the multiplication below is be 0 to nulify any translations.
     ** BUT for point light its the opposite and w must be 1 because point light DOES have a position and that position must also be transformed by the view matrix.
 
-    if camera is on same side as light, then we want the light to shine on the face regardeless of the face normal's direction.
-    hence we test: sgn((camera - v_face_centroid) dot normal) == sgn((light - v_face_centroid) dot normal) and the final dot product intensity needs to be absolute value after that
-    but if object is translucent to light, then we want to light both sides of a face regardless of the camera position, or the face's normal
-
     light_intensities field is initialized to zero below in declaration - so that the light_intensities field is all 0 in case object not reflects_light
   */
-  //vector3_t v_face_centroid = {(v_a.x + v_b.x + v_c.x) / 3.0f, (v_a.y + v_b.y + v_c.y) / 3.0f, (v_a.z + v_b.z + v_c.z) / 3.0f};
   vector3_t v_face_centroid = v_a;
   float light_intensities[MAX_NUM_LIGHT_SOURCES] = {0.0f}; // keeps the total light intensity for this face
   if(voxel_material->reflects_light){
     vector3_normalize_fast_approx(&v_face_normal); /* normalize here for use below */
     for(uint32_t light_index = 0; light_index < num_light_sources; light_index++){
-      if(light_sources[light_index].type == LIGHT_DIRECTIONAL){
-        vector4_t light_direction_view = matrix4_mul_vector4(&view_matrix, (vector4_t){light_sources[light_index].direction.x, light_sources[light_index].direction.y, light_sources[light_index].direction.z, 0});
-        /* if not translucent, then face only lights up if sgn(cam_ray dot normal) == sgn (light_direction dot normal) */
-        vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
-        float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
-        float light_direction_dot_normal  = -(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
-        if((light_direction_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_direction_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
-          light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
-        }
-        else light_intensities[light_index] = 0.0f;
-        light_intensities[light_index] *= light_sources[light_index].intensity;
-      }
-      else if(light_sources[light_index].type == LIGHT_POINT){
-        vector4_t light_position_view = matrix4_mul_vector3(&view_matrix, (vector3_t){light_sources[light_index].position.x, light_sources[light_index].position.y, light_sources[light_index].position.z});
-        vector3_t lightpos_to_v_face_centroid_ray = (vector3_t){light_position_view.x - v_face_centroid.x, light_position_view.y - v_face_centroid.y, light_position_view.z - v_face_centroid.z};
-        float lightpos_to_v_face_centroid_ray_length = vector3_length_fast_approx(lightpos_to_v_face_centroid_ray);
-        
-        vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
-        float light_v_face_centroid_dot_normal  = v_face_normal.x * lightpos_to_v_face_centroid_ray.x + v_face_normal.y * lightpos_to_v_face_centroid_ray.y + v_face_normal.z * lightpos_to_v_face_centroid_ray.z;
-        float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
-        if((light_v_face_centroid_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_v_face_centroid_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
-          light_intensities[light_index] = fabsf(light_v_face_centroid_dot_normal) / lightpos_to_v_face_centroid_ray_length;
-          light_intensities[light_index] /= 1.0f + lightpos_to_v_face_centroid_ray_length;
+      switch(light_sources[light_index].type){
+        case LIGHT_DIRECTIONAL:{
+          vector4_t light_direction_view = matrix4_mul_vector4(&view_matrix, (vector4_t){light_sources[light_index].direction.x, light_sources[light_index].direction.y, light_sources[light_index].direction.z, 0});
+          /* if not translucent, then face only lights up if sgn(cam_ray dot normal) == sgn (light_direction dot normal) */
+          vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
+          float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
+          float light_direction_dot_normal  = -(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
+          if((light_direction_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_direction_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
+            light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
+          }
+          else light_intensities[light_index] = 0.0f;
           light_intensities[light_index] *= light_sources[light_index].intensity;
+          break;
         }
-        else
-          light_intensities[light_index] = 0.0f;
+
+        case LIGHT_POINT:{
+          vector4_t light_position_view = matrix4_mul_vector3(&view_matrix, (vector3_t){light_sources[light_index].position.x, light_sources[light_index].position.y, light_sources[light_index].position.z});
+          vector3_t lightpos_to_v_face_centroid_ray = (vector3_t){light_position_view.x - v_face_centroid.x, light_position_view.y - v_face_centroid.y, light_position_view.z - v_face_centroid.z};
+          float lightpos_to_v_face_centroid_ray_length = vector3_length_fast_approx(lightpos_to_v_face_centroid_ray);
+          
+          vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
+          float light_v_face_centroid_dot_normal  = v_face_normal.x * lightpos_to_v_face_centroid_ray.x + v_face_normal.y * lightpos_to_v_face_centroid_ray.y + v_face_normal.z * lightpos_to_v_face_centroid_ray.z;
+          float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
+          if((light_v_face_centroid_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_v_face_centroid_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
+            light_intensities[light_index] = fabsf(light_v_face_centroid_dot_normal) / lightpos_to_v_face_centroid_ray_length;
+            light_intensities[light_index] /= 1.0f + lightpos_to_v_face_centroid_ray_length;
+            light_intensities[light_index] *= light_sources[light_index].intensity;
+          }
+          else
+            light_intensities[light_index] = 0.0f;
+          break;
+        }
+
+        case LIGHT_AMBIENT:{
+          light_intensities[light_index] = light_sources[light_index].intensity;
+          break;
+        }
       }
-      else if(light_sources[light_index].type == LIGHT_AMBIENT){
-        light_intensities[light_index] = light_sources[light_index].intensity;
-      }
-      /* clamp to [0.0, 1.0] */
+
+      // clamp to [0.0, 1.0]
       if(light_intensities[light_index] < 0.0f) light_intensities[light_index] = 0.0f;
       else if(light_intensities[light_index] > 1.0f) light_intensities[light_index] = 1.0f;
     }
@@ -1123,7 +1124,7 @@ void render_voxel_quad(voxel_quad_t voxel_quad, voxel_material_t *voxel_material
       projected_triangle.uv[j]     = triangle_after_clipping->uv[j];
     }
     
-    projected_triangle.avg_w = (projected_triangle.points[0].w + projected_triangle.points[1].w + projected_triangle.points[2].w) / 3.0f;
+    //projected_triangle.avg_w = (projected_triangle.points[0].w + projected_triangle.points[1].w + projected_triangle.points[2].w) / 3.0f;
     projected_triangle.face_material = (material_t){
       .material_name = "",
       .alpha_cutoff = voxel_material->alpha_cutoff,

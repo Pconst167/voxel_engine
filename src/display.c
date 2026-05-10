@@ -18,7 +18,7 @@ int fps;
 
 bool initialize_window(void){
 
-  window_width  = 600;
+  window_width  = 800;
   window_height = (float)window_width / ASPECT_RATIO_X;
 
   if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0){
@@ -33,7 +33,7 @@ bool initialize_window(void){
   SDL_GetCurrentDisplayMode(0, &mode);
 
   window = SDL_CreateWindow(
-    "Unitrix",
+    "Voxel Engine",
     SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
     mode.w, mode.h,
     SDL_WINDOW_RESIZABLE
