@@ -66,21 +66,17 @@ void init_voxel_map(){
   for(uint32_t y = 0; y < MAP_NUM_VOXELS_Y; y++){
     for(uint32_t z = 0; z < MAP_NUM_VOXELS_Z; z++){
       for(uint32_t x = 0; x < MAP_NUM_VOXELS_X; x++){
-        if(y <= 2){
+        if(y <= 32){
           voxels[y][z][x].type = VOXEL_TYPE_STONE;
-          voxels[y][z][x].voxel_material = &voxel_materials[VOXEL_TYPE_STONE];
         }
-        else if(y >= 3 && y <= 5){
+        else if(y >= 33 && y <= 40){
           voxels[y][z][x].type = VOXEL_TYPE_DIRT;
-          voxels[y][z][x].voxel_material = &voxel_materials[VOXEL_TYPE_DIRT];
         }
-        else if(y >= 6 && y <= 6){
+        else if(y == 41){
           voxels[y][z][x].type = VOXEL_TYPE_GRASS;
-          voxels[y][z][x].voxel_material = &voxel_materials[VOXEL_TYPE_GRASS];
         }
         else{
           voxels[y][z][x].type = VOXEL_TYPE_AIR;
-          voxels[y][z][x].voxel_material = NULL;
         }
         
         voxels[y][z][x].voxel_id = y * MAP_NUM_VOXELS_Z * MAP_NUM_VOXELS_X + z * MAP_NUM_VOXELS_X + x;

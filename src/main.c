@@ -262,6 +262,14 @@ void process_input(void){
         if(player.eta  >  ETA_MAX) player.eta =  ETA_MAX;
         if(player.eta  < -ETA_MAX) player.eta = -ETA_MAX;
       }
+      if(event.type == SDL_MOUSEBUTTONDOWN){
+        if(event.button.button == SDL_BUTTON_RIGHT){
+          voxels[(uint32_t)(player.position.y)][(uint32_t)player.position.z][(uint32_t)player.position.x].type = VOXEL_TYPE_DIRT;
+        }
+        else if(event.button.button == SDL_BUTTON_LEFT){
+          voxels[(uint32_t)(player.position.y) - 1][(uint32_t)player.position.z][(uint32_t)player.position.x].type = VOXEL_TYPE_AIR;
+        }
+      }
     }
   }
 }
@@ -626,6 +634,7 @@ void render_visible_chunks(void) {
   if(options.render_chunk_outlines) draw_chunk_outlines();
   if(options.render_collision_aabb_outlines) draw_collision_aabb_outlines();
 }
+
 /*  0 : outside
     1 : inside
    -1 : intersecting
@@ -1193,30 +1202,44 @@ void render_chunk_voxels(uint32_t z_row, uint32_t x_col){
         bool back_neighbour_air    = (back_neighbour_index < 0)                  ? true : voxels[y_plane][back_neighbour_index][x_col].type  == VOXEL_TYPE_AIR;
         bool front_neighbour_air   = (front_neighbour_index == MAP_NUM_VOXELS_Z) ? true : voxels[y_plane][front_neighbour_index][x_col].type == VOXEL_TYPE_AIR;
 
+        voxel_material_t *voxel_material;
+        switch(voxels[y_plane][z_row][x_col].type){
+          case VOXEL_TYPE_STONE:
+            voxel_material = &voxel_materials[VOXEL_TYPE_STONE];
+            break;
+          case VOXEL_TYPE_DIRT:
+            voxel_material = &voxel_materials[VOXEL_TYPE_DIRT];
+            break;
+          case VOXEL_TYPE_GRASS:
+          default:
+            voxel_material = &voxel_materials[VOXEL_TYPE_GRASS];
+            break;
+        }
+
         voxel_quad_t voxel_quad;
         if(left_neighbour_air){
           voxel_quad = generate_voxel_quad(VOXEL_QUAD_LEFT, y_plane, z_row, x_col);
-          render_voxel_quad(voxel_quad, voxels[y_plane][z_row][x_col].voxel_material);
+          render_voxel_quad(voxel_quad, voxel_material);
         }
         if(right_neighbour_air){
           voxel_quad = generate_voxel_quad(VOXEL_QUAD_RIGHT, y_plane, z_row, x_col);
-          render_voxel_quad(voxel_quad, voxels[y_plane][z_row][x_col].voxel_material);
+          render_voxel_quad(voxel_quad, voxel_material);
         }
         if(top_neighbour_air){
           voxel_quad = generate_voxel_quad(VOXEL_QUAD_TOP, y_plane, z_row, x_col);
-          render_voxel_quad(voxel_quad, voxels[y_plane][z_row][x_col].voxel_material);
+          render_voxel_quad(voxel_quad, voxel_material);
         }
         if(bottom_neighbour_air){
           voxel_quad = generate_voxel_quad(VOXEL_QUAD_BOTTOM, y_plane, z_row, x_col);
-          render_voxel_quad(voxel_quad, voxels[y_plane][z_row][x_col].voxel_material);
+          render_voxel_quad(voxel_quad, voxel_material);
         }
         if(back_neighbour_air){
           voxel_quad = generate_voxel_quad(VOXEL_QUAD_BACK, y_plane, z_row, x_col);
-          render_voxel_quad(voxel_quad, voxels[y_plane][z_row][x_col].voxel_material);
+          render_voxel_quad(voxel_quad, voxel_material);
         }
         if(front_neighbour_air){
           voxel_quad = generate_voxel_quad(VOXEL_QUAD_FRONT, y_plane, z_row, x_col);
-          render_voxel_quad(voxel_quad, voxels[y_plane][z_row][x_col].voxel_material);
+          render_voxel_quad(voxel_quad, voxel_material);
         }
       }
     }
