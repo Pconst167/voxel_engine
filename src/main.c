@@ -264,10 +264,10 @@ void process_input(void){
       }
       if(event.type == SDL_MOUSEBUTTONDOWN){
         if(event.button.button == SDL_BUTTON_RIGHT){
-          voxels[(uint32_t)(player.position.y)][(uint32_t)player.position.z][(uint32_t)player.position.x].type = VOXEL_TYPE_DIRT;
+          voxels[(uint32_t)(player.position.y) - 1][(uint32_t)player.position.z][(uint32_t)player.position.x].type = VOXEL_TYPE_DIRT;
         }
         else if(event.button.button == SDL_BUTTON_LEFT){
-          voxels[(uint32_t)(player.position.y) - 1][(uint32_t)player.position.z][(uint32_t)player.position.x].type = VOXEL_TYPE_AIR;
+          voxels[(uint32_t)(player.position.y)- 1][(uint32_t)player.position.z][(uint32_t)player.position.x].type = VOXEL_TYPE_AIR;
         }
       }
     }
