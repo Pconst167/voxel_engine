@@ -13,8 +13,9 @@
 
 typedef enum{
   VOXEL_TYPE_AIR   = 0,
-  VOXEL_TYPE_DIRT  = 1,
-  VOXEL_TYPE_STONE = 2
+  VOXEL_TYPE_STONE = 1,
+  VOXEL_TYPE_DIRT  = 2,
+  VOXEL_TYPE_GRASS = 3,
 } voxel_type_t;
 
 typedef enum{
@@ -38,7 +39,7 @@ typedef struct{
   aabb_3d_t aabb;
 } voxel_t;
 
-extern material_t voxel_materials[3];
+extern material_t voxel_materials[4];
 
 // Y slowest changing dimension, X is fastest changing
 extern voxel_t voxels[MAP_NUM_VOXELS_Y][MAP_NUM_VOXELS_Z][MAP_NUM_VOXELS_X];

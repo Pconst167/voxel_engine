@@ -7,7 +7,7 @@
 // the boundaries of the voxel world.  these elements therefore are always set as AIR type 
 voxel_t voxels[MAP_NUM_VOXELS_Y][MAP_NUM_VOXELS_Z][MAP_NUM_VOXELS_X];
 
-material_t voxel_materials[3] = {
+material_t voxel_materials[4] = {
   {
     .material_name      = "air",
     .base_color         = (color_t){.uint32 = 0x00000000},
@@ -21,8 +21,8 @@ material_t voxel_materials[3] = {
     .texture            = NULL
   },
   {
-    .material_name      = "dirt",
-    .base_color         = (color_t){.uint32 = 0xFF00FF00},
+    .material_name      = "stone",
+    .base_color         = (color_t){.uint32 = 0xFF808080},
     .emissive_color     = (color_t){.uint32 = 0x00000000},
     .opacity            = 1.0f,
     .two_sided_lighting = false,
@@ -33,8 +33,20 @@ material_t voxel_materials[3] = {
     .texture            = NULL
   },
   {
-    .material_name      = "stone",
-    .base_color         = (color_t){.uint32 = 0xFF808080},
+    .material_name      = "dirt",
+    .base_color         = (color_t){.uint32 = 0xFF408080},
+    .emissive_color     = (color_t){.uint32 = 0x00000000},
+    .opacity            = 1.0f,
+    .two_sided_lighting = false,
+    .reflects_light     = true,
+    .dither             = false,
+    .blend_mode         = BLEND_MODE_OPAQUE,
+    .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+    .texture            = NULL
+  },
+  {
+    .material_name      = "grass",
+    .base_color         = (color_t){.uint32 = 0xFF0FF000},
     .emissive_color     = (color_t){.uint32 = 0x00000000},
     .opacity            = 1.0f,
     .two_sided_lighting = false,
@@ -54,6 +66,8 @@ void init_voxel_map(){
           voxels[y][z][x].type = VOXEL_TYPE_STONE;
         else if(y >= 3 && y <= 4)
           voxels[y][z][x].type = VOXEL_TYPE_DIRT;
+        else if(y >= 5 && y <= 6)
+          voxels[y][z][x].type = VOXEL_TYPE_GRASS;
         else
           voxels[y][z][x].type = VOXEL_TYPE_AIR;
         
@@ -68,8 +82,9 @@ void init_voxel_map(){
     }
   }
 
-  voxel_materials[VOXEL_TYPE_DIRT].texture  = load_texture("./assets/textures/voxel/dirt.png");
   voxel_materials[VOXEL_TYPE_STONE].texture = load_texture("./assets/textures/voxel/stone.png");
+  voxel_materials[VOXEL_TYPE_DIRT].texture  = load_texture("./assets/textures/voxel/dirt.png");
+  voxel_materials[VOXEL_TYPE_GRASS].texture = load_texture("./assets/textures/voxel/grass_top.png");
 }
 
 material_t get_voxel_material(uint32_t y_plane, uint32_t z_row, uint32_t x_col){
