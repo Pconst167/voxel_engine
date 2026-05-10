@@ -110,7 +110,7 @@
 #define MOUSE_SENSITIVITY 0.005f
 #define DAY_LENGTH (1.01f * 60.0f * 60.0f / 0.016f) /* hours */
 
-#define FOV_Y_DEG 90.0
+#define FOV_Y_DEG 70.0
 #define FOV_Y (FOV_Y_DEG * M_PI / 180.0)
 #define ZNEAR 0.1f
 #define ZFAR 1000.0f
@@ -187,12 +187,12 @@ void setup(void) {
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
 
   mesh_t *mesh;
-  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = 0.0f,  .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.8f);
-  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f},   (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 0.4f);
-  mesh = load_mesh("./assets/obj/pumpkin.obj", false);
+  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = 0.0f,  .z = 0.0f}, (color_t){.uint32 = 0xFFFFA0A0}, 0.2f);
+  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
+  mesh = load_mesh("./assets/obj/cube.obj", true);
   create_object(mesh, OBJECT_TYPE_ROOM, true, true,
                 false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-               (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){10, 10, 10}, 
+               (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){7, 7, 7}, 
                (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 
@@ -619,6 +619,7 @@ void render_visible_chunks(void) {
 
     //render_chunk_objects(&chunks[z_row][x_col]);
     render_chunk_voxels(z_row, x_col);
+
     total_chunks_rendered++;
   }
 
@@ -782,276 +783,196 @@ bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane
   return false;
 }
 
-triangle_t generate_voxel_face(voxel_face_t face_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col){
-  triangle_t face;
+voxel_quad_t generate_voxel_quad(voxel_quad_type_t quad_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col){
+  voxel_quad_t quad;
 
-
-  switch(face_type){
-    // top - left
-    case VOXEL_FACE_TOP_LEFT:
-      face.points[0].x = x_col;
-      face.points[0].y = y_plane + 1.0f;
-      face.points[0].z = z_row;
-      face.points[0].w = 1.0f;
-      face.points[1].x = x_col;
-      face.points[1].y = y_plane + 1.0f;
-      face.points[1].z = z_row + 1.0f;
-      face.points[1].w = 1.0f;
-      face.points[2].x = x_col + 1.0f;
-      face.points[2].y = y_plane + 1.0f;
-      face.points[2].z = z_row;
-      face.points[2].w = 1.0f;
-      face.uv[0].u = 0.0f;
-      face.uv[0].v = 0.0f;
-      face.uv[1].u = 0.0f;
-      face.uv[1].v = 1.0f;
-      face.uv[2].u = 1.0f;
-      face.uv[2].v = 0.0f;
-      return face;
-      // top - right
-    case VOXEL_FACE_TOP_RIGHT:
-      face.points[0].x = x_col + 1.0f;
-      face.points[0].y = y_plane + 1.0f;
-      face.points[0].z = z_row + 1.0f;
-      face.points[0].w = 1.0f;
-      face.points[1].x = x_col + 1.0f;
-      face.points[1].y = y_plane + 1.0f;
-      face.points[1].z = z_row;
-      face.points[1].w = 1.0f;
-      face.points[2].x = x_col;
-      face.points[2].y = y_plane + 1.0f;
-      face.points[2].z = z_row + 1.0f;
-      face.points[2].w = 1.0f;
-      face.uv[0].u = 1.0f;
-      face.uv[0].v = 1.0f;
-      face.uv[1].u = 1.0f;
-      face.uv[1].v = 0.0f;
-      face.uv[2].u = 0.0f;
-      face.uv[2].v = 1.0f;
-      return face;
-      // bottom - left
-    case VOXEL_FACE_BOTTOM_LEFT:
-      face.points[0].x = x_col;
-      face.points[0].y = y_plane;
-      face.points[0].z = z_row;
-      face.points[0].w = 1.0f;
-      face.points[1].x = x_col + 1.0f;
-      face.points[1].y = y_plane;
-      face.points[1].z = z_row;
-      face.points[1].w = 1.0f;
-      face.points[2].x = x_col;
-      face.points[2].y = y_plane;
-      face.points[2].z = z_row + 1.0f;
-      face.points[2].w = 1.0f;
-      face.uv[0].u = 0.0f;
-      face.uv[0].v = 0.0f;
-      face.uv[1].u = 1.0f;
-      face.uv[1].v = 0.0f;
-      face.uv[2].u = 0.0f;
-      face.uv[2].v = 1.0f;
-    return face;
-      // bottom - right
-    case VOXEL_FACE_BOTTOM_RIGHT:
-      face.points[0].x = x_col + 1.0f;
-      face.points[0].y = y_plane;
-      face.points[0].z = z_row + 1.0f;
-      face.points[0].w = 1.0f;
-      face.points[1].x = x_col;
-      face.points[1].y = y_plane;
-      face.points[1].z = z_row + 1.0f;
-      face.points[1].w = 1.0f;
-      face.points[2].x = x_col + 1.0f;
-      face.points[2].y = y_plane;
-      face.points[2].z = z_row;
-      face.points[2].w = 1.0f;
-      face.uv[0].u = 1.0f;
-      face.uv[0].v = 1.0f;
-      face.uv[1].u = 0.0f;
-      face.uv[1].v = 1.0f;
-      face.uv[2].u = 1.0f;
-      face.uv[2].v = 0.0f;
-      return face;
-      // left - left
-    case VOXEL_FACE_LEFT_LEFT:
-      face.points[0].x = x_col;
-      face.points[0].y = y_plane;
-      face.points[0].z = z_row + 1.0f;
-      face.points[0].w = 1.0f;
-      face.points[1].x = x_col;
-      face.points[1].y = y_plane + 1.0f;
-      face.points[1].z = z_row + 1.0f;
-      face.points[1].w = 1.0f;
-      face.points[2].x = x_col;
-      face.points[2].y = y_plane;
-      face.points[2].z = z_row;
-      face.points[2].w = 1.0f;
-      face.uv[0].u = 0.0f;
-      face.uv[0].v = 0.0f;
-      face.uv[1].u = 0.0f;
-      face.uv[1].v = 1.0f;
-      face.uv[2].u = 1.0f;
-      face.uv[2].v = 0.0f;
-      return face;
-      // left - right
-    case VOXEL_FACE_LEFT_RIGHT:
-      face.points[0].x = x_col;
-      face.points[0].y = y_plane + 1.0f;
-      face.points[0].z = z_row;
-      face.points[0].w = 1.0f;
-      face.points[1].x = x_col;
-      face.points[1].y = y_plane;
-      face.points[1].z = z_row;
-      face.points[1].w = 1.0f;
-      face.points[2].x = x_col;
-      face.points[2].y = y_plane + 1.0f;
-      face.points[2].z = z_row + 1.0f;
-      face.points[2].w = 1.0f;
-      face.uv[0].u = 1.0f;
-      face.uv[0].v = 1.0f;
-      face.uv[1].u = 1.0f;
-      face.uv[1].v = 0.0f;
-      face.uv[2].u = 0.0f;
-      face.uv[2].v = 1.0f;
-      return face;
-      // right - left
-    case VOXEL_FACE_RIGHT_LEFT:
-      face.points[0].x = x_col + 1.0f;
-      face.points[0].y = y_plane;
-      face.points[0].z = z_row;
-      face.points[0].w = 1.0f;
-      face.points[1].x = x_col + 1.0f;
-      face.points[1].y = y_plane + 1.0f;
-      face.points[1].z = z_row;
-      face.points[1].w = 1.0f;
-      face.points[2].x = x_col + 1.0f;
-      face.points[2].y = y_plane;
-      face.points[2].z = z_row + 1.0f;
-      face.points[2].w = 1.0f;
-      face.uv[0].u = 0.0f;
-      face.uv[0].v = 0.0f;
-      face.uv[1].u = 0.0f;
-      face.uv[1].v = 1.0f;
-      face.uv[2].u = 1.0f;
-      face.uv[2].v = 0.0f;
-      return face;
-      // right - right
-    case VOXEL_FACE_RIGHT_RIGHT:
-      face.points[0].x = x_col + 1.0f;
-      face.points[0].y = y_plane + 1.0f;
-      face.points[0].z = z_row + 1.0f;
-      face.points[0].w = 1.0f;
-      face.points[1].x = x_col + 1.0f;
-      face.points[1].y = y_plane;
-      face.points[1].z = z_row + 1.0f;
-      face.points[1].w = 1.0f;
-      face.points[2].x = x_col + 1.0f;
-      face.points[2].y = y_plane + 1.0f;
-      face.points[2].z = z_row;
-      face.points[2].w = 1.0f;
-      face.uv[0].u = 1.0f;
-      face.uv[0].v = 1.0f;
-      face.uv[1].u = 1.0f;
-      face.uv[1].v = 0.0f;
-      face.uv[2].u = 0.0f;
-      face.uv[2].v = 1.0f;
-      return face;
-      // front - left
-    case VOXEL_FACE_BACK_LEFT:
-      face.points[0].x = x_col;
-      face.points[0].y = y_plane;
-      face.points[0].z = z_row;
-      face.points[0].w = 1.0f;
-      face.points[1].x = x_col;
-      face.points[1].y = y_plane + 1.0f;
-      face.points[1].z = z_row;
-      face.points[1].w = 1.0f;
-      face.points[2].x = x_col + 1.0f;
-      face.points[2].y = y_plane;
-      face.points[2].z = z_row;
-      face.points[2].w = 1.0f;
-      face.uv[0].u = 0.0f;
-      face.uv[0].v = 0.0f;
-      face.uv[1].u = 0.0f;
-      face.uv[1].v = 1.0f;
-      face.uv[2].u = 1.0f;
-      face.uv[2].v = 0.0f;
-      return face;
-      // front - right
-    case VOXEL_FACE_BACK_RIGHT:
-      face.points[0].x = x_col + 1.0f;
-      face.points[0].y = y_plane + 1.0f;
-      face.points[0].z = z_row;
-      face.points[0].w = 1.0f;
-      face.points[1].x = x_col + 1.0f;
-      face.points[1].y = y_plane;
-      face.points[1].z = z_row;
-      face.points[1].w = 1.0f;
-      face.points[2].x = x_col;
-      face.points[2].y = y_plane + 1.0f;
-      face.points[2].z = z_row;
-      face.points[2].w = 1.0f;
-      face.uv[0].u = 1.0f;
-      face.uv[0].v = 1.0f;
-      face.uv[1].u = 1.0f;
-      face.uv[1].v = 0.0f;
-      face.uv[2].u = 0.0f;
-      face.uv[2].v = 1.0f;
-      return face;
-      // back - left
-    case VOXEL_FACE_FRONT_LEFT:
-      face.points[0].x = x_col + 1.0f;
-      face.points[0].y = y_plane;
-      face.points[0].z = z_row + 1.0f;
-      face.points[0].w = 1.0f;
-      face.points[1].x = x_col + 1.0f;
-      face.points[1].y = y_plane + 1.0f;
-      face.points[1].z = z_row + 1.0f;
-      face.points[1].w = 1.0f;
-      face.points[2].x = x_col;
-      face.points[2].y = y_plane;
-      face.points[2].z = z_row + 1.0f;
-      face.points[2].w = 1.0f;
-      face.uv[0].u = 0.0f;
-      face.uv[0].v = 0.0f;
-      face.uv[1].u = 0.0f;
-      face.uv[1].v = 1.0f;
-      face.uv[2].u = 1.0f;
-      face.uv[2].v = 0.0f;
-      return face;
-      // back - right
-    case VOXEL_FACE_FRONT_RIGHT:
+  switch(quad_type){
+    case VOXEL_QUAD_TOP:
+      quad.points[0].x = x_col;
+      quad.points[0].y = y_plane + 1.0f;
+      quad.points[0].z = z_row;
+      quad.points[1].x = x_col;
+      quad.points[1].y = y_plane + 1.0f;
+      quad.points[1].z = z_row + 1.0f;
+      quad.points[2].x = x_col + 1.0f;
+      quad.points[2].y = y_plane + 1.0f;
+      quad.points[2].z = z_row;
+      quad.uv[0].u = 0.0f;
+      quad.uv[0].v = 0.0f;
+      quad.uv[1].u = 0.0f;
+      quad.uv[1].v = 1.0f;
+      quad.uv[2].u = 1.0f;
+      quad.uv[2].v = 0.0f;
+      // right side unshared vertex
+      quad.points[3].x = x_col + 1.0f;
+      quad.points[3].y = y_plane + 1.0f;
+      quad.points[3].z = z_row + 1.0f;
+      quad.uv[3].u = 1.0f;
+      quad.uv[3].v = 1.0f;
+      quad.uv[4].u = 1.0f;
+      quad.uv[4].v = 0.0f;
+      quad.uv[5].u = 0.0f;
+      quad.uv[5].v = 1.0f;
+      quad.quad_type = VOXEL_QUAD_TOP;
+      return quad;
+      
+    case VOXEL_QUAD_BOTTOM:
+      quad.points[0].x = x_col;
+      quad.points[0].y = y_plane;
+      quad.points[0].z = z_row;
+      quad.points[1].x = x_col + 1.0f;
+      quad.points[1].y = y_plane;
+      quad.points[1].z = z_row;
+      quad.points[2].x = x_col;
+      quad.points[2].y = y_plane;
+      quad.points[2].z = z_row + 1.0f;
+      quad.uv[0].u = 0.0f;
+      quad.uv[0].v = 0.0f;
+      quad.uv[1].u = 1.0f;
+      quad.uv[1].v = 0.0f;
+      quad.uv[2].u = 0.0f;
+      quad.uv[2].v = 1.0f;
+      // right side unshared vertex
+      quad.points[3].x = x_col + 1.0f;
+      quad.points[3].y = y_plane;
+      quad.points[3].z = z_row + 1.0f;
+      quad.uv[3].u = 1.0f;
+      quad.uv[3].v = 1.0f;
+      quad.uv[4].u = 0.0f;
+      quad.uv[4].v = 1.0f;
+      quad.uv[5].u = 1.0f;
+      quad.uv[5].v = 0.0f;
+      quad.quad_type = VOXEL_QUAD_BOTTOM;
+    return quad;
+    
+    case VOXEL_QUAD_LEFT:
+      quad.points[0].x = x_col;
+      quad.points[0].y = y_plane;
+      quad.points[0].z = z_row + 1.0f;
+      quad.points[1].x = x_col;
+      quad.points[1].y = y_plane + 1.0f;
+      quad.points[1].z = z_row + 1.0f;
+      quad.points[2].x = x_col;
+      quad.points[2].y = y_plane;
+      quad.points[2].z = z_row;
+      quad.uv[0].u = 0.0f;
+      quad.uv[0].v = 0.0f;
+      quad.uv[1].u = 0.0f;
+      quad.uv[1].v = 1.0f;
+      quad.uv[2].u = 1.0f;
+      quad.uv[2].v = 0.0f;
+      // right side unshared vertex
+      quad.points[3].x = x_col;
+      quad.points[3].y = y_plane + 1.0f;
+      quad.points[3].z = z_row;
+      quad.uv[3].u = 1.0f;
+      quad.uv[3].v = 1.0f;
+      quad.uv[4].u = 1.0f;
+      quad.uv[4].v = 0.0f;
+      quad.uv[5].u = 0.0f;
+      quad.uv[5].v = 1.0f;
+      quad.quad_type = VOXEL_QUAD_LEFT;
+      return quad;
+      
+    case VOXEL_QUAD_RIGHT:
+      quad.points[0].x = x_col + 1.0f;
+      quad.points[0].y = y_plane;
+      quad.points[0].z = z_row;
+      quad.points[1].x = x_col + 1.0f;
+      quad.points[1].y = y_plane + 1.0f;
+      quad.points[1].z = z_row;
+      quad.points[2].x = x_col + 1.0f;
+      quad.points[2].y = y_plane;
+      quad.points[2].z = z_row + 1.0f;
+      quad.uv[0].u = 0.0f;
+      quad.uv[0].v = 0.0f;
+      quad.uv[1].u = 0.0f;
+      quad.uv[1].v = 1.0f;
+      quad.uv[2].u = 1.0f;
+      quad.uv[2].v = 0.0f;
+      // right side unshared vertex
+      quad.points[3].x = x_col + 1.0f;
+      quad.points[3].y = y_plane + 1.0f;
+      quad.points[3].z = z_row + 1.0f;
+      quad.uv[3].u = 1.0f;
+      quad.uv[3].v = 1.0f;
+      quad.uv[4].u = 1.0f;
+      quad.uv[4].v = 0.0f;
+      quad.uv[5].u = 0.0f;
+      quad.uv[5].v = 1.0f;
+      quad.quad_type = VOXEL_QUAD_RIGHT;
+      return quad;
+      
+    case VOXEL_QUAD_BACK:
+      quad.points[0].x = x_col;
+      quad.points[0].y = y_plane;
+      quad.points[0].z = z_row;
+      quad.points[1].x = x_col;
+      quad.points[1].y = y_plane + 1.0f;
+      quad.points[1].z = z_row;
+      quad.points[2].x = x_col + 1.0f;
+      quad.points[2].y = y_plane;
+      quad.points[2].z = z_row;
+      quad.uv[0].u = 0.0f;
+      quad.uv[0].v = 0.0f;
+      quad.uv[1].u = 0.0f;
+      quad.uv[1].v = 1.0f;
+      quad.uv[2].u = 1.0f;
+      quad.uv[2].v = 0.0f;
+      // right side unshared vertex
+      quad.points[3].x = x_col + 1.0f;
+      quad.points[3].y = y_plane + 1.0f;
+      quad.points[3].z = z_row;
+      quad.uv[3].u = 1.0f;
+      quad.uv[3].v = 1.0f;
+      quad.uv[4].u = 1.0f;
+      quad.uv[4].v = 0.0f;
+      quad.uv[5].u = 0.0f;
+      quad.uv[5].v = 1.0f;
+      quad.quad_type = VOXEL_QUAD_BACK;
+      return quad;
+      
+    case VOXEL_QUAD_FRONT:
     default:
-      face.points[0].x = x_col;
-      face.points[0].y = y_plane + 1.0f;
-      face.points[0].z = z_row + 1.0f;
-      face.points[0].w = 1.0f;
-      face.points[1].x = x_col;
-      face.points[1].y = y_plane;
-      face.points[1].z = z_row + 1.0f;
-      face.points[1].w = 1.0f;
-      face.points[2].x = x_col + 1.0f;
-      face.points[2].y = y_plane + 1.0f;
-      face.points[2].z = z_row + 1.0f;
-      face.points[2].w = 1.0f;
-      face.uv[0].u = 1.0f;
-      face.uv[0].v = 1.0f;
-      face.uv[1].u = 1.0f;
-      face.uv[1].v = 0.0f;
-      face.uv[2].u = 0.0f;
-      face.uv[2].v = 1.0f;
-      return face;
+      quad.points[0].x = x_col + 1.0f;
+      quad.points[0].y = y_plane;
+      quad.points[0].z = z_row + 1.0f;
+      quad.points[1].x = x_col + 1.0f;
+      quad.points[1].y = y_plane + 1.0f;
+      quad.points[1].z = z_row + 1.0f;
+      quad.points[2].x = x_col;
+      quad.points[2].y = y_plane;
+      quad.points[2].z = z_row + 1.0f;
+      quad.uv[0].u = 0.0f;
+      quad.uv[0].v = 0.0f;
+      quad.uv[1].u = 0.0f;
+      quad.uv[1].v = 1.0f;
+      quad.uv[2].u = 1.0f;
+      quad.uv[2].v = 0.0f;
+      // right side unshared vertex
+      quad.points[3].x = x_col;
+      quad.points[3].y = y_plane + 1.0f;
+      quad.points[3].z = z_row + 1.0f;
+      quad.uv[3].u = 1.0f;
+      quad.uv[3].v = 1.0f;
+      quad.uv[4].u = 1.0f;
+      quad.uv[4].v = 0.0f;
+      quad.uv[5].u = 0.0f;
+      quad.uv[5].v = 1.0f;
+      quad.quad_type = VOXEL_QUAD_FRONT;
+      return quad;
   }
 }
 
-void render_voxel_faces(triangle_t face_left, triangle_t face_right){
+void render_voxel_quad(voxel_quad_t voxel_quad, voxel_material_t *voxel_material){
   /* triangles list for clipped triangles */
   triangle_t triangles_after_clipping[MAX_NUM_POLYGON_VERTICES - 2]; /* for a polygon with N vertices, the number of nested triangles is always N-2 */
   vector4_t transformed_vertices[4];
 
-  transformed_vertices[0] = matrix4_mul_vector4(&view_matrix, face_left.points[0]); /* affine transform so can use this faster multiply */
-  transformed_vertices[1] = matrix4_mul_vector4(&view_matrix, face_left.points[1]); /* affine transform so can use this faster multiply */
-  transformed_vertices[2] = matrix4_mul_vector4(&view_matrix, face_left.points[2]); /* affine transform so can use this faster multiply */
-  transformed_vertices[3] = matrix4_mul_vector4(&view_matrix, face_right.points[0]); /* affine transform so can use this faster multiply */
+  transformed_vertices[0] = matrix4_mul_vector3(&view_matrix, voxel_quad.points[0]); /* affine transforms so can use this faster multiply */
+  transformed_vertices[1] = matrix4_mul_vector3(&view_matrix, voxel_quad.points[1]); 
+  transformed_vertices[2] = matrix4_mul_vector3(&view_matrix, voxel_quad.points[2]); 
+  transformed_vertices[3] = matrix4_mul_vector3(&view_matrix, voxel_quad.points[3]); 
 
   /* BACKFACE CULLING */
   /* calculate face normals for backface culling and lighting */
@@ -1088,18 +1009,18 @@ void render_voxel_faces(triangle_t face_left, triangle_t face_right){
     (vector3_t){transformed_vertices[0].x, transformed_vertices[0].y, transformed_vertices[0].z},
     (vector3_t){transformed_vertices[1].x, transformed_vertices[1].y, transformed_vertices[1].z},
     (vector3_t){transformed_vertices[2].x, transformed_vertices[2].y, transformed_vertices[2].z},
-    face_left.uv[0],
-    face_left.uv[1],
-    face_left.uv[2],
+    voxel_quad.uv[0],
+    voxel_quad.uv[1],
+    voxel_quad.uv[2],
     triangles_after_clipping
   );
   num_triangles_from_polygon_right = frustrum_clip_triangle_and_re_triangularize(
     (vector3_t){transformed_vertices[3].x, transformed_vertices[3].y, transformed_vertices[3].z},
     (vector3_t){transformed_vertices[2].x, transformed_vertices[2].y, transformed_vertices[2].z},
     (vector3_t){transformed_vertices[1].x, transformed_vertices[1].y, transformed_vertices[1].z},
-    face_right.uv[0],
-    face_right.uv[1],
-    face_right.uv[2],
+    voxel_quad.uv[3],
+    voxel_quad.uv[4],
+    voxel_quad.uv[5],
     triangles_after_clipping + num_triangles_from_polygon_left
   );
 
@@ -1124,23 +1045,19 @@ void render_voxel_faces(triangle_t face_left, triangle_t face_right){
   //vector3_t v_face_centroid = {(v_a.x + v_b.x + v_c.x) / 3.0f, (v_a.y + v_b.y + v_c.y) / 3.0f, (v_a.z + v_b.z + v_c.z) / 3.0f};
   vector3_t v_face_centroid = v_a;
   float light_intensities[MAX_NUM_LIGHT_SOURCES] = {0.0f}; // keeps the total light intensity for this face
-  if(face_left.face_material.reflects_light){
+  if(voxel_material->reflects_light){
     vector3_normalize_fast_approx(&v_face_normal); /* normalize here for use below */
     for(uint32_t light_index = 0; light_index < num_light_sources; light_index++){
       if(light_sources[light_index].type == LIGHT_DIRECTIONAL){
         vector4_t light_direction_view = matrix4_mul_vector4(&view_matrix, (vector4_t){light_sources[light_index].direction.x, light_sources[light_index].direction.y, light_sources[light_index].direction.z, 0});
-        if(face_left.face_material.two_sided_lighting)
+        /* if not translucent, then face only lights up if sgn(cam_ray dot normal) == sgn (light_direction dot normal) */
+        vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
+        float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
+        float light_direction_dot_normal  = -(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
+        if((light_direction_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_direction_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
           light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
-        else{
-          /* if not translucent, then face only lights up if sgn(cam_ray dot normal) == sgn (light_direction dot normal) */
-          vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
-          float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
-          float light_direction_dot_normal  = -(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
-          if((light_direction_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_direction_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
-            light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
-          }
-          else light_intensities[light_index] = 0.0f;
         }
+        else light_intensities[light_index] = 0.0f;
         light_intensities[light_index] *= light_sources[light_index].intensity;
       }
       else if(light_sources[light_index].type == LIGHT_POINT){
@@ -1148,23 +1065,16 @@ void render_voxel_faces(triangle_t face_left, triangle_t face_right){
         vector3_t lightpos_to_v_face_centroid_ray = (vector3_t){light_position_view.x - v_face_centroid.x, light_position_view.y - v_face_centroid.y, light_position_view.z - v_face_centroid.z};
         float lightpos_to_v_face_centroid_ray_length = vector3_length_fast_approx(lightpos_to_v_face_centroid_ray);
         
-        if(face_left.face_material.two_sided_lighting){
-          light_intensities[light_index] = fabsf(v_face_normal.x * lightpos_to_v_face_centroid_ray.x + v_face_normal.y * lightpos_to_v_face_centroid_ray.y + v_face_normal.z * lightpos_to_v_face_centroid_ray.z) / (lightpos_to_v_face_centroid_ray_length);
+        vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
+        float light_v_face_centroid_dot_normal  = v_face_normal.x * lightpos_to_v_face_centroid_ray.x + v_face_normal.y * lightpos_to_v_face_centroid_ray.y + v_face_normal.z * lightpos_to_v_face_centroid_ray.z;
+        float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
+        if((light_v_face_centroid_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_v_face_centroid_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
+          light_intensities[light_index] = fabsf(light_v_face_centroid_dot_normal) / lightpos_to_v_face_centroid_ray_length;
           light_intensities[light_index] /= 1.0f + lightpos_to_v_face_centroid_ray_length;
           light_intensities[light_index] *= light_sources[light_index].intensity;
         }
-        else{
-          vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
-          float light_v_face_centroid_dot_normal  = v_face_normal.x * lightpos_to_v_face_centroid_ray.x + v_face_normal.y * lightpos_to_v_face_centroid_ray.y + v_face_normal.z * lightpos_to_v_face_centroid_ray.z;
-          float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
-          if((light_v_face_centroid_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_v_face_centroid_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
-            light_intensities[light_index] = fabsf(light_v_face_centroid_dot_normal) / lightpos_to_v_face_centroid_ray_length;
-            light_intensities[light_index] /= 1.0f + lightpos_to_v_face_centroid_ray_length;
-            light_intensities[light_index] *= light_sources[light_index].intensity;
-          }
-          else
-            light_intensities[light_index] = 0.0f;
-        } 
+        else
+          light_intensities[light_index] = 0.0f;
       }
       else if(light_sources[light_index].type == LIGHT_AMBIENT){
         light_intensities[light_index] = light_sources[light_index].intensity;
@@ -1205,7 +1115,18 @@ void render_voxel_faces(triangle_t face_left, triangle_t face_right){
     }
     
     projected_triangle.avg_w = (projected_triangle.points[0].w + projected_triangle.points[1].w + projected_triangle.points[2].w) / 3.0f;
-    projected_triangle.face_material = face_left.face_material;
+    projected_triangle.face_material = (material_t){
+      .material_name = "",
+      .alpha_cutoff = voxel_material->alpha_cutoff,
+      .base_color = voxel_material->base_color,
+      .blend_mode = voxel_material->blend_mode,
+      .dither = voxel_material->dither,
+      .emissive_color = voxel_material->emissive_color,
+      .opacity = voxel_material->opacity,
+      .reflects_light = voxel_material->reflects_light,
+      .two_sided_lighting = false,
+      .texture = (voxel_quad.quad_type == VOXEL_QUAD_TOP || voxel_quad.quad_type == VOXEL_QUAD_BOTTOM) ? voxel_material->top_texture : voxel_material->side_texture
+    };
     projected_triangle.total_light_intensity = total_light_intensity;
 
     /* TRIANGLE RASTERIZATION */
@@ -1244,7 +1165,7 @@ void render_chunk_voxels(uint32_t z_row, uint32_t x_col){
   total_chunk_triangles_to_render = 0;
 
   chunk_t *chunk = &chunks[z_row][x_col];
-
+  
   // find the start and end voxel indices inside chunk
   uint32_t z_row_start = chunk->z_row_start;
   uint32_t z_row_end   = chunk->z_row_end;
@@ -1272,38 +1193,30 @@ void render_chunk_voxels(uint32_t z_row, uint32_t x_col){
         bool back_neighbour_air    = (back_neighbour_index < 0)                  ? true : voxels[y_plane][back_neighbour_index][x_col].type  == VOXEL_TYPE_AIR;
         bool front_neighbour_air   = (front_neighbour_index == MAP_NUM_VOXELS_Z) ? true : voxels[y_plane][front_neighbour_index][x_col].type == VOXEL_TYPE_AIR;
 
-        triangle_t face_left, face_right;
-        face_left.face_material = get_voxel_material(y_plane, z_row, x_col);
-        face_right.face_material = get_voxel_material(y_plane, z_row, x_col);
+        voxel_quad_t voxel_quad;
         if(left_neighbour_air){
-          face_left  = generate_voxel_face(VOXEL_FACE_LEFT_LEFT, y_plane, z_row, x_col);
-          face_right = generate_voxel_face(VOXEL_FACE_LEFT_RIGHT, y_plane, z_row, x_col);
-          render_voxel_faces(face_left, face_right);
+          voxel_quad = generate_voxel_quad(VOXEL_QUAD_LEFT, y_plane, z_row, x_col);
+          render_voxel_quad(voxel_quad, voxels[y_plane][z_row][x_col].voxel_material);
         }
         if(right_neighbour_air){
-          face_left  = generate_voxel_face(VOXEL_FACE_RIGHT_LEFT, y_plane, z_row, x_col);
-          face_right = generate_voxel_face(VOXEL_FACE_RIGHT_RIGHT, y_plane, z_row, x_col);
-          render_voxel_faces(face_left, face_right);
+          voxel_quad = generate_voxel_quad(VOXEL_QUAD_RIGHT, y_plane, z_row, x_col);
+          render_voxel_quad(voxel_quad, voxels[y_plane][z_row][x_col].voxel_material);
         }
         if(top_neighbour_air){
-          face_left  = generate_voxel_face(VOXEL_FACE_TOP_LEFT, y_plane, z_row, x_col);
-          face_right = generate_voxel_face(VOXEL_FACE_TOP_RIGHT, y_plane, z_row, x_col);
-          render_voxel_faces(face_left, face_right);
+          voxel_quad = generate_voxel_quad(VOXEL_QUAD_TOP, y_plane, z_row, x_col);
+          render_voxel_quad(voxel_quad, voxels[y_plane][z_row][x_col].voxel_material);
         }
         if(bottom_neighbour_air){
-          face_left  = generate_voxel_face(VOXEL_FACE_BOTTOM_LEFT, y_plane, z_row, x_col);
-          face_right = generate_voxel_face(VOXEL_FACE_BOTTOM_RIGHT, y_plane, z_row, x_col);
-          render_voxel_faces(face_left, face_right);
+          voxel_quad = generate_voxel_quad(VOXEL_QUAD_BOTTOM, y_plane, z_row, x_col);
+          render_voxel_quad(voxel_quad, voxels[y_plane][z_row][x_col].voxel_material);
         }
         if(back_neighbour_air){
-          face_left  = generate_voxel_face(VOXEL_FACE_BACK_LEFT, y_plane, z_row, x_col);
-          face_right = generate_voxel_face(VOXEL_FACE_BACK_RIGHT, y_plane, z_row, x_col);
-          render_voxel_faces(face_left, face_right);
+          voxel_quad = generate_voxel_quad(VOXEL_QUAD_BACK, y_plane, z_row, x_col);
+          render_voxel_quad(voxel_quad, voxels[y_plane][z_row][x_col].voxel_material);
         }
         if(front_neighbour_air){
-          face_left  = generate_voxel_face(VOXEL_FACE_FRONT_LEFT, y_plane, z_row, x_col);
-          face_right = generate_voxel_face(VOXEL_FACE_FRONT_RIGHT, y_plane, z_row, x_col);
-          render_voxel_faces(face_left, face_right);
+          voxel_quad = generate_voxel_quad(VOXEL_QUAD_FRONT, y_plane, z_row, x_col);
+          render_voxel_quad(voxel_quad, voxels[y_plane][z_row][x_col].voxel_material);
         }
       }
     }

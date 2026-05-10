@@ -15,7 +15,7 @@ typedef enum{
 } blend_mode_t;
 
 typedef struct{
-  char material_name[128];
+  char material_name[32];
   // color and light
   color_t base_color;
   color_t emissive_color;   //  object's own emission color */

@@ -21,6 +21,26 @@ texture_t default_texture = {
   .texture_height = 2
 };
 
+void flip_texture_pixels_vertically(color_t *pixels, int texture_width, int texture_height){
+  color_t *temporary_row = malloc(sizeof(color_t) * texture_width);
+  if(temporary_row == NULL){
+    return;
+  }
+
+  for(int y = 0; y < texture_height / 2; y++){
+    int opposite_y = texture_height - 1 - y;
+
+    color_t *top_row = pixels + y * texture_width;
+    color_t *bottom_row = pixels + opposite_y * texture_width;
+
+    memcpy(temporary_row, top_row, sizeof(color_t) * texture_width);
+    memcpy(top_row, bottom_row, sizeof(color_t) * texture_width);
+    memcpy(bottom_row, temporary_row, sizeof(color_t) * texture_width);
+  }
+
+  free(temporary_row);
+}
+
 texture_t load_png_texture_data(char *filename){
   upng_t *png_texture = upng_new_from_file(filename);
   if(png_texture == NULL){
@@ -86,6 +106,9 @@ texture_t load_png_texture_data(char *filename){
       .rgb.red   = r
     };
   }
+
+  // png loader has the origin at top left, this converts the origin to bottom left in memory
+  flip_texture_pixels_vertically(texture.texture, texture.texture_width, texture.texture_height);
 
   upng_free(png_texture);
 

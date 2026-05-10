@@ -232,7 +232,7 @@ void load_obj_file(char *filename, mesh_t *mesh, bool invert_x){
     else if(strncmp(line, "vt ", 3) == 0){
       uv_t texture;
       if(sscanf(line, "vt %f %f", &texture.u, &texture.v) == 2){
-        texture.v = 1.0f - texture.v;
+        //texture.v = 1.0f - texture.v;
         array_push(texture_coords, texture);
       }
     }
