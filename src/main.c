@@ -12,6 +12,7 @@
     DONE:
 
       mesh ordering front to back for helping with zbuffer
+      then later bilinear filtering on textures for far away triangles
 
       for some objects we dont want the light to shine on just one side (when both camera and normal are on same side), such as trees,
       because then it looks wrong. so need to add a parameter for "two-sided-lighting"
