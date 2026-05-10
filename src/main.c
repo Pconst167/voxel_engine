@@ -170,7 +170,6 @@ uint32_t term2;
 triangle_t triangles_to_render[50000];
 uint32_t total_chunk_triangles_to_render = 0;
 
-texture_t *block_texture;
 
 void setup(void) {
   
@@ -200,10 +199,8 @@ void setup(void) {
   /* normalize all light direction vectors to unity */
   initialize_lights();
 
-  block_texture = load_texture("./assets/textures/ground/grass.png");
-
   /* calculate world chunks */
-  populate_voxel_map();
+  init_voxel_map();
   calculate_world_bounds();
   create_world_chunks();
 
@@ -788,6 +785,7 @@ bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane
 triangle_t generate_voxel_face(voxel_face_t face_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col){
   triangle_t face;
 
+
   switch(face_type){
     // top - left
     case VOXEL_FACE_TOP_LEFT:
@@ -1044,14 +1042,16 @@ triangle_t generate_voxel_face(voxel_face_t face_type, uint32_t y_plane, uint32_
       return face;
   }
 }
-void render_face(triangle_t face){
+
+void render_voxel_faces(triangle_t face_left, triangle_t face_right){
   /* triangles list for clipped triangles */
   triangle_t triangles_after_clipping[MAX_NUM_POLYGON_VERTICES - 2]; /* for a polygon with N vertices, the number of nested triangles is always N-2 */
-  vector4_t transformed_vertices[3];
+  vector4_t transformed_vertices[4];
 
-  transformed_vertices[0] = matrix4_mul_vector4(&view_matrix, face.points[0]); /* affine transform so can use this faster multiply */
-  transformed_vertices[1] = matrix4_mul_vector4(&view_matrix, face.points[1]); /* affine transform so can use this faster multiply */
-  transformed_vertices[2] = matrix4_mul_vector4(&view_matrix, face.points[2]); /* affine transform so can use this faster multiply */
+  transformed_vertices[0] = matrix4_mul_vector4(&view_matrix, face_left.points[0]); /* affine transform so can use this faster multiply */
+  transformed_vertices[1] = matrix4_mul_vector4(&view_matrix, face_left.points[1]); /* affine transform so can use this faster multiply */
+  transformed_vertices[2] = matrix4_mul_vector4(&view_matrix, face_left.points[2]); /* affine transform so can use this faster multiply */
+  transformed_vertices[3] = matrix4_mul_vector4(&view_matrix, face_right.points[0]); /* affine transform so can use this faster multiply */
 
   /* BACKFACE CULLING */
   /* calculate face normals for backface culling and lighting */
@@ -1078,25 +1078,32 @@ void render_face(triangle_t face){
 
   // FRUSTRUM CLIPPING
   // check whether face is totally outside frustrum, if so, skip face, else apply clipping
-  int num_triangles_from_polygon = 0;
-  int face_outside_frustrum = check_face_fully_outside_frustrum(transformed_vertices[0], transformed_vertices[1], transformed_vertices[2], znear, zfar);
-  if(face_outside_frustrum == 1){
-    total_triangles_skipped++;
-    return; // totally outside
-  }
-  else{ // partially outside or maybe fully inside - clip
-    /* this function creates a polygon from the current face, clips against all frustrum planes,
-      then re-triangularizes the polygon - it returns the number of generated triangles from the polygon */
-    num_triangles_from_polygon = frustrum_clip_triangle_and_re_triangularize(
-      (vector3_t){transformed_vertices[0].x, transformed_vertices[0].y, transformed_vertices[0].z},
-      (vector3_t){transformed_vertices[1].x, transformed_vertices[1].y, transformed_vertices[1].z},
-      (vector3_t){transformed_vertices[2].x, transformed_vertices[2].y, transformed_vertices[2].z},
-      face.uv[0],
-      face.uv[1],
-      face.uv[2],
-      triangles_after_clipping
-    );
-  }
+  int num_triangles_from_polygon_left = 0;
+  int num_triangles_from_polygon_right = 0;
+  int total_num_triangles_from_polygon = 0;
+  // partially outside or maybe fully inside - clip
+  /* this function creates a polygon from the current face, clips against all frustrum planes,
+    then re-triangularizes the polygon - it returns the number of generated triangles from the polygon */
+  num_triangles_from_polygon_left = frustrum_clip_triangle_and_re_triangularize(
+    (vector3_t){transformed_vertices[0].x, transformed_vertices[0].y, transformed_vertices[0].z},
+    (vector3_t){transformed_vertices[1].x, transformed_vertices[1].y, transformed_vertices[1].z},
+    (vector3_t){transformed_vertices[2].x, transformed_vertices[2].y, transformed_vertices[2].z},
+    face_left.uv[0],
+    face_left.uv[1],
+    face_left.uv[2],
+    triangles_after_clipping
+  );
+  num_triangles_from_polygon_right = frustrum_clip_triangle_and_re_triangularize(
+    (vector3_t){transformed_vertices[3].x, transformed_vertices[3].y, transformed_vertices[3].z},
+    (vector3_t){transformed_vertices[2].x, transformed_vertices[2].y, transformed_vertices[2].z},
+    (vector3_t){transformed_vertices[1].x, transformed_vertices[1].y, transformed_vertices[1].z},
+    face_right.uv[0],
+    face_right.uv[1],
+    face_right.uv[2],
+    triangles_after_clipping + num_triangles_from_polygon_left
+  );
+
+  total_num_triangles_from_polygon = num_triangles_from_polygon_left + num_triangles_from_polygon_right;
 
   /* LIGHT CALCULATIONS */
   /*
@@ -1114,15 +1121,15 @@ void render_face(triangle_t face){
 
     light_intensities field is initialized to zero below in declaration - so that the light_intensities field is all 0 in case object not reflects_light
   */
-  vector3_t v_face_centroid = {(v_a.x + v_b.x + v_c.x) / 3.0f, (v_a.y + v_b.y + v_c.y) / 3.0f, (v_a.z + v_b.z + v_c.z) / 3.0f};
-  //vector3_t v_face_centroid = v_a;
+  //vector3_t v_face_centroid = {(v_a.x + v_b.x + v_c.x) / 3.0f, (v_a.y + v_b.y + v_c.y) / 3.0f, (v_a.z + v_b.z + v_c.z) / 3.0f};
+  vector3_t v_face_centroid = v_a;
   float light_intensities[MAX_NUM_LIGHT_SOURCES] = {0.0f}; // keeps the total light intensity for this face
-  if(face.face_material.reflects_light){
+  if(face_left.face_material.reflects_light){
     vector3_normalize_fast_approx(&v_face_normal); /* normalize here for use below */
     for(uint32_t light_index = 0; light_index < num_light_sources; light_index++){
       if(light_sources[light_index].type == LIGHT_DIRECTIONAL){
         vector4_t light_direction_view = matrix4_mul_vector4(&view_matrix, (vector4_t){light_sources[light_index].direction.x, light_sources[light_index].direction.y, light_sources[light_index].direction.z, 0});
-        if(face.face_material.two_sided_lighting)
+        if(face_left.face_material.two_sided_lighting)
           light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
         else{
           /* if not translucent, then face only lights up if sgn(cam_ray dot normal) == sgn (light_direction dot normal) */
@@ -1141,7 +1148,7 @@ void render_face(triangle_t face){
         vector3_t lightpos_to_v_face_centroid_ray = (vector3_t){light_position_view.x - v_face_centroid.x, light_position_view.y - v_face_centroid.y, light_position_view.z - v_face_centroid.z};
         float lightpos_to_v_face_centroid_ray_length = vector3_length_fast_approx(lightpos_to_v_face_centroid_ray);
         
-        if(face.face_material.two_sided_lighting){
+        if(face_left.face_material.two_sided_lighting){
           light_intensities[light_index] = fabsf(v_face_normal.x * lightpos_to_v_face_centroid_ray.x + v_face_normal.y * lightpos_to_v_face_centroid_ray.y + v_face_normal.z * lightpos_to_v_face_centroid_ray.z) / (lightpos_to_v_face_centroid_ray_length);
           light_intensities[light_index] /= 1.0f + lightpos_to_v_face_centroid_ray_length;
           light_intensities[light_index] *= light_sources[light_index].intensity;
@@ -1172,7 +1179,7 @@ void render_face(triangle_t face){
   light_intensity_rgb_t total_light_intensity = find_total_light_intensity(light_intensities);
 
   // loop all faces generated from clipped polygon
-  for(int t = 0; t < num_triangles_from_polygon; t++){
+  for(int t = 0; t < total_num_triangles_from_polygon; t++){
     triangle_t *triangle_after_clipping = &triangles_after_clipping[t];
 
     /* PROJECTION MATRIX / PERSPECTIVE DIVIDE */
@@ -1198,7 +1205,7 @@ void render_face(triangle_t face){
     }
     
     projected_triangle.avg_w = (projected_triangle.points[0].w + projected_triangle.points[1].w + projected_triangle.points[2].w) / 3.0f;
-    projected_triangle.face_material = face.face_material;
+    projected_triangle.face_material = face_left.face_material;
     projected_triangle.total_light_intensity = total_light_intensity;
 
     /* TRIANGLE RASTERIZATION */
@@ -1244,20 +1251,6 @@ void render_chunk_voxels(uint32_t z_row, uint32_t x_col){
   uint32_t x_col_start = chunk->x_col_start;
   uint32_t x_col_end   = chunk->x_col_end;
 
-  material_t face_material;
-  face_material = (material_t){
-    .alpha_cutoff = 128,
-    .base_color   = (color_t){.uint32 = 0xFF00FF00},
-    .blend_mode   = BLEND_MODE_OPAQUE,
-    .dither       = false,
-    .emissive_color = (color_t){.uint32 = 0x00000000},
-    .material_name = "grass",
-    .opacity = 1.0f,
-    .reflects_light = true,
-    .texture = block_texture,
-    .two_sided_lighting = false
-  };
-
   // loop through all voxels in chunk
   for(uint32_t y_plane = 0; y_plane < MAP_NUM_VOXELS_Y; y_plane++){
     for(uint32_t z_row = z_row_start; z_row <= z_row_end; z_row++){
@@ -1279,42 +1272,38 @@ void render_chunk_voxels(uint32_t z_row, uint32_t x_col){
         bool back_neighbour_air    = (back_neighbour_index < 0)                  ? true : voxels[y_plane][back_neighbour_index][x_col].type  == VOXEL_TYPE_AIR;
         bool front_neighbour_air   = (front_neighbour_index == MAP_NUM_VOXELS_Z) ? true : voxels[y_plane][front_neighbour_index][x_col].type == VOXEL_TYPE_AIR;
 
-        triangle_t face_left = {.face_material = face_material}, face_right = {.face_material = face_material};
+        triangle_t face_left, face_right;
+        face_left.face_material = get_voxel_material(y_plane, z_row, x_col);
+        face_right.face_material = get_voxel_material(y_plane, z_row, x_col);
         if(left_neighbour_air){
           face_left  = generate_voxel_face(VOXEL_FACE_LEFT_LEFT, y_plane, z_row, x_col);
           face_right = generate_voxel_face(VOXEL_FACE_LEFT_RIGHT, y_plane, z_row, x_col);
-          render_face(face_left);
-          render_face(face_right);
+          render_voxel_faces(face_left, face_right);
         }
         if(right_neighbour_air){
           face_left  = generate_voxel_face(VOXEL_FACE_RIGHT_LEFT, y_plane, z_row, x_col);
           face_right = generate_voxel_face(VOXEL_FACE_RIGHT_RIGHT, y_plane, z_row, x_col);
-          render_face(face_left);
-          render_face(face_right);
+          render_voxel_faces(face_left, face_right);
         }
         if(top_neighbour_air){
           face_left  = generate_voxel_face(VOXEL_FACE_TOP_LEFT, y_plane, z_row, x_col);
           face_right = generate_voxel_face(VOXEL_FACE_TOP_RIGHT, y_plane, z_row, x_col);
-          render_face(face_left);
-          render_face(face_right);
+          render_voxel_faces(face_left, face_right);
         }
         if(bottom_neighbour_air){
           face_left  = generate_voxel_face(VOXEL_FACE_BOTTOM_LEFT, y_plane, z_row, x_col);
           face_right = generate_voxel_face(VOXEL_FACE_BOTTOM_RIGHT, y_plane, z_row, x_col);
-          render_face(face_left);
-          render_face(face_right);
+          render_voxel_faces(face_left, face_right);
         }
         if(back_neighbour_air){
           face_left  = generate_voxel_face(VOXEL_FACE_BACK_LEFT, y_plane, z_row, x_col);
           face_right = generate_voxel_face(VOXEL_FACE_BACK_RIGHT, y_plane, z_row, x_col);
-          render_face(face_left);
-          render_face(face_right);
+          render_voxel_faces(face_left, face_right);
         }
         if(front_neighbour_air){
           face_left  = generate_voxel_face(VOXEL_FACE_FRONT_LEFT, y_plane, z_row, x_col);
           face_right = generate_voxel_face(VOXEL_FACE_FRONT_RIGHT, y_plane, z_row, x_col);
-          render_face(face_left);
-          render_face(face_right);
+          render_voxel_faces(face_left, face_right);
         }
       }
     }
@@ -2265,7 +2254,7 @@ int main(int argc, char *argv[]){
   destroy_window();
   free_resources();
 
-  debug_print_allocated();
+  //debug_print_allocated();
 
   return 0;
 }

@@ -2,6 +2,7 @@
 #define VOXEL_H
 
 #include "aabb.h"
+#include "material.h"
 
 #define MAP_NUM_VOXELS_X 128
 #define MAP_NUM_VOXELS_Z 128
@@ -11,9 +12,9 @@
 #define NUM_CHUNK_DIVISIONS_Z (MAP_NUM_VOXELS_Z / CHUNK_SIZE)
 
 typedef enum{
-  VOXEL_TYPE_AIR,
-  VOXEL_TYPE_DIRT,
-  VOXEL_TYPE_STONE
+  VOXEL_TYPE_AIR   = 0,
+  VOXEL_TYPE_DIRT  = 1,
+  VOXEL_TYPE_STONE = 2
 } voxel_type_t;
 
 typedef enum{
@@ -37,9 +38,12 @@ typedef struct{
   aabb_3d_t aabb;
 } voxel_t;
 
+extern material_t voxel_materials[3];
+
 // Y slowest changing dimension, X is fastest changing
 extern voxel_t voxels[MAP_NUM_VOXELS_Y][MAP_NUM_VOXELS_Z][MAP_NUM_VOXELS_X];
 
-void populate_voxel_map();
+void init_voxel_map();
+material_t get_voxel_material(uint32_t y_plane, uint32_t z_row, uint32_t x_col);
 
 #endif
