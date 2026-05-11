@@ -6,8 +6,8 @@ player_t player = {
   .direction      = {.x = 0.0f, .y = 0.0f, .z = 1.0f},
   .theta          = M_PI_2,
   .eta            = 0.0f,
-  .radius         = 1.0f,
-  .height         = 1.0f,
+  .radius         = 0.45f,
+  .height         = 1.80f,
   .grounded       = false
 };
 

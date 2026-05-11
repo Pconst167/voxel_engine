@@ -53,7 +53,6 @@ typedef struct{
 } voxel_quad_t;
 
 typedef struct{
-  uint32_t voxel_id;
   voxel_type_t type;
   aabb_3d_t aabb;
   voxel_material_t *voxel_material;

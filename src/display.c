@@ -12,7 +12,7 @@ float *zbuffer = NULL;
 SDL_Texture *color_buffer_texture = NULL;
 int window_width;
 int window_height;
-int total_buffer_pixels;
+uint32_t total_buffer_pixels;
 
 int fps;
 

@@ -15,9 +15,12 @@ double world_x_min;
 double world_x_max;
 double world_z_min;
 double world_z_max;
+double world_y_min;
+double world_y_max;
 
 double chunk_dx;
 double chunk_dz;
+double chunk_dy;
 
 /*
             /----/----/----/----/               /----/
@@ -79,6 +82,8 @@ void calculate_world_bounds(void){
   world_x_max = MAP_NUM_VOXELS_X;
   world_z_min = 0;
   world_z_max = MAP_NUM_VOXELS_Z;
+  world_y_min = 0;
+  world_y_max = MAP_NUM_VOXELS_Y;
 }
 
 /* split the world into chunks */
@@ -86,6 +91,7 @@ void create_world_chunks(void){
 
   chunk_dx = CHUNK_SIZE;
   chunk_dz = CHUNK_SIZE;
+  chunk_dy = CHUNK_SIZE;
 
   /* set the boundary of each chunk */
   for(uint32_t z_row = 0; z_row < NUM_CHUNK_DIVISIONS_Z; z_row++){

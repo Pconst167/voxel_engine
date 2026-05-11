@@ -79,7 +79,6 @@ void init_voxel_map(){
           voxels[y][z][x].type = VOXEL_TYPE_AIR;
         }
         
-        voxels[y][z][x].voxel_id = y * MAP_NUM_VOXELS_Z * MAP_NUM_VOXELS_X + z * MAP_NUM_VOXELS_X + x;
         voxels[y][z][x].aabb.x_min = x;
         voxels[y][z][x].aabb.x_max = x + 1.0;
         voxels[y][z][x].aabb.z_min = z;

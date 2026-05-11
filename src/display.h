@@ -20,7 +20,7 @@ extern float *zbuffer;
 
 extern int window_width;
 extern int window_height;
-extern int total_buffer_pixels;
+extern uint32_t total_buffer_pixels;
 
 extern uint8_t color_buffer_reset; /* repeat byte for color buffer reset */
 

@@ -47,9 +47,12 @@ extern double world_x_min;
 extern double world_x_max;
 extern double world_z_min;
 extern double world_z_max;
+extern double world_y_min;
+extern double world_y_max;
 
 extern double chunk_dx;
 extern double chunk_dz;
+extern double chunk_dy;
 
 /*
             /----/----/----/----/               /----/

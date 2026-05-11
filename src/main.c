@@ -26,6 +26,9 @@
       then for fully inside, we only test for clipping, but for intersecting chunks, clip all triangles directly.
 
     TODO:
+      CONVERT VOXEL COORDINATES ETC TO -X TO X, ETC. I.E CENTERED AROUND ORIGIN. THIS IS BETTER FOR FLOATING PRECISION
+      SO INSTEAD OF HAVING THE WORLD ORIGIN CORNER AT 0, WE PLACE THE WORLD CENTER AT 0 INSTEAD
+
       ADD MIPMAPS TO HELP WITH FAR AWAY SHIMMERING 
 
       add funcs to remove collision aabb from object, and change them
@@ -140,6 +143,10 @@ bool is_paused = false;
 /* player data */
 int player_chunk_x;
 int player_chunk_z;
+int player_chunk_y;
+int32_t player_voxel_x;
+int32_t player_voxel_z;
+int32_t player_voxel_y;
 
 uint8_t color_buffer_reset = 0x20; /* repeat byte for color buffer reset */
 
@@ -429,25 +436,32 @@ void move_player(void){
   }
 
   if(movement.x != 0.0f || movement.y != 0.0f || movement.z != 0.0f)
-    move_player_without_collision(movement);
+    move_player_with_voxel_collision(movement);
     //move_player_with_collision(movement);
 }
 
-void move_player_without_collision(vector3_t move){
+void move_player_with_voxel_collision(vector3_t move){
+  player.position.y += move.y;
+  player.position.z += move.z;
+  player.position.x += move.x;
+  if(player.position.y < 0.0001f) player.position.y = 0.0001f;
+  if(player.position.z < 0.0001f) player.position.z = 0.0001f;
+  if(player.position.x < 0.0001f) player.position.x = 0.0001f;
+  if(player.position.y + player.height > (float)MAP_NUM_VOXELS_Y - 0.0001f) player.position.y = (float)MAP_NUM_VOXELS_Y - 0.0001f - player.height;
+  if(player.position.z > (float)MAP_NUM_VOXELS_Z - 0.0001f) player.position.z = (float)MAP_NUM_VOXELS_Z - 0.0001f;
+  if(player.position.x > (float)MAP_NUM_VOXELS_X - 0.0001f) player.position.x = (float)MAP_NUM_VOXELS_X - 0.0001f;
+  resolve_player_vs_voxel_collisions();
+}
+
+void move_player_with_object_collision(vector3_t move){
   player.position.x += move.x;
   player.position.z += move.z;
+  resolve_player_vs_object_collisions();
+
   player.position.y += move.y;
 }
 
-void move_player_with_collision(vector3_t move){
-  player.position.x += move.x;
-  player.position.z += move.z;
-  resolve_player_vs_objects_collisions();
-
-  player.position.y += move.y;
-}
-
-bool resolve_player_against_aabb_xz(const collision_aabb_t *box){
+bool resolve_player_against_object_aabb_xz(const collision_aabb_t *box){
   float player_bottom = player.position.y;
   float player_top = player.position.y + player.height;
 
@@ -502,7 +516,70 @@ bool resolve_player_against_aabb_xz(const collision_aabb_t *box){
   return true;
 }
 
-void resolve_player_vs_objects_collisions(){
+bool resolve_player_against_voxel_aabb_xyz(const aabb_3d_t *box){
+  float nearest_x, nearest_z, nearest_y;
+
+       if(player.position.x < box->x_min) nearest_x = box->x_min;
+  else if(player.position.x > box->x_max) nearest_x = box->x_max;
+  else                                    nearest_x = player.position.x;
+
+       if(player.position.z < box->z_min) nearest_z = box->z_min;
+  else if(player.position.z > box->z_max) nearest_z = box->z_max;
+  else                                    nearest_z = player.position.z;
+
+       if(player.position.y < box->y_min) nearest_y = box->y_min;
+  else if(player.position.y > box->y_max) nearest_y = box->y_max;
+  else                                    nearest_y = player.position.y;
+
+  float dx = player.position.x - nearest_x;
+  float dz = player.position.z - nearest_z;
+  float dy = player.position.y - nearest_y;
+
+  float dist_sq = dx * dx + dz * dz + dy * dy;
+  float radius_sq = player.radius * player.radius;
+
+  if(dist_sq >= radius_sq) return false;
+
+  if(dist_sq > 0.000001f){
+    float dist = 1.0f / q_rsqrt(dist_sq);
+    float push = player.radius - dist;
+
+    player.position.x += (dx / dist) * push;
+    player.position.z += (dz / dist) * push;
+    player.position.y += (dy / dist) * push;
+  }
+  else{
+    /* Player center is inside the AABB XZY rectangle. Push out nearest side. */
+    float pen_left   = fabsf(player.position.x - (float)box->x_min);
+    float pen_right  = fabsf((float)box->x_max - player.position.x);
+    float pen_front  = fabsf(player.position.z - (float)box->z_min);
+    float pen_back   = fabsf((float)box->z_max - player.position.z);
+    float pen_bottom = fabsf(player.position.y - (float)box->y_min);
+    float pen_top    = fabsf((float)box->y_max - player.position.y);
+
+    int side = 0;
+    float min_pen = pen_left;
+
+    if(pen_right  < min_pen){ min_pen = pen_right;  side = 1; }
+    if(pen_front  < min_pen){ min_pen = pen_front;  side = 2; }
+    if(pen_back   < min_pen){ min_pen = pen_back;   side = 3; }
+    if(pen_bottom < min_pen){ min_pen = pen_bottom; side = 4; }
+    if(pen_top    < min_pen){ min_pen = pen_top;    side = 5; }
+
+    switch(side){
+      case 0: player.position.x = box->x_min - player.radius; break;
+      case 1: player.position.x = box->x_max + player.radius; break;
+      case 2: player.position.z = box->z_min - player.radius; break;
+      case 3: player.position.z = box->z_max + player.radius; break;
+      case 4: player.position.y = box->y_min - player.radius; break;
+      case 5: player.position.y = box->y_max + player.radius; break;
+    }
+  }
+
+  return true;
+}
+
+void resolve_player_vs_object_collisions(){
   collision_step++;
 
   player_chunk_x = (int)floorf((player.position.x - world_x_min) / chunk_dx);
@@ -540,52 +617,57 @@ void resolve_player_vs_objects_collisions(){
         if(collision_aabb->active){
           if(collision_aabb->collision_step == collision_step) continue;
           collision_aabb->collision_step = collision_step;
-          resolve_player_against_aabb_xz(collision_aabb);
+          resolve_player_against_object_aabb_xz(collision_aabb);
         }
       }
     }
   }
 }
 
-void resolve_player_vs_voxels_collisions(){
-
+void resolve_player_vs_voxel_collisions(){
   player_chunk_x = (int)floorf((player.position.x - world_x_min) / chunk_dx);
   player_chunk_z = (int)floorf((player.position.z - world_z_min) / chunk_dz);
+  player_chunk_y = (int)floorf((player.position.y - world_y_min) / chunk_dy);
 
-  if(player_chunk_x < 0) player_chunk_x = 0;
-  if(player_chunk_x >= NUM_CHUNK_DIVISIONS_X) player_chunk_x = NUM_CHUNK_DIVISIONS_X - 1;
-  if(player_chunk_z < 0) player_chunk_z = 0;
-  if(player_chunk_z >= NUM_CHUNK_DIVISIONS_Z) player_chunk_z = NUM_CHUNK_DIVISIONS_Z - 1;
+  player_voxel_x = (int)player.position.x;
+  player_voxel_z = (int)player.position.z;
+  player_voxel_y = (int)player.position.y;
 
-  int start_x = player_chunk_x - 1;
+  if(player_voxel_x < 0) player_voxel_x = 0;
+  if(player_voxel_x >= MAP_NUM_VOXELS_X) player_voxel_x = MAP_NUM_VOXELS_X - 1;
+  if(player_voxel_z < 0) player_voxel_z = 0;
+  if(player_voxel_z >= MAP_NUM_VOXELS_Z) player_voxel_z = MAP_NUM_VOXELS_Z - 1;
+  if(player_voxel_y < 0) player_voxel_y = 0;
+  if(player_voxel_y >= MAP_NUM_VOXELS_Y) player_voxel_y = MAP_NUM_VOXELS_Y - 1;
+
+  int start_x = player_voxel_x - 1;
   if(start_x < 0) start_x = 0;
-  if(start_x >= NUM_CHUNK_DIVISIONS_X) start_x = NUM_CHUNK_DIVISIONS_X - 1;
-  int end_x = player_chunk_x + 1;
+  if(start_x >= MAP_NUM_VOXELS_X) start_x = MAP_NUM_VOXELS_X - 1;
+  int end_x = player_voxel_x + 1;
   if(end_x < 0) end_x = 0;
-  if(end_x >= NUM_CHUNK_DIVISIONS_X) end_x = NUM_CHUNK_DIVISIONS_X - 1;
+  if(end_x >= MAP_NUM_VOXELS_X) end_x = MAP_NUM_VOXELS_X - 1;
 
-  int start_z = player_chunk_z - 1;
+  int start_z = player_voxel_z - 1;
   if(start_z < 0) start_z = 0;
-  if(start_z >= NUM_CHUNK_DIVISIONS_Z) start_z = NUM_CHUNK_DIVISIONS_Z - 1;
-  int end_z = player_chunk_z + 1;
+  if(start_z >= MAP_NUM_VOXELS_Z) start_z = MAP_NUM_VOXELS_Z - 1;
+  int end_z = player_voxel_z + 1;
   if(end_z < 0) end_z = 0;
-  if(end_z >= NUM_CHUNK_DIVISIONS_Z) end_z = NUM_CHUNK_DIVISIONS_Z - 1;
+  if(end_z >= MAP_NUM_VOXELS_Z) end_z = MAP_NUM_VOXELS_Z - 1;
 
-  for(int chunk_z = start_z; chunk_z <= end_z; chunk_z++){
-    for(int chunk_x = start_x; chunk_x <= end_x; chunk_x++){
+  int start_y = player_voxel_y - 1;
+  if(start_y < 0) start_y = 0;
+  if(start_y >= MAP_NUM_VOXELS_Y) start_y = MAP_NUM_VOXELS_Y - 1;
+  int end_y = player_voxel_y + 1;
+  if(end_y < 0) end_y = 0;
+  if(end_y >= MAP_NUM_VOXELS_Y) end_y = MAP_NUM_VOXELS_Y - 1;
 
-      chunk_t *chunk = &chunks[chunk_z][chunk_x];
+  for(int voxel_y = start_y; voxel_y <= end_y; voxel_y++){
+    for(int voxel_z = start_z; voxel_z <= end_z; voxel_z++){
+      for(int voxel_x = start_x; voxel_x <= end_x; voxel_x++){
+        voxel_t *voxel = &voxels[voxel_y][voxel_z][voxel_x];
+        if(voxel->type == VOXEL_TYPE_AIR) continue;
 
-      for(uint32_t i = 0; i < chunk->num_collision_aabbs; i++){
-        uint32_t aabb_id = chunk->collision_aabbs[i];
-        collision_aabb_t *collision_aabb = &collision_aabbs[aabb_id];
-
-        // only check collisions if collision_aabb is active
-        if(collision_aabb->active){
-          if(collision_aabb->collision_step == collision_step) continue;
-          collision_aabb->collision_step = collision_step;
-          resolve_player_against_aabb_xz(collision_aabb);
-        }
+        resolve_player_against_voxel_aabb_xyz(&voxel->aabb);
       }
     }
   }
@@ -613,7 +695,10 @@ RENDER STAGE
 */
 void render_visible_chunks(void) {
   /* reset color buffer */
-  memset(color_buffer, color_buffer_reset, total_buffer_pixels * sizeof(uint32_t));
+  for(uint32_t pixel_i = 0; pixel_i < total_buffer_pixels; pixel_i++){
+    color_buffer[pixel_i] = (color_t){.uint32 = 0xFFFF4040};
+  }
+  //memset(color_buffer, color_buffer_reset, total_buffer_pixels * sizeof(uint32_t));
 
   /* reset zbuffer */
   memset(zbuffer, 0x00, total_buffer_pixels * sizeof(uint32_t));
@@ -1884,7 +1969,7 @@ void update_state(void){
   /* camera tracks player */
   camera.position = (vector3_t){
     .x = player.position.x,
-    .y = player.position.y + player.height,
+    .y = player.position.y + player.radius * 0.5,
     .z = player.position.z
   };
   camera.direction = (vector3_t){
@@ -2235,8 +2320,9 @@ void process_frame_rate(void) {
 
 void generate_game_data(){
   if((time_count & 0x1F) == 0)
-    snprintf(text0, 256, "%ut, %upx, %uc, %ufps, %d:%d, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
+    snprintf(text0, 256, "%ut, %upx, %uc, %ufps, (%d:%d:%d), %d:%d, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
       total_triangles_rendered, total_pixels_rendered, total_chunks_rendered, fps, 
+      player_voxel_x, player_voxel_y, player_voxel_z,
       player_chunk_x, player_chunk_z,
       player.position.x, player.position.y, player.position.z,
       player.direction.x, player.direction.y, player.direction.z,

@@ -53,10 +53,12 @@ void render_voxel_quad(voxel_quad_t voxel_quad, voxel_material_t *voxel_material
 void draw_chunk_outlines(void);
 void draw_collision_aabb_outlines(void);
 
-bool resolve_player_against_aabb_xz(const collision_aabb_t *box);
-void move_player_with_collision(vector3_t move);
-void move_player_without_collision(vector3_t move);
-void resolve_player_vs_objects_collisions();
+bool resolve_player_against_object_aabb_xz(const collision_aabb_t *box);
+bool resolve_player_against_voxel_aabb_xyz(const aabb_3d_t *box);
+void move_player_with_voxel_collision(vector3_t move);
+void move_player_with_object_collision(vector3_t move);
+void resolve_player_vs_object_collisions();
+void resolve_player_vs_voxel_collisions();
 
 void load_skybox();
 
