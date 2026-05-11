@@ -84,6 +84,9 @@ void calculate_world_bounds(void){
 /* split the world into chunks */
 void create_world_chunks(void){
 
+  chunk_dx = CHUNK_SIZE;
+  chunk_dz = CHUNK_SIZE;
+
   /* set the boundary of each chunk */
   for(uint32_t z_row = 0; z_row < NUM_CHUNK_DIVISIONS_Z; z_row++){
     for(uint32_t x_col = 0; x_col < NUM_CHUNK_DIVISIONS_X; x_col++){

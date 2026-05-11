@@ -184,13 +184,13 @@ void setup(void) {
 
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
 
-  mesh_t *mesh;
   create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = 0.0f,  .z = 0.0f}, (color_t){.uint32 = 0xFFFFA0A0}, 0.2f);
   create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
+  //mesh_t *mesh;
   //mesh = load_mesh("./assets/obj/cube.obj", true);
   //create_object(mesh, OBJECT_TYPE_ROOM, true, true,
-  //              false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-  //             (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){7, 7, 7}, 
+  //              true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
+  //             (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){40, 7, 7}, 
   //             (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   //);
 
@@ -705,7 +705,7 @@ void render_visible_chunks_sorted(void) {
     int z_row = chunk_sort_keys[i].chunk_z_row;
     int x_col = chunk_sort_keys[i].chunk_x_col;
 
-    //render_chunk_objects(&chunks[z_row][x_col]);
+    render_chunk_objects(&chunks[z_row][x_col]);
     render_chunk_voxels(z_row, x_col);
 
     total_chunks_rendered++;
