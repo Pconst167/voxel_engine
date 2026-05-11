@@ -123,7 +123,6 @@
 uint32_t frame_id = 1; /* start at 1, because all face_draw_stamp values are reset to 0 at object creation time */
 char fps_str[16];
 uint32_t total_triangles_rendered;
-uint32_t total_triangles_skipped;
 uint32_t total_pixels_rendered;
 uint32_t total_chunks_rendered;
 uint64_t time_count; /* keeps a count that increments every frame - used to pace events */
@@ -262,10 +261,10 @@ void process_input(void){
         if(player.eta  < -ETA_MAX) player.eta = -ETA_MAX;
       }
       if(event.type == SDL_MOUSEBUTTONDOWN){
-        if(event.button.button == SDL_BUTTON_RIGHT){
+        if(event.button.button == SDL_BUTTON_LEFT){
           voxels[(uint32_t)(player.position.y) - 1][(uint32_t)player.position.z][(uint32_t)player.position.x].type = VOXEL_TYPE_DIRT;
         }
-        else if(event.button.button == SDL_BUTTON_LEFT){
+        else if(event.button.button == SDL_BUTTON_RIGHT){
           voxels[(uint32_t)(player.position.y)- 1][(uint32_t)player.position.z][(uint32_t)player.position.x].type = VOXEL_TYPE_AIR;
         }
       }
@@ -374,7 +373,7 @@ void run_console_command(){
   else if(!strcmp(console.input_buffer, "dither")){
     options.dither = !options.dither;
   }
-  else if(!strcmp(console.input_buffer, "sort")){
+  else if(!strcmp(console.input_buffer, "st")){
     options.sort = !options.sort;
   }
 }
@@ -430,7 +429,14 @@ void move_player(void){
   }
 
   if(movement.x != 0.0f || movement.y != 0.0f || movement.z != 0.0f)
-    move_player_with_collision(movement);
+    move_player_without_collision(movement);
+    //move_player_with_collision(movement);
+}
+
+void move_player_without_collision(vector3_t move){
+  player.position.x += move.x;
+  player.position.z += move.z;
+  player.position.y += move.y;
 }
 
 void move_player_with_collision(vector3_t move){
@@ -561,8 +567,6 @@ RENDER STAGE
   ** after all intersecting chunks are found, sort them front to back before rendering.
 
 */
-
-// sort chunks front to back and render
 void render_visible_chunks(void) {
   /* reset color buffer */
   memset(color_buffer, color_buffer_reset, total_buffer_pixels * sizeof(uint32_t));
@@ -573,7 +577,40 @@ void render_visible_chunks(void) {
   view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
 
   total_triangles_rendered = 0;
-  total_triangles_skipped = 0;
+  total_pixels_rendered = 0;
+  total_chunks_rendered = 0;
+
+  /* collect visible chunks */
+  for(int z_row = 0; z_row < NUM_CHUNK_DIVISIONS_Z; z_row++){
+    for(int x_col = 0; x_col < NUM_CHUNK_DIVISIONS_X; x_col++){
+      chunk_t *chunk = &chunks[z_row][x_col];
+
+      if(chunk->empty) continue;
+
+      chunk_intersection_mode_t intersection_mode = get_chunk_intersection_mode_fast(chunk);
+
+      if(intersection_mode != CHUNK_INTERSECTION_MODE_INSIDE && intersection_mode != CHUNK_INTERSECTION_MODE_INTERSECTING) continue;
+      render_chunk_voxels(z_row, x_col);
+
+      total_chunks_rendered++;
+    }
+  }
+
+  if(options.render_chunk_outlines) draw_chunk_outlines();
+  if(options.render_collision_aabb_outlines) draw_collision_aabb_outlines();
+}
+
+// sort chunks front to back and render
+void render_visible_chunks_sorted(void) {
+  /* reset color buffer */
+  memset(color_buffer, color_buffer_reset, total_buffer_pixels * sizeof(uint32_t));
+
+  /* reset zbuffer */
+  memset(zbuffer, 0x00, total_buffer_pixels * sizeof(uint32_t));
+
+  view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
+
+  total_triangles_rendered = 0;
   total_pixels_rendered = 0;
   total_chunks_rendered = 0;
 
@@ -1333,7 +1370,6 @@ void render_chunk_objects(chunk_t *chunk){
       int num_triangles_from_polygon = 0;
       int face_outside_frustrum = check_face_fully_outside_frustrum(transformed_vertices[0], transformed_vertices[1], transformed_vertices[2], znear, zfar);
       if(face_outside_frustrum == 1){
-        total_triangles_skipped++;
         continue; // totally outside
       }
       else{ // partially outside or maybe fully inside - clip
@@ -2155,8 +2191,8 @@ void process_frame_rate(void) {
 
 void generate_game_data(){
   if((time_count & 0x1F) == 0)
-    snprintf(text0, 256, "%ut, %uts, %upx, %uc, %ufps, %d:%d, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
-      total_triangles_rendered, total_triangles_skipped, total_pixels_rendered, total_chunks_rendered, fps, 
+    snprintf(text0, 256, "%ut, %upx, %uc, %ufps, %d:%d, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
+      total_triangles_rendered, total_pixels_rendered, total_chunks_rendered, fps, 
       player_chunk_x, player_chunk_z,
       player.position.x, player.position.y, player.position.z,
       player.direction.x, player.direction.y, player.direction.z,

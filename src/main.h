@@ -48,12 +48,14 @@ chunk_intersection_mode_t get_chunk_intersection_mode_fast(chunk_t *chunk);
 void render_chunk_objects(chunk_t *chunk);
 void render_chunk_voxels(uint32_t z_row, uint32_t x_col);
 void render_visible_chunks(void);
+void render_visible_chunks_sorted(void);
 void render_voxel_quad(voxel_quad_t voxel_quad, voxel_material_t *voxel_material);
 void draw_chunk_outlines(void);
 void draw_collision_aabb_outlines(void);
 
 bool resolve_player_against_aabb_xz(const collision_aabb_t *box);
 void move_player_with_collision(vector3_t move);
+void move_player_without_collision(vector3_t move);
 void resolve_player_collisions();
 
 void load_skybox();
