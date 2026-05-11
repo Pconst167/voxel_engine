@@ -56,7 +56,7 @@ void draw_collision_aabb_outlines(void);
 bool resolve_player_against_aabb_xz(const collision_aabb_t *box);
 void move_player_with_collision(vector3_t move);
 void move_player_without_collision(vector3_t move);
-void resolve_player_collisions();
+void resolve_player_vs_objects_collisions();
 
 void load_skybox();
 

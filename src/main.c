@@ -187,12 +187,12 @@ void setup(void) {
   mesh_t *mesh;
   create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = 0.0f,  .z = 0.0f}, (color_t){.uint32 = 0xFFFFA0A0}, 0.2f);
   create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
-  mesh = load_mesh("./assets/obj/cube.obj", true);
-  create_object(mesh, OBJECT_TYPE_ROOM, true, true,
-                false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-               (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){7, 7, 7}, 
-               (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  );
+  //mesh = load_mesh("./assets/obj/cube.obj", true);
+  //create_object(mesh, OBJECT_TYPE_ROOM, true, true,
+  //              false, false, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
+  //             (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){7, 7, 7}, 
+  //             (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  //);
 
   /* normalize all light direction vectors to unity */
   initialize_lights();
@@ -442,7 +442,7 @@ void move_player_without_collision(vector3_t move){
 void move_player_with_collision(vector3_t move){
   player.position.x += move.x;
   player.position.z += move.z;
-  resolve_player_collisions();
+  resolve_player_vs_objects_collisions();
 
   player.position.y += move.y;
 }
@@ -502,8 +502,52 @@ bool resolve_player_against_aabb_xz(const collision_aabb_t *box){
   return true;
 }
 
-void resolve_player_collisions(){
+void resolve_player_vs_objects_collisions(){
   collision_step++;
+
+  player_chunk_x = (int)floorf((player.position.x - world_x_min) / chunk_dx);
+  player_chunk_z = (int)floorf((player.position.z - world_z_min) / chunk_dz);
+
+  if(player_chunk_x < 0) player_chunk_x = 0;
+  if(player_chunk_x >= NUM_CHUNK_DIVISIONS_X) player_chunk_x = NUM_CHUNK_DIVISIONS_X - 1;
+  if(player_chunk_z < 0) player_chunk_z = 0;
+  if(player_chunk_z >= NUM_CHUNK_DIVISIONS_Z) player_chunk_z = NUM_CHUNK_DIVISIONS_Z - 1;
+
+  int start_x = player_chunk_x - 1;
+  if(start_x < 0) start_x = 0;
+  if(start_x >= NUM_CHUNK_DIVISIONS_X) start_x = NUM_CHUNK_DIVISIONS_X - 1;
+  int end_x = player_chunk_x + 1;
+  if(end_x < 0) end_x = 0;
+  if(end_x >= NUM_CHUNK_DIVISIONS_X) end_x = NUM_CHUNK_DIVISIONS_X - 1;
+
+  int start_z = player_chunk_z - 1;
+  if(start_z < 0) start_z = 0;
+  if(start_z >= NUM_CHUNK_DIVISIONS_Z) start_z = NUM_CHUNK_DIVISIONS_Z - 1;
+  int end_z = player_chunk_z + 1;
+  if(end_z < 0) end_z = 0;
+  if(end_z >= NUM_CHUNK_DIVISIONS_Z) end_z = NUM_CHUNK_DIVISIONS_Z - 1;
+
+  for(int chunk_z = start_z; chunk_z <= end_z; chunk_z++){
+    for(int chunk_x = start_x; chunk_x <= end_x; chunk_x++){
+
+      chunk_t *chunk = &chunks[chunk_z][chunk_x];
+
+      for(uint32_t i = 0; i < chunk->num_collision_aabbs; i++){
+        uint32_t aabb_id = chunk->collision_aabbs[i];
+        collision_aabb_t *collision_aabb = &collision_aabbs[aabb_id];
+
+        // only check collisions if collision_aabb is active
+        if(collision_aabb->active){
+          if(collision_aabb->collision_step == collision_step) continue;
+          collision_aabb->collision_step = collision_step;
+          resolve_player_against_aabb_xz(collision_aabb);
+        }
+      }
+    }
+  }
+}
+
+void resolve_player_vs_voxels_collisions(){
 
   player_chunk_x = (int)floorf((player.position.x - world_x_min) / chunk_dx);
   player_chunk_z = (int)floorf((player.position.z - world_z_min) / chunk_dz);
