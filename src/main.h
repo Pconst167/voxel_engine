@@ -54,7 +54,7 @@ void draw_chunk_outlines(void);
 void draw_collision_aabb_outlines(void);
 
 bool resolve_player_against_object_aabb_xz(const collision_aabb_t *box);
-bool resolve_player_against_voxel_aabb_xyz(const aabb_3d_t *box);
+bool resolve_player_sphere_against_voxel_aabb_xyz(const aabb_3d_t *box);
 void move_player_with_voxel_collision(vector3_t move);
 void move_player_with_object_collision(vector3_t move);
 void resolve_player_vs_object_collisions();

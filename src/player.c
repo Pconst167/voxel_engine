@@ -6,9 +6,10 @@ player_t player = {
   .direction      = {.x = 0.0f, .y = 0.0f, .z = 1.0f},
   .theta          = M_PI_2,
   .eta            = 0.0f,
-  .radius         = 0.45f,
-  .height         = 1.80f,
-  .grounded       = false
+  .radius         = 0.30f,
+  .height         = 1.60f,
+  .aabb           = {0},
+  .on_ground      = false
 };
 
 vector3_t player_direction_orthogonal_left_right;

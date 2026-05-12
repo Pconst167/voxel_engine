@@ -385,6 +385,223 @@ void run_console_command(){
   }
 }
 
+static int clamp_int(int value, int minimum_value, int maximum_value){
+  if(value < minimum_value) return minimum_value;
+  if(value > maximum_value) return maximum_value;
+  return value;
+}
+
+static bool aabb_3d_overlaps(const aabb_3d_t *a, const aabb_3d_t *b){
+  return
+    a->x_min < b->x_max &&
+    a->x_max > b->x_min &&
+    a->y_min < b->y_max &&
+    a->y_max > b->y_min &&
+    a->z_min < b->z_max &&
+    a->z_max > b->z_min;
+}
+
+void update_player_aabb(void){
+  player.aabb.x_min = player.position.x - player.radius;
+  player.aabb.x_max = player.position.x + player.radius;
+
+  player.aabb.y_min = player.position.y;
+  player.aabb.y_max = player.position.y + player.height;
+
+  player.aabb.z_min = player.position.z - player.radius;
+  player.aabb.z_max = player.position.z + player.radius;
+}
+
+static void get_voxel_range_from_aabb(
+  const aabb_3d_t *aabb,
+  int *start_x,
+  int *end_x,
+  int *start_y,
+  int *end_y,
+  int *start_z,
+  int *end_z
+){
+  const float collision_epsilon = 0.001f;
+
+  *start_x = (int)floorf(aabb->x_min);
+  *end_x   = (int)floorf(aabb->x_max - collision_epsilon);
+
+  *start_y = (int)floorf(aabb->y_min);
+  *end_y   = (int)floorf(aabb->y_max - collision_epsilon);
+
+  *start_z = (int)floorf(aabb->z_min);
+  *end_z   = (int)floorf(aabb->z_max - collision_epsilon);
+
+  *start_x = clamp_int(*start_x, 0, MAP_NUM_VOXELS_X - 1);
+  *end_x   = clamp_int(*end_x,   0, MAP_NUM_VOXELS_X - 1);
+
+  *start_y = clamp_int(*start_y, 0, MAP_NUM_VOXELS_Y - 1);
+  *end_y   = clamp_int(*end_y,   0, MAP_NUM_VOXELS_Y - 1);
+
+  *start_z = clamp_int(*start_z, 0, MAP_NUM_VOXELS_Z - 1);
+  *end_z   = clamp_int(*end_z,   0, MAP_NUM_VOXELS_Z - 1);
+}
+
+static bool voxel_is_solid(const voxel_t *voxel){
+  return voxel->type != VOXEL_TYPE_AIR;
+}
+
+static void resolve_player_aabb_against_voxel_x(const aabb_3d_t *voxel_aabb, float movement_x){
+  update_player_aabb();
+
+  if(!aabb_3d_overlaps(&player.aabb, voxel_aabb)) return;
+
+  if(movement_x > 0.0f){
+    player.position.x = voxel_aabb->x_min - player.radius;
+  }
+  else if(movement_x < 0.0f){
+    player.position.x = voxel_aabb->x_max + player.radius;
+  }
+
+  update_player_aabb();
+}
+
+static void resolve_player_aabb_against_voxel_y(const aabb_3d_t *voxel_aabb, float movement_y){
+  update_player_aabb();
+
+  if(!aabb_3d_overlaps(&player.aabb, voxel_aabb)) return;
+
+  if(movement_y > 0.0f){
+    player.position.y = voxel_aabb->y_min - player.height;
+    player.velocity.y = 0.0f;
+  }
+  else{
+    player.position.y = voxel_aabb->y_max;
+    player.velocity.y = 0.0f;
+    player.on_ground = true;
+  }
+
+  update_player_aabb();
+}
+
+static void resolve_player_aabb_against_voxel_z(const aabb_3d_t *voxel_aabb, float movement_z){
+  update_player_aabb();
+
+  if(!aabb_3d_overlaps(&player.aabb, voxel_aabb)) return;
+
+  if(movement_z > 0.0f){
+    player.position.z = voxel_aabb->z_min - player.radius;
+  }
+  else if(movement_z < 0.0f){
+    player.position.z = voxel_aabb->z_max + player.radius;
+  }
+
+  update_player_aabb();
+}
+
+static void resolve_player_against_voxels_x(float movement_x){
+  int start_x, end_x;
+  int start_y, end_y;
+  int start_z, end_z;
+
+  update_player_aabb();
+
+  get_voxel_range_from_aabb(
+    &player.aabb,
+    &start_x,
+    &end_x,
+    &start_y,
+    &end_y,
+    &start_z,
+    &end_z
+  );
+
+  for(int voxel_y = start_y; voxel_y <= end_y; voxel_y++){
+    for(int voxel_z = start_z; voxel_z <= end_z; voxel_z++){
+      for(int voxel_x = start_x; voxel_x <= end_x; voxel_x++){
+        voxel_t *voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+        if(!voxel_is_solid(voxel)) continue;
+
+        resolve_player_aabb_against_voxel_x(&voxel->aabb, movement_x);
+      }
+    }
+  }
+}
+
+static void resolve_player_against_voxels_y(float movement_y){
+  int start_x, end_x;
+  int start_y, end_y;
+  int start_z, end_z;
+
+  update_player_aabb();
+
+  get_voxel_range_from_aabb(
+    &player.aabb,
+    &start_x,
+    &end_x,
+    &start_y,
+    &end_y,
+    &start_z,
+    &end_z
+  );
+
+  for(int voxel_y = start_y; voxel_y <= end_y; voxel_y++){
+    for(int voxel_z = start_z; voxel_z <= end_z; voxel_z++){
+      for(int voxel_x = start_x; voxel_x <= end_x; voxel_x++){
+        voxel_t *voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+        if(!voxel_is_solid(voxel)) continue;
+
+        resolve_player_aabb_against_voxel_y(&voxel->aabb, movement_y);
+      }
+    }
+  }
+}
+
+static void resolve_player_against_voxels_z(float movement_z){
+  int start_x, end_x;
+  int start_y, end_y;
+  int start_z, end_z;
+
+  update_player_aabb();
+
+  get_voxel_range_from_aabb(
+    &player.aabb,
+    &start_x,
+    &end_x,
+    &start_y,
+    &end_y,
+    &start_z,
+    &end_z
+  );
+
+  for(int voxel_y = start_y; voxel_y <= end_y; voxel_y++){
+    for(int voxel_z = start_z; voxel_z <= end_z; voxel_z++){
+      for(int voxel_x = start_x; voxel_x <= end_x; voxel_x++){
+        voxel_t *voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+        if(!voxel_is_solid(voxel)) continue;
+
+        resolve_player_aabb_against_voxel_z(&voxel->aabb, movement_z);
+      }
+    }
+  }
+}
+
+void move_player_with_voxel_collision(vector3_t movement){
+  if(movement.x != 0.0f){
+    player.position.x += movement.x;
+    resolve_player_against_voxels_x(movement.x);
+  }
+
+  player.on_ground = false;
+
+  player.position.y += movement.y;
+  resolve_player_against_voxels_y(movement.y);
+
+  if(movement.z != 0.0f){
+    player.position.z += movement.z;
+    resolve_player_against_voxels_z(movement.z);
+  }
+
+  update_player_aabb();
+}
 
 void move_player(void){
   const uint8_t *keys = SDL_GetKeyboardState(NULL);
@@ -393,10 +610,15 @@ void move_player(void){
   float move_speed_delta_time = ((shift) ? PLAYER_SPEED_SHIFT_KEY_FACTOR * move_speed : move_speed) * delta_time;
   float turn_speed_delta_time = turn_speed * delta_time;
 
-  vector3_t movement = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
+  vector3_t movement = {
+    .x = 0.0f,
+    .y = 0.0f,
+    .z = 0.0f
+  };
 
   if(keys[SDL_SCANCODE_LEFT])
     player.theta += turn_speed_delta_time;
+
   if(keys[SDL_SCANCODE_RIGHT])
     player.theta -= turn_speed_delta_time;
 
@@ -410,10 +632,20 @@ void move_player(void){
     if(player.eta < -ETA_MAX) player.eta = -ETA_MAX;
   }
 
-  if(keys[SDL_SCANCODE_E])
-    movement.y += move_speed_delta_time;
-  if(keys[SDL_SCANCODE_Q])
-    movement.y -= move_speed_delta_time;
+  if(keys[SDL_SCANCODE_SPACE] && player.on_ground){
+    player.velocity.y = PLAYER_JUMP_VELOCITY;
+    player.on_ground = false;
+  }
+
+  player.velocity.y -= PLAYER_GRAVITY * delta_time;
+
+  if(player.velocity.y < -PLAYER_MAX_FALL_SPEED)
+    player.velocity.y = -PLAYER_MAX_FALL_SPEED;
+
+  movement.y = player.velocity.y * delta_time;
+
+  if(player.on_ground && movement.y <= 0.0f)
+    movement.y = -PLAYER_GROUND_PROBE_SPEED * delta_time;
 
   if(keys[SDL_SCANCODE_A]){
     movement.x += player_direction_orthogonal_left_right.x * move_speed_delta_time;
@@ -435,22 +667,119 @@ void move_player(void){
     movement.z -= player.direction.z * move_speed_delta_time;
   }
 
-  if(movement.x != 0.0f || movement.y != 0.0f || movement.z != 0.0f)
-    move_player_with_voxel_collision(movement);
-    //move_player_with_collision(movement);
+  move_player_with_voxel_collision(movement);
 }
 
-void move_player_with_voxel_collision(vector3_t move){
-  player.position.y += move.y;
-  player.position.z += move.z;
-  player.position.x += move.x;
-  if(player.position.y < 0.0001f) player.position.y = 0.0001f;
-  if(player.position.z < 0.0001f) player.position.z = 0.0001f;
-  if(player.position.x < 0.0001f) player.position.x = 0.0001f;
-  if(player.position.y + player.height > (float)MAP_NUM_VOXELS_Y - 0.0001f) player.position.y = (float)MAP_NUM_VOXELS_Y - 0.0001f - player.height;
-  if(player.position.z > (float)MAP_NUM_VOXELS_Z - 0.0001f) player.position.z = (float)MAP_NUM_VOXELS_Z - 0.0001f;
-  if(player.position.x > (float)MAP_NUM_VOXELS_X - 0.0001f) player.position.x = (float)MAP_NUM_VOXELS_X - 0.0001f;
-  resolve_player_vs_voxel_collisions();
+bool resolve_player_sphere_against_voxel_aabb_xyz(const aabb_3d_t *box){
+  float nearest_x, nearest_z, nearest_y;
+
+       if(player.position.x < box->x_min) nearest_x = box->x_min;
+  else if(player.position.x > box->x_max) nearest_x = box->x_max;
+  else                                    nearest_x = player.position.x;
+
+       if(player.position.z < box->z_min) nearest_z = box->z_min;
+  else if(player.position.z > box->z_max) nearest_z = box->z_max;
+  else                                    nearest_z = player.position.z;
+
+       if(player.position.y < box->y_min) nearest_y = box->y_min;
+  else if(player.position.y > box->y_max) nearest_y = box->y_max;
+  else                                    nearest_y = player.position.y;
+
+  float dx = player.position.x - nearest_x;
+  float dz = player.position.z - nearest_z;
+  float dy = player.position.y - nearest_y;
+
+  float dist_sq = dx * dx + dz * dz + dy * dy;
+  float radius_sq = player.radius * player.radius;
+
+  if(dist_sq >= radius_sq) return false;
+
+  if(dist_sq > 0.000001f){
+    float dist = 1.0f / q_rsqrt(dist_sq);
+    float push = player.radius - dist;
+
+    player.position.x += (dx / dist) * push;
+    player.position.z += (dz / dist) * push;
+    player.position.y += (dy / dist) * push;
+  }
+  else{
+    /* Player center is inside the AABB XZY rectangle. Push out nearest side. */
+    float pen_left   = fabsf(player.position.x - (float)box->x_min);
+    float pen_right  = fabsf((float)box->x_max - player.position.x);
+    float pen_front  = fabsf(player.position.z - (float)box->z_min);
+    float pen_back   = fabsf((float)box->z_max - player.position.z);
+    float pen_bottom = fabsf(player.position.y - (float)box->y_min);
+    float pen_top    = fabsf((float)box->y_max - player.position.y);
+
+    int side = 0;
+    float min_pen = pen_left;
+
+    if(pen_right  < min_pen){ min_pen = pen_right;  side = 1; }
+    if(pen_front  < min_pen){ min_pen = pen_front;  side = 2; }
+    if(pen_back   < min_pen){ min_pen = pen_back;   side = 3; }
+    if(pen_bottom < min_pen){ min_pen = pen_bottom; side = 4; }
+    if(pen_top    < min_pen){ min_pen = pen_top;    side = 5; }
+
+    switch(side){
+      case 0: player.position.x = box->x_min - player.radius; break;
+      case 1: player.position.x = box->x_max + player.radius; break;
+      case 2: player.position.z = box->z_min - player.radius; break;
+      case 3: player.position.z = box->z_max + player.radius; break;
+      case 4: player.position.y = box->y_min - player.radius; break;
+      case 5: player.position.y = box->y_max + player.radius; break;
+    }
+  }
+
+  return true;
+}
+
+void resolve_player_vs_voxel_collisions(){
+  player_chunk_x = (int)floorf((player.position.x - world_x_min) / chunk_dx);
+  player_chunk_z = (int)floorf((player.position.z - world_z_min) / chunk_dz);
+  player_chunk_y = (int)floorf((player.position.y - world_y_min) / chunk_dy);
+
+  player_voxel_x = (int)player.position.x;
+  player_voxel_z = (int)player.position.z;
+  player_voxel_y = (int)player.position.y;
+
+  if(player_voxel_x < 0) player_voxel_x = 0;
+  if(player_voxel_x >= MAP_NUM_VOXELS_X) player_voxel_x = MAP_NUM_VOXELS_X - 1;
+  if(player_voxel_z < 0) player_voxel_z = 0;
+  if(player_voxel_z >= MAP_NUM_VOXELS_Z) player_voxel_z = MAP_NUM_VOXELS_Z - 1;
+  if(player_voxel_y < 0) player_voxel_y = 0;
+  if(player_voxel_y >= MAP_NUM_VOXELS_Y) player_voxel_y = MAP_NUM_VOXELS_Y - 1;
+
+  int start_x = player_voxel_x - 1;
+  if(start_x < 0) start_x = 0;
+  if(start_x >= MAP_NUM_VOXELS_X) start_x = MAP_NUM_VOXELS_X - 1;
+  int end_x = player_voxel_x + 1;
+  if(end_x < 0) end_x = 0;
+  if(end_x >= MAP_NUM_VOXELS_X) end_x = MAP_NUM_VOXELS_X - 1;
+
+  int start_z = player_voxel_z - 1;
+  if(start_z < 0) start_z = 0;
+  if(start_z >= MAP_NUM_VOXELS_Z) start_z = MAP_NUM_VOXELS_Z - 1;
+  int end_z = player_voxel_z + 1;
+  if(end_z < 0) end_z = 0;
+  if(end_z >= MAP_NUM_VOXELS_Z) end_z = MAP_NUM_VOXELS_Z - 1;
+
+  int start_y = player_voxel_y - 1;
+  if(start_y < 0) start_y = 0;
+  if(start_y >= MAP_NUM_VOXELS_Y) start_y = MAP_NUM_VOXELS_Y - 1;
+  int end_y = player_voxel_y + 1;
+  if(end_y < 0) end_y = 0;
+  if(end_y >= MAP_NUM_VOXELS_Y) end_y = MAP_NUM_VOXELS_Y - 1;
+
+  for(int voxel_y = start_y; voxel_y <= end_y; voxel_y++){
+    for(int voxel_z = start_z; voxel_z <= end_z; voxel_z++){
+      for(int voxel_x = start_x; voxel_x <= end_x; voxel_x++){
+        voxel_t *voxel = &voxels[voxel_y][voxel_z][voxel_x];
+        if(voxel->type == VOXEL_TYPE_AIR) continue;
+
+        resolve_player_sphere_against_voxel_aabb_xyz(&voxel->aabb);
+      }
+    }
+  }
 }
 
 void move_player_with_object_collision(vector3_t move){
@@ -516,69 +845,6 @@ bool resolve_player_against_object_aabb_xz(const collision_aabb_t *box){
   return true;
 }
 
-bool resolve_player_against_voxel_aabb_xyz(const aabb_3d_t *box){
-  float nearest_x, nearest_z, nearest_y;
-
-       if(player.position.x < box->x_min) nearest_x = box->x_min;
-  else if(player.position.x > box->x_max) nearest_x = box->x_max;
-  else                                    nearest_x = player.position.x;
-
-       if(player.position.z < box->z_min) nearest_z = box->z_min;
-  else if(player.position.z > box->z_max) nearest_z = box->z_max;
-  else                                    nearest_z = player.position.z;
-
-       if(player.position.y < box->y_min) nearest_y = box->y_min;
-  else if(player.position.y > box->y_max) nearest_y = box->y_max;
-  else                                    nearest_y = player.position.y;
-
-  float dx = player.position.x - nearest_x;
-  float dz = player.position.z - nearest_z;
-  float dy = player.position.y - nearest_y;
-
-  float dist_sq = dx * dx + dz * dz + dy * dy;
-  float radius_sq = player.radius * player.radius;
-
-  if(dist_sq >= radius_sq) return false;
-
-  if(dist_sq > 0.000001f){
-    float dist = 1.0f / q_rsqrt(dist_sq);
-    float push = player.radius - dist;
-
-    player.position.x += (dx / dist) * push;
-    player.position.z += (dz / dist) * push;
-    player.position.y += (dy / dist) * push;
-  }
-  else{
-    /* Player center is inside the AABB XZY rectangle. Push out nearest side. */
-    float pen_left   = fabsf(player.position.x - (float)box->x_min);
-    float pen_right  = fabsf((float)box->x_max - player.position.x);
-    float pen_front  = fabsf(player.position.z - (float)box->z_min);
-    float pen_back   = fabsf((float)box->z_max - player.position.z);
-    float pen_bottom = fabsf(player.position.y - (float)box->y_min);
-    float pen_top    = fabsf((float)box->y_max - player.position.y);
-
-    int side = 0;
-    float min_pen = pen_left;
-
-    if(pen_right  < min_pen){ min_pen = pen_right;  side = 1; }
-    if(pen_front  < min_pen){ min_pen = pen_front;  side = 2; }
-    if(pen_back   < min_pen){ min_pen = pen_back;   side = 3; }
-    if(pen_bottom < min_pen){ min_pen = pen_bottom; side = 4; }
-    if(pen_top    < min_pen){ min_pen = pen_top;    side = 5; }
-
-    switch(side){
-      case 0: player.position.x = box->x_min - player.radius; break;
-      case 1: player.position.x = box->x_max + player.radius; break;
-      case 2: player.position.z = box->z_min - player.radius; break;
-      case 3: player.position.z = box->z_max + player.radius; break;
-      case 4: player.position.y = box->y_min - player.radius; break;
-      case 5: player.position.y = box->y_max + player.radius; break;
-    }
-  }
-
-  return true;
-}
-
 void resolve_player_vs_object_collisions(){
   collision_step++;
 
@@ -619,55 +885,6 @@ void resolve_player_vs_object_collisions(){
           collision_aabb->collision_step = collision_step;
           resolve_player_against_object_aabb_xz(collision_aabb);
         }
-      }
-    }
-  }
-}
-
-void resolve_player_vs_voxel_collisions(){
-  player_chunk_x = (int)floorf((player.position.x - world_x_min) / chunk_dx);
-  player_chunk_z = (int)floorf((player.position.z - world_z_min) / chunk_dz);
-  player_chunk_y = (int)floorf((player.position.y - world_y_min) / chunk_dy);
-
-  player_voxel_x = (int)player.position.x;
-  player_voxel_z = (int)player.position.z;
-  player_voxel_y = (int)player.position.y;
-
-  if(player_voxel_x < 0) player_voxel_x = 0;
-  if(player_voxel_x >= MAP_NUM_VOXELS_X) player_voxel_x = MAP_NUM_VOXELS_X - 1;
-  if(player_voxel_z < 0) player_voxel_z = 0;
-  if(player_voxel_z >= MAP_NUM_VOXELS_Z) player_voxel_z = MAP_NUM_VOXELS_Z - 1;
-  if(player_voxel_y < 0) player_voxel_y = 0;
-  if(player_voxel_y >= MAP_NUM_VOXELS_Y) player_voxel_y = MAP_NUM_VOXELS_Y - 1;
-
-  int start_x = player_voxel_x - 1;
-  if(start_x < 0) start_x = 0;
-  if(start_x >= MAP_NUM_VOXELS_X) start_x = MAP_NUM_VOXELS_X - 1;
-  int end_x = player_voxel_x + 1;
-  if(end_x < 0) end_x = 0;
-  if(end_x >= MAP_NUM_VOXELS_X) end_x = MAP_NUM_VOXELS_X - 1;
-
-  int start_z = player_voxel_z - 1;
-  if(start_z < 0) start_z = 0;
-  if(start_z >= MAP_NUM_VOXELS_Z) start_z = MAP_NUM_VOXELS_Z - 1;
-  int end_z = player_voxel_z + 1;
-  if(end_z < 0) end_z = 0;
-  if(end_z >= MAP_NUM_VOXELS_Z) end_z = MAP_NUM_VOXELS_Z - 1;
-
-  int start_y = player_voxel_y - 1;
-  if(start_y < 0) start_y = 0;
-  if(start_y >= MAP_NUM_VOXELS_Y) start_y = MAP_NUM_VOXELS_Y - 1;
-  int end_y = player_voxel_y + 1;
-  if(end_y < 0) end_y = 0;
-  if(end_y >= MAP_NUM_VOXELS_Y) end_y = MAP_NUM_VOXELS_Y - 1;
-
-  for(int voxel_y = start_y; voxel_y <= end_y; voxel_y++){
-    for(int voxel_z = start_z; voxel_z <= end_z; voxel_z++){
-      for(int voxel_x = start_x; voxel_x <= end_x; voxel_x++){
-        voxel_t *voxel = &voxels[voxel_y][voxel_z][voxel_x];
-        if(voxel->type == VOXEL_TYPE_AIR) continue;
-
-        resolve_player_against_voxel_aabb_xyz(&voxel->aabb);
       }
     }
   }
@@ -1969,7 +2186,7 @@ void update_state(void){
   /* camera tracks player */
   camera.position = (vector3_t){
     .x = player.position.x,
-    .y = player.position.y + player.radius * 0.5,
+    .y = player.position.y + player.height * 0.9,
     .z = player.position.z
   };
   camera.direction = (vector3_t){

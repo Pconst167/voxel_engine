@@ -1,6 +1,7 @@
 #ifndef AABB_H
 #define AABB_H
 
+#include <stdbool.h>
 #include "vector.h"
 
 typedef struct{
@@ -13,5 +14,7 @@ aabb_3d_t calculate_3d_aabb(
   vector3_t v_b,
   vector3_t v_c
 );
+
+bool aabb_overlaps(aabb_3d_t a, aabb_3d_t b);
 
 #endif
