@@ -599,21 +599,6 @@ void move_player(void){
     if(player.eta < -ETA_MAX) player.eta = -ETA_MAX;
   }
 
-  if(keys[SDL_SCANCODE_SPACE] && player.on_ground){
-    player.velocity.y = PLAYER_JUMP_VELOCITY;
-    player.on_ground = false;
-  }
-
-  player.velocity.y -= PLAYER_GRAVITY * delta_time;
-
-  if(player.velocity.y < -PLAYER_MAX_FALL_SPEED)
-    player.velocity.y = -PLAYER_MAX_FALL_SPEED;
-
-  movement.y = player.velocity.y * delta_time;
-
-  if(player.on_ground && movement.y <= 0.0f)
-    movement.y = -PLAYER_GROUND_PROBE_SPEED * delta_time;
-
   if(keys[SDL_SCANCODE_A]){
     movement.x += player_direction_orthogonal_left_right.x * move_speed_delta_time;
     movement.z += player_direction_orthogonal_left_right.z * move_speed_delta_time;
@@ -633,6 +618,16 @@ void move_player(void){
     movement.x -= player.direction.x * move_speed_delta_time;
     movement.z -= player.direction.z * move_speed_delta_time;
   }
+
+  if(keys[SDL_SCANCODE_SPACE] && player.on_ground){
+    player.velocity.y = PLAYER_JUMP_VELOCITY;
+    player.on_ground = false;
+  }
+
+  player.velocity.y -= PLAYER_GRAVITY * delta_time;
+  if(player.velocity.y < -PLAYER_MAX_FALL_SPEED) player.velocity.y = -PLAYER_MAX_FALL_SPEED;
+  movement.y = player.velocity.y * delta_time;
+  if(player.on_ground && movement.y <= 0.0f) movement.y = -PLAYER_GROUND_PROBE_SPEED * delta_time;
 
   move_player_with_voxel_collision(movement);
 }
