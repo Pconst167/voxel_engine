@@ -115,7 +115,7 @@
 #define FOV_Y_DEG 80.0
 #define FOV_Y (FOV_Y_DEG * M_PI / 180.0)
 #define ZNEAR 0.1f
-#define ZFAR 1000.0f
+#define ZFAR 300.0f
 
 /* parameters for controlling the absolute ambient light */
 #define MIN_AMBIENT_LIGHT_INTENSITY 0.1f

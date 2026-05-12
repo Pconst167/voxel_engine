@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "voxel.h"
+#include "misc.h"
 
 // Y slowest changing dimension, X is fastest changing
 voxel_t voxels[MAP_NUM_VOXELS_Y][MAP_NUM_VOXELS_Z][MAP_NUM_VOXELS_X];
@@ -73,7 +74,10 @@ void init_voxel_map(){
           voxels[y][z][x].type = VOXEL_TYPE_DIRT;
         }
         else if(y == 41){
-          voxels[y][z][x].type = VOXEL_TYPE_GRASS;
+          if(xorshift32() % 5 == 0)
+            voxels[y][z][x].type = VOXEL_TYPE_GRASS;
+          else
+            voxels[y][z][x].type = VOXEL_TYPE_AIR;
         }
         else{
           voxels[y][z][x].type = VOXEL_TYPE_AIR;
