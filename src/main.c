@@ -548,33 +548,6 @@ bool resolve_player_against_voxel_aabb_xyz(const aabb_3d_t *box){
     player.position.z += (dz / dist) * push;
     player.position.y += (dy / dist) * push;
   }
-  else{
-    /* Player center is inside the AABB XZY rectangle. Push out nearest side. */
-    float pen_left   = fabsf(player.position.x - (float)box->x_min);
-    float pen_right  = fabsf((float)box->x_max - player.position.x);
-    float pen_front  = fabsf(player.position.z - (float)box->z_min);
-    float pen_back   = fabsf((float)box->z_max - player.position.z);
-    float pen_bottom = fabsf(player.position.y - (float)box->y_min);
-    float pen_top    = fabsf((float)box->y_max - player.position.y);
-
-    int side = 0;
-    float min_pen = pen_left;
-
-    if(pen_right  < min_pen){ min_pen = pen_right;  side = 1; }
-    if(pen_front  < min_pen){ min_pen = pen_front;  side = 2; }
-    if(pen_back   < min_pen){ min_pen = pen_back;   side = 3; }
-    if(pen_bottom < min_pen){ min_pen = pen_bottom; side = 4; }
-    if(pen_top    < min_pen){ min_pen = pen_top;    side = 5; }
-
-    switch(side){
-      case 0: player.position.x = box->x_min - player.radius; break;
-      case 1: player.position.x = box->x_max + player.radius; break;
-      case 2: player.position.z = box->z_min - player.radius; break;
-      case 3: player.position.z = box->z_max + player.radius; break;
-      case 4: player.position.y = box->y_min - player.radius; break;
-      case 5: player.position.y = box->y_max + player.radius; break;
-    }
-  }
 
   return true;
 }
