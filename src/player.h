@@ -9,6 +9,7 @@
 #define PLAYER_JUMP_VELOCITY        8.0f
 #define PLAYER_MAX_FALL_SPEED      40.0f
 #define PLAYER_GROUND_PROBE_SPEED   2.0f
+#define COLLISION_EPSILON           0.001f
 
 typedef struct{
   vector3_t position;

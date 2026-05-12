@@ -34,3 +34,19 @@ bool aabb_3d_overlaps(const aabb_3d_t *a, const aabb_3d_t *b){
     a->z_min < b->z_max &&
     a->z_max > b->z_min;
 }
+
+bool aabb_3d_overlaps_yz(const aabb_3d_t *a, const aabb_3d_t *b){
+  return
+    a->y_min < b->y_max &&
+    a->y_max > b->y_min &&
+    a->z_min < b->z_max &&
+    a->z_max > b->z_min;
+}
+
+bool aabb_3d_overlaps_xy(const aabb_3d_t *a, const aabb_3d_t *b){
+  return
+    a->x_min < b->x_max &&
+    a->x_max > b->x_min &&
+    a->y_min < b->y_max &&
+    a->y_max > b->y_min;
+}

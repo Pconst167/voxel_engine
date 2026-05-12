@@ -16,5 +16,7 @@ aabb_3d_t calculate_3d_aabb(
 );
 
 bool aabb_3d_overlaps(const aabb_3d_t *a, const aabb_3d_t *b);
+bool aabb_3d_overlaps_xy(const aabb_3d_t *a, const aabb_3d_t *b);
+bool aabb_3d_overlaps_yz(const aabb_3d_t *a, const aabb_3d_t *b);
 
 #endif
