@@ -13,3 +13,14 @@ player_t player = {
 };
 
 vector3_t player_direction_orthogonal_left_right;
+
+void update_player_aabb(void){
+  player.aabb.x_min = player.position.x - player.radius;
+  player.aabb.x_max = player.position.x + player.radius;
+
+  player.aabb.y_min = player.position.y;
+  player.aabb.y_max = player.position.y + player.height;
+
+  player.aabb.z_min = player.position.z - player.radius;
+  player.aabb.z_max = player.position.z + player.radius;
+}

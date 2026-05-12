@@ -25,4 +25,6 @@ typedef struct{
 extern player_t player;
 extern vector3_t player_direction_orthogonal_left_right;
 
+void update_player_aabb(void);
+
 #endif

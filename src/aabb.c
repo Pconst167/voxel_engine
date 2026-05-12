@@ -25,12 +25,12 @@ aabb_3d_t calculate_3d_aabb(
   return aabb;
 }
 
-bool aabb_overlaps(aabb_3d_t a, aabb_3d_t b){
+bool aabb_3d_overlaps(const aabb_3d_t *a, const aabb_3d_t *b){
   return
-    a.x_min < b.x_max &&
-    a.x_max > b.x_min &&
-    a.y_min < b.y_max &&
-    a.y_max > b.y_min &&
-    a.z_min < b.z_max &&
-    a.z_max > b.z_min;
+    a->x_min < b->x_max &&
+    a->x_max > b->x_min &&
+    a->y_min < b->y_max &&
+    a->y_max > b->y_min &&
+    a->z_min < b->z_max &&
+    a->z_max > b->z_min;
 }

@@ -31,4 +31,6 @@ uint32_t xorshift32(void);
 
 float square_wave(float f);
 
+int clamp_int(int value, int minimum_value, int maximum_value);
+
 #endif
