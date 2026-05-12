@@ -42,7 +42,7 @@ typedef struct{
   float sort_z;
 } chunk_sort_key_t;
 
-extern chunk_t chunks[NUM_CHUNK_DIVISIONS_X][NUM_CHUNK_DIVISIONS_Z];
+extern chunk_t chunks[NUM_CHUNK_DIVISIONS_Z][NUM_CHUNK_DIVISIONS_X];
 extern double world_x_min;
 extern double world_x_max;
 extern double world_z_min;

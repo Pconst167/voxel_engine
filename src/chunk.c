@@ -9,7 +9,7 @@
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
-chunk_t chunks[NUM_CHUNK_DIVISIONS_X][NUM_CHUNK_DIVISIONS_Z];
+chunk_t chunks[NUM_CHUNK_DIVISIONS_Z][NUM_CHUNK_DIVISIONS_X];
 
 double world_x_min;
 double world_x_max;
