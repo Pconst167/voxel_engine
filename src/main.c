@@ -407,10 +407,6 @@ void get_voxel_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, 
   *end_z   = clamp_int(*end_z,   0, MAP_NUM_VOXELS_Z - 1);
 }
 
-bool voxel_is_solid(const voxel_t *voxel){
-  return voxel->type != VOXEL_TYPE_AIR;
-}
-
 void resolve_player_aabb_against_voxel_x(const aabb_3d_t *voxel_aabb, float movement_x){
   update_player_aabb();
 
@@ -473,7 +469,7 @@ void resolve_player_against_voxels_x(float movement_x){
       for(int voxel_x = start_x; voxel_x <= end_x; voxel_x++){
         voxel_t *voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-        if(!voxel_is_solid(voxel)) continue;
+        if(voxel->type == VOXEL_TYPE_AIR) continue;
 
         resolve_player_aabb_against_voxel_x(&voxel->aabb, movement_x);
       }
@@ -495,7 +491,7 @@ void resolve_player_against_voxels_y(float movement_y){
       for(int voxel_x = start_x; voxel_x <= end_x; voxel_x++){
         voxel_t *voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-        if(!voxel_is_solid(voxel)) continue;
+        if(voxel->type == VOXEL_TYPE_AIR) continue;
 
         resolve_player_aabb_against_voxel_y(&voxel->aabb, movement_y);
       }
@@ -517,7 +513,7 @@ void resolve_player_against_voxels_z(float movement_z){
       for(int voxel_x = start_x; voxel_x <= end_x; voxel_x++){
         voxel_t *voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-        if(!voxel_is_solid(voxel)) continue;
+        if(voxel->type == VOXEL_TYPE_AIR) continue;
 
         resolve_player_aabb_against_voxel_z(&voxel->aabb, movement_z);
       }

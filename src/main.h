@@ -58,7 +58,6 @@ void resolve_player_against_voxels_x(float movement_x);
 void resolve_player_aabb_against_voxel_z(const aabb_3d_t *voxel_aabb, float movement_z);
 void resolve_player_aabb_against_voxel_y(const aabb_3d_t *voxel_aabb, float movement_y);
 void resolve_player_aabb_against_voxel_x(const aabb_3d_t *voxel_aabb, float movement_x);
-bool voxel_is_solid(const voxel_t *voxel);
 void get_voxel_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, int *start_y, int *end_y, int *start_z, int *end_z);
 
 void load_skybox();
