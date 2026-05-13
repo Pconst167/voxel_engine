@@ -48,7 +48,6 @@ inline void float_swap(float *a, float *b){
 }
 
 /* top-left raster convention check */
-__attribute__((optimize("Ofast")))
 inline bool is_top_left_edge(vector2_t *start, vector2_t *end){
   float dx = end->x - start->x;
   float dy = end->y - start->y;
@@ -57,7 +56,6 @@ inline bool is_top_left_edge(vector2_t *start, vector2_t *end){
 }
 
 /* top-left raster convention check */
-__attribute__((optimize("Ofast")))
 inline bool is_top_left_edge_old(vector2_t *start, vector2_t *end){
   vector2_t edge = {end->x - start->x, end->y - start->y};
   bool is_top_edge = edge.y == 0.0f && edge.x > 0.0f;
@@ -66,7 +64,6 @@ inline bool is_top_left_edge_old(vector2_t *start, vector2_t *end){
   return is_left_edge || is_top_edge;
 }
 
-__attribute__((optimize("Ofast")))
 inline float edge_cross(
   const vector2_t *a,
   const vector2_t *b,
@@ -84,7 +81,6 @@ inline float edge_cross(
 }
 
 /* perform 2d edge-cross between 2 vertices and a point */
-__attribute__((optimize("Ofast")))
 float edge_cross_old(vector2_t *a, vector2_t *b, vector2_t *p){
   vector2_t ab = {b->x - a->x, b->y - a->y};
   vector2_t ap = {p->x - a->x, p->y - a->y};
@@ -116,7 +112,6 @@ static inline bool is_top_left_edge_fixed(
 }
 
 /* function argument is vector4_t instead of vector3_t for convenience(w is not used) */
-__attribute__((optimize("Ofast")))
 vector3_t get_triangle_face_normal(vector4_t vertices[3]){
   vector3_t v_a = {vertices[0].x, vertices[0].y, vertices[0].z};  /*   A               */
   vector3_t v_b = {vertices[1].x, vertices[1].y, vertices[1].z};  /*  / \    Clockwise */
@@ -147,7 +142,6 @@ inline void draw_triangle(
   draw_line(x2, y2, x0, y0, color);
 }
 
-__attribute__((optimize("Ofast")))
 inline uint32_t draw_filled_triangle(
   vector4_t *v0,
   vector4_t *v1,
@@ -309,7 +303,6 @@ inline uint32_t draw_filled_triangle(
   return total_pixels_drawn;
 }
 
-__attribute__((optimize("Ofast")))
 uint32_t draw_filled_triangle_float(
   vector4_t *v0,
   vector4_t *v1,
@@ -471,7 +464,6 @@ uint32_t draw_filled_triangle_float(
   return total_pixels_rendered;
 }
 
-__attribute__((optimize("Ofast")))
 uint32_t draw_filled_triangle_no_zbuffer_write(
   vector4_t *v0,
   vector4_t *v1,
@@ -633,7 +625,6 @@ uint32_t draw_filled_triangle_no_zbuffer_write(
   return total_pixels_rendered;
 }
 
-__attribute__((optimize("Ofast")))
 inline uint32_t draw_textured_triangle_opaque(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
@@ -825,7 +816,6 @@ inline uint32_t draw_textured_triangle_opaque(
   return total_pixels_drawn;
 }
 
-__attribute__((optimize("Ofast")))
 uint32_t draw_textured_triangle_opaque_float(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
@@ -1012,7 +1002,6 @@ uint32_t draw_textured_triangle_opaque_float(
   return total_pixels_rendered;
 }
 
-__attribute__((optimize("Ofast")))
 uint32_t draw_textured_triangle_opaque_no_zbuffer_write(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
@@ -1197,7 +1186,6 @@ uint32_t draw_textured_triangle_opaque_no_zbuffer_write(
   return total_pixels_rendered;
 }
 
-__attribute__((optimize("Ofast")))
 uint32_t draw_textured_triangle_alpha_test(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
@@ -1386,7 +1374,6 @@ uint32_t draw_textured_triangle_alpha_test(
   return total_pixels_rendered;
 }
 
-__attribute__((optimize("Ofast")))
 uint32_t draw_textured_triangle_alpha_test_no_zbuffer_write(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
@@ -1573,7 +1560,6 @@ uint32_t draw_textured_triangle_alpha_test_no_zbuffer_write(
   return total_pixels_rendered;
 }
 
-__attribute__((optimize("Ofast")))
 uint32_t draw_textured_triangle_alpha_blend(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
@@ -1755,7 +1741,6 @@ uint32_t draw_textured_triangle_alpha_blend(
   return total_pixels_rendered;
 }
 
-__attribute__((optimize("Ofast")))
 uint32_t draw_textured_triangle(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
@@ -1941,7 +1926,6 @@ uint32_t draw_textured_triangle(
   return total_pixels_rendered;
 }
 
-__attribute__((optimize("Ofast")))
 uint32_t draw_textured_triangle_affine(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
@@ -2154,7 +2138,6 @@ void draw_rect(int x, int y, int width, int height, color_t color){
   also, transparent objects don't modify zbuffer.  they zbuffer test, but do not modify!
   function below is a temporary test
 */
-__attribute__((optimize("Ofast")))
 inline void draw_pixel_opaque(int x, int y, color_t color, float zbuffer_value){
   if((unsigned)x >= (unsigned)window_width || (unsigned)y >= (unsigned)window_height) return;
 
@@ -2162,7 +2145,6 @@ inline void draw_pixel_opaque(int x, int y, color_t color, float zbuffer_value){
   zbuffer[y * window_width + x] = zbuffer_value;
 }
 
-__attribute__((optimize("Ofast")))
 inline void draw_pixel_alpha_test(int x, int y, uint8_t alpha_cutoff, color_t color, float zbuffer_value){
   if((unsigned)x >= (unsigned)window_width || (unsigned)y >= (unsigned)window_height) return;
 
@@ -2172,7 +2154,6 @@ inline void draw_pixel_alpha_test(int x, int y, uint8_t alpha_cutoff, color_t co
   zbuffer[y * window_width + x] = zbuffer_value;
 }
 
-__attribute__((optimize("Ofast")))
 inline void draw_pixel_alpha_blend(int x, int y, float opacity, color_t color){
 
   if((unsigned)x >= (unsigned)window_width || (unsigned)y >= (unsigned)window_height) return;
@@ -2210,7 +2191,6 @@ inline void draw_pixel_alpha_blend(int x, int y, float opacity, color_t color){
   color_buffer[y * window_width + x] = final_color;
 }
 
-__attribute__((optimize("Ofast")))
 inline void draw_pixel(int x, int y, blend_mode_t blend_mode, uint8_t alpha_cutoff, float opacity, color_t color, float zbuffer_value){
 
   if((unsigned)x >= (unsigned)window_width || (unsigned)y >= (unsigned)window_height) return;

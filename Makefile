@@ -2,7 +2,7 @@ SRC = ./src/*.c
 
 build-linux:
 	gcc $(SRC) \
-	-Wall -Wextra -Wformat=2 -O3 -march=native -std=c99 \
+	-Wall -Wextra -Wformat=2 -O3 -march=native -flto -std=c99 \
 	-lSDL2 -lSDL2_mixer -lm \
 	-o renderer
 
@@ -11,7 +11,7 @@ MIXER_WIN = ./lib/SDL2_mixer-2.8.1/x86_64-w64-mingw32
 
 build-windows:
 	x86_64-w64-mingw32-gcc \
-	-Wall -Wextra -O3 -std=c99 \
+	-Wall -Wextra -O3 -march=native -flto -std=c99 \
 	-I$(SDL2_WIN)/include/SDL2 \
 	-I$(SDL2_WIN)/include \
 	-I$(MIXER_WIN)/include/SDL2 \

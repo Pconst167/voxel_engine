@@ -182,7 +182,6 @@ void clip_polygon_against_plane2(polygon_t *polygon, frustrum_plane_t plane){
   }
 }
 
-__attribute__((optimize("Ofast")))
 inline void clip_polygon_against_plane(polygon_t *polygon, frustrum_plane_t plane){
   vector3_t *vertices  = polygon->vertices;
   uv_t *text_coords  = polygon->text_coords;
@@ -255,7 +254,6 @@ inline void clip_polygon_against_plane(polygon_t *polygon, frustrum_plane_t plan
   }
 }
 
-__attribute__((optimize("Ofast")))
 void frustrum_clip_polygon(polygon_t *polygon){
   clip_polygon_against_plane(polygon, FRUSTRUM_LEFT);
   clip_polygon_against_plane(polygon, FRUSTRUM_RIGHT);
@@ -266,7 +264,6 @@ void frustrum_clip_polygon(polygon_t *polygon){
 }
 
 /* TODO: check which components of frustrum plane normals are 0, many are ! */
-__attribute__((optimize("Ofast")))
 inline bool frustrum_cull_object(vector4_t *bsphere_center, float bsphere_radius, float znear, float zfar){
   float distance;
 
@@ -306,7 +303,6 @@ inline bool frustrum_cull_object(vector4_t *bsphere_center, float bsphere_radius
   return false;
 }
 
-__attribute__((optimize("Ofast")))
 inline int frustrum_clip_triangle_and_re_triangularize(
   vector3_t v0, 
   vector3_t v1, 
@@ -385,7 +381,6 @@ inline int frustrum_clip_triangle_and_re_triangularize(
 }
 
 /* old version */
-__attribute__((optimize("Ofast")))
 inline int frustrum_clip_triangle_and_re_triangularize2(
   vector3_t v0, 
   vector3_t v1, 
@@ -448,7 +443,6 @@ inline int frustrum_clip_triangle_and_re_triangularize2(
     totally outside: 1
     partially inside or maybe fully inside: 0
 */
-__attribute__((optimize("Ofast")))
 int check_face_fully_outside_frustrum(vector4_t v0, vector4_t v1, vector4_t v2, float znear, float zfar){
   /* NEAR */
   if(v0.z < znear && v1.z < znear && v2.z < znear) return 1;

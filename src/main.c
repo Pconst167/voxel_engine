@@ -280,11 +280,17 @@ void process_input(void){
         if(player.eta  < -ETA_MAX) player.eta = -ETA_MAX;
       }
       if(event.type == SDL_MOUSEBUTTONDOWN){
+        vector3_t player_plus_camera_direction = {
+          .x = player.position.x + camera.direction.x,
+          .y = player.position.y + player.height/2.0f + camera.direction.y,
+          .z = player.position.z + camera.direction.z
+        };
+
         if(event.button.button == SDL_BUTTON_LEFT){
-          voxels[(uint32_t)(player.position.y) - 1][(uint32_t)player.position.z][(uint32_t)player.position.x].type = VOXEL_TYPE_STONE;
+          voxels[(uint32_t)(player_plus_camera_direction.y)][(uint32_t)player_plus_camera_direction.z][(uint32_t)player_plus_camera_direction.x].type = VOXEL_TYPE_STONE;
         }
         else if(event.button.button == SDL_BUTTON_RIGHT){
-          voxels[(uint32_t)(player.position.y)- 1][(uint32_t)player.position.z][(uint32_t)player.position.x].type = VOXEL_TYPE_AIR;
+          voxels[(uint32_t)(player_plus_camera_direction.y)][(uint32_t)player_plus_camera_direction.z][(uint32_t)player_plus_camera_direction.x].type = VOXEL_TYPE_AIR;
         }
       }
     }
@@ -462,7 +468,6 @@ void move_player(void){
   move_player_y(movement.y);
 }
 
-__attribute__((optimize("Ofast")))
 inline void move_player_x(float movement_x){
   if(movement_x == 0.0f) return;
 
@@ -802,7 +807,6 @@ inline void move_player_x(float movement_x){
   update_player_aabb();
 }
 
-__attribute__((optimize("Ofast")))
 inline void move_player_z(float movement_z){
   if(movement_z == 0.0f) return;
 
@@ -1143,7 +1147,6 @@ inline void move_player_z(float movement_z){
   update_player_aabb();
 }
 
-__attribute__((optimize("Ofast")))
 inline void move_player_y(float movement_y){
 
   if(movement_y == 0.0f) return;
@@ -1730,7 +1733,7 @@ RENDER STAGE
   ** after all intersecting chunks are found, sort them front to back before rendering.
 
 */
-void render_visible_chunks(void) {
+inline void render_visible_chunks(void) {
   /* reset color buffer */
   for(uint32_t pixel_i = 0; pixel_i < total_buffer_pixels; pixel_i++){
     color_buffer[pixel_i] = (color_t){.uint32 = 0xFFFF4040};
@@ -1767,7 +1770,7 @@ void render_visible_chunks(void) {
 }
 
 // sort chunks front to back and render
-void render_visible_chunks_sorted(void) {
+inline void render_visible_chunks_sorted(void) {
   /* reset color buffer */
   memset(color_buffer, color_buffer_reset, total_buffer_pixels * sizeof(uint32_t));
 
@@ -1848,7 +1851,7 @@ void render_visible_chunks_sorted(void) {
    if count == 0 its fully outside
    else its intersecting
 */
-chunk_intersection_mode_t get_chunk_intersection_mode_fast(chunk_t *chunk){
+inline chunk_intersection_mode_t get_chunk_intersection_mode_fast(chunk_t *chunk){
   float x_min = chunk->x_min;
   float x_max = chunk->x_max;
   float y_min = chunk->y_min;
@@ -2976,7 +2979,6 @@ inline uint32_t rasterize_triangle_no_zbuffer_write(
 /* 
   render the base colorbuffer on top of which everything else is painted
 */
-__attribute__((optimize("Ofast")))
 void render_sun(void){
   float half_w = 0.5f * (float)window_width;
   float half_h = 0.5f * (float)window_height;
@@ -3059,7 +3061,6 @@ void render_sun(void){
   }
 }
 
-__attribute__((optimize("Ofast")))
 inline void qs_chunk(chunk_sort_key_t *array, int left, int right){
   int i = left;
   int j = right;
@@ -3082,13 +3083,11 @@ inline void qs_chunk(chunk_sort_key_t *array, int left, int right){
   if(i < right) qs_chunk(array, i, right);
 }
 
-__attribute__((optimize("Ofast")))
 inline void chunk_quicksort(chunk_sort_key_t *array, int count){
   if(count > 1)
     qs_chunk(array, 0, count - 1);
 }
 
-__attribute__((optimize("Ofast")))
 inline void qs_object(object_sort_key_t *array, int left, int right){
   int i = left;
   int j = right;
@@ -3111,13 +3110,11 @@ inline void qs_object(object_sort_key_t *array, int left, int right){
   if(i < right) qs_object(array, i, right);
 }
 
-__attribute__((optimize("Ofast")))
 inline void object_quicksort(object_sort_key_t *array, int count){
   if(count > 1)
     qs_object(array, 0, count - 1);
 }
 
-__attribute__((optimize("Ofast")))
 inline void qs_triangle(triangle_t *array, int left, int right){
   int i = left;
   int j = right;
@@ -3140,7 +3137,6 @@ inline void qs_triangle(triangle_t *array, int left, int right){
   if(i < right) qs_triangle(array, i, right);
 }
 
-__attribute__((optimize("Ofast")))
 inline void triangle_quicksort(triangle_t *array, int count){
   if(count > 1)
     qs_triangle(array, 0, count - 1);
@@ -3185,8 +3181,8 @@ void generate_game_data(){
     total_triangles_rendered, total_pixels_rendered, total_chunks_rendered, fps, 
     player_voxel_x, player_voxel_y, player_voxel_z,
     player_chunk_x, player_chunk_z,
-    player.position.x, player.position.y, player.position.z,
-    player.direction.x, player.direction.y, player.direction.z,
+    camera.position.x, camera.position.y, camera.position.z,
+    camera.direction.x, camera.direction.y, camera.direction.z,
     player.theta, player.eta
   );
 }
@@ -3210,14 +3206,6 @@ int main(int argc, char *argv[]){
     generate_game_data();
 
     if(options.show_debug_info){
-      char s[256];
-      sprintf(s, "x collision step: start_x: %d, end_x: %d, start_y: %d, end_y: %d, start_z: %d, end_z: %d", 
-        debug_x_collision_start_x, debug_x_collision_end_x,
-        debug_x_collision_start_y, debug_x_collision_end_y,
-        debug_x_collision_start_z, debug_x_collision_end_z
-      );
-      draw_text_to_color_buffer(10, 10, s, (color_t){.uint32 = 0xFFFFFFFF}, 1);
-
       draw_text_to_color_buffer(10, window_height - 20, text0, (color_t){.uint32 = 0xFFFFFFFF}, 1);
     }
 

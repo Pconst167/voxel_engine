@@ -105,7 +105,7 @@ void get_voxel_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, 
   *end_z   = clamp_int((int)floorf(aabb->z_max), 0, MAP_NUM_VOXELS_Z - 1);
 }
 
-voxel_quad_t generate_voxel_quad(voxel_quad_type_t quad_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col){
+inline voxel_quad_t generate_voxel_quad(voxel_quad_type_t quad_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col){
   voxel_quad_t quad;
 
   switch(quad_type){
