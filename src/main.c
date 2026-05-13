@@ -107,7 +107,7 @@
 #include "game.h"
 #include "debug.h"
 
-#define PLAYER_SPEED_SHIFT_KEY_FACTOR 4.0f
+#define PLAYER_SPEED_SHIFT_KEY_FACTOR 2.0f
 #define PLAYER_ETA_DIRECTION 1.0f /* +1: mouse back looks up, -1: mouse back looks down */
 #define MOUSE_SENSITIVITY 0.005f
 #define DAY_LENGTH (1.01f * 60.0f * 60.0f / 0.016f) /* hours */
@@ -131,11 +131,10 @@ uint32_t total_chunks_rendered;
 uint64_t time_count; /* keeps a count that increments every frame - used to pace events */
 float time_of_day; /* keeps time the accumulation of  each delta_time per frame */
 char text0[256];
-char text1[256];
 
 /* game control */
 float delta_time;
-float move_speed = 2.0f;
+float move_speed = 4.0f;
 float turn_speed = 2.0f;
 bool quit = false;
 bool is_paused = false;
@@ -147,6 +146,15 @@ int player_chunk_y;
 int32_t player_voxel_x;
 int32_t player_voxel_z;
 int32_t player_voxel_y;
+
+// debug window
+char debug_info_str[4096];
+int debug_x_collision_start_x, debug_x_collision_start_y, debug_x_collision_start_z;
+int debug_x_collision_end_x, debug_x_collision_end_y, debug_x_collision_end_z;
+int debug_y_collision_start_y, debug_y_collision_start_y, debug_y_collision_start_z;
+int debug_y_collision_end_y, debug_y_collision_end_y, debug_y_collision_end_z;
+int debug_z_collision_start_z, debug_z_collision_start_y, debug_z_collision_start_z;
+int debug_z_collision_end_z, debug_z_collision_end_y, debug_z_collision_end_z;
 
 uint8_t color_buffer_reset = 0x20; /* repeat byte for color buffer reset */
 
@@ -254,6 +262,10 @@ void process_input(void){
         continue;
       }
 
+      if(keycode == SDLK_ESCAPE){
+        options.show_debug_info = !options.show_debug_info;
+        continue;
+      }
     }
 
     if(console.is_open){
@@ -385,45 +397,6 @@ void run_console_command(){
   }
 }
 
-aabb_3d_t make_player_aabb_at_position(vector3_t position){
-  aabb_3d_t aabb;
-
-  aabb.x_min = position.x - player.radius;
-  aabb.x_max = position.x + player.radius;
-
-  aabb.y_min = position.y;
-  aabb.y_max = position.y + player.height;
-
-  aabb.z_min = position.z - player.radius;
-  aabb.z_max = position.z + player.radius;
-
-  return aabb;
-}
-
-bool aabb_overlaps_yz(const aabb_3d_t *aabb, const aabb_3d_t *voxel_aabb){
-  return
-    aabb->y_min < voxel_aabb->y_max &&
-    aabb->y_max > voxel_aabb->y_min &&
-    aabb->z_min < voxel_aabb->z_max &&
-    aabb->z_max > voxel_aabb->z_min;
-}
-
-bool aabb_overlaps_xy(const aabb_3d_t *aabb, const aabb_3d_t *voxel_aabb){
-  return
-    aabb->x_min < voxel_aabb->x_max &&
-    aabb->x_max > voxel_aabb->x_min &&
-    aabb->y_min < voxel_aabb->y_max &&
-    aabb->y_max > voxel_aabb->y_min;
-}
-
-bool aabb_overlaps_xz(const aabb_3d_t *aabb, const aabb_3d_t *voxel_aabb){
-  return
-    aabb->x_min < voxel_aabb->x_max &&
-    aabb->x_max > voxel_aabb->x_min &&
-    aabb->z_min < voxel_aabb->z_max &&
-    aabb->z_max > voxel_aabb->z_min;
-}
-
 void get_voxel_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, int *start_y, int *end_y, int *start_z, int *end_z){
   *start_x = clamp_int((int)floorf(aabb->x_min), 0, MAP_NUM_VOXELS_X - 1);
   *end_x   = clamp_int((int)floorf(aabb->x_max), 0, MAP_NUM_VOXELS_X - 1);
@@ -436,6 +409,9 @@ void get_voxel_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, 
 }
 
 void move_player_x(float movement_x){
+  if(player.position.x + movement_x < 0) return;
+  if(player.position.x + movement_x > MAP_NUM_VOXELS_X) return;
+
   if(movement_x == 0.0f) return;
 
   vector3_t target_position = player.position;
@@ -443,33 +419,327 @@ void move_player_x(float movement_x){
 
   aabb_3d_t target_aabb = make_player_aabb_at_position(target_position);
 
-  int start_x, end_x;
-  int start_y, end_y;
-  int start_z, end_z;
+  int player_vox_x, player_vox_z, player_vox_y;
+  player_vox_x = player.position.x;
+  player_vox_z = player.position.z;
+  player_vox_y = player.position.y;
 
-  get_voxel_range_from_aabb(&target_aabb, &start_x, &end_x, &start_y, &end_y, &start_z, &end_z);
+  int voxel_x, voxel_y, voxel_z;
+  voxel_t *voxel;
+  if(movement_x > 0.0f){
+    // y position at player's feet
 
-  for(int voxel_y = start_y; voxel_y <= end_y; voxel_y++){
-    for(int voxel_z = start_z; voxel_z <= end_z; voxel_z++){
-      for(int voxel_x = start_x; voxel_x <= end_x; voxel_x++){
-        voxel_t *voxel = &voxels[voxel_y][voxel_z][voxel_x];
+ //   |   |/___|/
+ //   | * |/_x_|/
+ //   |   |/___|/ 
+    voxel_x = player_vox_x + 1;
+    voxel_z = player_vox_z;
+    voxel_y = player_vox_y;
 
-        if(voxel->type == VOXEL_TYPE_AIR) continue;
-        if(!aabb_overlaps_yz(&target_aabb, &voxel->aabb)) continue;
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-        if(movement_x > 0.0f){
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_max > voxel->aabb.x_min){
+        target_position.x = voxel->aabb.x_min - player.radius - COLLISION_EPSILON;
+        target_aabb = make_player_aabb_at_position(target_position);
+      }
+    }
+
+ //   |   |/_x_|/
+ //   | * |/_ _|/
+ //   |   |/___|/ 
+    voxel_x = player_vox_x + 1;
+    voxel_z = player_vox_z + 1;
+    voxel_y = player_vox_y;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.z_max > voxel->aabb.z_min)
+        if(target_aabb.x_max > voxel->aabb.x_min){
+          target_position.x = voxel->aabb.x_min - player.radius - COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+        }
+    }
+
+ //   |   |/_ _|/
+ //   | * |/_ _|/
+ //   |   |/_x_|/ 
+    voxel_x = player_vox_x + 1;
+    voxel_z = player_vox_z - 1;
+    voxel_y = player_vox_y;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.z_min < voxel->aabb.z_max)
+        if(target_aabb.x_max > voxel->aabb.x_min){
+          target_position.x = voxel->aabb.x_min - player.radius - COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+        }
+    }
+
+    // y position +1
+ //   |   |/___|/
+ //   | * |/_x_|/
+ //   |   |/___|/ 
+    voxel_x = player_vox_x + 1;
+    voxel_z = player_vox_z;
+    voxel_y = player_vox_y + 1;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_max > voxel->aabb.x_min){
+        target_position.x = voxel->aabb.x_min - player.radius - COLLISION_EPSILON;
+        target_aabb = make_player_aabb_at_position(target_position);
+      }
+    }
+
+ //   |   |/_x_|/
+ //   | * |/_ _|/
+ //   |   |/___|/ 
+    voxel_x = player_vox_x + 1;
+    voxel_z = player_vox_z + 1;
+    voxel_y = player_vox_y + 1;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.z_max > voxel->aabb.z_min)
+        if(target_aabb.x_max > voxel->aabb.x_min){
+          target_position.x = voxel->aabb.x_min - player.radius - COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+        }
+    }
+
+ //   |   |/_ _|/
+ //   | * |/_ _|/
+ //   |   |/_x_|/ 
+    voxel_x = player_vox_x + 1;
+    voxel_z = player_vox_z - 1;
+    voxel_y = player_vox_y + 1;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.z_min < voxel->aabb.z_max)
+        if(target_aabb.x_max > voxel->aabb.x_min){
+          target_position.x = voxel->aabb.x_min - player.radius - COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+        }
+    }
+
+    // y position +2
+ //   |   |/___|/
+ //   | * |/_x_|/
+ //   |   |/___|/ 
+    voxel_x = player_vox_x + 1;
+    voxel_z = player_vox_z;
+    voxel_y = player_vox_y + 2;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.y_max > voxel->aabb.y_min)
+        if(target_aabb.x_max > voxel->aabb.x_min){
+          target_position.x = voxel->aabb.x_min - player.radius - COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+        }
+    }
+
+ //   |   |/_x_|/
+ //   | * |/_ _|/
+ //   |   |/___|/ 
+    voxel_x = player_vox_x + 1;
+    voxel_z = player_vox_z + 1;
+    voxel_y = player_vox_y + 2;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.y_max > voxel->aabb.y_min)
+        if(target_aabb.z_max > voxel->aabb.z_min)
           if(target_aabb.x_max > voxel->aabb.x_min){
             target_position.x = voxel->aabb.x_min - player.radius - COLLISION_EPSILON;
             target_aabb = make_player_aabb_at_position(target_position);
           }
+    }
+
+ //   |   |/_ _|/
+ //   | * |/_ _|/
+ //   |   |/_x_|/ 
+    voxel_x = player_vox_x + 1;
+    voxel_z = player_vox_z - 1;
+    voxel_y = player_vox_y + 2;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.y_max > voxel->aabb.y_min)
+        if(target_aabb.z_min < voxel->aabb.z_max)
+          if(target_aabb.x_max > voxel->aabb.x_min){
+            target_position.x = voxel->aabb.x_min - player.radius - COLLISION_EPSILON;
+            target_aabb = make_player_aabb_at_position(target_position);
+          }
+    }
+  }
+  else{
+    // y position at player's feet
+
+ //   /___|/   |
+ //   /_x_|/ * |
+ //   /___|/   | 
+    voxel_x = player_vox_x - 1;
+    voxel_z = player_vox_z;
+    voxel_y = player_vox_y;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_min < voxel->aabb.x_max){
+        target_position.x = voxel->aabb.x_max + player.radius + COLLISION_EPSILON;
+        target_aabb = make_player_aabb_at_position(target_position);
+      }
+    }
+
+ //   /_x_|/   |
+ //   /_ _|/ * |
+ //   /___|/   | 
+    voxel_x = player_vox_x - 1;
+    voxel_z = player_vox_z + 1;
+    voxel_y = player_vox_y;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.z_max > voxel->aabb.z_min)
+        if(target_aabb.x_min < voxel->aabb.x_max){
+          target_position.x = voxel->aabb.x_max + player.radius + COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
         }
-        else{
+    }
+
+ //   /_ _|/   |
+ //   /_ _|/ * |
+ //   /_x_|/   | 
+    voxel_x = player_vox_x - 1;
+    voxel_z = player_vox_z - 1;
+    voxel_y = player_vox_y;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.z_min < voxel->aabb.z_max)
+        if(target_aabb.x_min < voxel->aabb.x_max){
+          target_position.x = voxel->aabb.x_max + player.radius + COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+        }
+    }
+
+    // y position +1
+ //   /_ _|/   |
+ //   /_x_|/ * |
+ //   /_ _|/   | 
+    voxel_x = player_vox_x - 1;
+    voxel_z = player_vox_z;
+    voxel_y = player_vox_y + 1;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_min < voxel->aabb.x_max){
+        target_position.x = voxel->aabb.x_max + player.radius + COLLISION_EPSILON;
+        target_aabb = make_player_aabb_at_position(target_position);
+      }
+    }
+
+ //   /_x_|/   |
+ //   /_ _|/ * |
+ //   /_ _|/   | 
+    voxel_x = player_vox_x - 1;
+    voxel_z = player_vox_z + 1;
+    voxel_y = player_vox_y + 1;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.z_max > voxel->aabb.z_min)
+        if(target_aabb.x_min < voxel->aabb.x_max){
+          target_position.x = voxel->aabb.x_max + player.radius + COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+        }
+    }
+
+//   /_ _|/   |
+//   /_ _|/ * |
+//   /_x_|/   | 
+    voxel_x = player_vox_x - 1;
+    voxel_z = player_vox_z - 1;
+    voxel_y = player_vox_y + 1;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.z_min < voxel->aabb.z_max)
+        if(target_aabb.x_min < voxel->aabb.x_max){
+          target_position.x = voxel->aabb.x_max + player.radius + COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+        }
+    }
+
+    // y position +2
+ //   /_ _|/   |
+ //   /_x_|/ * |
+ //   /_ _|/   | 
+    voxel_x = player_vox_x - 1;
+    voxel_z = player_vox_z;
+    voxel_y = player_vox_y + 2;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.y_max > voxel->aabb.y_min)
+        if(target_aabb.x_min < voxel->aabb.x_max){
+          target_position.x = voxel->aabb.x_max + player.radius + COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+        }
+    }
+
+ //   /_x_|/   |
+ //   /_ _|/ * |
+ //   /_ _|/   | 
+    voxel_x = player_vox_x - 1;
+    voxel_z = player_vox_z + 1;
+    voxel_y = player_vox_y + 2;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.y_max > voxel->aabb.y_min)
+        if(target_aabb.z_max > voxel->aabb.z_min)
           if(target_aabb.x_min < voxel->aabb.x_max){
             target_position.x = voxel->aabb.x_max + player.radius + COLLISION_EPSILON;
             target_aabb = make_player_aabb_at_position(target_position);
           }
-        }
-      }
+    }
+
+//   /_ _|/   |
+//   /_ _|/ * |
+//   /_x_|/   | 
+    voxel_x = player_vox_x - 1;
+    voxel_z = player_vox_z - 1;
+    voxel_y = player_vox_y + 2;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.y_max > voxel->aabb.y_min)
+        if(target_aabb.z_min < voxel->aabb.z_max)
+          if(target_aabb.x_min < voxel->aabb.x_max){
+            target_position.x = voxel->aabb.x_max + player.radius + COLLISION_EPSILON;
+            target_aabb = make_player_aabb_at_position(target_position);
+          }
     }
   }
 
@@ -478,6 +748,722 @@ void move_player_x(float movement_x){
 }
 
 void move_player_z(float movement_z){
+  if(player.position.z + movement_z < 0) return;
+  if(player.position.z + movement_z > MAP_NUM_VOXELS_Z) return;
+
+  if(movement_z == 0.0f) return;
+
+  vector3_t target_position = player.position;
+  target_position.z += movement_z;
+
+  aabb_3d_t target_aabb = make_player_aabb_at_position(target_position);
+
+  int player_vox_x, player_vox_z, player_vox_y;
+
+  player_vox_x = player.position.x;
+  player_vox_z = player.position.z;
+  player_vox_y = player.position.y;
+
+  int voxel_x, voxel_y, voxel_z;
+  voxel_t *voxel;
+  if(movement_z > 0.0f){
+    // y position at player's feet
+
+//  /___|/ x |/___|/
+//  /___|/ * |/___|/
+//  /___|/   |/___|/
+    voxel_x = player_vox_x;
+    voxel_z = player_vox_z + 1;
+    voxel_y = player_vox_y;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.z_max > voxel->aabb.z_min){
+        target_position.z = voxel->aabb.z_min - player.radius - COLLISION_EPSILON;
+        target_aabb = make_player_aabb_at_position(target_position);
+      }
+    }
+
+//  /_ _|/   |/_x_|/
+//  /___|/ * |/___|/
+//  /___|/   |/___|/
+    voxel_x = player_vox_x + 1;
+    voxel_z = player_vox_z + 1;
+    voxel_y = player_vox_y;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_max > voxel->aabb.x_min)
+        if(target_aabb.z_max > voxel->aabb.z_min){
+          target_position.z = voxel->aabb.z_min - player.radius - COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+        }
+    }
+
+//  /_x_|/   |/_ _|/
+//  /___|/ * |/___|/
+//  /___|/   |/___|/
+    voxel_x = player_vox_x - 1;
+    voxel_z = player_vox_z + 1;
+    voxel_y = player_vox_y;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_min < voxel->aabb.x_max)
+        if(target_aabb.z_max > voxel->aabb.z_min){
+          target_position.z = voxel->aabb.z_min - player.radius - COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+        }
+    }
+
+    // y position +1
+//  /___|/ x |/___|/
+//  /___|/ * |/___|/
+//  /___|/   |/___|/
+    voxel_x = player_vox_x;
+    voxel_z = player_vox_z + 1;
+    voxel_y = player_vox_y + 1;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.z_max > voxel->aabb.z_min){
+        target_position.z = voxel->aabb.z_min - player.radius - COLLISION_EPSILON;
+        target_aabb = make_player_aabb_at_position(target_position);
+      }
+    }
+
+//  /___|/   |/_x_|/
+//  /___|/ * |/___|/
+//  /___|/   |/___|/
+    voxel_x = player_vox_x + 1;
+    voxel_z = player_vox_z + 1;
+    voxel_y = player_vox_y + 1;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_max > voxel->aabb.x_min)
+        if(target_aabb.z_max > voxel->aabb.z_min){
+          target_position.z = voxel->aabb.z_min - player.radius - COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+        }
+    }
+
+//  /_x_|/   |/_ _|/
+//  /___|/ * |/___|/
+//  /___|/   |/___|/
+    voxel_x = player_vox_x - 1;
+    voxel_z = player_vox_z + 1;
+    voxel_y = player_vox_y + 1;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_min < voxel->aabb.x_max)
+        if(target_aabb.z_max > voxel->aabb.z_min){
+          target_position.z = voxel->aabb.z_min - player.radius - COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+        }
+    }
+
+    // y position +2
+//  /_ _|/ x |/_ _|/
+//  /___|/ * |/___|/
+//  /___|/   |/___|/
+    voxel_x = player_vox_x;
+    voxel_z = player_vox_z + 1;
+    voxel_y = player_vox_y + 2;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.y_max > voxel->aabb.y_min)
+        if(target_aabb.z_max > voxel->aabb.z_min){
+          target_position.z = voxel->aabb.z_min - player.radius - COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+        }
+    }
+
+//  /_ _|/   |/_x_|/
+//  /___|/ * |/___|/
+//  /___|/   |/___|/
+    voxel_x = player_vox_x + 1;
+    voxel_z = player_vox_z + 1;
+    voxel_y = player_vox_y + 2;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.y_max > voxel->aabb.y_min)
+        if(target_aabb.x_max > voxel->aabb.x_min)
+          if(target_aabb.z_max > voxel->aabb.z_min){
+            target_position.z = voxel->aabb.z_min - player.radius - COLLISION_EPSILON;
+            target_aabb = make_player_aabb_at_position(target_position);
+          }
+    }
+
+//  /_x_|/   |/_ _|/
+//  /___|/ * |/___|/
+//  /___|/   |/___|/
+    voxel_x = player_vox_x - 1;
+    voxel_z = player_vox_z + 1;
+    voxel_y = player_vox_y + 2;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.y_max > voxel->aabb.y_min)
+        if(target_aabb.x_min < voxel->aabb.x_max)
+          if(target_aabb.z_max > voxel->aabb.z_min){
+            target_position.z = voxel->aabb.z_min - player.radius - COLLISION_EPSILON;
+            target_aabb = make_player_aabb_at_position(target_position);
+          }
+    }
+  }
+  else{
+    // y position at player's feet
+
+//  /_ _|/   |/_ _|/
+//  /___|/ * |/___|/
+//  /___|/ x |/___|/
+    voxel_x = player_vox_x;
+    voxel_z = player_vox_z - 1;
+    voxel_y = player_vox_y;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.z_min < voxel->aabb.z_max){
+        target_position.z = voxel->aabb.z_max + player.radius + COLLISION_EPSILON;
+        target_aabb = make_player_aabb_at_position(target_position);
+      }
+    }
+
+//  /_ _|/   |/_ _|/
+//  /___|/ * |/___|/
+//  /___|/   |/_x_|/
+    voxel_x = player_vox_x + 1;
+    voxel_z = player_vox_z - 1;
+    voxel_y = player_vox_y;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_max > voxel->aabb.x_min)
+        if(target_aabb.z_min < voxel->aabb.z_max){
+          target_position.z = voxel->aabb.z_max + player.radius + COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+        }
+    }
+
+//  /_ _|/   |/_ _|/
+//  /___|/ * |/___|/
+//  /_x_|/   |/_ _|/
+    voxel_x = player_vox_x - 1;
+    voxel_z = player_vox_z - 1;
+    voxel_y = player_vox_y;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_min < voxel->aabb.x_max)
+        if(target_aabb.z_min < voxel->aabb.z_max){
+          target_position.z = voxel->aabb.z_max + player.radius + COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+        }
+    }
+
+    // y position +1
+//  /_ _|/   |/_ _|/
+//  /___|/ * |/___|/
+//  /_ _|/ x |/_ _|/
+    voxel_x = player_vox_x;
+    voxel_z = player_vox_z - 1;
+    voxel_y = player_vox_y + 1;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.z_min < voxel->aabb.z_max){
+        target_position.z = voxel->aabb.z_max + player.radius + COLLISION_EPSILON;
+        target_aabb = make_player_aabb_at_position(target_position);
+      }
+    }
+
+//  /_ _|/   |/_ _|/
+//  /___|/ * |/___|/
+//  /_ _|/   |/_x_|/
+    voxel_x = player_vox_x + 1;
+    voxel_z = player_vox_z - 1;
+    voxel_y = player_vox_y + 1;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_max > voxel->aabb.x_min)
+        if(target_aabb.z_min < voxel->aabb.z_max){
+          target_position.z = voxel->aabb.z_max + player.radius + COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+        }
+    }
+
+//  /_ _|/   |/_ _|/
+//  /___|/ * |/___|/
+//  /_x_|/   |/_ _|/
+    voxel_x = player_vox_x - 1;
+    voxel_z = player_vox_z - 1;
+    voxel_y = player_vox_y + 1;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_min < voxel->aabb.x_max)
+        if(target_aabb.z_min < voxel->aabb.z_max){
+          target_position.z = voxel->aabb.z_max + player.radius + COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+        }
+    }
+
+    // y position +2
+//  /_ _|/   |/_ _|/
+//  /___|/ * |/___|/
+//  /_ _|/ x |/_ _|/
+    voxel_x = player_vox_x;
+    voxel_z = player_vox_z - 1;
+    voxel_y = player_vox_y + 2;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.y_max > voxel->aabb.y_min)
+        if(target_aabb.z_min < voxel->aabb.z_max){
+          target_position.z = voxel->aabb.z_max + player.radius + COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+        }
+    }
+
+//  /_ _|/   |/_ _|/
+//  /___|/ * |/___|/
+//  /_ _|/   |/_x_|/
+    voxel_x = player_vox_x + 1;
+    voxel_z = player_vox_z - 1;
+    voxel_y = player_vox_y + 2;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.y_max > voxel->aabb.y_min)
+        if(target_aabb.x_max > voxel->aabb.x_min)
+          if(target_aabb.z_min < voxel->aabb.z_max){
+            target_position.z = voxel->aabb.z_max + player.radius + COLLISION_EPSILON;
+            target_aabb = make_player_aabb_at_position(target_position);
+          }
+    }
+
+//  /_ _|/   |/_ _|/
+//  /___|/ * |/___|/
+//  /_x_|/   |/_ _|/
+    voxel_x = player_vox_x - 1;
+    voxel_z = player_vox_z - 1;
+    voxel_y = player_vox_y + 2;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.y_max > voxel->aabb.y_min)
+        if(target_aabb.x_min < voxel->aabb.x_max)
+          if(target_aabb.z_min < voxel->aabb.z_max){
+            target_position.z = voxel->aabb.z_max + player.radius + COLLISION_EPSILON;
+            target_aabb = make_player_aabb_at_position(target_position);
+          }
+    }
+  }
+
+  player.position.z = target_position.z;
+  update_player_aabb();
+}
+
+void move_player_y(float movement_y){
+
+  if(movement_y == 0.0f) return;
+
+  if(player.position.y + movement_y < 0.0f) return;
+  if(player.position.y + movement_y > MAP_NUM_VOXELS_Y) return;
+
+  vector3_t target_position = player.position;
+  target_position.y += movement_y;
+
+  aabb_3d_t target_aabb = make_player_aabb_at_position(target_position);
+
+  int player_vox_x, player_vox_z, player_vox_y;
+
+  player_vox_x = player.position.x;
+  player_vox_z = player.position.z;
+  player_vox_y = player.position.y;
+
+  player.on_ground = false;
+
+  int voxel_x, voxel_y, voxel_z;
+  voxel_t *voxel;
+
+  if(movement_y < 0.0f){
+    // y position at player's feet - 1
+
+//  /___|/___|/___|/
+//  /___|/ x |/___|/
+//  /___|/___|/___|/
+    voxel_x = player_vox_x;
+    voxel_z = player_vox_z;
+    voxel_y = player_vox_y - 1;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.y_min < voxel->aabb.y_max){
+        target_position.y = voxel->aabb.y_max + COLLISION_EPSILON;
+        target_aabb = make_player_aabb_at_position(target_position);
+        player.velocity.y = 0.0f;
+        player.on_ground = true;
+      }
+    }
+
+//  /___|/___|/___|/
+//  /_x_|/ * |/___|/
+//  /___|/___|/___|/
+    voxel_x = player_vox_x - 1;
+    voxel_z = player_vox_z;
+    voxel_y = player_vox_y - 1;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_min < voxel->aabb.x_max)
+        if(target_aabb.y_min < voxel->aabb.y_max){
+          target_position.y = voxel->aabb.y_max + COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+          player.velocity.y = 0.0f;
+          player.on_ground = true;
+        }
+    }
+
+//  /___|/___|/___|/
+//  /_ _|/ * |/_x_|/
+//  /___|/___|/___|/
+    voxel_x = player_vox_x + 1;
+    voxel_z = player_vox_z;
+    voxel_y = player_vox_y - 1;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_max > voxel->aabb.x_min)
+        if(target_aabb.y_min < voxel->aabb.y_max){
+          target_position.y = voxel->aabb.y_max + COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+          player.velocity.y = 0.0f;
+          player.on_ground = true;
+        }
+    }
+
+//  /___|/_x_|/___|/
+//  /_ _|/ * |/_ _|/
+//  /___|/___|/___|/
+    voxel_x = player_vox_x;
+    voxel_z = player_vox_z + 1;
+    voxel_y = player_vox_y - 1;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.z_max > voxel->aabb.z_min)
+        if(target_aabb.y_min < voxel->aabb.y_max){
+          target_position.y = voxel->aabb.y_max + COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+          player.velocity.y = 0.0f;
+          player.on_ground = true;
+        }
+    }
+
+//  /___|/_ _|/___|/
+//  /_ _|/ * |/_ _|/
+//  /___|/_x_|/___|/
+    voxel_x = player_vox_x;
+    voxel_z = player_vox_z - 1;
+    voxel_y = player_vox_y - 1;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.z_min < voxel->aabb.z_max)
+        if(target_aabb.y_min < voxel->aabb.y_max){
+          target_position.y = voxel->aabb.y_max + COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+          player.velocity.y = 0.0f;
+          player.on_ground = true;
+        }
+    }
+
+//  /_x_|/_ _|/___|/
+//  /_ _|/ * |/_ _|/
+//  /___|/_ _|/___|/
+    voxel_x = player_vox_x - 1;
+    voxel_z = player_vox_z + 1;
+    voxel_y = player_vox_y - 1;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_min < voxel->aabb.x_max)
+        if(target_aabb.z_max > voxel->aabb.z_min)
+          if(target_aabb.y_min < voxel->aabb.y_max){
+            target_position.y = voxel->aabb.y_max + COLLISION_EPSILON;
+            target_aabb = make_player_aabb_at_position(target_position);
+            player.velocity.y = 0.0f;
+            player.on_ground = true;
+          }
+    }
+
+//  /_ _|/_ _|/_x_|/
+//  /_ _|/ * |/_ _|/
+//  /___|/_ _|/___|/
+    voxel_x = player_vox_x + 1;
+    voxel_z = player_vox_z + 1;
+    voxel_y = player_vox_y - 1;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_max > voxel->aabb.x_min)
+        if(target_aabb.z_max > voxel->aabb.z_min)
+          if(target_aabb.y_min < voxel->aabb.y_max){
+            target_position.y = voxel->aabb.y_max + COLLISION_EPSILON;
+            target_aabb = make_player_aabb_at_position(target_position);
+            player.velocity.y = 0.0f;
+            player.on_ground = true;
+          }
+    }
+
+//  /_ _|/_ _|/_ _|/
+//  /_ _|/ * |/_ _|/
+//  /___|/_ _|/_x_|/
+    voxel_x = player_vox_x + 1;
+    voxel_z = player_vox_z - 1;
+    voxel_y = player_vox_y - 1;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_max > voxel->aabb.x_min)
+        if(target_aabb.z_min < voxel->aabb.z_max)
+          if(target_aabb.y_min < voxel->aabb.y_max){
+            target_position.y = voxel->aabb.y_max + COLLISION_EPSILON;
+            target_aabb = make_player_aabb_at_position(target_position);
+            player.velocity.y = 0.0f;
+            player.on_ground = true;
+          }
+    }
+
+//  /_ _|/_ _|/_ _|/
+//  /_ _|/ * |/_ _|/
+//  /_x_|/_ _|/_ _|/
+    voxel_x = player_vox_x - 1;
+    voxel_z = player_vox_z - 1;
+    voxel_y = player_vox_y - 1;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_min < voxel->aabb.x_max)
+        if(target_aabb.z_min < voxel->aabb.z_max)
+          if(target_aabb.y_min < voxel->aabb.y_max){
+            target_position.y = voxel->aabb.y_max + COLLISION_EPSILON;
+            target_aabb = make_player_aabb_at_position(target_position);
+            player.velocity.y = 0.0f;
+            player.on_ground = true;
+          }
+    }
+  }
+  else{
+    // y position at player's feet + 2
+
+//  /___|/___|/___|/
+//  /___|/ x |/___|/
+//  /___|/___|/___|/
+    voxel_x = player_vox_x;
+    voxel_z = player_vox_z;
+    voxel_y = player_vox_y + 2;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.y_max > voxel->aabb.y_min){
+        target_position.y = voxel->aabb.y_min - player.height - COLLISION_EPSILON;
+        target_aabb = make_player_aabb_at_position(target_position);
+        player.velocity.y = 0.0f;
+      }
+    }
+
+//  /___|/___|/___|/
+//  /_x_|/ * |/___|/
+//  /___|/___|/___|/
+    voxel_x = player_vox_x - 1;
+    voxel_z = player_vox_z;
+    voxel_y = player_vox_y + 2;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_min < voxel->aabb.x_max)
+        if(target_aabb.y_max > voxel->aabb.y_min){
+          target_position.y = voxel->aabb.y_min - player.height - COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+          player.velocity.y = 0.0f;
+        }
+    }
+
+//  /___|/___|/___|/
+//  /_ _|/ * |/_x_|/
+//  /___|/___|/___|/
+    voxel_x = player_vox_x + 1;
+    voxel_z = player_vox_z;
+    voxel_y = player_vox_y + 2;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_max > voxel->aabb.x_min)
+        if(target_aabb.y_max > voxel->aabb.y_min){
+          target_position.y = voxel->aabb.y_min - player.height - COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+          player.velocity.y = 0.0f;
+        }
+    }
+
+//  /___|/_x_|/___|/
+//  /_ _|/ * |/_ _|/
+//  /___|/___|/___|/
+    voxel_x = player_vox_x;
+    voxel_z = player_vox_z + 1;
+    voxel_y = player_vox_y + 2;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.z_max > voxel->aabb.z_min)
+        if(target_aabb.y_max > voxel->aabb.y_min){
+          target_position.y = voxel->aabb.y_min - player.height - COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+          player.velocity.y = 0.0f;
+        }
+    }
+
+//  /___|/_ _|/___|/
+//  /_ _|/ * |/_ _|/
+//  /___|/_x_|/___|/
+    voxel_x = player_vox_x;
+    voxel_z = player_vox_z - 1;
+    voxel_y = player_vox_y + 2;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.z_min < voxel->aabb.z_max)
+        if(target_aabb.y_max > voxel->aabb.y_min){
+          target_position.y = voxel->aabb.y_min - player.height - COLLISION_EPSILON;
+          target_aabb = make_player_aabb_at_position(target_position);
+          player.velocity.y = 0.0f;
+        }
+    }
+
+//  /_x_|/_ _|/___|/
+//  /_ _|/ * |/_ _|/
+//  /___|/_ _|/___|/
+    voxel_x = player_vox_x - 1;
+    voxel_z = player_vox_z + 1;
+    voxel_y = player_vox_y + 2;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_min < voxel->aabb.x_max)
+        if(target_aabb.z_max > voxel->aabb.z_min)
+          if(target_aabb.y_max > voxel->aabb.y_min){
+            target_position.y = voxel->aabb.y_min - player.height - COLLISION_EPSILON;
+            target_aabb = make_player_aabb_at_position(target_position);
+            player.velocity.y = 0.0f;
+          }
+    }
+
+//  /_ _|/_ _|/_x_|/
+//  /_ _|/ * |/_ _|/
+//  /___|/_ _|/___|/
+    voxel_x = player_vox_x + 1;
+    voxel_z = player_vox_z + 1;
+    voxel_y = player_vox_y + 2;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_max > voxel->aabb.x_min)
+        if(target_aabb.z_max > voxel->aabb.z_min)
+          if(target_aabb.y_max > voxel->aabb.y_min){
+            target_position.y = voxel->aabb.y_min - player.height - COLLISION_EPSILON;
+            target_aabb = make_player_aabb_at_position(target_position);
+            player.velocity.y = 0.0f;
+          }
+    }
+
+//  /_ _|/_ _|/_ _|/
+//  /_ _|/ * |/_ _|/
+//  /___|/_ _|/_x_|/
+    voxel_x = player_vox_x + 1;
+    voxel_z = player_vox_z - 1;
+    voxel_y = player_vox_y + 2;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_max > voxel->aabb.x_min)
+        if(target_aabb.z_min < voxel->aabb.z_max)
+          if(target_aabb.y_max > voxel->aabb.y_min){
+            target_position.y = voxel->aabb.y_min - player.height - COLLISION_EPSILON;
+            target_aabb = make_player_aabb_at_position(target_position);
+            player.velocity.y = 0.0f;
+          }
+    }
+
+//  /_ _|/_ _|/_ _|/
+//  /_ _|/ * |/_ _|/
+//  /_x_|/_ _|/_ _|/
+    voxel_x = player_vox_x - 1;
+    voxel_z = player_vox_z - 1;
+    voxel_y = player_vox_y + 2;
+
+    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+
+    if(voxel->type != VOXEL_TYPE_AIR){
+      if(target_aabb.x_min < voxel->aabb.x_max)
+        if(target_aabb.z_min < voxel->aabb.z_max)
+          if(target_aabb.y_max > voxel->aabb.y_min){
+            target_position.y = voxel->aabb.y_min - player.height - COLLISION_EPSILON;
+            target_aabb = make_player_aabb_at_position(target_position);
+            player.velocity.y = 0.0f;
+          }
+    }
+  }
+
+  player.position.y = target_position.y;
+  update_player_aabb();
+}
+
+void move_player_z2(float movement_z){
+  if(player.position.z + movement_z < 0) return;
+  if(player.position.z + movement_z > MAP_NUM_VOXELS_Z) return;
+
   if(movement_z == 0.0f) return;
 
   vector3_t target_position = player.position;
@@ -497,7 +1483,7 @@ void move_player_z(float movement_z){
         voxel_t *voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
         if(voxel->type == VOXEL_TYPE_AIR) continue;
-        if(!aabb_overlaps_xy(&target_aabb, &voxel->aabb)) continue;
+        if(!aabb_3d_overlaps_xy(&target_aabb, &voxel->aabb)) continue;
 
         if(movement_z > 0.0f){
           if(target_aabb.z_max > voxel->aabb.z_min){
@@ -519,9 +1505,12 @@ void move_player_z(float movement_z){
   update_player_aabb();
 }
 
-void move_player_y(float movement_y){
+void move_player_y2(float movement_y){
   vector3_t target_position = player.position;
   target_position.y += movement_y;
+
+  if(player.position.y + movement_y < 0) return;
+  if(player.position.y + movement_y > MAP_NUM_VOXELS_Y) return;
 
   aabb_3d_t target_aabb = make_player_aabb_at_position(target_position);
 
@@ -539,7 +1528,7 @@ void move_player_y(float movement_y){
         voxel_t *voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
         if(voxel->type == VOXEL_TYPE_AIR) continue;
-        if(!aabb_overlaps_xz(&target_aabb, &voxel->aabb)) continue;
+        if(!aabb_3d_overlaps_xz(&target_aabb, &voxel->aabb)) continue;
 
         if(movement_y < 0.0f){
           if(player.aabb.y_min >= voxel->aabb.y_max && target_aabb.y_min <= voxel->aabb.y_max){
@@ -2174,6 +3163,8 @@ inline uint32_t rasterize_triangle_no_zbuffer_write(
         );
     }
   }
+
+  return 0;
 }
 
 /* 
@@ -2378,15 +3369,14 @@ void process_frame_rate(void) {
 }
 
 void generate_game_data(){
-  if((time_count & 0x1F) == 0)
-    snprintf(text0, 256, "%ut, %upx, %uc, %ufps, (%d:%d:%d), %d:%d, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
-      total_triangles_rendered, total_pixels_rendered, total_chunks_rendered, fps, 
-      player_voxel_x, player_voxel_y, player_voxel_z,
-      player_chunk_x, player_chunk_z,
-      player.position.x, player.position.y, player.position.z,
-      player.direction.x, player.direction.y, player.direction.z,
-      player.theta, player.eta
-    );
+  snprintf(text0, 256, "%ut, %upx, %uc, %ufps, (%d:%d:%d), %d:%d, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
+    total_triangles_rendered, total_pixels_rendered, total_chunks_rendered, fps, 
+    player_voxel_x, player_voxel_y, player_voxel_z,
+    player_chunk_x, player_chunk_z,
+    player.position.x, player.position.y, player.position.z,
+    player.direction.x, player.direction.y, player.direction.z,
+    player.theta, player.eta
+  );
 }
 
 int main(int argc, char *argv[]){
@@ -2406,7 +3396,19 @@ int main(int argc, char *argv[]){
     render_visible_chunks();
     
     generate_game_data();
-    draw_text_to_color_buffer(10, window_height - 20, text0, (color_t){.uint32 = 0xFFFFFFFF}, 1);
+
+    if(options.show_debug_info){
+      char s[256];
+      sprintf(s, "x collision step: start_x: %d, end_x: %d, start_y: %d, end_y: %d, start_z: %d, end_z: %d", 
+        debug_x_collision_start_x, debug_x_collision_end_x,
+        debug_x_collision_start_y, debug_x_collision_end_y,
+        debug_x_collision_start_z, debug_x_collision_end_z
+      );
+      draw_text_to_color_buffer(10, 10, s, (color_t){.uint32 = 0xFFFFFFFF}, 1);
+
+      draw_text_to_color_buffer(10, window_height - 20, text0, (color_t){.uint32 = 0xFFFFFFFF}, 1);
+    }
+
     render_console();
 
     sdl_render();

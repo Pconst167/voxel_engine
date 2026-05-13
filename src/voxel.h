@@ -6,7 +6,7 @@
 #include "mesh.h"
 #include "light.h"
 
-#define MAP_NUM_VOXELS_X 256
+#define MAP_NUM_VOXELS_X 128
 #define MAP_NUM_VOXELS_Z 128
 #define MAP_NUM_VOXELS_Y 64
 #define CHUNK_SIZE 16

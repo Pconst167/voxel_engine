@@ -33,8 +33,8 @@ void setup(void);
 void draw_char_to_color_buffer(int x, int y, char character, color_t color, int scale);
 void draw_text_to_color_buffer(int x, int y, const char *text, color_t color, int scale);
 
-inline uint32_t rasterize_triangle(triangle_t *triangle);
-inline uint32_t rasterize_triangle_no_zbuffer_write(triangle_t *triangle, material_t face_material, light_intensity_rgb_t total_light_intensity);
+uint32_t rasterize_triangle(triangle_t *triangle);
+uint32_t rasterize_triangle_no_zbuffer_write(triangle_t *triangle, material_t face_material, light_intensity_rgb_t total_light_intensity);
 
 bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane);
 uint32_t chunk_num_vertices_inside_plane(chunk_t *chunk, frustrum_plane_t frustrum_plane);

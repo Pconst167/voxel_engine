@@ -19,6 +19,7 @@ typedef struct{
   bool render_collision_aabb_outlines;
   bool log;
   bool sort;
+  bool show_debug_info;
 } options_t;
 
 extern options_t options;

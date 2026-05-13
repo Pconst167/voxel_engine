@@ -24,3 +24,18 @@ void update_player_aabb(void){
   player.aabb.z_min = player.position.z - player.radius;
   player.aabb.z_max = player.position.z + player.radius;
 }
+
+aabb_3d_t make_player_aabb_at_position(vector3_t position){
+  aabb_3d_t aabb;
+
+  aabb.x_min = position.x - player.radius;
+  aabb.x_max = position.x + player.radius;
+
+  aabb.y_min = position.y;
+  aabb.y_max = position.y + player.height;
+
+  aabb.z_min = position.z - player.radius;
+  aabb.z_max = position.z + player.radius;
+
+  return aabb;
+}

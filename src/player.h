@@ -27,5 +27,6 @@ extern player_t player;
 extern vector3_t player_direction_orthogonal_left_right;
 
 void update_player_aabb(void);
+aabb_3d_t make_player_aabb_at_position(vector3_t position);
 
 #endif
