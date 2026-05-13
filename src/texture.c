@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "upng.h"
 #include "texture.h"
+#include "upng.h"
 #include "log.h"
 #include "debug.h"
 

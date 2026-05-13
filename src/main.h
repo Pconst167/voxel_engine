@@ -52,7 +52,6 @@ bool resolve_player_against_object_aabb_xz(const collision_aabb_t *box);
 void resolve_player_against_object_collisions();
 
 void move_player_with_voxel_collision(vector3_t movement);
-void get_voxel_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, int *start_y, int *end_y, int *start_z, int *end_z);
 
 void load_skybox();
 

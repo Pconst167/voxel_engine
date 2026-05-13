@@ -73,7 +73,7 @@ void init_voxel_map(){
         else if(y >= 33 && y <= 40){
           voxels[y][z][x].type = VOXEL_TYPE_DIRT;
         }
-        else if(y == 41){
+        else if(y == 41 || y == 42 || y == 43){
           if(xorshift32() % 5 == 0)
             voxels[y][z][x].type = VOXEL_TYPE_GRASS;
           else
@@ -92,4 +92,15 @@ void init_voxel_map(){
       }
     }
   }
+}
+
+void get_voxel_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, int *start_y, int *end_y, int *start_z, int *end_z){
+  *start_x = clamp_int((int)floorf(aabb->x_min), 0, MAP_NUM_VOXELS_X - 1);
+  *end_x   = clamp_int((int)floorf(aabb->x_max), 0, MAP_NUM_VOXELS_X - 1);
+
+  *start_y = clamp_int((int)floorf(aabb->y_min), 0, MAP_NUM_VOXELS_Y - 1);
+  *end_y   = clamp_int((int)floorf(aabb->y_max), 0, MAP_NUM_VOXELS_Y - 1);
+
+  *start_z = clamp_int((int)floorf(aabb->z_min), 0, MAP_NUM_VOXELS_Z - 1);
+  *end_z   = clamp_int((int)floorf(aabb->z_max), 0, MAP_NUM_VOXELS_Z - 1);
 }

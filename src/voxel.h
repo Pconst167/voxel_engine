@@ -65,5 +65,6 @@ extern voxel_material_t voxel_materials[4];
 extern voxel_t voxels[MAP_NUM_VOXELS_Y][MAP_NUM_VOXELS_Z][MAP_NUM_VOXELS_X];
 
 void init_voxel_map();
+void get_voxel_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, int *start_y, int *end_y, int *start_z, int *end_z);
 
 #endif

@@ -1,1 +1,6 @@
-#include <SDL2/SDL.h>
+#ifndef TEXT_H
+#define TEXT_H
+
+
+
+#endif
