@@ -73,7 +73,7 @@ void init_voxel_map(){
         else if(y >= 33 && y <= 40){
           voxels[y][z][x].type = VOXEL_TYPE_DIRT;
         }
-        else if(y == 41 || y == 42 || y == 43){
+        else if(y == 41 || y == 42){
           if(xorshift32() % 5 == 0)
             voxels[y][z][x].type = VOXEL_TYPE_GRASS;
           else
@@ -103,4 +103,185 @@ void get_voxel_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, 
 
   *start_z = clamp_int((int)floorf(aabb->z_min), 0, MAP_NUM_VOXELS_Z - 1);
   *end_z   = clamp_int((int)floorf(aabb->z_max), 0, MAP_NUM_VOXELS_Z - 1);
+}
+
+voxel_quad_t generate_voxel_quad(voxel_quad_type_t quad_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col){
+  voxel_quad_t quad;
+
+  switch(quad_type){
+    case VOXEL_QUAD_TOP:
+      quad.points[0].x = x_col;
+      quad.points[0].y = y_plane + 1.0f;
+      quad.points[0].z = z_row;
+      quad.points[1].x = x_col;
+      quad.points[1].y = y_plane + 1.0f;
+      quad.points[1].z = z_row + 1.0f;
+      quad.points[2].x = x_col + 1.0f;
+      quad.points[2].y = y_plane + 1.0f;
+      quad.points[2].z = z_row;
+      quad.uv[0].u = 0.0f;
+      quad.uv[0].v = 0.0f;
+      quad.uv[1].u = 0.0f;
+      quad.uv[1].v = 1.0f;
+      quad.uv[2].u = 1.0f;
+      quad.uv[2].v = 0.0f;
+      // right side unshared vertex
+      quad.points[3].x = x_col + 1.0f;
+      quad.points[3].y = y_plane + 1.0f;
+      quad.points[3].z = z_row + 1.0f;
+      quad.uv[3].u = 1.0f;
+      quad.uv[3].v = 1.0f;
+      quad.uv[4].u = 1.0f;
+      quad.uv[4].v = 0.0f;
+      quad.uv[5].u = 0.0f;
+      quad.uv[5].v = 1.0f;
+      quad.quad_type = VOXEL_QUAD_TOP;
+      return quad;
+      
+    case VOXEL_QUAD_BOTTOM:
+      quad.points[0].x = x_col;
+      quad.points[0].y = y_plane;
+      quad.points[0].z = z_row;
+      quad.points[1].x = x_col + 1.0f;
+      quad.points[1].y = y_plane;
+      quad.points[1].z = z_row;
+      quad.points[2].x = x_col;
+      quad.points[2].y = y_plane;
+      quad.points[2].z = z_row + 1.0f;
+      quad.uv[0].u = 0.0f;
+      quad.uv[0].v = 0.0f;
+      quad.uv[1].u = 1.0f;
+      quad.uv[1].v = 0.0f;
+      quad.uv[2].u = 0.0f;
+      quad.uv[2].v = 1.0f;
+      // right side unshared vertex
+      quad.points[3].x = x_col + 1.0f;
+      quad.points[3].y = y_plane;
+      quad.points[3].z = z_row + 1.0f;
+      quad.uv[3].u = 1.0f;
+      quad.uv[3].v = 1.0f;
+      quad.uv[4].u = 0.0f;
+      quad.uv[4].v = 1.0f;
+      quad.uv[5].u = 1.0f;
+      quad.uv[5].v = 0.0f;
+      quad.quad_type = VOXEL_QUAD_BOTTOM;
+    return quad;
+    
+    case VOXEL_QUAD_LEFT:
+      quad.points[0].x = x_col;
+      quad.points[0].y = y_plane;
+      quad.points[0].z = z_row + 1.0f;
+      quad.points[1].x = x_col;
+      quad.points[1].y = y_plane + 1.0f;
+      quad.points[1].z = z_row + 1.0f;
+      quad.points[2].x = x_col;
+      quad.points[2].y = y_plane;
+      quad.points[2].z = z_row;
+      quad.uv[0].u = 0.0f;
+      quad.uv[0].v = 0.0f;
+      quad.uv[1].u = 0.0f;
+      quad.uv[1].v = 1.0f;
+      quad.uv[2].u = 1.0f;
+      quad.uv[2].v = 0.0f;
+      // right side unshared vertex
+      quad.points[3].x = x_col;
+      quad.points[3].y = y_plane + 1.0f;
+      quad.points[3].z = z_row;
+      quad.uv[3].u = 1.0f;
+      quad.uv[3].v = 1.0f;
+      quad.uv[4].u = 1.0f;
+      quad.uv[4].v = 0.0f;
+      quad.uv[5].u = 0.0f;
+      quad.uv[5].v = 1.0f;
+      quad.quad_type = VOXEL_QUAD_LEFT;
+      return quad;
+      
+    case VOXEL_QUAD_RIGHT:
+      quad.points[0].x = x_col + 1.0f;
+      quad.points[0].y = y_plane;
+      quad.points[0].z = z_row;
+      quad.points[1].x = x_col + 1.0f;
+      quad.points[1].y = y_plane + 1.0f;
+      quad.points[1].z = z_row;
+      quad.points[2].x = x_col + 1.0f;
+      quad.points[2].y = y_plane;
+      quad.points[2].z = z_row + 1.0f;
+      quad.uv[0].u = 0.0f;
+      quad.uv[0].v = 0.0f;
+      quad.uv[1].u = 0.0f;
+      quad.uv[1].v = 1.0f;
+      quad.uv[2].u = 1.0f;
+      quad.uv[2].v = 0.0f;
+      // right side unshared vertex
+      quad.points[3].x = x_col + 1.0f;
+      quad.points[3].y = y_plane + 1.0f;
+      quad.points[3].z = z_row + 1.0f;
+      quad.uv[3].u = 1.0f;
+      quad.uv[3].v = 1.0f;
+      quad.uv[4].u = 1.0f;
+      quad.uv[4].v = 0.0f;
+      quad.uv[5].u = 0.0f;
+      quad.uv[5].v = 1.0f;
+      quad.quad_type = VOXEL_QUAD_RIGHT;
+      return quad;
+      
+    case VOXEL_QUAD_BACK:
+      quad.points[0].x = x_col;
+      quad.points[0].y = y_plane;
+      quad.points[0].z = z_row;
+      quad.points[1].x = x_col;
+      quad.points[1].y = y_plane + 1.0f;
+      quad.points[1].z = z_row;
+      quad.points[2].x = x_col + 1.0f;
+      quad.points[2].y = y_plane;
+      quad.points[2].z = z_row;
+      quad.uv[0].u = 0.0f;
+      quad.uv[0].v = 0.0f;
+      quad.uv[1].u = 0.0f;
+      quad.uv[1].v = 1.0f;
+      quad.uv[2].u = 1.0f;
+      quad.uv[2].v = 0.0f;
+      // right side unshared vertex
+      quad.points[3].x = x_col + 1.0f;
+      quad.points[3].y = y_plane + 1.0f;
+      quad.points[3].z = z_row;
+      quad.uv[3].u = 1.0f;
+      quad.uv[3].v = 1.0f;
+      quad.uv[4].u = 1.0f;
+      quad.uv[4].v = 0.0f;
+      quad.uv[5].u = 0.0f;
+      quad.uv[5].v = 1.0f;
+      quad.quad_type = VOXEL_QUAD_BACK;
+      return quad;
+      
+    case VOXEL_QUAD_FRONT:
+    default:
+      quad.points[0].x = x_col + 1.0f;
+      quad.points[0].y = y_plane;
+      quad.points[0].z = z_row + 1.0f;
+      quad.points[1].x = x_col + 1.0f;
+      quad.points[1].y = y_plane + 1.0f;
+      quad.points[1].z = z_row + 1.0f;
+      quad.points[2].x = x_col;
+      quad.points[2].y = y_plane;
+      quad.points[2].z = z_row + 1.0f;
+      quad.uv[0].u = 0.0f;
+      quad.uv[0].v = 0.0f;
+      quad.uv[1].u = 0.0f;
+      quad.uv[1].v = 1.0f;
+      quad.uv[2].u = 1.0f;
+      quad.uv[2].v = 0.0f;
+      // right side unshared vertex
+      quad.points[3].x = x_col;
+      quad.points[3].y = y_plane + 1.0f;
+      quad.points[3].z = z_row + 1.0f;
+      quad.uv[3].u = 1.0f;
+      quad.uv[3].v = 1.0f;
+      quad.uv[4].u = 1.0f;
+      quad.uv[4].v = 0.0f;
+      quad.uv[5].u = 0.0f;
+      quad.uv[5].v = 1.0f;
+      quad.quad_type = VOXEL_QUAD_FRONT;
+      return quad;
+  }
 }

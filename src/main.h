@@ -16,7 +16,7 @@ void generate_game_data();
 void render_console();
 void free_resources(void);
 void object_quicksort(object_sort_key_t *array, int count);
-void qs(object_sort_key_t *array, int left, int right);
+void qs_object(object_sort_key_t *array, int left, int right);
 void chunk_quicksort(chunk_sort_key_t *array, int count);
 void qs_chunk(chunk_sort_key_t *array, int left, int right);
 void triangle_quicksort(triangle_t *array, int count);
@@ -51,7 +51,9 @@ void draw_collision_aabb_outlines(void);
 bool resolve_player_against_object_aabb_xz(const collision_aabb_t *box);
 void resolve_player_against_object_collisions();
 
-void move_player_with_voxel_collision(vector3_t movement);
+void move_player_x(float movement_x);
+void move_player_y(float movement_y);
+void move_player_z(float movement_z);
 
 void load_skybox();
 

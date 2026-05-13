@@ -397,7 +397,73 @@ void run_console_command(){
   }
 }
 
-void move_player_x(float movement_x){
+void move_player(void){
+  const uint8_t *keys = SDL_GetKeyboardState(NULL);
+  bool shift = keys[SDL_SCANCODE_LSHIFT] || keys[SDL_SCANCODE_RSHIFT];
+
+  float move_speed_delta_time = ((shift) ? PLAYER_SPEED_SHIFT_KEY_FACTOR * move_speed : move_speed) * delta_time;
+  float turn_speed_delta_time = turn_speed * delta_time;
+
+  vector3_t movement = {
+    .x = 0.0f,
+    .y = 0.0f,
+    .z = 0.0f
+  };
+
+  if(keys[SDL_SCANCODE_LEFT])
+    player.theta += turn_speed_delta_time;
+
+  if(keys[SDL_SCANCODE_RIGHT])
+    player.theta -= turn_speed_delta_time;
+
+  if(keys[SDL_SCANCODE_UP]){
+    player.eta += turn_speed_delta_time;
+    if(player.eta > ETA_MAX) player.eta = ETA_MAX;
+  }
+
+  if(keys[SDL_SCANCODE_DOWN]){
+    player.eta -= turn_speed_delta_time;
+    if(player.eta < -ETA_MAX) player.eta = -ETA_MAX;
+  }
+
+  if(keys[SDL_SCANCODE_A]){
+    movement.x += player_direction_orthogonal_left_right.x * move_speed_delta_time;
+    movement.z += player_direction_orthogonal_left_right.z * move_speed_delta_time;
+  }
+
+  if(keys[SDL_SCANCODE_D]){
+    movement.x -= player_direction_orthogonal_left_right.x * move_speed_delta_time;
+    movement.z -= player_direction_orthogonal_left_right.z * move_speed_delta_time;
+  }
+
+  if(keys[SDL_SCANCODE_W]){
+    movement.x += player.direction.x * move_speed_delta_time;
+    movement.z += player.direction.z * move_speed_delta_time;
+  }
+
+  if(keys[SDL_SCANCODE_S]){
+    movement.x -= player.direction.x * move_speed_delta_time;
+    movement.z -= player.direction.z * move_speed_delta_time;
+  }
+
+  if(keys[SDL_SCANCODE_SPACE] && player.on_ground){
+    player.velocity.y = PLAYER_JUMP_VELOCITY;
+    player.on_ground = false;
+  }
+
+  // gravity
+  player.velocity.y -= PLAYER_GRAVITY * delta_time;
+  if(player.velocity.y < -PLAYER_MAX_FALL_SPEED) player.velocity.y = -PLAYER_MAX_FALL_SPEED;
+  movement.y = player.velocity.y * delta_time;
+  if(player.on_ground && movement.y <= 0.0f) movement.y = -PLAYER_GROUND_PROBE_SPEED * delta_time;
+
+  move_player_x(movement.x);
+  move_player_z(movement.z);
+  move_player_y(movement.y);
+}
+
+__attribute__((optimize("Ofast")))
+inline void move_player_x(float movement_x){
   if(movement_x == 0.0f) return;
 
   if(player.position.x + movement_x < 0) return;
@@ -736,7 +802,8 @@ void move_player_x(float movement_x){
   update_player_aabb();
 }
 
-void move_player_z(float movement_z){
+__attribute__((optimize("Ofast")))
+inline void move_player_z(float movement_z){
   if(movement_z == 0.0f) return;
 
   if(player.position.z + movement_z < 0) return;
@@ -1076,7 +1143,8 @@ void move_player_z(float movement_z){
   update_player_aabb();
 }
 
-void move_player_y(float movement_y){
+__attribute__((optimize("Ofast")))
+inline void move_player_y(float movement_y){
 
   if(movement_y == 0.0f) return;
 
@@ -1542,71 +1610,6 @@ void move_player_y_old(float movement_y){
   update_player_aabb();
 }
 
-void move_player(void){
-  const uint8_t *keys = SDL_GetKeyboardState(NULL);
-  bool shift = keys[SDL_SCANCODE_LSHIFT] || keys[SDL_SCANCODE_RSHIFT];
-
-  float move_speed_delta_time = ((shift) ? PLAYER_SPEED_SHIFT_KEY_FACTOR * move_speed : move_speed) * delta_time;
-  float turn_speed_delta_time = turn_speed * delta_time;
-
-  vector3_t movement = {
-    .x = 0.0f,
-    .y = 0.0f,
-    .z = 0.0f
-  };
-
-  if(keys[SDL_SCANCODE_LEFT])
-    player.theta += turn_speed_delta_time;
-
-  if(keys[SDL_SCANCODE_RIGHT])
-    player.theta -= turn_speed_delta_time;
-
-  if(keys[SDL_SCANCODE_UP]){
-    player.eta += turn_speed_delta_time;
-    if(player.eta > ETA_MAX) player.eta = ETA_MAX;
-  }
-
-  if(keys[SDL_SCANCODE_DOWN]){
-    player.eta -= turn_speed_delta_time;
-    if(player.eta < -ETA_MAX) player.eta = -ETA_MAX;
-  }
-
-  if(keys[SDL_SCANCODE_A]){
-    movement.x += player_direction_orthogonal_left_right.x * move_speed_delta_time;
-    movement.z += player_direction_orthogonal_left_right.z * move_speed_delta_time;
-  }
-
-  if(keys[SDL_SCANCODE_D]){
-    movement.x -= player_direction_orthogonal_left_right.x * move_speed_delta_time;
-    movement.z -= player_direction_orthogonal_left_right.z * move_speed_delta_time;
-  }
-
-  if(keys[SDL_SCANCODE_W]){
-    movement.x += player.direction.x * move_speed_delta_time;
-    movement.z += player.direction.z * move_speed_delta_time;
-  }
-
-  if(keys[SDL_SCANCODE_S]){
-    movement.x -= player.direction.x * move_speed_delta_time;
-    movement.z -= player.direction.z * move_speed_delta_time;
-  }
-
-  if(keys[SDL_SCANCODE_SPACE] && player.on_ground){
-    player.velocity.y = PLAYER_JUMP_VELOCITY;
-    player.on_ground = false;
-  }
-
-  // gravity
-  player.velocity.y -= PLAYER_GRAVITY * delta_time;
-  if(player.velocity.y < -PLAYER_MAX_FALL_SPEED) player.velocity.y = -PLAYER_MAX_FALL_SPEED;
-  movement.y = player.velocity.y * delta_time;
-  if(player.on_ground && movement.y <= 0.0f) movement.y = -PLAYER_GROUND_PROBE_SPEED * delta_time;
-
-  move_player_x(movement.x);
-  move_player_z(movement.z);
-  move_player_y(movement.y);
-}
-
 bool resolve_player_against_object_aabb_xz(const collision_aabb_t *box){
   float player_bottom = player.position.y;
   float player_top = player.position.y + player.height;
@@ -1824,7 +1827,7 @@ void render_visible_chunks_sorted(void) {
     int z_row = chunk_sort_keys[i].chunk_z_row;
     int x_col = chunk_sort_keys[i].chunk_x_col;
 
-    render_chunk_objects(&chunks[z_row][x_col]);
+    //render_chunk_objects(&chunks[z_row][x_col]);
     render_chunk_voxels(z_row, x_col);
 
     total_chunks_rendered++;
@@ -1989,187 +1992,6 @@ bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane
   }
 
   return false;
-}
-
-voxel_quad_t generate_voxel_quad(voxel_quad_type_t quad_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col){
-  voxel_quad_t quad;
-
-  switch(quad_type){
-    case VOXEL_QUAD_TOP:
-      quad.points[0].x = x_col;
-      quad.points[0].y = y_plane + 1.0f;
-      quad.points[0].z = z_row;
-      quad.points[1].x = x_col;
-      quad.points[1].y = y_plane + 1.0f;
-      quad.points[1].z = z_row + 1.0f;
-      quad.points[2].x = x_col + 1.0f;
-      quad.points[2].y = y_plane + 1.0f;
-      quad.points[2].z = z_row;
-      quad.uv[0].u = 0.0f;
-      quad.uv[0].v = 0.0f;
-      quad.uv[1].u = 0.0f;
-      quad.uv[1].v = 1.0f;
-      quad.uv[2].u = 1.0f;
-      quad.uv[2].v = 0.0f;
-      // right side unshared vertex
-      quad.points[3].x = x_col + 1.0f;
-      quad.points[3].y = y_plane + 1.0f;
-      quad.points[3].z = z_row + 1.0f;
-      quad.uv[3].u = 1.0f;
-      quad.uv[3].v = 1.0f;
-      quad.uv[4].u = 1.0f;
-      quad.uv[4].v = 0.0f;
-      quad.uv[5].u = 0.0f;
-      quad.uv[5].v = 1.0f;
-      quad.quad_type = VOXEL_QUAD_TOP;
-      return quad;
-      
-    case VOXEL_QUAD_BOTTOM:
-      quad.points[0].x = x_col;
-      quad.points[0].y = y_plane;
-      quad.points[0].z = z_row;
-      quad.points[1].x = x_col + 1.0f;
-      quad.points[1].y = y_plane;
-      quad.points[1].z = z_row;
-      quad.points[2].x = x_col;
-      quad.points[2].y = y_plane;
-      quad.points[2].z = z_row + 1.0f;
-      quad.uv[0].u = 0.0f;
-      quad.uv[0].v = 0.0f;
-      quad.uv[1].u = 1.0f;
-      quad.uv[1].v = 0.0f;
-      quad.uv[2].u = 0.0f;
-      quad.uv[2].v = 1.0f;
-      // right side unshared vertex
-      quad.points[3].x = x_col + 1.0f;
-      quad.points[3].y = y_plane;
-      quad.points[3].z = z_row + 1.0f;
-      quad.uv[3].u = 1.0f;
-      quad.uv[3].v = 1.0f;
-      quad.uv[4].u = 0.0f;
-      quad.uv[4].v = 1.0f;
-      quad.uv[5].u = 1.0f;
-      quad.uv[5].v = 0.0f;
-      quad.quad_type = VOXEL_QUAD_BOTTOM;
-    return quad;
-    
-    case VOXEL_QUAD_LEFT:
-      quad.points[0].x = x_col;
-      quad.points[0].y = y_plane;
-      quad.points[0].z = z_row + 1.0f;
-      quad.points[1].x = x_col;
-      quad.points[1].y = y_plane + 1.0f;
-      quad.points[1].z = z_row + 1.0f;
-      quad.points[2].x = x_col;
-      quad.points[2].y = y_plane;
-      quad.points[2].z = z_row;
-      quad.uv[0].u = 0.0f;
-      quad.uv[0].v = 0.0f;
-      quad.uv[1].u = 0.0f;
-      quad.uv[1].v = 1.0f;
-      quad.uv[2].u = 1.0f;
-      quad.uv[2].v = 0.0f;
-      // right side unshared vertex
-      quad.points[3].x = x_col;
-      quad.points[3].y = y_plane + 1.0f;
-      quad.points[3].z = z_row;
-      quad.uv[3].u = 1.0f;
-      quad.uv[3].v = 1.0f;
-      quad.uv[4].u = 1.0f;
-      quad.uv[4].v = 0.0f;
-      quad.uv[5].u = 0.0f;
-      quad.uv[5].v = 1.0f;
-      quad.quad_type = VOXEL_QUAD_LEFT;
-      return quad;
-      
-    case VOXEL_QUAD_RIGHT:
-      quad.points[0].x = x_col + 1.0f;
-      quad.points[0].y = y_plane;
-      quad.points[0].z = z_row;
-      quad.points[1].x = x_col + 1.0f;
-      quad.points[1].y = y_plane + 1.0f;
-      quad.points[1].z = z_row;
-      quad.points[2].x = x_col + 1.0f;
-      quad.points[2].y = y_plane;
-      quad.points[2].z = z_row + 1.0f;
-      quad.uv[0].u = 0.0f;
-      quad.uv[0].v = 0.0f;
-      quad.uv[1].u = 0.0f;
-      quad.uv[1].v = 1.0f;
-      quad.uv[2].u = 1.0f;
-      quad.uv[2].v = 0.0f;
-      // right side unshared vertex
-      quad.points[3].x = x_col + 1.0f;
-      quad.points[3].y = y_plane + 1.0f;
-      quad.points[3].z = z_row + 1.0f;
-      quad.uv[3].u = 1.0f;
-      quad.uv[3].v = 1.0f;
-      quad.uv[4].u = 1.0f;
-      quad.uv[4].v = 0.0f;
-      quad.uv[5].u = 0.0f;
-      quad.uv[5].v = 1.0f;
-      quad.quad_type = VOXEL_QUAD_RIGHT;
-      return quad;
-      
-    case VOXEL_QUAD_BACK:
-      quad.points[0].x = x_col;
-      quad.points[0].y = y_plane;
-      quad.points[0].z = z_row;
-      quad.points[1].x = x_col;
-      quad.points[1].y = y_plane + 1.0f;
-      quad.points[1].z = z_row;
-      quad.points[2].x = x_col + 1.0f;
-      quad.points[2].y = y_plane;
-      quad.points[2].z = z_row;
-      quad.uv[0].u = 0.0f;
-      quad.uv[0].v = 0.0f;
-      quad.uv[1].u = 0.0f;
-      quad.uv[1].v = 1.0f;
-      quad.uv[2].u = 1.0f;
-      quad.uv[2].v = 0.0f;
-      // right side unshared vertex
-      quad.points[3].x = x_col + 1.0f;
-      quad.points[3].y = y_plane + 1.0f;
-      quad.points[3].z = z_row;
-      quad.uv[3].u = 1.0f;
-      quad.uv[3].v = 1.0f;
-      quad.uv[4].u = 1.0f;
-      quad.uv[4].v = 0.0f;
-      quad.uv[5].u = 0.0f;
-      quad.uv[5].v = 1.0f;
-      quad.quad_type = VOXEL_QUAD_BACK;
-      return quad;
-      
-    case VOXEL_QUAD_FRONT:
-    default:
-      quad.points[0].x = x_col + 1.0f;
-      quad.points[0].y = y_plane;
-      quad.points[0].z = z_row + 1.0f;
-      quad.points[1].x = x_col + 1.0f;
-      quad.points[1].y = y_plane + 1.0f;
-      quad.points[1].z = z_row + 1.0f;
-      quad.points[2].x = x_col;
-      quad.points[2].y = y_plane;
-      quad.points[2].z = z_row + 1.0f;
-      quad.uv[0].u = 0.0f;
-      quad.uv[0].v = 0.0f;
-      quad.uv[1].u = 0.0f;
-      quad.uv[1].v = 1.0f;
-      quad.uv[2].u = 1.0f;
-      quad.uv[2].v = 0.0f;
-      // right side unshared vertex
-      quad.points[3].x = x_col;
-      quad.points[3].y = y_plane + 1.0f;
-      quad.points[3].z = z_row + 1.0f;
-      quad.uv[3].u = 1.0f;
-      quad.uv[3].v = 1.0f;
-      quad.uv[4].u = 1.0f;
-      quad.uv[4].v = 0.0f;
-      quad.uv[5].u = 0.0f;
-      quad.uv[5].v = 1.0f;
-      quad.quad_type = VOXEL_QUAD_FRONT;
-      return quad;
-  }
 }
 
 void render_voxel_quad(voxel_quad_t voxel_quad, voxel_material_t *voxel_material){
@@ -3013,9 +2835,7 @@ void update_state(void){
   };
 }
 
-inline uint32_t rasterize_triangle(
-  triangle_t *triangle
-){
+inline uint32_t rasterize_triangle(triangle_t *triangle){
   if(options.projection_mode == TEXT_WIREFRAME){
     draw_triangle(
       triangle->points[0].x, triangle->points[0].y,
@@ -3239,7 +3059,8 @@ void render_sun(void){
   }
 }
 
-void qs_chunk(chunk_sort_key_t *array, int left, int right){
+__attribute__((optimize("Ofast")))
+inline void qs_chunk(chunk_sort_key_t *array, int left, int right){
   int i = left;
   int j = right;
   float pivot = array[(left + right) / 2].sort_z;
@@ -3261,12 +3082,14 @@ void qs_chunk(chunk_sort_key_t *array, int left, int right){
   if(i < right) qs_chunk(array, i, right);
 }
 
+__attribute__((optimize("Ofast")))
 inline void chunk_quicksort(chunk_sort_key_t *array, int count){
   if(count > 1)
     qs_chunk(array, 0, count - 1);
 }
 
-void qs(object_sort_key_t *array, int left, int right){
+__attribute__((optimize("Ofast")))
+inline void qs_object(object_sort_key_t *array, int left, int right){
   int i = left;
   int j = right;
   float pivot = array[(left + right) / 2].sort_z;
@@ -3284,16 +3107,18 @@ void qs(object_sort_key_t *array, int left, int right){
     }
   }
 
-  if(left < j) qs(array, left, j);
-  if(i < right) qs(array, i, right);
+  if(left < j) qs_object(array, left, j);
+  if(i < right) qs_object(array, i, right);
 }
 
+__attribute__((optimize("Ofast")))
 inline void object_quicksort(object_sort_key_t *array, int count){
   if(count > 1)
-    qs(array, 0, count - 1);
+    qs_object(array, 0, count - 1);
 }
 
-void qs_triangle(triangle_t *array, int left, int right){
+__attribute__((optimize("Ofast")))
+inline void qs_triangle(triangle_t *array, int left, int right){
   int i = left;
   int j = right;
   float pivot = array[(left + right) / 2].avg_w;
@@ -3315,6 +3140,7 @@ void qs_triangle(triangle_t *array, int left, int right){
   if(i < right) qs_triangle(array, i, right);
 }
 
+__attribute__((optimize("Ofast")))
 inline void triangle_quicksort(triangle_t *array, int count){
   if(count > 1)
     qs_triangle(array, 0, count - 1);
