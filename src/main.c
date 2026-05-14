@@ -112,7 +112,7 @@
 #define MOUSE_SENSITIVITY 0.005f
 #define DAY_LENGTH (1.01f * 60.0f * 60.0f / 0.016f) /* hours */
 
-#define FOV_Y_DEG 80.0
+#define FOV_Y_DEG 75.0
 #define FOV_Y (FOV_Y_DEG * M_PI / 180.0)
 #define ZNEAR 0.1f
 #define ZFAR 300.0f
@@ -2530,7 +2530,7 @@ void update_state(void){
   /* camera tracks player */
   camera.position = (vector3_t){
     .x = player.position.x,
-    .y = player.position.y + player.height * 0.9,
+    .y = player.position.y + player.height * 0.92,
     .z = player.position.z
   };
   camera.direction = (vector3_t){

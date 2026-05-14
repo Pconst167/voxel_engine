@@ -7,7 +7,7 @@ player_t player = {
   .theta          = M_PI_2,
   .eta            = 0.0f,
   .radius         = 0.30f,
-  .height         = 1.80f,
+  .height         = 1.95f,
   .aabb           = {0},
   .on_ground      = false
 };
