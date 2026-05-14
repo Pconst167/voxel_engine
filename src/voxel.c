@@ -67,13 +67,13 @@ void init_voxel_map(){
   for(uint32_t y = 0; y < MAP_NUM_VOXELS_Y; y++){
     for(uint32_t z = 0; z < MAP_NUM_VOXELS_Z; z++){
       for(uint32_t x = 0; x < MAP_NUM_VOXELS_X; x++){
-        if(y <= 32){
+        if(y <= 20){
           voxels[y][z][x].type = VOXEL_TYPE_STONE;
         }
-        else if(y >= 33 && y <= 40){
+        else if(y >= 21 && y <= 25){
           voxels[y][z][x].type = VOXEL_TYPE_DIRT;
         }
-        else if(y == 41 || y == 42){
+        else if(y == 26){
           if(xorshift32() % 5 == 0)
             voxels[y][z][x].type = VOXEL_TYPE_GRASS;
           else
@@ -81,6 +81,13 @@ void init_voxel_map(){
         }
         else{
           voxels[y][z][x].type = VOXEL_TYPE_AIR;
+        }
+
+        if((x <= 10 || x >= MAP_NUM_VOXELS_X - 10 || z <= 10 || z >= MAP_NUM_VOXELS_Z - 10) && y >= 25 && y <= 50){
+          if(xorshift32() % 5 == 0)
+            voxels[y][z][x].type = VOXEL_TYPE_DIRT;
+          else
+            voxels[y][z][x].type = VOXEL_TYPE_AIR;
         }
         
         voxels[y][z][x].aabb.x_min = x;

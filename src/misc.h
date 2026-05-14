@@ -2,6 +2,7 @@
 #define MISC_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifndef M_PI
   #define M_PI 3.14159265358979323846
@@ -32,5 +33,7 @@ uint32_t xorshift32(void);
 float square_wave(float f);
 
 int clamp_int(int value, int minimum_value, int maximum_value);
+
+bool mod_range(int x, int min, int max);
 
 #endif

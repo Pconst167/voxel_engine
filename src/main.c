@@ -1684,9 +1684,18 @@ inline void render_visible_chunks(void) {
   total_pixels_rendered = 0;
   total_chunks_rendered = 0;
 
+  int32_t player_chunk_start_x = ((int)player.position.x / CHUNK_SIZE) - CHUNK_RENDER_DISTANCE;
+  int32_t player_chunk_end_x   = ((int)player.position.x / CHUNK_SIZE) + CHUNK_RENDER_DISTANCE;
+  int32_t player_chunk_start_z = ((int)player.position.z / CHUNK_SIZE) - CHUNK_RENDER_DISTANCE;
+  int32_t player_chunk_end_z   = ((int)player.position.z / CHUNK_SIZE) + CHUNK_RENDER_DISTANCE;
+  player_chunk_start_x = clamp_int(player_chunk_start_x, 0, NUM_CHUNK_DIVISIONS_X - 1);
+  player_chunk_end_x   = clamp_int(player_chunk_end_x, 0, NUM_CHUNK_DIVISIONS_X - 1);
+  player_chunk_start_z = clamp_int(player_chunk_start_z, 0, NUM_CHUNK_DIVISIONS_Z - 1);
+  player_chunk_end_z   = clamp_int(player_chunk_end_z, 0, NUM_CHUNK_DIVISIONS_Z - 1);
+
   /* collect visible chunks */
-  for(int z_row = 0; z_row < NUM_CHUNK_DIVISIONS_Z; z_row++){
-    for(int x_col = 0; x_col < NUM_CHUNK_DIVISIONS_X; x_col++){
+  for(int32_t z_row = player_chunk_start_z; z_row <= player_chunk_end_z; z_row++){
+    for(int32_t x_col = player_chunk_start_x; x_col <= player_chunk_end_x; x_col++){
       chunk_t *chunk = &chunks[z_row][x_col];
 
       chunk_intersection_mode_t intersection_mode = get_chunk_intersection_mode_fast(chunk);

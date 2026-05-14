@@ -85,3 +85,10 @@ int clamp_int(int value, int minimum_value, int maximum_value){
   if(value > maximum_value) return maximum_value;
   return value;
 }
+
+bool mod_range(int x, int min, int max){
+  for(int i = min; i <= max; i++){
+    if(x % i == 0) return true;
+  }
+  return false;
+}
