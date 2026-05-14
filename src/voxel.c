@@ -292,3 +292,80 @@ inline voxel_quad_t generate_voxel_quad(voxel_quad_type_t quad_type, uint32_t y_
       return quad;
   }
 }
+
+voxel_raycast_hit_t raycast_voxels(
+  vector3_t ray_origin,
+  vector3_t ray_direction,
+  float max_distance
+){
+  voxel_raycast_hit_t hit_result = {0};
+
+  int voxel_x = (int)floorf(ray_origin.x);
+  int voxel_y = (int)floorf(ray_origin.y);
+  int voxel_z = (int)floorf(ray_origin.z);
+
+  int step_x = (ray_direction.x > 0.0f) ? 1 : -1;
+  int step_y = (ray_direction.y > 0.0f) ? 1 : -1;
+  int step_z = (ray_direction.z > 0.0f) ? 1 : -1;
+
+  float next_boundary_x = (step_x > 0) ? (float)(voxel_x + 1) : (float)voxel_x;
+  float next_boundary_y = (step_y > 0) ? (float)(voxel_y + 1) : (float)voxel_y;
+  float next_boundary_z = (step_z > 0) ? (float)(voxel_z + 1) : (float)voxel_z;
+
+  float t_max_x = (ray_direction.x != 0.0f) ? (next_boundary_x - ray_origin.x) / ray_direction.x : FLT_MAX;
+  float t_max_y = (ray_direction.y != 0.0f) ? (next_boundary_y - ray_origin.y) / ray_direction.y : FLT_MAX;
+  float t_max_z = (ray_direction.z != 0.0f) ? (next_boundary_z - ray_origin.z) / ray_direction.z : FLT_MAX;
+
+  float t_delta_x = (ray_direction.x != 0.0f) ? fabsf(1.0f / ray_direction.x) : FLT_MAX;
+  float t_delta_y = (ray_direction.y != 0.0f) ? fabsf(1.0f / ray_direction.y) : FLT_MAX;
+  float t_delta_z = (ray_direction.z != 0.0f) ? fabsf(1.0f / ray_direction.z) : FLT_MAX;
+
+  float current_distance = 0.0f;
+
+  while(current_distance <= max_distance) {
+    if(
+      voxel_x >= 0 && voxel_x < MAP_NUM_VOXELS_X &&
+      voxel_y >= 0 && voxel_y < MAP_NUM_VOXELS_Y &&
+      voxel_z >= 0 && voxel_z < MAP_NUM_VOXELS_Z
+    ) {
+      if(voxels[voxel_x][voxel_z][voxel_y].solid) {
+        hit_result.hit = 1;
+        hit_result.voxel_x = voxel_x;
+        hit_result.voxel_y = voxel_y;
+        hit_result.voxel_z = voxel_z;
+        hit_result.distance = current_distance;
+        return hit_result;
+      }
+    }
+
+    if(t_max_x < t_max_y && t_max_x < t_max_z) {
+      voxel_x += step_x;
+      current_distance = t_max_x;
+      t_max_x += t_delta_x;
+
+      hit_result.normal_x = -step_x;
+      hit_result.normal_y = 0;
+      hit_result.normal_z = 0;
+    }
+    else if(t_max_y < t_max_z) {
+      voxel_y += step_y;
+      current_distance = t_max_y;
+      t_max_y += t_delta_y;
+
+      hit_result.normal_x = 0;
+      hit_result.normal_y = -step_y;
+      hit_result.normal_z = 0;
+    }
+    else {
+      voxel_z += step_z;
+      current_distance = t_max_z;
+      t_max_z += t_delta_z;
+
+      hit_result.normal_x = 0;
+      hit_result.normal_y = 0;
+      hit_result.normal_z = -step_z;
+    }
+  }
+
+  return hit_result;
+}

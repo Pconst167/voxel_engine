@@ -60,6 +60,17 @@ typedef struct{
   float avg_w;
 } voxel_t;
 
+typedef struct{
+  int hit;
+  int voxel_x;
+  int voxel_y;
+  int voxel_z;
+  int normal_x;
+  int normal_y;
+  int normal_z;
+  float distance;
+} voxel_raycast_hit_t;
+
 extern voxel_material_t voxel_materials[4];
 
 // Y slowest changing dimension, X is fastest changing
