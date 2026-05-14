@@ -80,4 +80,6 @@ void init_voxel_map();
 void get_voxel_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, int *start_y, int *end_y, int *start_z, int *end_z);
 voxel_quad_t generate_voxel_quad(voxel_quad_type_t quad_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col);
 
+voxel_raycast_hit_t raycast_voxels(vector3_t ray_origin, vector3_t ray_direction, float max_distance);
+
 #endif

@@ -261,17 +261,26 @@ void process_input(void){
         if(player.eta  < -ETA_MAX) player.eta = -ETA_MAX;
       }
       if(event.type == SDL_MOUSEBUTTONDOWN){
-        vector3_t player_plus_camera_direction = {
-          .x = player.position.x + camera.direction.x,
-          .y = player.position.y + player.height/2.0f + camera.direction.y,
-          .z = player.position.z + camera.direction.z
-        };
-
-        if(event.button.button == SDL_BUTTON_LEFT){
-          voxels[(uint32_t)(player_plus_camera_direction.y)][(uint32_t)player_plus_camera_direction.z][(uint32_t)player_plus_camera_direction.x].type = VOXEL_TYPE_STONE;
-        }
-        else if(event.button.button == SDL_BUTTON_RIGHT){
-          voxels[(uint32_t)(player_plus_camera_direction.y)][(uint32_t)player_plus_camera_direction.z][(uint32_t)player_plus_camera_direction.x].type = VOXEL_TYPE_AIR;
+        if(event.button.button == SDL_BUTTON_LEFT || event.button.button == SDL_BUTTON_RIGHT){
+          voxel_raycast_hit_t looked_at_block = raycast_voxels(
+            camera.position,
+            camera.direction,
+            6.0f
+          );
+          if(looked_at_block.hit){
+            if(event.button.button == SDL_BUTTON_LEFT){
+              int32_t voxel_y = looked_at_block.voxel_y + looked_at_block.normal_y;
+              int32_t voxel_z = looked_at_block.voxel_z + looked_at_block.normal_z;
+              int32_t voxel_x = looked_at_block.voxel_x + looked_at_block.normal_x;
+              voxels[voxel_y][voxel_z][voxel_x].type = VOXEL_TYPE_STONE;
+            }
+            else if(event.button.button == SDL_BUTTON_RIGHT){
+              int32_t voxel_y = looked_at_block.voxel_y;
+              int32_t voxel_z = looked_at_block.voxel_z;
+              int32_t voxel_x = looked_at_block.voxel_x;
+              voxels[voxel_y][voxel_z][voxel_x].type = VOXEL_TYPE_AIR;
+            }
+          }
         }
       }
     }

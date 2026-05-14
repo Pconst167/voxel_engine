@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <float.h>
 #include "voxel.h"
 #include "misc.h"
 
@@ -328,7 +329,7 @@ voxel_raycast_hit_t raycast_voxels(
       voxel_y >= 0 && voxel_y < MAP_NUM_VOXELS_Y &&
       voxel_z >= 0 && voxel_z < MAP_NUM_VOXELS_Z
     ) {
-      if(voxels[voxel_x][voxel_z][voxel_y].solid) {
+      if(voxels[voxel_y][voxel_z][voxel_x].type != VOXEL_TYPE_AIR) {
         hit_result.hit = 1;
         hit_result.voxel_x = voxel_x;
         hit_result.voxel_y = voxel_y;
