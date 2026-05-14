@@ -172,13 +172,8 @@ vector3_t up = {.x = 0, .y = 1, .z = 0}; /* up direction vector for view matrix 
 
 /* sun/sky data */
 int32_t skybox_id = -1;
-vector3_t sun_direction; /* world-space sun direction vector */
-float sun_eta = (M_PI_2); /* sun's eta angle, start sun on horizon */
-
-// meshes / objects
-uint32_t term0;
-uint32_t term1;
-uint32_t term2;
+vector3_t sun_direction = {0.0f, 1.0f, 0.0f}; /* world-space sun direction vector */
+float sun_eta = (M_PI_2); /* sun's eta angle */
 
 triangle_t triangles_to_render[50000];
 uint32_t total_chunk_triangles_to_render = 0;
@@ -201,13 +196,6 @@ void setup(void) {
 
   create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = 0.0f,  .z = 0.0f}, (color_t){.uint32 = 0xFFFFA0A0}, 0.2f);
   create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
-  //mesh_t *mesh;
-  //mesh = load_mesh("./assets/obj/cube.obj", true);
-  //create_object(mesh, OBJECT_TYPE_ROOM, true, true,
-  //              true, true, (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-  //             (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){40, 7, 7}, 
-  //             (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
-  //);
 
   /* normalize all light direction vectors to unity */
   initialize_lights();
@@ -216,13 +204,6 @@ void setup(void) {
   init_voxel_map();
   calculate_world_bounds();
   create_world_chunks();
-
-  /* populate chunks with objects */
-  populate_chunks_with_objects();
-
-  /* populate world with aabbs */
-  populate_chunks_with_collision_aabbs();
-
 }
 
 void process_input(void){
@@ -1668,55 +1649,9 @@ bool resolve_player_against_object_aabb_xz(const collision_aabb_t *box){
   return true;
 }
 
-void resolve_player_against_object_collisions(){
-  collision_step++;
-
-  player_chunk_x = (int)floorf((player.position.x - world_x_min) / chunk_dx);
-  player_chunk_z = (int)floorf((player.position.z - world_z_min) / chunk_dz);
-
-  if(player_chunk_x < 0) player_chunk_x = 0;
-  if(player_chunk_x >= NUM_CHUNK_DIVISIONS_X) player_chunk_x = NUM_CHUNK_DIVISIONS_X - 1;
-  if(player_chunk_z < 0) player_chunk_z = 0;
-  if(player_chunk_z >= NUM_CHUNK_DIVISIONS_Z) player_chunk_z = NUM_CHUNK_DIVISIONS_Z - 1;
-
-  int start_x = player_chunk_x - 1;
-  if(start_x < 0) start_x = 0;
-  if(start_x >= NUM_CHUNK_DIVISIONS_X) start_x = NUM_CHUNK_DIVISIONS_X - 1;
-  int end_x = player_chunk_x + 1;
-  if(end_x < 0) end_x = 0;
-  if(end_x >= NUM_CHUNK_DIVISIONS_X) end_x = NUM_CHUNK_DIVISIONS_X - 1;
-
-  int start_z = player_chunk_z - 1;
-  if(start_z < 0) start_z = 0;
-  if(start_z >= NUM_CHUNK_DIVISIONS_Z) start_z = NUM_CHUNK_DIVISIONS_Z - 1;
-  int end_z = player_chunk_z + 1;
-  if(end_z < 0) end_z = 0;
-  if(end_z >= NUM_CHUNK_DIVISIONS_Z) end_z = NUM_CHUNK_DIVISIONS_Z - 1;
-
-  for(int chunk_z = start_z; chunk_z <= end_z; chunk_z++){
-    for(int chunk_x = start_x; chunk_x <= end_x; chunk_x++){
-
-      chunk_t *chunk = &chunks[chunk_z][chunk_x];
-
-      for(uint32_t i = 0; i < chunk->num_collision_aabbs; i++){
-        uint32_t aabb_id = chunk->collision_aabbs[i];
-        collision_aabb_t *collision_aabb = &collision_aabbs[aabb_id];
-
-        // only check collisions if collision_aabb is active
-        if(collision_aabb->active){
-          if(collision_aabb->collision_step == collision_step) continue;
-          collision_aabb->collision_step = collision_step;
-          resolve_player_against_object_aabb_xz(collision_aabb);
-        }
-      }
-    }
-  }
-}
-
 /*
 RENDER STAGE
   Render sparse/dynamic objects the normal way.
-  For each non-empty chunk:
     check for intersection of chunk's 3d dimensional AABB with frustrum:
 
     classify chunk AABB vs frustum as:
@@ -1736,13 +1671,13 @@ RENDER STAGE
 inline void render_visible_chunks(void) {
   /* reset color buffer */
   for(uint32_t pixel_i = 0; pixel_i < total_buffer_pixels; pixel_i++){
-    color_buffer[pixel_i] = (color_t){.uint32 = 0xFFFF4040};
+    color_buffer[pixel_i] = (color_t){.uint32 = 0xFFFF8050};
   }
   //memset(color_buffer, color_buffer_reset, total_buffer_pixels * sizeof(uint32_t));
 
   /* reset zbuffer */
   memset(zbuffer, 0x00, total_buffer_pixels * sizeof(uint32_t));
-
+  
   view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
 
   total_triangles_rendered = 0;
@@ -1753,8 +1688,6 @@ inline void render_visible_chunks(void) {
   for(int z_row = 0; z_row < NUM_CHUNK_DIVISIONS_Z; z_row++){
     for(int x_col = 0; x_col < NUM_CHUNK_DIVISIONS_X; x_col++){
       chunk_t *chunk = &chunks[z_row][x_col];
-
-      if(chunk->empty) continue;
 
       chunk_intersection_mode_t intersection_mode = get_chunk_intersection_mode_fast(chunk);
 
@@ -1790,8 +1723,6 @@ inline void render_visible_chunks_sorted(void) {
   for(int z_row = 0; z_row < NUM_CHUNK_DIVISIONS_Z; z_row++){
     for(int x_col = 0; x_col < NUM_CHUNK_DIVISIONS_X; x_col++){
       chunk_t *chunk = &chunks[z_row][x_col];
-
-      if(chunk->empty) continue;
 
       chunk_intersection_mode_t intersection_mode = get_chunk_intersection_mode_fast(chunk);
 
@@ -2271,244 +2202,6 @@ void render_chunk_voxels(uint32_t z_row, uint32_t x_col){
       }
     }
   }
-
-  // sort triangles inside this chunk by average w, and then render sorted list
-  if(options.sort){
-    triangle_quicksort(triangles_to_render, total_chunk_triangles_to_render);
-
-    for(uint32_t i = 0; i < total_chunk_triangles_to_render; i++){
-      total_pixels_rendered += rasterize_triangle(&triangles_to_render[i]);
-      if(options.wireframe_overlay){
-        draw_triangle(
-          triangles_to_render[i].points[0].x,
-          triangles_to_render[i].points[0].y, 
-          triangles_to_render[i].points[1].x, 
-          triangles_to_render[i].points[1].y, 
-          triangles_to_render[i].points[2].x, 
-          triangles_to_render[i].points[2].y, 
-          (color_t){.uint32 = 0xffffff00}
-        );
-      }
-    }
-  }
-}
-
-void render_chunk_objects(chunk_t *chunk){
-  /* triangles list for clipped triangles */
-  triangle_t triangles_after_clipping[MAX_NUM_POLYGON_VERTICES - 2]; /* for a polygon with N vertices, the number of nested triangles is always N-2 */
-
-  /* loop through all objects in chunk */
-  uint32_t num_chunk_objects = chunk->num_chunk_objects;
-  for(uint32_t chunk_object_idx = 0; chunk_object_idx < num_chunk_objects; chunk_object_idx++){
-    chunk_object_faces_t chunk_object_faces = chunk->chunk_object_faces[chunk_object_idx];
-    object_t *object = &objects[chunk_object_faces.object_id]; /* get pointer to object in chunk */
-
-    /* loop through all faces in the face list for object */
-    uint32_t num_chunk_object_faces = chunk_object_faces.num_faces;
-    for(uint32_t face_idx = 0; face_idx < num_chunk_object_faces; face_idx++){
-      uint32_t face_id = chunk_object_faces.face_indices[face_idx]; /* get face id from face list */
-      face_t face = object->mesh->faces[face_id];
-
-      /* only draw a face if it has not been drawn already by any chunks */
-      if(object->face_draw_stamp[face_id] == frame_id) continue;
-      object->face_draw_stamp[face_id] = frame_id;
-
-      /* WORLD MATRIX / VIEW MATRIX TRANSFORM */
-      vector3_t face_vertices[3];
-      vector4_t transformed_vertices[3];
-      
-      /* object is static, fetch object's baked transformed vertices and apply view transform only */
-      face_vertices[0] = object->transformed_vertices[face.vertex_indices[0]];
-      face_vertices[1] = object->transformed_vertices[face.vertex_indices[1]];
-      face_vertices[2] = object->transformed_vertices[face.vertex_indices[2]];
-
-      transformed_vertices[0] = matrix4_mul_vector3(&view_matrix, face_vertices[0]); /* affine transform so can use this faster multiply */
-      transformed_vertices[1] = matrix4_mul_vector3(&view_matrix, face_vertices[1]); /* affine transform so can use this faster multiply */
-      transformed_vertices[2] = matrix4_mul_vector3(&view_matrix, face_vertices[2]); /* affine transform so can use this faster multiply */
-
-      /* BACKFACE CULLING */
-      /* calculate face normals for backface culling and lighting */
-      vector3_t v_a = {transformed_vertices[0].x, transformed_vertices[0].y, transformed_vertices[0].z};  /*   A               */
-      vector3_t v_b = {transformed_vertices[1].x, transformed_vertices[1].y, transformed_vertices[1].z};  /*  / \    Clockwise */
-      vector3_t v_c = {transformed_vertices[2].x, transformed_vertices[2].y, transformed_vertices[2].z};  /* C---B             */
-      /* vectors for cross product */
-      vector3_t v_ab = {.x = v_b.x - v_a.x, .y = v_b.y - v_a.y, .z = v_b.z - v_a.z};
-      vector3_t v_ac = {.x = v_c.x - v_a.x, .y = v_c.y - v_a.y, .z = v_c.z - v_a.z};
-      /* face normal
-        cross product between v_ab and v_ac */
-      vector3_t v_face_normal = {
-        .x = v_ab.y * v_ac.z - v_ab.z * v_ac.y,
-        .y = v_ab.z * v_ac.x - v_ab.x * v_ac.z,
-        .z = v_ab.x * v_ac.y - v_ab.y * v_ac.x
-      };
-
-      /* Backface culling */
-      if((object->backface_culling && !options.backface_culling_override) || 
-         (options.backface_culling_override && options.backface_culling)
-      ){
-        /* camera - v_a ray
-          after view_matrix transform, camera position is always at 0, 0, 0 */
-        /* calculate dot product between camera ray and orthogonal to find alignment */
-        float dot_face_normal_cam_ray = -(v_face_normal.x * v_a.x + v_face_normal.y * v_a.y + v_face_normal.z * v_a.z);
-        if(dot_face_normal_cam_ray < 0.0f) continue;
-      }
-
-      // FRUSTRUM CLIPPING
-      // check whether face is totally outside frustrum, if so, skip face, else apply clipping
-      int num_triangles_from_polygon = 0;
-      int face_outside_frustrum = check_face_fully_outside_frustrum(transformed_vertices[0], transformed_vertices[1], transformed_vertices[2], znear, zfar);
-      if(face_outside_frustrum == 1){
-        continue; // totally outside
-      }
-      else{ // partially outside or maybe fully inside - clip
-        /* this function creates a polygon from the current face, clips against all frustrum planes,
-          then re-triangularizes the polygon - it returns the number of generated triangles from the polygon */
-        num_triangles_from_polygon = frustrum_clip_triangle_and_re_triangularize(
-          (vector3_t){transformed_vertices[0].x, transformed_vertices[0].y, transformed_vertices[0].z},
-          (vector3_t){transformed_vertices[1].x, transformed_vertices[1].y, transformed_vertices[1].z},
-          (vector3_t){transformed_vertices[2].x, transformed_vertices[2].y, transformed_vertices[2].z},
-          face.uv[0],
-          face.uv[1],
-          face.uv[2],
-          triangles_after_clipping
-        );
-      }
-
-      // material for this face - either original mesh material, or object override
-      material_t face_material;
-      if(object->material_override_flags[face.material_id])
-        face_material = object->material_overrides[face.material_id];
-      else
-        face_material = object->mesh->materials[face.material_id];
-
-      /* LIGHT CALCULATIONS */
-      /*
-        find light intensity to face based on dot product between face orthogonal and light direction
-        result needs minus sign because the light direction vector is written as the opposite of the actual light direction we need to see (i.e y = 1 would mean shining up, but we actually want shine from above for the case y = 1)
-        also, most importantly, because all vertices are transformed by the view_matrix, the light direction vector also needs to be transformed
-        this is because a transformation by view_matrix amounts to a rotation(plus translation) of all vertices, which changes the face normals
-        ** BUT changing normals due to camera transforms should not affect how the light behaves, and so the light direction vector must track any rotation.
-        the view_matrix translation part should be ignored, and hence why the w component of vector in the multiplication below is be 0 to nulify any translations.
-        ** BUT for point light its the opposite and w must be 1 because point light DOES have a position and that position must also be transformed by the view matrix.
-
-        if camera is on same side as light, then we want the light to shine on the face regardeless of the face normal's direction.
-        hence we test: sgn((camera - v_face_centroid) dot normal) == sgn((light - v_face_centroid) dot normal) and the final dot product intensity needs to be absolute value after that
-        but if object is translucent to light, then we want to light both sides of a face regardless of the camera position, or the face's normal
-
-        light_intensities field is initialized to zero below in declaration - so that the light_intensities field is all 0 in case object not reflects_light
-      */
-      vector3_t v_face_centroid = {(v_a.x + v_b.x + v_c.x) / 3.0f, (v_a.y + v_b.y + v_c.y) / 3.0f, (v_a.z + v_b.z + v_c.z) / 3.0f};
-      //vector3_t v_face_centroid = v_a;
-      float light_intensities[MAX_NUM_LIGHT_SOURCES] = {0.0f}; // keeps the total light intensity for this face
-      if(face_material.reflects_light){
-        vector3_normalize_fast_approx(&v_face_normal); /* normalize here for use below */
-        for(uint32_t light_index = 0; light_index < num_light_sources; light_index++){
-          if(light_sources[light_index].type == LIGHT_DIRECTIONAL){
-            vector4_t light_direction_view = matrix4_mul_vector4(&view_matrix, (vector4_t){light_sources[light_index].direction.x, light_sources[light_index].direction.y, light_sources[light_index].direction.z, 0});
-            if(face_material.two_sided_lighting)
-              light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
-            else{
-              /* if not translucent, then face only lights up if sgn(cam_ray dot normal) == sgn (light_direction dot normal) */
-              vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
-              float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
-              float light_direction_dot_normal  = -(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
-              if((light_direction_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_direction_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
-                light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
-              }
-              else light_intensities[light_index] = 0.0f;
-            }
-            light_intensities[light_index] *= light_sources[light_index].intensity;
-          }
-          else if(light_sources[light_index].type == LIGHT_POINT){
-            vector4_t light_position_view = matrix4_mul_vector3(&view_matrix, (vector3_t){light_sources[light_index].position.x, light_sources[light_index].position.y, light_sources[light_index].position.z});
-            vector3_t lightpos_to_v_face_centroid_ray = (vector3_t){light_position_view.x - v_face_centroid.x, light_position_view.y - v_face_centroid.y, light_position_view.z - v_face_centroid.z};
-            float lightpos_to_v_face_centroid_ray_length = vector3_length_fast_approx(lightpos_to_v_face_centroid_ray);
-            
-            if(face_material.two_sided_lighting){
-              light_intensities[light_index] = fabsf(v_face_normal.x * lightpos_to_v_face_centroid_ray.x + v_face_normal.y * lightpos_to_v_face_centroid_ray.y + v_face_normal.z * lightpos_to_v_face_centroid_ray.z) / (lightpos_to_v_face_centroid_ray_length);
-              light_intensities[light_index] /= 1.0f + lightpos_to_v_face_centroid_ray_length;
-              light_intensities[light_index] *= light_sources[light_index].intensity;
-            }
-            else{
-              vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
-              float light_v_face_centroid_dot_normal  = v_face_normal.x * lightpos_to_v_face_centroid_ray.x + v_face_normal.y * lightpos_to_v_face_centroid_ray.y + v_face_normal.z * lightpos_to_v_face_centroid_ray.z;
-              float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
-              if((light_v_face_centroid_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_v_face_centroid_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
-                light_intensities[light_index] = fabsf(light_v_face_centroid_dot_normal) / lightpos_to_v_face_centroid_ray_length;
-                light_intensities[light_index] /= 1.0f + lightpos_to_v_face_centroid_ray_length;
-                light_intensities[light_index] *= light_sources[light_index].intensity;
-              }
-              else
-                light_intensities[light_index] = 0.0f;
-            } 
-          }
-          else if(light_sources[light_index].type == LIGHT_AMBIENT){
-            light_intensities[light_index] = light_sources[light_index].intensity;
-          }
-          /* clamp to [0.0, 1.0] */
-          if(light_intensities[light_index] < 0.0f) light_intensities[light_index] = 0.0f;
-          else if(light_intensities[light_index] > 1.0f) light_intensities[light_index] = 1.0f;
-        }
-      }
-
-      // find total light intensity on this face - this is total intensity per rgb channel
-      light_intensity_rgb_t total_light_intensity = find_total_light_intensity(light_intensities);
-
-      // loop all faces generated from clipped polygon
-      for(int t = 0; t < num_triangles_from_polygon; t++){
-        triangle_t *triangle_after_clipping = &triangles_after_clipping[t];
-
-        /* PROJECTION MATRIX / PERSPECTIVE DIVIDE */
-        triangle_t projected_triangle = {0};
-        for(int j = 0; j < 3; j++){
-          /* optimized multiplication - removed multiplications where matrix elements are 0 */
-          vector4_t projected_vertex = matrix4_projection_mul_vector4(&projection_matrix, triangle_after_clipping->points[j]);
-
-          /* w stores old z, so divide by w to create perspective divide */
-          if(projected_vertex.w != 0.0f){
-            float one_over_projected_vertex_w = 1.0f / projected_vertex.w;
-            projected_vertex.x *= one_over_projected_vertex_w;
-            projected_vertex.y *= one_over_projected_vertex_w;
-            projected_vertex.z *= one_over_projected_vertex_w;
-          }
-
-          /* scale vertices by screen width and translate to middle of the screen */
-          projected_vertex.x =  projected_vertex.x * (window_width  * 0.5) + (window_width  * 0.5);
-          projected_vertex.y = -projected_vertex.y * (window_height * 0.5) + (window_height * 0.5); /* invert y coordinate to account for inverse screen y (screen y grows downward) */
-
-          projected_triangle.points[j] = projected_vertex;
-          projected_triangle.uv[j]     = triangle_after_clipping->uv[j];
-        }
-        
-        projected_triangle.avg_w = (projected_triangle.points[0].w + projected_triangle.points[1].w + projected_triangle.points[2].w) / 3.0f;
-        projected_triangle.face_material = face_material;
-        projected_triangle.total_light_intensity = total_light_intensity;
-
-        /* TRIANGLE RASTERIZATION */
-        // option to sort the triangles inside the chunk by average w
-        if(options.sort){
-          triangles_to_render[total_chunk_triangles_to_render] = projected_triangle;
-        }
-        else{
-          total_pixels_rendered += rasterize_triangle(&projected_triangle);
-          if(options.wireframe_overlay){
-            draw_triangle(
-              projected_triangle.points[0].x,
-              projected_triangle.points[0].y, 
-              projected_triangle.points[1].x, 
-              projected_triangle.points[1].y, 
-              projected_triangle.points[2].x, 
-              projected_triangle.points[2].y, 
-              (color_t){.uint32 = 0xffffff00}
-            );
-          }
-        }
-
-        total_triangles_rendered++;
-        total_chunk_triangles_to_render++;
-      } /* for(int t = 0; t < polygon.num_vertices - 2; t++) */
-    } /* for(uint32_t i = 0; i < num_faces; i++) */
-  } /* for(uint32_t object_i = 0; object_i < num_objects_sorted; object_i++) */
 
   // sort triangles inside this chunk by average w, and then render sorted list
   if(options.sort){

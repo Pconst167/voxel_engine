@@ -40,7 +40,6 @@ bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane
 uint32_t chunk_num_vertices_inside_plane(chunk_t *chunk, frustrum_plane_t frustrum_plane);
 int get_chunk_intersection_mode(chunk_t *chunk);
 chunk_intersection_mode_t get_chunk_intersection_mode_fast(chunk_t *chunk);
-void render_chunk_objects(chunk_t *chunk);
 void render_chunk_voxels(uint32_t z_row, uint32_t x_col);
 void render_visible_chunks(void);
 void render_visible_chunks_sorted(void);
@@ -49,7 +48,6 @@ void draw_chunk_outlines(void);
 void draw_collision_aabb_outlines(void);
 
 bool resolve_player_against_object_aabb_xz(const collision_aabb_t *box);
-void resolve_player_against_object_collisions();
 
 void move_player_x(float movement_x);
 void move_player_y(float movement_y);
