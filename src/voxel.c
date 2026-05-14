@@ -83,7 +83,7 @@ void init_voxel_map(){
           voxels[y][z][x].type = VOXEL_TYPE_AIR;
         }
 
-        if((x <= 10 || x >= MAP_NUM_VOXELS_X - 10 || z <= 10 || z >= MAP_NUM_VOXELS_Z - 10) && y >= 25 && y <= 50){
+        if((x <= 10 || x >= MAP_NUM_VOXELS_X - 10 || z <= 10 || z >= MAP_NUM_VOXELS_Z - 10) && y >= 25 && y <= 35){
           if(xorshift32() % 5 == 0)
             voxels[y][z][x].type = VOXEL_TYPE_DIRT;
           else

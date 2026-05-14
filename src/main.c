@@ -130,7 +130,7 @@ uint32_t total_pixels_rendered;
 uint32_t total_chunks_rendered;
 uint64_t time_count; /* keeps a count that increments every frame - used to pace events */
 float time_of_day; /* keeps time the accumulation of  each delta_time per frame */
-char text0[256];
+char debug_screen_data[1024];
 
 /* game control */
 float delta_time;
@@ -2879,14 +2879,30 @@ void process_frame_rate(void) {
 }
 
 void generate_game_data(){
-  snprintf(text0, 256, "%ut, %upx, %uc, %ufps, (%d:%d:%d), %d:%d, (%.2f %.2f %.2f), (%.2f %.2f %.2f), (%.2f %.2f)", 
-    total_triangles_rendered, total_pixels_rendered, total_chunks_rendered, fps, 
-    player_voxel_x, player_voxel_y, player_voxel_z,
-    player_chunk_x, player_chunk_z,
-    camera.position.x, camera.position.y, camera.position.z,
-    camera.direction.x, camera.direction.y, camera.direction.z,
-    player.theta, player.eta
-  );
+  if(time_count & 0x0F){
+    player_voxel_x = player.position.x;
+    player_voxel_y = player.position.y;
+    player_voxel_z = player.position.z;
+
+    player_chunk_x = player_voxel_x / CHUNK_SIZE;
+    player_chunk_y = player_voxel_y / CHUNK_SIZE;
+    player_chunk_z = player_voxel_z / CHUNK_SIZE;
+
+    snprintf(debug_screen_data, 1024, 
+      "on ground: %s, velocity: %.2f:%.2f:%.2f\n"
+      "%ut, %upx, %uc, %ufps\n"
+      "voxel coords: %d:%d:%d, chunk coords: %d:%d\n"
+      "player pos: %.2f:%.2f:%.2f, look direction: %.2f:%.2f:%.2f, theta/eta: %.2f:%.2f", 
+      player.on_ground ? "yes" : "no",
+      player.velocity.x, player.velocity.y, player.velocity.z,
+      total_triangles_rendered, total_pixels_rendered, total_chunks_rendered, fps, 
+      player_voxel_x, player_voxel_y, player_voxel_z,
+      player_chunk_x, player_chunk_z,
+      player.position.x,  player.position.y,  player.position.z,
+      player.direction.x, player.direction.y, player.direction.z,
+      player.theta, player.eta
+    );
+  }
 }
 
 int main(int argc, char *argv[]){
@@ -2908,7 +2924,7 @@ int main(int argc, char *argv[]){
     generate_game_data();
 
     if(options.show_debug_info){
-      draw_text_to_color_buffer(10, window_height - 20, text0, (color_t){.uint32 = 0xFFFFFFFF}, 1);
+      draw_text_to_color_buffer(10, 10, debug_screen_data, (color_t){.uint32 = 0xFFFFFFFF}, 1);
     }
 
     render_console();
