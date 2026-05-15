@@ -201,6 +201,7 @@ void setup(void) {
   initialize_lights();
 
   /* calculate world chunks */
+  init_block_materials();
   init_voxel_map();
   calculate_world_bounds();
   create_world_chunks();

@@ -13,10 +13,10 @@ voxel_raycast_hit_t looked_at_block;
 
 voxel_material_t *voxel_materials;
 
-void init_block_types(){
+void init_block_materials(){
   array_push(
     voxel_materials, 
-    (voxel_material_t){
+    ((voxel_material_t){
       .material_name      = "air",
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -27,12 +27,12 @@ void init_block_types(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .side_texture       = NULL,
       .top_texture        = NULL
-    }  
+    })  
   );
 
   array_push(
     voxel_materials, 
-    (voxel_material_t){
+    ((voxel_material_t){
       .material_name      = "stone",
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -43,12 +43,12 @@ void init_block_types(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .side_texture       = load_texture("./assets/textures/voxel/stone3.png"),
       .top_texture        = load_texture("./assets/textures/voxel/stone3.png")
-    }
+    })
   );
 
   array_push(
     voxel_materials, 
-    (voxel_material_t){
+    ((voxel_material_t){
       .material_name      = "dirt",
       .base_color         = (color_t){.uint32 = 0xFF408080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -59,12 +59,12 @@ void init_block_types(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .side_texture       = load_texture("./assets/textures/voxel/dirt_2.png"),
       .top_texture        = load_texture("./assets/textures/voxel/dirt_2.png")
-    }
+    })
   );
 
   array_push(
     voxel_materials,
-    (voxel_material_t){
+    ((voxel_material_t){
       .material_name      = "grass",
       .base_color         = (color_t){.uint32 = 0xFF0FF000},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -75,7 +75,7 @@ void init_block_types(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .side_texture       = load_texture("./assets/textures/voxel/grass_side_2.png"),
       .top_texture        = load_texture("./assets/textures/voxel/grass_top.png")   
-    }
+    })
   );
 }
 
