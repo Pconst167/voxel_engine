@@ -357,13 +357,12 @@ voxel_raycast_hit_t raycast_voxels(
 
   float current_distance = 0.0f;
 
-  while(current_distance <= max_distance) {
-    if(
-      voxel_x >= 0 && voxel_x < MAP_NUM_VOXELS_X &&
-      voxel_y >= 0 && voxel_y < MAP_NUM_VOXELS_Y &&
-      voxel_z >= 0 && voxel_z < MAP_NUM_VOXELS_Z
-    ) {
-      if(voxel_at(voxel_y, voxel_z, voxel_x).solid) {
+  while(current_distance <= max_distance){
+    if(voxel_x >= 0 && voxel_x < MAP_NUM_VOXELS_X &&
+       voxel_y >= 0 && voxel_y < MAP_NUM_VOXELS_Y &&
+       voxel_z >= 0 && voxel_z < MAP_NUM_VOXELS_Z
+    ){
+      if(voxel_at(voxel_y, voxel_z, voxel_x).solid){
         hit_result.hit = 1;
         hit_result.voxel_x = voxel_x;
         hit_result.voxel_y = voxel_y;
@@ -373,7 +372,7 @@ voxel_raycast_hit_t raycast_voxels(
       }
     }
 
-    if(t_max_x < t_max_y && t_max_x < t_max_z) {
+    if(t_max_x < t_max_y && t_max_x < t_max_z){
       voxel_x += step_x;
       current_distance = t_max_x;
       t_max_x += t_delta_x;
@@ -382,7 +381,7 @@ voxel_raycast_hit_t raycast_voxels(
       hit_result.normal_y = 0;
       hit_result.normal_z = 0;
     }
-    else if(t_max_y < t_max_z) {
+    else if(t_max_y < t_max_z){
       voxel_y += step_y;
       current_distance = t_max_y;
       t_max_y += t_delta_y;
@@ -391,7 +390,7 @@ voxel_raycast_hit_t raycast_voxels(
       hit_result.normal_y = -step_y;
       hit_result.normal_z = 0;
     }
-    else {
+    else{
       voxel_z += step_z;
       current_distance = t_max_z;
       t_max_z += t_delta_z;
