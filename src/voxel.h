@@ -76,7 +76,7 @@ typedef struct{
   float distance;
 } voxel_raycast_hit_t;
 
-extern voxel_material_t voxel_materials[4];
+extern voxel_material_t *voxel_materials
 
 // Y slowest changing dimension, X is fastest changing
 extern voxel_t voxels[MAP_NUM_VOXELS_Y][MAP_NUM_VOXELS_Z][MAP_NUM_VOXELS_X];
