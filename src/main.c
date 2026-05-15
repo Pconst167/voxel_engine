@@ -274,16 +274,16 @@ void process_input(void){
               int32_t voxel_z = looked_at_block.voxel_z + looked_at_block.normal_z;
               int32_t voxel_x = looked_at_block.voxel_x + looked_at_block.normal_x;
               if((voxel_y != player_y_feet && voxel_y != player_y_head) || voxel_z != player_z || voxel_x != player_x){
-                voxels[voxel_y][voxel_z][voxel_x].type = VOXEL_TYPE_STONE;
-                voxels[voxel_y][voxel_z][voxel_x].solid = true;
+                voxel_at(voxel_y, voxel_z, voxel_x).type = VOXEL_TYPE_STONE;
+                voxel_at(voxel_y, voxel_z, voxel_x).solid = true;
               }
             }
             else if(event.button.button == SDL_BUTTON_RIGHT){
               int32_t voxel_y = looked_at_block.voxel_y;
               int32_t voxel_z = looked_at_block.voxel_z;
               int32_t voxel_x = looked_at_block.voxel_x;
-              voxels[voxel_y][voxel_z][voxel_x].type = VOXEL_TYPE_AIR;
-              voxels[voxel_y][voxel_z][voxel_x].solid = false;
+              voxel_at(voxel_y, voxel_z, voxel_x).type = VOXEL_TYPE_AIR;
+              voxel_at(voxel_y, voxel_z, voxel_x).solid = false;
             }
           }
         }
@@ -491,7 +491,7 @@ inline void move_player_x(float movement_x){
     voxel_z = player_vox_z;
     voxel_y = player_vox_y;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min){
@@ -507,7 +507,7 @@ inline void move_player_x(float movement_x){
     voxel_z = player_vox_z + 1;
     voxel_y = player_vox_y;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.z_max > voxel->aabb.z_min)
@@ -524,7 +524,7 @@ inline void move_player_x(float movement_x){
     voxel_z = player_vox_z - 1;
     voxel_y = player_vox_y;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.z_min < voxel->aabb.z_max)
@@ -542,7 +542,7 @@ inline void move_player_x(float movement_x){
     voxel_z = player_vox_z;
     voxel_y = player_vox_y + 1;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min){
@@ -558,7 +558,7 @@ inline void move_player_x(float movement_x){
     voxel_z = player_vox_z + 1;
     voxel_y = player_vox_y + 1;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.z_max > voxel->aabb.z_min)
@@ -575,7 +575,7 @@ inline void move_player_x(float movement_x){
     voxel_z = player_vox_z - 1;
     voxel_y = player_vox_y + 1;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.z_min < voxel->aabb.z_max)
@@ -593,7 +593,7 @@ inline void move_player_x(float movement_x){
     voxel_z = player_vox_z;
     voxel_y = player_vox_y + 2;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
@@ -610,7 +610,7 @@ inline void move_player_x(float movement_x){
     voxel_z = player_vox_z + 1;
     voxel_y = player_vox_y + 2;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
@@ -628,7 +628,7 @@ inline void move_player_x(float movement_x){
     voxel_z = player_vox_z - 1;
     voxel_y = player_vox_y + 2;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
@@ -649,7 +649,7 @@ inline void move_player_x(float movement_x){
     voxel_z = player_vox_z;
     voxel_y = player_vox_y;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max){
@@ -665,7 +665,7 @@ inline void move_player_x(float movement_x){
     voxel_z = player_vox_z + 1;
     voxel_y = player_vox_y;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.z_max > voxel->aabb.z_min)
@@ -682,7 +682,7 @@ inline void move_player_x(float movement_x){
     voxel_z = player_vox_z - 1;
     voxel_y = player_vox_y;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.z_min < voxel->aabb.z_max)
@@ -700,7 +700,7 @@ inline void move_player_x(float movement_x){
     voxel_z = player_vox_z;
     voxel_y = player_vox_y + 1;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max){
@@ -716,7 +716,7 @@ inline void move_player_x(float movement_x){
     voxel_z = player_vox_z + 1;
     voxel_y = player_vox_y + 1;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.z_max > voxel->aabb.z_min)
@@ -733,7 +733,7 @@ inline void move_player_x(float movement_x){
     voxel_z = player_vox_z - 1;
     voxel_y = player_vox_y + 1;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.z_min < voxel->aabb.z_max)
@@ -751,7 +751,7 @@ inline void move_player_x(float movement_x){
     voxel_z = player_vox_z;
     voxel_y = player_vox_y + 2;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
@@ -768,7 +768,7 @@ inline void move_player_x(float movement_x){
     voxel_z = player_vox_z + 1;
     voxel_y = player_vox_y + 2;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
@@ -786,7 +786,7 @@ inline void move_player_x(float movement_x){
     voxel_z = player_vox_z - 1;
     voxel_y = player_vox_y + 2;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
@@ -831,7 +831,7 @@ inline void move_player_z(float movement_z){
     voxel_z = player_vox_z + 1;
     voxel_y = player_vox_y;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.z_max > voxel->aabb.z_min){
@@ -847,7 +847,7 @@ inline void move_player_z(float movement_z){
     voxel_z = player_vox_z + 1;
     voxel_y = player_vox_y;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min)
@@ -864,7 +864,7 @@ inline void move_player_z(float movement_z){
     voxel_z = player_vox_z + 1;
     voxel_y = player_vox_y;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max)
@@ -882,7 +882,7 @@ inline void move_player_z(float movement_z){
     voxel_z = player_vox_z + 1;
     voxel_y = player_vox_y + 1;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.z_max > voxel->aabb.z_min){
@@ -898,7 +898,7 @@ inline void move_player_z(float movement_z){
     voxel_z = player_vox_z + 1;
     voxel_y = player_vox_y + 1;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min)
@@ -915,7 +915,7 @@ inline void move_player_z(float movement_z){
     voxel_z = player_vox_z + 1;
     voxel_y = player_vox_y + 1;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max)
@@ -933,7 +933,7 @@ inline void move_player_z(float movement_z){
     voxel_z = player_vox_z + 1;
     voxel_y = player_vox_y + 2;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
@@ -950,7 +950,7 @@ inline void move_player_z(float movement_z){
     voxel_z = player_vox_z + 1;
     voxel_y = player_vox_y + 2;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
@@ -968,7 +968,7 @@ inline void move_player_z(float movement_z){
     voxel_z = player_vox_z + 1;
     voxel_y = player_vox_y + 2;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
@@ -989,7 +989,7 @@ inline void move_player_z(float movement_z){
     voxel_z = player_vox_z - 1;
     voxel_y = player_vox_y;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.z_min < voxel->aabb.z_max){
@@ -1005,7 +1005,7 @@ inline void move_player_z(float movement_z){
     voxel_z = player_vox_z - 1;
     voxel_y = player_vox_y;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min)
@@ -1022,7 +1022,7 @@ inline void move_player_z(float movement_z){
     voxel_z = player_vox_z - 1;
     voxel_y = player_vox_y;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max)
@@ -1040,7 +1040,7 @@ inline void move_player_z(float movement_z){
     voxel_z = player_vox_z - 1;
     voxel_y = player_vox_y + 1;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.z_min < voxel->aabb.z_max){
@@ -1056,7 +1056,7 @@ inline void move_player_z(float movement_z){
     voxel_z = player_vox_z - 1;
     voxel_y = player_vox_y + 1;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min)
@@ -1073,7 +1073,7 @@ inline void move_player_z(float movement_z){
     voxel_z = player_vox_z - 1;
     voxel_y = player_vox_y + 1;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max)
@@ -1091,7 +1091,7 @@ inline void move_player_z(float movement_z){
     voxel_z = player_vox_z - 1;
     voxel_y = player_vox_y + 2;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
@@ -1108,7 +1108,7 @@ inline void move_player_z(float movement_z){
     voxel_z = player_vox_z - 1;
     voxel_y = player_vox_y + 2;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
@@ -1126,7 +1126,7 @@ inline void move_player_z(float movement_z){
     voxel_z = player_vox_z - 1;
     voxel_y = player_vox_y + 2;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
@@ -1175,7 +1175,7 @@ inline void move_player_y(float movement_y){
     voxel_z = player_vox_z;
     voxel_y = player_vox_y - 1;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.y_min < voxel->aabb.y_max){
@@ -1193,7 +1193,7 @@ inline void move_player_y(float movement_y){
     voxel_z = player_vox_z;
     voxel_y = player_vox_y - 1;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max)
@@ -1212,7 +1212,7 @@ inline void move_player_y(float movement_y){
     voxel_z = player_vox_z;
     voxel_y = player_vox_y - 1;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min)
@@ -1231,7 +1231,7 @@ inline void move_player_y(float movement_y){
     voxel_z = player_vox_z + 1;
     voxel_y = player_vox_y - 1;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.z_max > voxel->aabb.z_min)
@@ -1250,7 +1250,7 @@ inline void move_player_y(float movement_y){
     voxel_z = player_vox_z - 1;
     voxel_y = player_vox_y - 1;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.z_min < voxel->aabb.z_max)
@@ -1269,7 +1269,7 @@ inline void move_player_y(float movement_y){
     voxel_z = player_vox_z + 1;
     voxel_y = player_vox_y - 1;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max)
@@ -1289,7 +1289,7 @@ inline void move_player_y(float movement_y){
     voxel_z = player_vox_z + 1;
     voxel_y = player_vox_y - 1;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min)
@@ -1309,7 +1309,7 @@ inline void move_player_y(float movement_y){
     voxel_z = player_vox_z - 1;
     voxel_y = player_vox_y - 1;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min)
@@ -1329,7 +1329,7 @@ inline void move_player_y(float movement_y){
     voxel_z = player_vox_z - 1;
     voxel_y = player_vox_y - 1;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max)
@@ -1352,7 +1352,7 @@ inline void move_player_y(float movement_y){
     voxel_z = player_vox_z;
     voxel_y = player_vox_y + 2;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min){
@@ -1369,7 +1369,7 @@ inline void move_player_y(float movement_y){
     voxel_z = player_vox_z;
     voxel_y = player_vox_y + 2;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max)
@@ -1387,7 +1387,7 @@ inline void move_player_y(float movement_y){
     voxel_z = player_vox_z;
     voxel_y = player_vox_y + 2;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min)
@@ -1405,7 +1405,7 @@ inline void move_player_y(float movement_y){
     voxel_z = player_vox_z + 1;
     voxel_y = player_vox_y + 2;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.z_max > voxel->aabb.z_min)
@@ -1423,7 +1423,7 @@ inline void move_player_y(float movement_y){
     voxel_z = player_vox_z - 1;
     voxel_y = player_vox_y + 2;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.z_min < voxel->aabb.z_max)
@@ -1441,7 +1441,7 @@ inline void move_player_y(float movement_y){
     voxel_z = player_vox_z + 1;
     voxel_y = player_vox_y + 2;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max)
@@ -1460,7 +1460,7 @@ inline void move_player_y(float movement_y){
     voxel_z = player_vox_z + 1;
     voxel_y = player_vox_y + 2;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min)
@@ -1479,7 +1479,7 @@ inline void move_player_y(float movement_y){
     voxel_z = player_vox_z - 1;
     voxel_y = player_vox_y + 2;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min)
@@ -1498,7 +1498,7 @@ inline void move_player_y(float movement_y){
     voxel_z = player_vox_z - 1;
     voxel_y = player_vox_y + 2;
 
-    voxel = &voxels[voxel_y][voxel_z][voxel_x];
+    voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
     if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max)
@@ -1535,7 +1535,7 @@ void move_player_z_old(float movement_z){
   for(int voxel_y = start_y; voxel_y <= end_y; voxel_y++){
     for(int voxel_z = start_z; voxel_z <= end_z; voxel_z++){
       for(int voxel_x = start_x; voxel_x <= end_x; voxel_x++){
-        voxel_t *voxel = &voxels[voxel_y][voxel_z][voxel_x];
+        voxel_t *voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
         if(voxel->solid == false) continue;
         if(!aabb_3d_overlaps_xy(&target_aabb, &voxel->aabb)) continue;
@@ -1580,7 +1580,7 @@ void move_player_y_old(float movement_y){
   for(int voxel_y = start_y; voxel_y <= end_y; voxel_y++){
     for(int voxel_z = start_z; voxel_z <= end_z; voxel_z++){
       for(int voxel_x = start_x; voxel_x <= end_x; voxel_x++){
-        voxel_t *voxel = &voxels[voxel_y][voxel_z][voxel_x];
+        voxel_t *voxel = &voxel_at(voxel_y, voxel_z, voxel_x);
 
         if(voxel->solid == false) continue;
         if(!aabb_3d_overlaps_xz(&target_aabb, &voxel->aabb)) continue;
@@ -2183,7 +2183,7 @@ void render_chunk_voxels(int32_t y_plane, int32_t z_row, int32_t x_col){
     for(int32_t z_row = z_row_start; z_row <= z_row_end; z_row++){
       for(int32_t x_col = x_col_start; x_col <= x_col_end; x_col++){
         
-        if(voxels[y_plane][z_row][x_col].solid == false) continue;
+        if(voxel_at(y_plane, z_row, x_col).solid == false) continue;
         
         int32_t left_neighbour_index    = x_col - 1;
         int32_t right_neighbour_index   = x_col + 1;
@@ -2192,15 +2192,15 @@ void render_chunk_voxels(int32_t y_plane, int32_t z_row, int32_t x_col){
         int32_t back_neighbour_index    = z_row - 1;
         int32_t front_neighbour_index   = z_row + 1;
 
-        bool left_neighbour_air    = (left_neighbour_index < 0)                  ? true : voxels[y_plane][z_row][left_neighbour_index].type  == VOXEL_TYPE_AIR;
-        bool right_neighbour_air   = (right_neighbour_index == MAP_NUM_VOXELS_X) ? true : voxels[y_plane][z_row][right_neighbour_index].type == VOXEL_TYPE_AIR;
-        bool top_neighbour_air     = (top_neighbour_index == MAP_NUM_VOXELS_Y)   ? true : voxels[top_neighbour_index][z_row][x_col].type     == VOXEL_TYPE_AIR;
-        bool bottom_neighbour_air  = (bottom_neighbour_index < 0)                ? true : voxels[bottom_neighbour_index][z_row][x_col].type  == VOXEL_TYPE_AIR;
-        bool back_neighbour_air    = (back_neighbour_index < 0)                  ? true : voxels[y_plane][back_neighbour_index][x_col].type  == VOXEL_TYPE_AIR;
-        bool front_neighbour_air   = (front_neighbour_index == MAP_NUM_VOXELS_Z) ? true : voxels[y_plane][front_neighbour_index][x_col].type == VOXEL_TYPE_AIR;
+        bool left_neighbour_air    = (left_neighbour_index < 0)                  ? true : voxel_at(y_plane, z_row, left_neighbour_index).type  == VOXEL_TYPE_AIR;
+        bool right_neighbour_air   = (right_neighbour_index == MAP_NUM_VOXELS_X) ? true : voxel_at(y_plane, z_row, right_neighbour_index).type == VOXEL_TYPE_AIR;
+        bool top_neighbour_air     = (top_neighbour_index == MAP_NUM_VOXELS_Y)   ? true : voxel_at(top_neighbour_index, z_row, x_col).type     == VOXEL_TYPE_AIR;
+        bool bottom_neighbour_air  = (bottom_neighbour_index < 0)                ? true : voxel_at(bottom_neighbour_index, z_row, x_col).type  == VOXEL_TYPE_AIR;
+        bool back_neighbour_air    = (back_neighbour_index < 0)                  ? true : voxel_at(y_plane, back_neighbour_index, x_col).type  == VOXEL_TYPE_AIR;
+        bool front_neighbour_air   = (front_neighbour_index == MAP_NUM_VOXELS_Z) ? true : voxel_at(y_plane, front_neighbour_index, x_col).type == VOXEL_TYPE_AIR;
 
         voxel_material_t *voxel_material;
-        switch(voxels[y_plane][z_row][x_col].type){
+        switch(voxel_at(y_plane, z_row, x_col).type){
           case VOXEL_TYPE_STONE:
             voxel_material = &voxel_materials[VOXEL_TYPE_STONE];
             break;

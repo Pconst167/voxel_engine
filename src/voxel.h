@@ -6,8 +6,8 @@
 #include "mesh.h"
 #include "light.h"
 
-#define MAP_NUM_VOXELS_X 512
-#define MAP_NUM_VOXELS_Z 512
+#define MAP_NUM_VOXELS_X 256
+#define MAP_NUM_VOXELS_Z 256
 #define MAP_NUM_VOXELS_Y 256
 #define CHUNK_SIZE 16
 #define NUM_CHUNK_DIVISIONS_Y (MAP_NUM_VOXELS_Y / CHUNK_SIZE)
@@ -16,6 +16,13 @@
 #define CHUNK_RENDER_DISTANCE 5 // render this number of chunks around the player in XZ
 
 #define MAX_VOXEL_LOOK_AT_DISTANCE 6.0f
+
+// macro to get block at coordiates x y z
+#define MAP_X_STRIDE 1
+#define MAP_Z_STRIDE MAP_NUM_VOXELS_X
+#define MAP_Y_STRIDE (MAP_NUM_VOXELS_X * MAP_NUM_VOXELS_Z)
+#define voxel_at(y, z, x) voxels[(y) * MAP_Y_STRIDE + (z) * MAP_Z_STRIDE + (x)]
+
 
 typedef enum{
   VOXEL_TYPE_AIR   = 0,
@@ -79,7 +86,7 @@ typedef struct{
 extern voxel_material_t *voxel_materials;
 
 // Y slowest changing dimension, X is fastest changing
-extern voxel_t voxels[MAP_NUM_VOXELS_Y][MAP_NUM_VOXELS_Z][MAP_NUM_VOXELS_X];
+extern voxel_t *voxels;
 
 // voxel currently being looked at
 extern voxel_raycast_hit_t looked_at_block;

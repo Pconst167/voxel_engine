@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <float.h>
+#include <stdlib.h>
 #include "voxel.h"
 #include "misc.h"
 #include "camera.h"
 #include "array.h"
+#include "log.h"
 
 // Y slowest changing dimension, X is fastest changing
-voxel_t voxels[MAP_NUM_VOXELS_Y][MAP_NUM_VOXELS_Z][MAP_NUM_VOXELS_X];
+voxel_t *voxels;
 
 // voxel currently being looked at
 voxel_raycast_hit_t looked_at_block;
@@ -81,48 +83,54 @@ void init_block_materials(){
 
 void init_voxel_map(){
 
+  voxels = malloc(sizeof(voxel_t) * MAP_NUM_VOXELS_Y * MAP_NUM_VOXELS_Z * MAP_NUM_VOXELS_X);
+  if(voxels == NULL){
+    print_log("ERROR: unable to allocate map memory");
+    exit(1);
+  }
+
   for(uint32_t y = 0; y < MAP_NUM_VOXELS_Y; y++){
     for(uint32_t z = 0; z < MAP_NUM_VOXELS_Z; z++){
       for(uint32_t x = 0; x < MAP_NUM_VOXELS_X; x++){
-        voxels[y][z][x].solid = false;
+        voxel_at(y, z, x).solid = false;
 
         if(y <= (uint32_t)(0.3 * MAP_NUM_VOXELS_Y)){
-          voxels[y][z][x].type = VOXEL_TYPE_STONE;
-          voxels[y][z][x].solid = true;
+          voxel_at(y, z, x).type = VOXEL_TYPE_STONE;
+          voxel_at(y, z, x).solid = true;
         }
         else if(y > (uint32_t)(0.3 * MAP_NUM_VOXELS_Y) && y < (uint32_t)(0.4 * MAP_NUM_VOXELS_Y)){
-          voxels[y][z][x].type = VOXEL_TYPE_DIRT;
-          voxels[y][z][x].solid = true;
+          voxel_at(y, z, x).type = VOXEL_TYPE_DIRT;
+          voxel_at(y, z, x).solid = true;
         }
         else if(y == (uint32_t)(0.4 * MAP_NUM_VOXELS_Y)){
           if(xorshift32() % 5 == 0){
-            voxels[y][z][x].type = VOXEL_TYPE_GRASS;
-            voxels[y][z][x].solid = true;
+            voxel_at(y, z, x).type = VOXEL_TYPE_GRASS;
+            voxel_at(y, z, x).solid = true;
           }
           else{
-            voxels[y][z][x].type = VOXEL_TYPE_AIR;
+            voxel_at(y, z, x).type = VOXEL_TYPE_AIR;
           }
         }
         else{
-          voxels[y][z][x].type = VOXEL_TYPE_AIR;
+          voxel_at(y, z, x).type = VOXEL_TYPE_AIR;
         }
 
         if((x <= 10 || x >= MAP_NUM_VOXELS_X - 10 || z <= 10 || z >= MAP_NUM_VOXELS_Z - 10) && y >= 0.4 * MAP_NUM_VOXELS_Y && y <= 0.43 * MAP_NUM_VOXELS_Y){
           if(xorshift32() % 5 == 0){
-            voxels[y][z][x].type = VOXEL_TYPE_DIRT;
-            voxels[y][z][x].solid = true;
+            voxel_at(y, z, x).type = VOXEL_TYPE_DIRT;
+            voxel_at(y, z, x).solid = true;
           }
           else{
-            voxels[y][z][x].type = VOXEL_TYPE_AIR;
+            voxel_at(y, z, x).type = VOXEL_TYPE_AIR;
           }
         }
         
-        voxels[y][z][x].aabb.x_min = x;
-        voxels[y][z][x].aabb.x_max = x + 1.0;
-        voxels[y][z][x].aabb.z_min = z;
-        voxels[y][z][x].aabb.z_max = z + 1.0;
-        voxels[y][z][x].aabb.y_min = y;
-        voxels[y][z][x].aabb.y_max = y + 1.0;
+        voxel_at(y, z, x).aabb.x_min = x;
+        voxel_at(y, z, x).aabb.x_max = x + 1.0;
+        voxel_at(y, z, x).aabb.z_min = z;
+        voxel_at(y, z, x).aabb.z_max = z + 1.0;
+        voxel_at(y, z, x).aabb.y_min = y;
+        voxel_at(y, z, x).aabb.y_max = y + 1.0;
       }
     }
   }
@@ -355,7 +363,7 @@ voxel_raycast_hit_t raycast_voxels(
       voxel_y >= 0 && voxel_y < MAP_NUM_VOXELS_Y &&
       voxel_z >= 0 && voxel_z < MAP_NUM_VOXELS_Z
     ) {
-      if(voxels[voxel_y][voxel_z][voxel_x].solid) {
+      if(voxel_at(voxel_y, voxel_z, voxel_x).solid) {
         hit_result.hit = 1;
         hit_result.voxel_x = voxel_x;
         hit_result.voxel_y = voxel_y;
