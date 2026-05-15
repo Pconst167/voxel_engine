@@ -62,11 +62,11 @@ voxel_material_t voxel_materials[4] = {
 };
 
 void init_voxel_map(){
-  voxel_materials[VOXEL_TYPE_STONE].side_texture = load_texture("./assets/textures/voxel/stone.png");
-  voxel_materials[VOXEL_TYPE_STONE].top_texture  = load_texture("./assets/textures/voxel/stone.png");
-  voxel_materials[VOXEL_TYPE_DIRT].side_texture  = load_texture("./assets/textures/voxel/dirt.png");
-  voxel_materials[VOXEL_TYPE_DIRT].top_texture   = load_texture("./assets/textures/voxel/dirt.png");
-  voxel_materials[VOXEL_TYPE_GRASS].side_texture = load_texture("./assets/textures/voxel/grass_side.png");
+  voxel_materials[VOXEL_TYPE_STONE].side_texture = load_texture("./assets/textures/voxel/stone3.png");
+  voxel_materials[VOXEL_TYPE_STONE].top_texture  = load_texture("./assets/textures/voxel/stone3.png");
+  voxel_materials[VOXEL_TYPE_DIRT].side_texture  = load_texture("./assets/textures/voxel/dirt_2.png");
+  voxel_materials[VOXEL_TYPE_DIRT].top_texture   = load_texture("./assets/textures/voxel/dirt_2.png");
+  voxel_materials[VOXEL_TYPE_GRASS].side_texture = load_texture("./assets/textures/voxel/grass_side_2.png");
   voxel_materials[VOXEL_TYPE_GRASS].top_texture  = load_texture("./assets/textures/voxel/grass_top.png");
 
   for(uint32_t y = 0; y < MAP_NUM_VOXELS_Y; y++){

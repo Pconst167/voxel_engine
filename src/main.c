@@ -112,7 +112,7 @@
 #define MOUSE_SENSITIVITY 0.005f
 #define DAY_LENGTH (1.01f * 60.0f * 60.0f / 0.016f) /* hours */
 
-#define FOV_Y_DEG 75.0
+#define FOV_Y_DEG 90.0
 #define FOV_Y (FOV_Y_DEG * M_PI / 180.0)
 #define ZNEAR 0.1f
 #define ZFAR CHUNK_RENDER_DISTANCE * (CHUNK_SIZE * 2) // 300.0f
@@ -2079,7 +2079,7 @@ void render_voxel_quad(voxel_quad_t voxel_quad, voxel_material_t *voxel_material
       }
 
       if(looked_at){
-        light_intensities[light_index] += 0.75f;
+        light_intensities[light_index] += 0.20f;
       }
 
       // clamp to [0.0, 1.0]

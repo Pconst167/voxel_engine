@@ -13,7 +13,7 @@
 #define NUM_CHUNK_DIVISIONS_Y (MAP_NUM_VOXELS_Y / CHUNK_SIZE)
 #define NUM_CHUNK_DIVISIONS_Z (MAP_NUM_VOXELS_Z / CHUNK_SIZE)
 #define NUM_CHUNK_DIVISIONS_X (MAP_NUM_VOXELS_X / CHUNK_SIZE)
-#define CHUNK_RENDER_DISTANCE 6 // render this number of chunks around the player in XZ
+#define CHUNK_RENDER_DISTANCE 5 // render this number of chunks around the player in XZ
 
 #define MAX_VOXEL_LOOK_AT_DISTANCE 6.0f
 
