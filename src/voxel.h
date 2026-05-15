@@ -55,6 +55,7 @@ typedef struct{
 
 typedef struct{
   voxel_type_t type;
+  bool solid;
   aabb_3d_t aabb;
   voxel_material_t *voxel_material;
   float avg_w;

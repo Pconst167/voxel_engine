@@ -68,27 +68,37 @@ void init_voxel_map(){
   for(uint32_t y = 0; y < MAP_NUM_VOXELS_Y; y++){
     for(uint32_t z = 0; z < MAP_NUM_VOXELS_Z; z++){
       for(uint32_t x = 0; x < MAP_NUM_VOXELS_X; x++){
+        voxels[y][z][x].solid = false;
+
         if(y <= 20){
           voxels[y][z][x].type = VOXEL_TYPE_STONE;
+          voxels[y][z][x].solid = true;
         }
         else if(y >= 21 && y <= 25){
           voxels[y][z][x].type = VOXEL_TYPE_DIRT;
+          voxels[y][z][x].solid = true;
         }
         else if(y == 26){
-          if(xorshift32() % 5 == 0)
+          if(xorshift32() % 5 == 0){
             voxels[y][z][x].type = VOXEL_TYPE_GRASS;
-          else
+            voxels[y][z][x].solid = true;
+          }
+          else{
             voxels[y][z][x].type = VOXEL_TYPE_AIR;
+          }
         }
         else{
           voxels[y][z][x].type = VOXEL_TYPE_AIR;
         }
 
         if((x <= 10 || x >= MAP_NUM_VOXELS_X - 10 || z <= 10 || z >= MAP_NUM_VOXELS_Z - 10) && y >= 25 && y <= 35){
-          if(xorshift32() % 5 == 0)
+          if(xorshift32() % 5 == 0){
             voxels[y][z][x].type = VOXEL_TYPE_DIRT;
-          else
+            voxels[y][z][x].solid = true;
+          }
+          else{
             voxels[y][z][x].type = VOXEL_TYPE_AIR;
+          }
         }
         
         voxels[y][z][x].aabb.x_min = x;
@@ -329,7 +339,7 @@ voxel_raycast_hit_t raycast_voxels(
       voxel_y >= 0 && voxel_y < MAP_NUM_VOXELS_Y &&
       voxel_z >= 0 && voxel_z < MAP_NUM_VOXELS_Z
     ) {
-      if(voxels[voxel_y][voxel_z][voxel_x].type != VOXEL_TYPE_AIR) {
+      if(voxels[voxel_y][voxel_z][voxel_x].solid) {
         hit_result.hit = 1;
         hit_result.voxel_x = voxel_x;
         hit_result.voxel_y = voxel_y;

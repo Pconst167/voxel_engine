@@ -273,12 +273,14 @@ void process_input(void){
               int32_t voxel_z = looked_at_block.voxel_z + looked_at_block.normal_z;
               int32_t voxel_x = looked_at_block.voxel_x + looked_at_block.normal_x;
               voxels[voxel_y][voxel_z][voxel_x].type = VOXEL_TYPE_STONE;
+              voxels[voxel_y][voxel_z][voxel_x].solid = true;
             }
             else if(event.button.button == SDL_BUTTON_RIGHT){
               int32_t voxel_y = looked_at_block.voxel_y;
               int32_t voxel_z = looked_at_block.voxel_z;
               int32_t voxel_x = looked_at_block.voxel_x;
               voxels[voxel_y][voxel_z][voxel_x].type = VOXEL_TYPE_AIR;
+              voxels[voxel_y][voxel_z][voxel_x].solid = false;
             }
           }
         }
@@ -488,7 +490,7 @@ inline void move_player_x(float movement_x){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min){
         target_position.x = voxel->aabb.x_min - player.radius - COLLISION_EPSILON;
         target_aabb = make_player_aabb_at_position(target_position);
@@ -504,7 +506,7 @@ inline void move_player_x(float movement_x){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.z_max > voxel->aabb.z_min)
         if(target_aabb.x_max > voxel->aabb.x_min){
           target_position.x = voxel->aabb.x_min - player.radius - COLLISION_EPSILON;
@@ -521,7 +523,7 @@ inline void move_player_x(float movement_x){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.z_min < voxel->aabb.z_max)
         if(target_aabb.x_max > voxel->aabb.x_min){
           target_position.x = voxel->aabb.x_min - player.radius - COLLISION_EPSILON;
@@ -539,7 +541,7 @@ inline void move_player_x(float movement_x){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min){
         target_position.x = voxel->aabb.x_min - player.radius - COLLISION_EPSILON;
         target_aabb = make_player_aabb_at_position(target_position);
@@ -555,7 +557,7 @@ inline void move_player_x(float movement_x){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.z_max > voxel->aabb.z_min)
         if(target_aabb.x_max > voxel->aabb.x_min){
           target_position.x = voxel->aabb.x_min - player.radius - COLLISION_EPSILON;
@@ -572,7 +574,7 @@ inline void move_player_x(float movement_x){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.z_min < voxel->aabb.z_max)
         if(target_aabb.x_max > voxel->aabb.x_min){
           target_position.x = voxel->aabb.x_min - player.radius - COLLISION_EPSILON;
@@ -590,7 +592,7 @@ inline void move_player_x(float movement_x){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
         if(target_aabb.x_max > voxel->aabb.x_min){
           target_position.x = voxel->aabb.x_min - player.radius - COLLISION_EPSILON;
@@ -607,7 +609,7 @@ inline void move_player_x(float movement_x){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
         if(target_aabb.z_max > voxel->aabb.z_min)
           if(target_aabb.x_max > voxel->aabb.x_min){
@@ -625,7 +627,7 @@ inline void move_player_x(float movement_x){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
         if(target_aabb.z_min < voxel->aabb.z_max)
           if(target_aabb.x_max > voxel->aabb.x_min){
@@ -646,7 +648,7 @@ inline void move_player_x(float movement_x){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max){
         target_position.x = voxel->aabb.x_max + player.radius + COLLISION_EPSILON;
         target_aabb = make_player_aabb_at_position(target_position);
@@ -662,7 +664,7 @@ inline void move_player_x(float movement_x){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.z_max > voxel->aabb.z_min)
         if(target_aabb.x_min < voxel->aabb.x_max){
           target_position.x = voxel->aabb.x_max + player.radius + COLLISION_EPSILON;
@@ -679,7 +681,7 @@ inline void move_player_x(float movement_x){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.z_min < voxel->aabb.z_max)
         if(target_aabb.x_min < voxel->aabb.x_max){
           target_position.x = voxel->aabb.x_max + player.radius + COLLISION_EPSILON;
@@ -697,7 +699,7 @@ inline void move_player_x(float movement_x){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max){
         target_position.x = voxel->aabb.x_max + player.radius + COLLISION_EPSILON;
         target_aabb = make_player_aabb_at_position(target_position);
@@ -713,7 +715,7 @@ inline void move_player_x(float movement_x){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.z_max > voxel->aabb.z_min)
         if(target_aabb.x_min < voxel->aabb.x_max){
           target_position.x = voxel->aabb.x_max + player.radius + COLLISION_EPSILON;
@@ -730,7 +732,7 @@ inline void move_player_x(float movement_x){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.z_min < voxel->aabb.z_max)
         if(target_aabb.x_min < voxel->aabb.x_max){
           target_position.x = voxel->aabb.x_max + player.radius + COLLISION_EPSILON;
@@ -748,7 +750,7 @@ inline void move_player_x(float movement_x){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
         if(target_aabb.x_min < voxel->aabb.x_max){
           target_position.x = voxel->aabb.x_max + player.radius + COLLISION_EPSILON;
@@ -765,7 +767,7 @@ inline void move_player_x(float movement_x){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
         if(target_aabb.z_max > voxel->aabb.z_min)
           if(target_aabb.x_min < voxel->aabb.x_max){
@@ -783,7 +785,7 @@ inline void move_player_x(float movement_x){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
         if(target_aabb.z_min < voxel->aabb.z_max)
           if(target_aabb.x_min < voxel->aabb.x_max){
@@ -828,7 +830,7 @@ inline void move_player_z(float movement_z){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.z_max > voxel->aabb.z_min){
         target_position.z = voxel->aabb.z_min - player.radius - COLLISION_EPSILON;
         target_aabb = make_player_aabb_at_position(target_position);
@@ -844,7 +846,7 @@ inline void move_player_z(float movement_z){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min)
         if(target_aabb.z_max > voxel->aabb.z_min){
           target_position.z = voxel->aabb.z_min - player.radius - COLLISION_EPSILON;
@@ -861,7 +863,7 @@ inline void move_player_z(float movement_z){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max)
         if(target_aabb.z_max > voxel->aabb.z_min){
           target_position.z = voxel->aabb.z_min - player.radius - COLLISION_EPSILON;
@@ -879,7 +881,7 @@ inline void move_player_z(float movement_z){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.z_max > voxel->aabb.z_min){
         target_position.z = voxel->aabb.z_min - player.radius - COLLISION_EPSILON;
         target_aabb = make_player_aabb_at_position(target_position);
@@ -895,7 +897,7 @@ inline void move_player_z(float movement_z){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min)
         if(target_aabb.z_max > voxel->aabb.z_min){
           target_position.z = voxel->aabb.z_min - player.radius - COLLISION_EPSILON;
@@ -912,7 +914,7 @@ inline void move_player_z(float movement_z){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max)
         if(target_aabb.z_max > voxel->aabb.z_min){
           target_position.z = voxel->aabb.z_min - player.radius - COLLISION_EPSILON;
@@ -930,7 +932,7 @@ inline void move_player_z(float movement_z){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
         if(target_aabb.z_max > voxel->aabb.z_min){
           target_position.z = voxel->aabb.z_min - player.radius - COLLISION_EPSILON;
@@ -947,7 +949,7 @@ inline void move_player_z(float movement_z){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
         if(target_aabb.x_max > voxel->aabb.x_min)
           if(target_aabb.z_max > voxel->aabb.z_min){
@@ -965,7 +967,7 @@ inline void move_player_z(float movement_z){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
         if(target_aabb.x_min < voxel->aabb.x_max)
           if(target_aabb.z_max > voxel->aabb.z_min){
@@ -986,7 +988,7 @@ inline void move_player_z(float movement_z){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.z_min < voxel->aabb.z_max){
         target_position.z = voxel->aabb.z_max + player.radius + COLLISION_EPSILON;
         target_aabb = make_player_aabb_at_position(target_position);
@@ -1002,7 +1004,7 @@ inline void move_player_z(float movement_z){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min)
         if(target_aabb.z_min < voxel->aabb.z_max){
           target_position.z = voxel->aabb.z_max + player.radius + COLLISION_EPSILON;
@@ -1019,7 +1021,7 @@ inline void move_player_z(float movement_z){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max)
         if(target_aabb.z_min < voxel->aabb.z_max){
           target_position.z = voxel->aabb.z_max + player.radius + COLLISION_EPSILON;
@@ -1037,7 +1039,7 @@ inline void move_player_z(float movement_z){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.z_min < voxel->aabb.z_max){
         target_position.z = voxel->aabb.z_max + player.radius + COLLISION_EPSILON;
         target_aabb = make_player_aabb_at_position(target_position);
@@ -1053,7 +1055,7 @@ inline void move_player_z(float movement_z){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min)
         if(target_aabb.z_min < voxel->aabb.z_max){
           target_position.z = voxel->aabb.z_max + player.radius + COLLISION_EPSILON;
@@ -1070,7 +1072,7 @@ inline void move_player_z(float movement_z){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max)
         if(target_aabb.z_min < voxel->aabb.z_max){
           target_position.z = voxel->aabb.z_max + player.radius + COLLISION_EPSILON;
@@ -1088,7 +1090,7 @@ inline void move_player_z(float movement_z){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
         if(target_aabb.z_min < voxel->aabb.z_max){
           target_position.z = voxel->aabb.z_max + player.radius + COLLISION_EPSILON;
@@ -1105,7 +1107,7 @@ inline void move_player_z(float movement_z){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
         if(target_aabb.x_max > voxel->aabb.x_min)
           if(target_aabb.z_min < voxel->aabb.z_max){
@@ -1123,7 +1125,7 @@ inline void move_player_z(float movement_z){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min)
         if(target_aabb.x_min < voxel->aabb.x_max)
           if(target_aabb.z_min < voxel->aabb.z_max){
@@ -1172,7 +1174,7 @@ inline void move_player_y(float movement_y){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.y_min < voxel->aabb.y_max){
         target_position.y = voxel->aabb.y_max + COLLISION_EPSILON;
         target_aabb = make_player_aabb_at_position(target_position);
@@ -1190,7 +1192,7 @@ inline void move_player_y(float movement_y){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max)
         if(target_aabb.y_min < voxel->aabb.y_max){
           target_position.y = voxel->aabb.y_max + COLLISION_EPSILON;
@@ -1209,7 +1211,7 @@ inline void move_player_y(float movement_y){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min)
         if(target_aabb.y_min < voxel->aabb.y_max){
           target_position.y = voxel->aabb.y_max + COLLISION_EPSILON;
@@ -1228,7 +1230,7 @@ inline void move_player_y(float movement_y){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.z_max > voxel->aabb.z_min)
         if(target_aabb.y_min < voxel->aabb.y_max){
           target_position.y = voxel->aabb.y_max + COLLISION_EPSILON;
@@ -1247,7 +1249,7 @@ inline void move_player_y(float movement_y){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.z_min < voxel->aabb.z_max)
         if(target_aabb.y_min < voxel->aabb.y_max){
           target_position.y = voxel->aabb.y_max + COLLISION_EPSILON;
@@ -1266,7 +1268,7 @@ inline void move_player_y(float movement_y){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max)
         if(target_aabb.z_max > voxel->aabb.z_min)
           if(target_aabb.y_min < voxel->aabb.y_max){
@@ -1286,7 +1288,7 @@ inline void move_player_y(float movement_y){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min)
         if(target_aabb.z_max > voxel->aabb.z_min)
           if(target_aabb.y_min < voxel->aabb.y_max){
@@ -1306,7 +1308,7 @@ inline void move_player_y(float movement_y){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min)
         if(target_aabb.z_min < voxel->aabb.z_max)
           if(target_aabb.y_min < voxel->aabb.y_max){
@@ -1326,7 +1328,7 @@ inline void move_player_y(float movement_y){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max)
         if(target_aabb.z_min < voxel->aabb.z_max)
           if(target_aabb.y_min < voxel->aabb.y_max){
@@ -1349,7 +1351,7 @@ inline void move_player_y(float movement_y){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.y_max > voxel->aabb.y_min){
         target_position.y = voxel->aabb.y_min - player.height - COLLISION_EPSILON;
         target_aabb = make_player_aabb_at_position(target_position);
@@ -1366,7 +1368,7 @@ inline void move_player_y(float movement_y){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max)
         if(target_aabb.y_max > voxel->aabb.y_min){
           target_position.y = voxel->aabb.y_min - player.height - COLLISION_EPSILON;
@@ -1384,7 +1386,7 @@ inline void move_player_y(float movement_y){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min)
         if(target_aabb.y_max > voxel->aabb.y_min){
           target_position.y = voxel->aabb.y_min - player.height - COLLISION_EPSILON;
@@ -1402,7 +1404,7 @@ inline void move_player_y(float movement_y){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.z_max > voxel->aabb.z_min)
         if(target_aabb.y_max > voxel->aabb.y_min){
           target_position.y = voxel->aabb.y_min - player.height - COLLISION_EPSILON;
@@ -1420,7 +1422,7 @@ inline void move_player_y(float movement_y){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.z_min < voxel->aabb.z_max)
         if(target_aabb.y_max > voxel->aabb.y_min){
           target_position.y = voxel->aabb.y_min - player.height - COLLISION_EPSILON;
@@ -1438,7 +1440,7 @@ inline void move_player_y(float movement_y){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max)
         if(target_aabb.z_max > voxel->aabb.z_min)
           if(target_aabb.y_max > voxel->aabb.y_min){
@@ -1457,7 +1459,7 @@ inline void move_player_y(float movement_y){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min)
         if(target_aabb.z_max > voxel->aabb.z_min)
           if(target_aabb.y_max > voxel->aabb.y_min){
@@ -1476,7 +1478,7 @@ inline void move_player_y(float movement_y){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_max > voxel->aabb.x_min)
         if(target_aabb.z_min < voxel->aabb.z_max)
           if(target_aabb.y_max > voxel->aabb.y_min){
@@ -1495,7 +1497,7 @@ inline void move_player_y(float movement_y){
 
     voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-    if(voxel->type != VOXEL_TYPE_AIR){
+    if(voxel->solid){
       if(target_aabb.x_min < voxel->aabb.x_max)
         if(target_aabb.z_min < voxel->aabb.z_max)
           if(target_aabb.y_max > voxel->aabb.y_min){
@@ -1532,7 +1534,7 @@ void move_player_z_old(float movement_z){
       for(int voxel_x = start_x; voxel_x <= end_x; voxel_x++){
         voxel_t *voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-        if(voxel->type == VOXEL_TYPE_AIR) continue;
+        if(voxel->solid == false) continue;
         if(!aabb_3d_overlaps_xy(&target_aabb, &voxel->aabb)) continue;
 
         if(movement_z > 0.0f){
@@ -1577,7 +1579,7 @@ void move_player_y_old(float movement_y){
       for(int voxel_x = start_x; voxel_x <= end_x; voxel_x++){
         voxel_t *voxel = &voxels[voxel_y][voxel_z][voxel_x];
 
-        if(voxel->type == VOXEL_TYPE_AIR) continue;
+        if(voxel->solid == false) continue;
         if(!aabb_3d_overlaps_xz(&target_aabb, &voxel->aabb)) continue;
 
         if(movement_y < 0.0f){
@@ -2162,7 +2164,7 @@ void render_chunk_voxels(uint32_t z_row, uint32_t x_col){
     for(uint32_t z_row = z_row_start; z_row <= z_row_end; z_row++){
       for(uint32_t x_col = x_col_start; x_col <= x_col_end; x_col++){
         
-        if(voxels[y_plane][z_row][x_col].type == VOXEL_TYPE_AIR) continue;
+        if(voxels[y_plane][z_row][x_col].solid == false) continue;
         
         int32_t left_neighbour_index    = x_col - 1;
         int32_t right_neighbour_index   = x_col + 1;
