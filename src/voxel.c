@@ -70,15 +70,15 @@ void init_voxel_map(){
       for(uint32_t x = 0; x < MAP_NUM_VOXELS_X; x++){
         voxels[y][z][x].solid = false;
 
-        if(y <= 20){
+        if(y <= (uint32_t)(0.3 * MAP_NUM_VOXELS_Y)){
           voxels[y][z][x].type = VOXEL_TYPE_STONE;
           voxels[y][z][x].solid = true;
         }
-        else if(y >= 21 && y <= 25){
+        else if(y > (uint32_t)(0.3 * MAP_NUM_VOXELS_Y) && y < (uint32_t)(0.4 * MAP_NUM_VOXELS_Y)){
           voxels[y][z][x].type = VOXEL_TYPE_DIRT;
           voxels[y][z][x].solid = true;
         }
-        else if(y == 26){
+        else if(y == (uint32_t)(0.4 * MAP_NUM_VOXELS_Y)){
           if(xorshift32() % 5 == 0){
             voxels[y][z][x].type = VOXEL_TYPE_GRASS;
             voxels[y][z][x].solid = true;
@@ -91,7 +91,7 @@ void init_voxel_map(){
           voxels[y][z][x].type = VOXEL_TYPE_AIR;
         }
 
-        if((x <= 10 || x >= MAP_NUM_VOXELS_X - 10 || z <= 10 || z >= MAP_NUM_VOXELS_Z - 10) && y >= 25 && y <= 35){
+        if((x <= 10 || x >= MAP_NUM_VOXELS_X - 10 || z <= 10 || z >= MAP_NUM_VOXELS_Z - 10) && y >= 0.4 * MAP_NUM_VOXELS_Y && y <= 0.43 * MAP_NUM_VOXELS_Y){
           if(xorshift32() % 5 == 0){
             voxels[y][z][x].type = VOXEL_TYPE_DIRT;
             voxels[y][z][x].solid = true;

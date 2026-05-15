@@ -1,7 +1,7 @@
 #include "player.h"
 
 player_t player = {
-  .position       = {.x = 100.0f, .y = 43.0f, .z = 100.0f},
+  .position       = {.x = 100.0f, .y = 116.0f, .z = 100.0f},
   .velocity       = {.x = 0.0f, .y = 0.0f, .z = 0.0f},
   .direction      = {.x = 0.0f, .y = 0.0f, .z = 1.0f},
   .theta          = M_PI_2,

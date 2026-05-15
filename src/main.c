@@ -194,7 +194,7 @@ void setup(void) {
 
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
 
-  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = 0.0f,  .z = 0.0f}, (color_t){.uint32 = 0xFFFF8080}, 0.6f);
+  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = 0.0f,  .z = 0.0f}, (color_t){.uint32 = 0xFFFFBBBB}, 0.6f);
   create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
 
   /* normalize all light direction vectors to unity */
@@ -262,6 +262,11 @@ void process_input(void){
       }
       if(event.type == SDL_MOUSEBUTTONDOWN){
         if(event.button.button == SDL_BUTTON_LEFT || event.button.button == SDL_BUTTON_RIGHT){
+          int32_t player_y_feet = player.position.y;
+          int32_t player_y_head = player.position.y + player.height;
+          int32_t player_z = player.position.z;
+          int32_t player_x = player.position.x;
+
           voxel_raycast_hit_t looked_at_block = raycast_voxels(
             camera.position,
             camera.direction,
@@ -272,8 +277,10 @@ void process_input(void){
               int32_t voxel_y = looked_at_block.voxel_y + looked_at_block.normal_y;
               int32_t voxel_z = looked_at_block.voxel_z + looked_at_block.normal_z;
               int32_t voxel_x = looked_at_block.voxel_x + looked_at_block.normal_x;
-              voxels[voxel_y][voxel_z][voxel_x].type = VOXEL_TYPE_STONE;
-              voxels[voxel_y][voxel_z][voxel_x].solid = true;
+              if((voxel_y != player_y_feet && voxel_y != player_y_head) || voxel_z != player_z || voxel_x != player_x){
+                voxels[voxel_y][voxel_z][voxel_x].type = VOXEL_TYPE_STONE;
+                voxels[voxel_y][voxel_z][voxel_x].solid = true;
+              }
             }
             else if(event.button.button == SDL_BUTTON_RIGHT){
               int32_t voxel_y = looked_at_block.voxel_y;
