@@ -2,9 +2,13 @@
 #include <float.h>
 #include "voxel.h"
 #include "misc.h"
+#include "camera.h"
 
 // Y slowest changing dimension, X is fastest changing
 voxel_t voxels[MAP_NUM_VOXELS_Y][MAP_NUM_VOXELS_Z][MAP_NUM_VOXELS_X];
+
+// voxel currently being looked at
+voxel_raycast_hit_t looked_at_block;
 
 voxel_material_t voxel_materials[4] = {
   {
@@ -379,4 +383,12 @@ voxel_raycast_hit_t raycast_voxels(
   }
 
   return hit_result;
+}
+
+void calculate_currently_looked_at_voxel(){
+  looked_at_block = raycast_voxels(
+    camera.position,
+    camera.direction,
+    MAX_VOXEL_LOOK_AT_DISTANCE
+  );
 }

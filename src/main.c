@@ -267,11 +267,6 @@ void process_input(void){
           int32_t player_z = player.position.z;
           int32_t player_x = player.position.x;
 
-          voxel_raycast_hit_t looked_at_block = raycast_voxels(
-            camera.position,
-            camera.direction,
-            6.0f
-          );
           if(looked_at_block.hit){
             if(event.button.button == SDL_BUTTON_LEFT){
               int32_t voxel_y = looked_at_block.voxel_y + looked_at_block.normal_y;
@@ -1965,7 +1960,7 @@ bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane
   return false;
 }
 
-void render_voxel_quad(voxel_quad_t voxel_quad, voxel_material_t *voxel_material){
+void render_voxel_quad(voxel_quad_t voxel_quad, voxel_material_t *voxel_material, bool looked_at){
   /* triangles list for clipped triangles */
   triangle_t triangles_after_clipping[MAX_NUM_POLYGON_VERTICES - 2]; /* for a polygon with N vertices, the number of nested triangles is always N-2 */
   vector4_t transformed_vertices[4];
@@ -2083,6 +2078,10 @@ void render_voxel_quad(voxel_quad_t voxel_quad, voxel_material_t *voxel_material
         }
       }
 
+      if(looked_at){
+        light_intensities[light_index] += 0.75f;
+      }
+
       // clamp to [0.0, 1.0]
       if(light_intensities[light_index] < 0.0f) light_intensities[light_index] = 0.0f;
       else if(light_intensities[light_index] > 1.0f) light_intensities[light_index] = 1.0f;
@@ -2165,23 +2164,23 @@ void render_voxel_quad(voxel_quad_t voxel_quad, voxel_material_t *voxel_material
     if the immediate neighbour of a face is solid, then do not form that voxel's face etc
     if immediate neighbour is air, then form that quad with 2 faces and render
 */
-void render_chunk_voxels(uint32_t y_plane, uint32_t z_row, uint32_t x_col){
+void render_chunk_voxels(int32_t y_plane, int32_t z_row, int32_t x_col){
   total_chunk_triangles_to_render = 0;
 
   chunk_t *chunk = &chunks[y_plane][z_row][x_col];
   
   // find the start and end voxel indices inside chunk
-  uint32_t y_plane_start = chunk->y_plane_start;
-  uint32_t y_plane_end   = chunk->y_plane_end;
-  uint32_t z_row_start   = chunk->z_row_start;
-  uint32_t z_row_end     = chunk->z_row_end;
-  uint32_t x_col_start   = chunk->x_col_start;
-  uint32_t x_col_end     = chunk->x_col_end;
+  int32_t y_plane_start = chunk->y_plane_start;
+  int32_t y_plane_end   = chunk->y_plane_end;
+  int32_t z_row_start   = chunk->z_row_start;
+  int32_t z_row_end     = chunk->z_row_end;
+  int32_t x_col_start   = chunk->x_col_start;
+  int32_t x_col_end     = chunk->x_col_end;
 
   // loop through all voxels in chunk
-  for(uint32_t y_plane = y_plane_start; y_plane <= y_plane_end; y_plane++){
-    for(uint32_t z_row = z_row_start; z_row <= z_row_end; z_row++){
-      for(uint32_t x_col = x_col_start; x_col <= x_col_end; x_col++){
+  for(int32_t y_plane = y_plane_start; y_plane <= y_plane_end; y_plane++){
+    for(int32_t z_row = z_row_start; z_row <= z_row_end; z_row++){
+      for(int32_t x_col = x_col_start; x_col <= x_col_end; x_col++){
         
         if(voxels[y_plane][z_row][x_col].solid == false) continue;
         
@@ -2213,30 +2212,47 @@ void render_chunk_voxels(uint32_t y_plane, uint32_t z_row, uint32_t x_col){
             break;
         }
 
+        bool voxel_looked_at_left = false;
+        bool voxel_looked_at_right = false;
+        bool voxel_looked_at_top = false;
+        bool voxel_looked_at_bottom = false;
+        bool voxel_looked_at_front = false;
+        bool voxel_looked_at_back = false;
+        if(looked_at_block.hit){
+          if(y_plane == looked_at_block.voxel_y && z_row == looked_at_block.voxel_z && x_col == looked_at_block.voxel_x){
+            if(looked_at_block.normal_x == -1) voxel_looked_at_left = true;
+            if(looked_at_block.normal_x ==  1) voxel_looked_at_right = true;
+            if(looked_at_block.normal_y == -1) voxel_looked_at_bottom = true;
+            if(looked_at_block.normal_y ==  1) voxel_looked_at_top = true;
+            if(looked_at_block.normal_z == -1) voxel_looked_at_back = true;
+            if(looked_at_block.normal_z ==  1) voxel_looked_at_front = true;
+          }
+        }
+
         voxel_quad_t voxel_quad;
         if(left_neighbour_air){
           voxel_quad = generate_voxel_quad(VOXEL_QUAD_LEFT, y_plane, z_row, x_col);
-          render_voxel_quad(voxel_quad, voxel_material);
+          render_voxel_quad(voxel_quad, voxel_material, voxel_looked_at_left);
         }
         if(right_neighbour_air){
           voxel_quad = generate_voxel_quad(VOXEL_QUAD_RIGHT, y_plane, z_row, x_col);
-          render_voxel_quad(voxel_quad, voxel_material);
+          render_voxel_quad(voxel_quad, voxel_material, voxel_looked_at_right);
         }
         if(top_neighbour_air){
           voxel_quad = generate_voxel_quad(VOXEL_QUAD_TOP, y_plane, z_row, x_col);
-          render_voxel_quad(voxel_quad, voxel_material);
+          render_voxel_quad(voxel_quad, voxel_material, voxel_looked_at_top);
         }
         if(bottom_neighbour_air){
           voxel_quad = generate_voxel_quad(VOXEL_QUAD_BOTTOM, y_plane, z_row, x_col);
-          render_voxel_quad(voxel_quad, voxel_material);
+          render_voxel_quad(voxel_quad, voxel_material, voxel_looked_at_bottom);
         }
         if(back_neighbour_air){
           voxel_quad = generate_voxel_quad(VOXEL_QUAD_BACK, y_plane, z_row, x_col);
-          render_voxel_quad(voxel_quad, voxel_material);
+          render_voxel_quad(voxel_quad, voxel_material, voxel_looked_at_back);
         }
         if(front_neighbour_air){
           voxel_quad = generate_voxel_quad(VOXEL_QUAD_FRONT, y_plane, z_row, x_col);
-          render_voxel_quad(voxel_quad, voxel_material);
+          render_voxel_quad(voxel_quad, voxel_material, voxel_looked_at_front);
         }
       }
     }
@@ -2910,7 +2926,7 @@ void process_frame_rate(void) {
   previous_frame_time = end_time;
 }
 
-void generate_game_data(){
+void generate_debug_data(){
   if(time_count & 0x0F){
     player_voxel_x = player.position.x;
     player_voxel_y = player.position.y;
@@ -2948,12 +2964,13 @@ int main(int argc, char *argv[]){
     frame_id++;
     process_frame_rate();
     process_input();
-    if(!console.is_open) move_player();
     update_state();
+    calculate_currently_looked_at_voxel();
+    if(!console.is_open) move_player();
 
     render_visible_chunks();
     
-    generate_game_data();
+    generate_debug_data();
 
     if(options.show_debug_info){
       draw_text_to_color_buffer(10, 10, debug_screen_data, (color_t){.uint32 = 0xFFFFFFFF}, 1);

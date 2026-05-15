@@ -15,6 +15,8 @@
 #define NUM_CHUNK_DIVISIONS_X (MAP_NUM_VOXELS_X / CHUNK_SIZE)
 #define CHUNK_RENDER_DISTANCE 6 // render this number of chunks around the player in XZ
 
+#define MAX_VOXEL_LOOK_AT_DISTANCE 6.0f
+
 typedef enum{
   VOXEL_TYPE_AIR   = 0,
   VOXEL_TYPE_STONE = 1,
@@ -60,16 +62,17 @@ typedef struct{
   aabb_3d_t aabb;
   voxel_material_t *voxel_material;
   float avg_w;
+  bool looked_at;
 } voxel_t;
 
 typedef struct{
-  int hit;
-  int voxel_x;
-  int voxel_y;
-  int voxel_z;
-  int normal_x;
-  int normal_y;
-  int normal_z;
+  int32_t hit;
+  int32_t voxel_x;
+  int32_t voxel_y;
+  int32_t voxel_z;
+  int32_t normal_x;
+  int32_t normal_y;
+  int32_t normal_z;
   float distance;
 } voxel_raycast_hit_t;
 
@@ -78,10 +81,14 @@ extern voxel_material_t voxel_materials[4];
 // Y slowest changing dimension, X is fastest changing
 extern voxel_t voxels[MAP_NUM_VOXELS_Y][MAP_NUM_VOXELS_Z][MAP_NUM_VOXELS_X];
 
+// voxel currently being looked at
+extern voxel_raycast_hit_t looked_at_block;
+
 void init_voxel_map();
 void get_voxel_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, int *start_y, int *end_y, int *start_z, int *end_z);
 voxel_quad_t generate_voxel_quad(voxel_quad_type_t quad_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col);
 
 voxel_raycast_hit_t raycast_voxels(vector3_t ray_origin, vector3_t ray_direction, float max_distance);
+void calculate_currently_looked_at_voxel();
 
 #endif
