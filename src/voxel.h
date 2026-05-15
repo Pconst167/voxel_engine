@@ -6,12 +6,13 @@
 #include "mesh.h"
 #include "light.h"
 
-#define MAP_NUM_VOXELS_X 1024
-#define MAP_NUM_VOXELS_Z 1024
-#define MAP_NUM_VOXELS_Y 64
+#define MAP_NUM_VOXELS_X 512
+#define MAP_NUM_VOXELS_Z 512
+#define MAP_NUM_VOXELS_Y 256
 #define CHUNK_SIZE 16
-#define NUM_CHUNK_DIVISIONS_X (MAP_NUM_VOXELS_X / CHUNK_SIZE)
+#define NUM_CHUNK_DIVISIONS_Y (MAP_NUM_VOXELS_Y / CHUNK_SIZE)
 #define NUM_CHUNK_DIVISIONS_Z (MAP_NUM_VOXELS_Z / CHUNK_SIZE)
+#define NUM_CHUNK_DIVISIONS_X (MAP_NUM_VOXELS_X / CHUNK_SIZE)
 #define CHUNK_RENDER_DISTANCE 6 // render this number of chunks around the player in XZ
 
 typedef enum{
