@@ -115,7 +115,7 @@
 #define FOV_Y_DEG 75.0
 #define FOV_Y (FOV_Y_DEG * M_PI / 180.0)
 #define ZNEAR 0.1f
-#define ZFAR CHUNK_RENDER_DISTANCE * CHUNK_SIZE // 300.0f
+#define ZFAR CHUNK_RENDER_DISTANCE * (CHUNK_SIZE * 2) // 300.0f
 
 /* parameters for controlling the absolute ambient light */
 #define MIN_AMBIENT_LIGHT_INTENSITY 0.1f

@@ -2,7 +2,7 @@
 #include "options.h"
 #include "misc.h"
 
-#define FIXED_SHIFT 10
+#define FIXED_SHIFT 8
 #define FIXED_ONE   (1 << FIXED_SHIFT)
 
 __attribute__((optimize("Ofast")))
