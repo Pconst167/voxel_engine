@@ -25,10 +25,12 @@
 
 
 typedef enum{
-  VOXEL_TYPE_AIR   = 0,
-  VOXEL_TYPE_STONE = 1,
-  VOXEL_TYPE_DIRT  = 2,
-  VOXEL_TYPE_GRASS = 3,
+  VOXEL_TYPE_AIR          = 0,
+  VOXEL_TYPE_STONE        = 1,
+  VOXEL_TYPE_DIRT         = 2,
+  VOXEL_TYPE_GRASS        = 3,
+  VOXEL_TYPE_TREE_TRUNK   = 4,
+  VOXEL_TYPE_TREE_LEAVES  = 5
 } voxel_type_t;
 
 typedef enum{
@@ -41,7 +43,6 @@ typedef enum{
 } voxel_quad_type_t;
 
 typedef struct{
-  char material_name[16];
   // color and light
   color_t base_color;
   color_t emissive_color;   //  object's own emission color */
@@ -98,5 +99,6 @@ voxel_quad_t generate_voxel_quad(voxel_quad_type_t quad_type, uint32_t y_plane, 
 
 voxel_raycast_hit_t raycast_voxels(vector3_t ray_origin, vector3_t ray_direction, float max_distance);
 void calculate_currently_looked_at_voxel();
+void assign_block_material(int32_t voxel_y, int32_t voxel_z, int32_t voxel_x, voxel_type_t block_type);
 
 #endif

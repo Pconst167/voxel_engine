@@ -19,7 +19,6 @@ void init_block_materials(){
   array_push(
     voxel_materials, 
     ((voxel_material_t){
-      .material_name      = "air",
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
       .opacity            = 1.0f,
@@ -35,7 +34,6 @@ void init_block_materials(){
   array_push(
     voxel_materials, 
     ((voxel_material_t){
-      .material_name      = "stone",
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
       .opacity            = 1.0f,
@@ -51,7 +49,6 @@ void init_block_materials(){
   array_push(
     voxel_materials, 
     ((voxel_material_t){
-      .material_name      = "dirt",
       .base_color         = (color_t){.uint32 = 0xFF408080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
       .opacity            = 1.0f,
@@ -67,7 +64,6 @@ void init_block_materials(){
   array_push(
     voxel_materials,
     ((voxel_material_t){
-      .material_name      = "grass",
       .base_color         = (color_t){.uint32 = 0xFF0FF000},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
       .opacity            = 1.0f,
@@ -79,6 +75,73 @@ void init_block_materials(){
       .top_texture        = load_texture("./assets/textures/voxel/grass_top.png")   
     })
   );
+
+  array_push(
+    voxel_materials,
+    ((voxel_material_t){
+      .base_color         = (color_t){.uint32 = 0xFF8080FF},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/voxel/wood_side.png"),
+      .top_texture        = load_texture("./assets/textures/voxel/wood_top.png")   
+    })
+  );
+
+  array_push(
+    voxel_materials,
+    ((voxel_material_t){
+      .base_color         = (color_t){.uint32 = 0xFF80FF20},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/voxel/tree_leaves.png"),
+      .top_texture        = load_texture("./assets/textures/voxel/tree_leaves.png")   
+    })
+  );
+}
+
+void place_tree(int32_t z_row, int32_t x_col, int32_t height){
+  int32_t first_solid_y = 0;
+  // find first solid block along y
+  for(int32_t y = MAP_NUM_VOXELS_Y - 1; y >= 0; y--){
+    if(voxel_at(y, z_row, x_col).solid){
+      first_solid_y = y;
+      break;
+    }
+  }
+  
+  int32_t tree_bottom = first_solid_y + 1;
+  int32_t tree_top    = first_solid_y + 1 + height - 1;
+  int32_t tree_middle = (tree_bottom + tree_top) / 2;
+
+  // leaves
+  for(int32_t y = tree_middle; y <= tree_top; y++){
+    for(int32_t z = z_row - 3; z <= z_row + 3; z++){
+      for(int32_t x = x_col - 3; x <= x_col + 3; x++){
+        if(xorshift32() % 2 == 0){
+          assign_block_material(y, z, x, VOXEL_TYPE_TREE_LEAVES);
+          voxel_at(y, z, x).solid = true;
+        }
+        else{
+          assign_block_material(y, z, x, VOXEL_TYPE_AIR);
+          voxel_at(y, z, x).solid = false;
+        }
+      }
+    }
+  }
+
+  // trunk
+  for(int32_t y  = tree_bottom; y <= tree_top; y++){
+    assign_block_material(y, z_row, x_col, VOXEL_TYPE_TREE_TRUNK);
+    voxel_at(y, z_row, x_col).solid = true;
+  }
 }
 
 void init_voxel_map(){
@@ -93,44 +156,53 @@ void init_voxel_map(){
     for(uint32_t z = 0; z < MAP_NUM_VOXELS_Z; z++){
       for(uint32_t x = 0; x < MAP_NUM_VOXELS_X; x++){
         voxel_at(y, z, x).solid = false;
+        assign_block_material(y, z, x, VOXEL_TYPE_AIR);
 
         if(y <= (uint32_t)(0.3 * MAP_NUM_VOXELS_Y)){
-          voxel_at(y, z, x).type = VOXEL_TYPE_STONE;
+          assign_block_material(y, z, x, VOXEL_TYPE_STONE);
           voxel_at(y, z, x).solid = true;
         }
         else if(y > (uint32_t)(0.3 * MAP_NUM_VOXELS_Y) && y < (uint32_t)(0.4 * MAP_NUM_VOXELS_Y)){
-          voxel_at(y, z, x).type = VOXEL_TYPE_DIRT;
+          assign_block_material(y, z, x, VOXEL_TYPE_DIRT);
           voxel_at(y, z, x).solid = true;
         }
         else if(y == (uint32_t)(0.4 * MAP_NUM_VOXELS_Y)){
           if(xorshift32() % 5 == 0){
-            voxel_at(y, z, x).type = VOXEL_TYPE_GRASS;
+            assign_block_material(y, z, x, VOXEL_TYPE_GRASS);
             voxel_at(y, z, x).solid = true;
           }
-          else{
-            voxel_at(y, z, x).type = VOXEL_TYPE_AIR;
-          }
-        }
-        else{
-          voxel_at(y, z, x).type = VOXEL_TYPE_AIR;
         }
 
         if((x <= 10 || x >= MAP_NUM_VOXELS_X - 10 || z <= 10 || z >= MAP_NUM_VOXELS_Z - 10) && y >= 0.4 * MAP_NUM_VOXELS_Y && y <= 0.43 * MAP_NUM_VOXELS_Y){
           if(xorshift32() % 5 == 0){
-            voxel_at(y, z, x).type = VOXEL_TYPE_DIRT;
+            assign_block_material(y, z, x, VOXEL_TYPE_TREE_LEAVES);
             voxel_at(y, z, x).solid = true;
           }
           else{
             voxel_at(y, z, x).type = VOXEL_TYPE_AIR;
           }
         }
-        
+
         voxel_at(y, z, x).aabb.x_min = x;
         voxel_at(y, z, x).aabb.x_max = x + 1.0;
         voxel_at(y, z, x).aabb.z_min = z;
         voxel_at(y, z, x).aabb.z_max = z + 1.0;
         voxel_at(y, z, x).aabb.y_min = y;
         voxel_at(y, z, x).aabb.y_max = y + 1.0;
+      }
+    }
+  }
+
+  for(uint32_t z = 32; z < MAP_NUM_VOXELS_Z - 32; z++){
+    for(uint32_t x = 32; x < MAP_NUM_VOXELS_X - 32; x++){
+      if(x % 27 == 0 && z % 23 == 0){
+        int32_t rand = xorshift32();
+        if(rand % 2 == 0)
+          place_tree(z, x, 10);
+        else if(rand % 2 == 1)
+          place_tree(z, x, 15);
+        else
+          place_tree(z, x, 20);
       }
     }
   }
@@ -410,4 +482,9 @@ void calculate_currently_looked_at_voxel(){
     camera.direction,
     MAX_VOXEL_LOOK_AT_DISTANCE
   );
+}
+
+void assign_block_material(int32_t block_y, int32_t block_z, int32_t block_x, voxel_type_t block_type){
+  voxel_at(block_y, block_z, block_x).type = block_type;
+  voxel_at(block_y, block_z, block_x).voxel_material = &voxel_materials[block_type];
 }

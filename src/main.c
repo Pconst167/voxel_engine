@@ -274,7 +274,7 @@ void process_input(void){
               int32_t voxel_z = looked_at_block.voxel_z + looked_at_block.normal_z;
               int32_t voxel_x = looked_at_block.voxel_x + looked_at_block.normal_x;
               if((voxel_y != player_y_feet && voxel_y != player_y_head) || voxel_z != player_z || voxel_x != player_x){
-                voxel_at(voxel_y, voxel_z, voxel_x).type = VOXEL_TYPE_STONE;
+                assign_block_material(voxel_y, voxel_z, voxel_x, VOXEL_TYPE_STONE);
                 voxel_at(voxel_y, voxel_z, voxel_x).solid = true;
               }
             }
@@ -282,7 +282,7 @@ void process_input(void){
               int32_t voxel_y = looked_at_block.voxel_y;
               int32_t voxel_z = looked_at_block.voxel_z;
               int32_t voxel_x = looked_at_block.voxel_x;
-              voxel_at(voxel_y, voxel_z, voxel_x).type = VOXEL_TYPE_AIR;
+              assign_block_material(voxel_y, voxel_z, voxel_x, VOXEL_TYPE_AIR);
               voxel_at(voxel_y, voxel_z, voxel_x).solid = false;
             }
           }
@@ -2199,19 +2199,7 @@ void render_chunk_voxels(int32_t y_plane, int32_t z_row, int32_t x_col){
         bool back_neighbour_air    = (back_neighbour_index < 0)                  ? true : voxel_at(y_plane, back_neighbour_index, x_col).type  == VOXEL_TYPE_AIR;
         bool front_neighbour_air   = (front_neighbour_index == MAP_NUM_VOXELS_Z) ? true : voxel_at(y_plane, front_neighbour_index, x_col).type == VOXEL_TYPE_AIR;
 
-        voxel_material_t *voxel_material;
-        switch(voxel_at(y_plane, z_row, x_col).type){
-          case VOXEL_TYPE_STONE:
-            voxel_material = &voxel_materials[VOXEL_TYPE_STONE];
-            break;
-          case VOXEL_TYPE_DIRT:
-            voxel_material = &voxel_materials[VOXEL_TYPE_DIRT];
-            break;
-          case VOXEL_TYPE_GRASS:
-          default:
-            voxel_material = &voxel_materials[VOXEL_TYPE_GRASS];
-            break;
-        }
+        voxel_material_t *voxel_material = voxel_at(y_plane, z_row, x_col).voxel_material;
 
         bool voxel_looked_at_left = false;
         bool voxel_looked_at_right = false;
