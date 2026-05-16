@@ -248,6 +248,37 @@ void process_input(void){
         options.show_debug_info = !options.show_debug_info;
         continue;
       }
+
+      if(keycode == SDLK_1){
+        player_select_block_type(0);
+      }
+      if(keycode == SDLK_2){
+        player_select_block_type(1);
+      }
+      if(keycode == SDLK_3){
+        player_select_block_type(2);
+      }
+      if(keycode == SDLK_4){
+        player_select_block_type(3);
+      }
+      if(keycode == SDLK_5){
+        player_select_block_type(4);
+      }
+      if(keycode == SDLK_6){
+        player_select_block_type(5);
+      }
+      if(keycode == SDLK_7){
+        player_select_block_type(6);
+      }
+      if(keycode == SDLK_8){
+        player_select_block_type(7);
+      }
+      if(keycode == SDLK_9){
+        player_select_block_type(8);
+      }
+      if(keycode == SDLK_0){
+        player_select_block_type(9);
+      }
     }
 
     if(console.is_open){
@@ -274,14 +305,18 @@ void process_input(void){
               int32_t voxel_z = looked_at_block.voxel_z + looked_at_block.normal_z;
               int32_t voxel_x = looked_at_block.voxel_x + looked_at_block.normal_x;
               if((voxel_y != player_y_feet && voxel_y != player_y_head) || voxel_z != player_z || voxel_x != player_x){
-                assign_block_material(voxel_y, voxel_z, voxel_x, VOXEL_TYPE_STONE);
-                voxel_at(voxel_y, voxel_z, voxel_x).solid = true;
+                if(player.blocks_holding[player.active_block_holding_index].number_holding > 0){
+                  assign_block_material(voxel_y, voxel_z, voxel_x, player.blocks_holding[player.active_block_holding_index].block_type);
+                  voxel_at(voxel_y, voxel_z, voxel_x).solid = true;
+                  player.blocks_holding[player.active_block_holding_index].number_holding--;
+                }
               }
             }
             else if(event.button.button == SDL_BUTTON_RIGHT){
               int32_t voxel_y = looked_at_block.voxel_y;
               int32_t voxel_z = looked_at_block.voxel_z;
               int32_t voxel_x = looked_at_block.voxel_x;
+              player_obtain_block(voxel_at(voxel_y, voxel_z, voxel_x).type);
               assign_block_material(voxel_y, voxel_z, voxel_x, VOXEL_TYPE_AIR);
               voxel_at(voxel_y, voxel_z, voxel_x).solid = false;
             }
@@ -2929,7 +2964,8 @@ void generate_debug_data(){
       "on ground: %s, velocity: %.2f:%.2f:%.2f\n"
       "%ut, %upx, %uc, %ufps\n"
       "voxel coords: %d:%d:%d, chunk coords: %d:%d\n"
-      "player pos: %.2f:%.2f:%.2f, look direction: %.2f:%.2f:%.2f, theta/eta: %.2f:%.2f", 
+      "player pos: %.2f:%.2f:%.2f, look direction: %.2f:%.2f:%.2f, theta/eta: %.2f:%.2f\n"
+      "active block: %s", 
       player.on_ground ? "yes" : "no",
       player.velocity.x, player.velocity.y, player.velocity.z,
       total_triangles_rendered, total_pixels_rendered, total_chunks_rendered, fps, 
@@ -2937,7 +2973,8 @@ void generate_debug_data(){
       player_chunk_x, player_chunk_z,
       player.position.x,  player.position.y,  player.position.z,
       player.direction.x, player.direction.y, player.direction.z,
-      player.theta, player.eta
+      player.theta, player.eta,
+      block_type_to_string(player.blocks_holding[player.active_block_holding_index].block_type)
     );
   }
 }

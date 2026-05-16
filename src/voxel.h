@@ -16,6 +16,7 @@
 #define CHUNK_RENDER_DISTANCE 5 // render this number of chunks around the player in XZ
 
 #define MAX_VOXEL_LOOK_AT_DISTANCE 6.0f
+#define BLOCK_TYPE_STRING_NAME_MAX_LEN 32
 
 // macro to get block at coordiates x y z
 #define MAP_X_STRIDE 1
@@ -84,6 +85,9 @@ typedef struct{
   float distance;
 } voxel_raycast_hit_t;
 
+// keep block type names as strings
+extern char *block_type_names[];
+
 extern voxel_material_t *voxel_materials;
 
 // Y slowest changing dimension, X is fastest changing
@@ -100,5 +104,7 @@ voxel_quad_t generate_voxel_quad(voxel_quad_type_t quad_type, uint32_t y_plane, 
 voxel_raycast_hit_t raycast_voxels(vector3_t ray_origin, vector3_t ray_direction, float max_distance);
 void calculate_currently_looked_at_voxel();
 void assign_block_material(int32_t voxel_y, int32_t voxel_z, int32_t voxel_x, voxel_type_t block_type);
+
+char *block_type_to_string(voxel_type_t block_type);
 
 #endif

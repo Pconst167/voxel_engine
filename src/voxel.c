@@ -107,6 +107,15 @@ void init_block_materials(){
   );
 }
 
+char *block_type_names[] = {
+  "air",
+  "stone",
+  "dirt",
+  "grass",
+  "wood",
+  "leaves"
+};
+
 void place_tree(int32_t z_row, int32_t x_col, int32_t height){
   int32_t first_solid_y = 0;
   // find first solid block along y
@@ -487,4 +496,8 @@ void calculate_currently_looked_at_voxel(){
 void assign_block_material(int32_t block_y, int32_t block_z, int32_t block_x, voxel_type_t block_type){
   voxel_at(block_y, block_z, block_x).type = block_type;
   voxel_at(block_y, block_z, block_x).voxel_material = &voxel_materials[block_type];
+}
+
+char *block_type_to_string(voxel_type_t block_type){
+  return block_type_names[block_type];
 }
