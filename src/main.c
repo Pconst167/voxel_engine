@@ -2994,7 +2994,12 @@ void print_debug_data(){
 
 void render_ui(){
   // render blocks menu
-  draw_rect(10, window_height - 20, window_width - 20, 10, (color_t){.uint32 = 0xFFFFFFFF});
+  draw_rect(5, window_height - 18, window_width - 10, 18, (color_t){.uint32 = 0xFFFFFFFF});
+
+  // go through player's holding blocks list and display it
+  for(int32_t block_i = 0; block_i < player.num_blocks_holding_entries; block_i++){
+    draw_texture_flat(6 + (block_i << 4), window_height - 17, 16, 16, voxel_materials[player.blocks_holding[block_i].block_type].side_texture);
+  }
 }
 
 int main(int argc, char *argv[]){

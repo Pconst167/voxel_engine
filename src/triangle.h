@@ -53,6 +53,8 @@ void draw_horizontal_line(int x, int y, int width, color_t color);
 void draw_vertical_line(int x, int y, int height, color_t color);
 color_t apply_dither(color_t color, int x, int y);
 
+void draw_texture_flat(int x, int y, int width, int height, texture_t *texture);
+
 /* triangles */
 void draw_triangle(float x0, float y0, float x1, float y1, float x2, float y2, color_t color);
 

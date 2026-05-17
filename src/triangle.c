@@ -2139,7 +2139,33 @@ void draw_rect(int x, int y, int width, int height, color_t color){
   // left
   draw_vertical_line(x, y, height, color);
   // right
-  draw_vertical_line(x + width - 1, y + height - 1, height, color);
+  draw_vertical_line(x + width - 1, y, height, color);
+}
+
+void draw_texture_flat(int x, int y, int width, int height, texture_t *texture){
+  float texture_width_fraction = (float)texture->texture_width / (float)width;
+  float texture_height_fraction = (float)texture->texture_height / (float)height;
+
+  if(x < 0) x = 0;
+  if(y < 0) y = 0;
+
+  for(int yy = 0; yy < height; yy++){
+    int screen_y = y + yy;
+    if((unsigned)screen_y >= (unsigned)window_height) break;
+
+    // invert texture_y here because textures have their origin at bottom left corner
+    int texture_y = (texture->texture_height - 1) - (int)((float)yy * texture_height_fraction);
+    color_t *screen_row = &color_buffer[screen_y * window_width];
+    color_t *texture_row = &texture->texture[texture_y * texture->texture_width];
+
+    for(int xx = 0; xx < width; xx++){
+      int screen_x = x + xx;
+      if((unsigned)screen_x >= (unsigned)window_width) break;
+
+      int texture_x = (int)((float)xx * texture_width_fraction);
+      screen_row[screen_x] = texture_row[texture_x];
+    }
+  }
 }
 
 /* use unsigned comparisons because if number is negative it becomes a huge unsigned number 

@@ -41,8 +41,8 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .side_texture       = load_texture("./assets/textures/voxel/stone3.png"),
-      .top_texture        = load_texture("./assets/textures/voxel/stone3.png")
+      .side_texture       = load_texture("./assets/textures/voxel/stone2.png"),
+      .top_texture        = load_texture("./assets/textures/voxel/stone2.png")
     })
   );
 

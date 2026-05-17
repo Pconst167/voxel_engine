@@ -37,7 +37,7 @@ bool initialize_window(void){
     "Voxel Engine",
     SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
     mode.w, mode.h,
-    SDL_WINDOW_RESIZABLE
+    SDL_WINDOW_FULLSCREEN_DESKTOP
   );
 
   if(!window){
@@ -53,9 +53,10 @@ bool initialize_window(void){
     return false;
   }
 
-  //SDL_RenderSetLogicalSize(renderer, window_width, window_height);
+  SDL_RenderSetLogicalSize(renderer, window_width, window_height);
+  SDL_RenderSetIntegerScale(renderer, SDL_TRUE);
   SDL_SetRelativeMouseMode(SDL_TRUE);
-  SDL_MaximizeWindow(window);
+  //SDL_MaximizeWindow(window);
 
   total_buffer_pixels = window_width * window_height;
 
