@@ -2951,7 +2951,7 @@ void process_frame_rate(void) {
 }
 
 void generate_debug_data(){
-  if(time_count & 0x0F){
+  if((time_count & 0x0F) == 0x0F){
     player_voxel_x = player.position.x;
     player_voxel_y = player.position.y;
     player_voxel_z = player.position.z;
@@ -2965,7 +2965,7 @@ void generate_debug_data(){
       "%ut, %upx, %uc, %ufps\n"
       "voxel coords: %d:%d:%d, chunk coords: %d:%d\n"
       "player pos: %.2f:%.2f:%.2f, look direction: %.2f:%.2f:%.2f, theta/eta: %.2f:%.2f\n"
-      "active block: %s", 
+      "active block: %s : %d", 
       player.on_ground ? "yes" : "no",
       player.velocity.x, player.velocity.y, player.velocity.z,
       total_triangles_rendered, total_pixels_rendered, total_chunks_rendered, fps, 
@@ -2974,7 +2974,8 @@ void generate_debug_data(){
       player.position.x,  player.position.y,  player.position.z,
       player.direction.x, player.direction.y, player.direction.z,
       player.theta, player.eta,
-      block_type_to_string(player.blocks_holding[player.active_block_holding_index].block_type)
+      block_type_to_string(player.blocks_holding[player.active_block_holding_index].block_type),
+      player.blocks_holding[player.active_block_holding_index].number_holding
     );
   }
 }

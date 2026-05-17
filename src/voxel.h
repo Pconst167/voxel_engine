@@ -6,8 +6,8 @@
 #include "mesh.h"
 #include "light.h"
 
-#define MAP_NUM_VOXELS_X 256
-#define MAP_NUM_VOXELS_Z 256
+#define MAP_NUM_VOXELS_X 512
+#define MAP_NUM_VOXELS_Z 512
 #define MAP_NUM_VOXELS_Y 256
 #define CHUNK_SIZE 16
 #define NUM_CHUNK_DIVISIONS_Y (MAP_NUM_VOXELS_Y / CHUNK_SIZE)

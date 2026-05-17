@@ -126,7 +126,7 @@ void place_tree(int32_t z_row, int32_t x_col, int32_t height){
     }
   }
   
-  int32_t tree_bottom = first_solid_y + 1;
+  int32_t tree_bottom = first_solid_y - 3; // -3 to place trunk below ground
   int32_t tree_top    = first_solid_y + 1 + height - 1;
   int32_t tree_middle = (tree_bottom + tree_top) / 2;
 
