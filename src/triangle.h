@@ -50,6 +50,7 @@ void draw_filled_rect(int x, int y, int width, int height, color_t color);
 void draw_rect(int x, int y, int width, int height, color_t color);
 void draw_line(float x0, float y0, float x1, float y1, color_t color);
 void draw_horizontal_line(int x, int y, int width, color_t color);
+void draw_vertical_line(int x, int y, int height, color_t color);
 color_t apply_dither(color_t color, int x, int y);
 
 /* triangles */

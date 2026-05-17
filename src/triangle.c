@@ -2136,6 +2136,10 @@ void draw_rect(int x, int y, int width, int height, color_t color){
   draw_horizontal_line(x, y, width, color);
   // bottom
   draw_horizontal_line(x, y + height - 1, width, color);
+  // left
+  draw_vertical_line(x, y, height, color);
+  // right
+  draw_vertical_line(x + width - 1, y + height - 1, height, color);
 }
 
 /* use unsigned comparisons because if number is negative it becomes a huge unsigned number 
@@ -2279,6 +2283,12 @@ void draw_line(float x0, float y0, float x1, float y1, color_t color){
 void draw_horizontal_line(int x, int y, int width, color_t color){
   for(int i = x; i < x + width; i++){
     draw_pixel_absolute(i, y, color);
+  }
+}
+
+void draw_vertical_line(int x, int y, int height, color_t color){
+  for(int i = y; i < y + height; i++){
+    draw_pixel_absolute(x, i, color);
   }
 }
 
