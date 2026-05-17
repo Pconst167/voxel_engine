@@ -2124,11 +2124,18 @@ inline weight_t barycentric_weights(vector2_t A, vector2_t B, vector2_t C, vecto
   return weights;
 }
 
-void draw_rect(int x, int y, int width, int height, color_t color){
+void draw_filled_rect(int x, int y, int width, int height, color_t color){
   for(int i = 0; i < width; i++){
     for(int j = 0; j < height; j++)
       draw_pixel_absolute(x + i, y + j, color);
   }
+}
+
+void draw_rect(int x, int y, int width, int height, color_t color){
+  // top
+  draw_horizontal_line(x, y, width, color);
+  // bottom
+  draw_horizontal_line(x, y + height - 1, width, color);
 }
 
 /* use unsigned comparisons because if number is negative it becomes a huge unsigned number 
@@ -2262,15 +2269,18 @@ void draw_line(float x0, float y0, float x1, float y1, color_t color){
 
   float curr_x = x0;
   float curr_y = y0;
-  for(int i = 0; i <= (longest_side_length); i++){
+  for(int i = 0; i <= longest_side_length; i++){
     draw_pixel_absolute(lroundf(curr_x), lroundf(curr_y), color);
     curr_x += x_inc;
     curr_y += y_inc;
   }
 }
 
-
-
+void draw_horizontal_line(int x, int y, int width, color_t color){
+  for(int i = x; i < x + width; i++){
+    draw_pixel_absolute(i, y, color);
+  }
+}
 
 /*
 

@@ -46,8 +46,10 @@ void draw_pixel_absolute(int x, int y, color_t color);
 void draw_pixel_alpha_test(int x, int y, uint8_t alpha_cutoff, color_t color, float zbuffer_value);
 void draw_pixel_alpha_blend(int x, int y, float opacity, color_t color);
 void draw_pixel_opaque(int x, int y, color_t color, float zbuffer_value);
+void draw_filled_rect(int x, int y, int width, int height, color_t color);
 void draw_rect(int x, int y, int width, int height, color_t color);
 void draw_line(float x0, float y0, float x1, float y1, color_t color);
+void draw_horizontal_line(int x, int y, int width, color_t color);
 color_t apply_dither(color_t color, int x, int y);
 
 /* triangles */

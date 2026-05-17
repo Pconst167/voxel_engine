@@ -3,7 +3,8 @@
 #include "color.h"
 #include "debug.h"
 
-#define ASPECT_RATIO_X (1920.0f / 1200.0f)
+#define ASPECT_RATIO_X 1920.0f
+#define ASPECT_RATIO_Y 1200.0f
 
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
@@ -18,8 +19,8 @@ int fps;
 
 bool initialize_window(void){
 
-  window_width  = 800;
-  window_height = (float)window_width / ASPECT_RATIO_X;
+  window_width  = 640;
+  window_height = (float)window_width * ASPECT_RATIO_Y / ASPECT_RATIO_X;
 
   if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0){
     print_log("Error initializing SDL.\n");

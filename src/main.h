@@ -12,7 +12,7 @@
 #include "chunk.h"
 #include "collision.h"
 
-void generate_debug_data();
+void print_debug_data();
 void render_console();
 void free_resources(void);
 void object_quicksort(object_sort_key_t *array, int count);
@@ -27,6 +27,7 @@ void move_player(void);
 void update_light(void);
 void process_input(void);
 void process_console_input(SDL_Event *event);
+void process_game_input(SDL_Event *event);
 void run_console_command();
 void setup(void);
 

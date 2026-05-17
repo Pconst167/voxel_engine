@@ -123,12 +123,11 @@
 #define MIN_SKYBOX_INTENSITY 0.03f
 #define SPECULAR_POWER 16.0f
 
-uint32_t frame_id = 1; /* start at 1, because all face_draw_stamp values are reset to 0 at object creation time */
+uint64_t frame_id = 1; /* start at 1, because all face_draw_stamp values are reset to 0 at object creation time */
 char fps_str[16];
 uint32_t total_triangles_rendered;
 uint32_t total_pixels_rendered;
 uint32_t total_chunks_rendered;
-uint64_t time_count; /* keeps a count that increments every frame - used to pace events */
 float time_of_day; /* keeps time the accumulation of  each delta_time per frame */
 char debug_screen_data[1024];
 
@@ -244,83 +243,95 @@ void process_input(void){
         continue;
       }
 
-      if(keycode == SDLK_ESCAPE){
+      if(keycode == SDLK_F12){
         options.show_debug_info = !options.show_debug_info;
         continue;
       }
 
-      if(keycode == SDLK_1){
-        player_select_block_type(0);
-      }
-      if(keycode == SDLK_2){
-        player_select_block_type(1);
-      }
-      if(keycode == SDLK_3){
-        player_select_block_type(2);
-      }
-      if(keycode == SDLK_4){
-        player_select_block_type(3);
-      }
-      if(keycode == SDLK_5){
-        player_select_block_type(4);
-      }
-      if(keycode == SDLK_6){
-        player_select_block_type(5);
-      }
-      if(keycode == SDLK_7){
-        player_select_block_type(6);
-      }
-      if(keycode == SDLK_8){
-        player_select_block_type(7);
-      }
-      if(keycode == SDLK_9){
-        player_select_block_type(8);
-      }
-      if(keycode == SDLK_0){
-        player_select_block_type(9);
-      }
     }
 
     if(console.is_open){
       process_console_input(&event);
     }
     else{
-      // process game input
-      if(event.type == SDL_MOUSEMOTION){
-        player.theta  -= MOUSE_SENSITIVITY                        * event.motion.xrel;
-        player.eta    += MOUSE_SENSITIVITY * PLAYER_ETA_DIRECTION * event.motion.yrel;
-        if(player.eta  >  ETA_MAX) player.eta =  ETA_MAX;
-        if(player.eta  < -ETA_MAX) player.eta = -ETA_MAX;
-      }
-      if(event.type == SDL_MOUSEBUTTONDOWN){
-        if(event.button.button == SDL_BUTTON_LEFT || event.button.button == SDL_BUTTON_RIGHT){
-          int32_t player_y_feet = player.position.y;
-          int32_t player_y_head = player.position.y + player.height;
-          int32_t player_z = player.position.z;
-          int32_t player_x = player.position.x;
+      process_game_input(&event);
+    }
+  }
+}
 
-          if(looked_at_block.hit){
-            if(event.button.button == SDL_BUTTON_LEFT){
-              int32_t voxel_y = looked_at_block.voxel_y + looked_at_block.normal_y;
-              int32_t voxel_z = looked_at_block.voxel_z + looked_at_block.normal_z;
-              int32_t voxel_x = looked_at_block.voxel_x + looked_at_block.normal_x;
-              if((voxel_y != player_y_feet && voxel_y != player_y_head) || voxel_z != player_z || voxel_x != player_x){
-                if(player.blocks_holding[player.active_block_holding_index].number_holding > 0){
-                  assign_block_material(voxel_y, voxel_z, voxel_x, player.blocks_holding[player.active_block_holding_index].block_type);
-                  voxel_at(voxel_y, voxel_z, voxel_x).solid = true;
-                  player.blocks_holding[player.active_block_holding_index].number_holding--;
-                }
-              }
-            }
-            else if(event.button.button == SDL_BUTTON_RIGHT){
-              int32_t voxel_y = looked_at_block.voxel_y;
-              int32_t voxel_z = looked_at_block.voxel_z;
-              int32_t voxel_x = looked_at_block.voxel_x;
-              player_obtain_block(voxel_at(voxel_y, voxel_z, voxel_x).type);
-              assign_block_material(voxel_y, voxel_z, voxel_x, VOXEL_TYPE_AIR);
-              voxel_at(voxel_y, voxel_z, voxel_x).solid = false;
+void process_game_input(SDL_Event *event){
+
+  // KEYBOARD
+  if(event->type == SDL_KEYDOWN && !event->key.repeat){
+    SDL_Keycode keycode = event->key.keysym.sym;
+    //Uint16 modifiers = event->key.keysym.mod;
+
+    if(keycode == SDLK_1){
+      player_select_block_type(0);
+    }
+    if(keycode == SDLK_2){
+      player_select_block_type(1);
+    }
+    if(keycode == SDLK_3){
+      player_select_block_type(2);
+    }
+    if(keycode == SDLK_4){
+      player_select_block_type(3);
+    }
+    if(keycode == SDLK_5){
+      player_select_block_type(4);
+    }
+    if(keycode == SDLK_6){
+      player_select_block_type(5);
+    }
+    if(keycode == SDLK_7){
+      player_select_block_type(6);
+    }
+    if(keycode == SDLK_8){
+      player_select_block_type(7);
+    }
+    if(keycode == SDLK_9){
+      player_select_block_type(8);
+    }
+    if(keycode == SDLK_0){
+      player_select_block_type(9);
+    }
+  }
+
+  // MOUSE
+  if(event->type == SDL_MOUSEMOTION){
+    player.theta  -= MOUSE_SENSITIVITY                        * event->motion.xrel;
+    player.eta    += MOUSE_SENSITIVITY * PLAYER_ETA_DIRECTION * event->motion.yrel;
+    if(player.eta  >  ETA_MAX) player.eta =  ETA_MAX;
+    if(player.eta  < -ETA_MAX) player.eta = -ETA_MAX;
+  }
+  if(event->type == SDL_MOUSEBUTTONDOWN){
+    if(event->button.button == SDL_BUTTON_LEFT || event->button.button == SDL_BUTTON_RIGHT){
+      int32_t player_y_feet = player.position.y;
+      int32_t player_y_head = player.position.y + player.height;
+      int32_t player_z = player.position.z;
+      int32_t player_x = player.position.x;
+
+      if(looked_at_block.hit){
+        if(event->button.button == SDL_BUTTON_LEFT){
+          int32_t voxel_y = looked_at_block.voxel_y + looked_at_block.normal_y;
+          int32_t voxel_z = looked_at_block.voxel_z + looked_at_block.normal_z;
+          int32_t voxel_x = looked_at_block.voxel_x + looked_at_block.normal_x;
+          if((voxel_y != player_y_feet && voxel_y != player_y_head) || voxel_z != player_z || voxel_x != player_x){
+            if(player.blocks_holding[player.active_block_holding_index].number_holding > 0){
+              assign_block_material(voxel_y, voxel_z, voxel_x, player.blocks_holding[player.active_block_holding_index].block_type);
+              voxel_at(voxel_y, voxel_z, voxel_x).solid = true;
+              player.blocks_holding[player.active_block_holding_index].number_holding--;
             }
           }
+        }
+        else if(event->button.button == SDL_BUTTON_RIGHT){
+          int32_t voxel_y = looked_at_block.voxel_y;
+          int32_t voxel_z = looked_at_block.voxel_z;
+          int32_t voxel_x = looked_at_block.voxel_x;
+          player_obtain_block(voxel_at(voxel_y, voxel_z, voxel_x).type);
+          assign_block_material(voxel_y, voxel_z, voxel_x, VOXEL_TYPE_AIR);
+          voxel_at(voxel_y, voxel_z, voxel_x).solid = false;
         }
       }
     }
@@ -390,11 +401,9 @@ void process_console_input(SDL_Event *event){
 }
 
 void render_console(){
-  if(console.is_open) {
-    draw_rect(0, 0, window_width, 80, (color_t){.uint32 = 0xFF000000});
-    draw_text_to_color_buffer(10, 10, "> ", (color_t){.uint32 = 0xFFFFFFFF}, 1);
-    draw_text_to_color_buffer(20, 10, console.input_buffer, (color_t){.uint32 = 0xFFFFFFFF}, 1);
-  }
+  draw_rect(0, 0, window_width, 80, (color_t){.uint32 = 0xFF000000});
+  draw_text_to_color_buffer(10, 10, "> ", (color_t){.uint32 = 0xFFFFFFFF}, 1);
+  draw_text_to_color_buffer(20, 10, console.input_buffer, (color_t){.uint32 = 0xFFFFFFFF}, 1);
 }
 
 void run_console_command(){
@@ -2790,7 +2799,7 @@ void render_sun(void){
       if(sun_dot_flat < 0.0f) sun_dot_flat = 0.0f;
       
       /* shun shimmer */
-      sun_dot *= (time_count & 1) ? 0.9992f : 1.0f;
+      sun_dot *= (frame_id & 1) ? 0.9992f : 1.0f;
 
       float sun_glow = sun_dot * sun_dot;
       sun_glow *= sun_glow;
@@ -2950,34 +2959,42 @@ void process_frame_rate(void) {
   previous_frame_time = end_time;
 }
 
-void generate_debug_data(){
-  if((time_count & 0x0F) == 0x0F){
-    player_voxel_x = player.position.x;
-    player_voxel_y = player.position.y;
-    player_voxel_z = player.position.z;
+void print_debug_data(){
+  if(options.show_debug_info){
+    if((frame_id & 0x0F) == 0x0F){
+      player_voxel_x = player.position.x;
+      player_voxel_y = player.position.y;
+      player_voxel_z = player.position.z;
 
-    player_chunk_x = player_voxel_x / CHUNK_SIZE;
-    player_chunk_y = player_voxel_y / CHUNK_SIZE;
-    player_chunk_z = player_voxel_z / CHUNK_SIZE;
+      player_chunk_x = player_voxel_x / CHUNK_SIZE;
+      player_chunk_y = player_voxel_y / CHUNK_SIZE;
+      player_chunk_z = player_voxel_z / CHUNK_SIZE;
 
-    snprintf(debug_screen_data, 1024, 
-      "on ground: %s, velocity: %.2f:%.2f:%.2f\n"
-      "%ut, %upx, %uc, %ufps\n"
-      "voxel coords: %d:%d:%d, chunk coords: %d:%d\n"
-      "player pos: %.2f:%.2f:%.2f, look direction: %.2f:%.2f:%.2f, theta/eta: %.2f:%.2f\n"
-      "active block: %s : %d", 
-      player.on_ground ? "yes" : "no",
-      player.velocity.x, player.velocity.y, player.velocity.z,
-      total_triangles_rendered, total_pixels_rendered, total_chunks_rendered, fps, 
-      player_voxel_x, player_voxel_y, player_voxel_z,
-      player_chunk_x, player_chunk_z,
-      player.position.x,  player.position.y,  player.position.z,
-      player.direction.x, player.direction.y, player.direction.z,
-      player.theta, player.eta,
-      block_type_to_string(player.blocks_holding[player.active_block_holding_index].block_type),
-      player.blocks_holding[player.active_block_holding_index].number_holding
-    );
+      snprintf(debug_screen_data, 1024, 
+        "on ground: %s, velocity: %.2f:%.2f:%.2f\n"
+        "%ut, %upx, %uc, %ufps\n"
+        "voxel coords: %d:%d:%d, chunk coords: %d:%d\n"
+        "player pos: %.2f:%.2f:%.2f, look direction: %.2f:%.2f:%.2f, theta/eta: %.2f:%.2f\n"
+        "active block: %s : %d", 
+        player.on_ground ? "yes" : "no",
+        player.velocity.x, player.velocity.y, player.velocity.z,
+        total_triangles_rendered, total_pixels_rendered, total_chunks_rendered, fps, 
+        player_voxel_x, player_voxel_y, player_voxel_z,
+        player_chunk_x, player_chunk_z,
+        player.position.x,  player.position.y,  player.position.z,
+        player.direction.x, player.direction.y, player.direction.z,
+        player.theta, player.eta,
+        block_type_to_string(player.blocks_holding[player.active_block_holding_index].block_type),
+        player.blocks_holding[player.active_block_holding_index].number_holding
+      );
+    }
+    draw_text_to_color_buffer(10, 10, debug_screen_data, (color_t){.uint32 = 0xFFFFFFFF}, 1);
   }
+}
+
+void render_ui(){
+  // render blocks menu
+  draw_rect(10, window_height - 20, window_width - 20, 10, (color_t){.uint32 = 0xFFFFFFFF});
 }
 
 int main(int argc, char *argv[]){
@@ -2988,26 +3005,23 @@ int main(int argc, char *argv[]){
   setup();
   
   for(; !quit; ){
-    frame_id++;
     process_frame_rate();
     process_input();
-    update_state();
-    calculate_currently_looked_at_voxel();
-    if(!console.is_open) move_player();
 
-    render_visible_chunks();
-    
-    generate_debug_data();
-
-    if(options.show_debug_info){
-      draw_text_to_color_buffer(10, 10, debug_screen_data, (color_t){.uint32 = 0xFFFFFFFF}, 1);
+    if(!console.is_open){
+      update_state();
+      calculate_currently_looked_at_voxel();
+      move_player();
+      render_visible_chunks();
+      print_debug_data();
+      render_ui();
+    }
+    else{
+      render_console();
     }
 
-    render_console();
-
     sdl_render();
-
-    time_count++; /* one count per frame */
+    frame_id++; /* one count per frame */
   }
 
   destroy_window();
