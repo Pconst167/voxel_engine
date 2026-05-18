@@ -1,5 +1,6 @@
 #include "trees.h"
 #include "array.h"
+#include "log.h"
 
 tree_t *trees;
 
@@ -9,9 +10,9 @@ void init_trees(){
     (tree_t){
       .tree_name = "tree0",
       .trunk_block_type = BLOCK_TYPE_TREE_TRUNK0,
-      .leaves_block_type = BLOCK_TYPE_LEAVES,
-      .min_height = 4,
-      .max_height = 10,
+      .leaves_block_type = BLOCK_TYPE_LEAVES0,
+      .min_height = 10,
+      .max_height = 30,
       .min_width = 1,
       .max_width = 2,
       .rarity = 1.0f
@@ -23,9 +24,9 @@ void init_trees(){
     (tree_t){
       .tree_name = "tree1",
       .trunk_block_type = BLOCK_TYPE_TREE_TRUNK1,
-      .leaves_block_type = BLOCK_TYPE_LEAVES,
-      .min_height = 4,
-      .max_height = 10,
+      .leaves_block_type = BLOCK_TYPE_LEAVES1,
+      .min_height = 10,
+      .max_height = 25,
       .min_width = 1,
       .max_width = 2,
       .rarity = 1.0f
@@ -37,9 +38,9 @@ void init_trees(){
     (tree_t){
       .tree_name = "tree2",
       .trunk_block_type = BLOCK_TYPE_TREE_TRUNK2,
-      .leaves_block_type = BLOCK_TYPE_LEAVES,
-      .min_height = 4,
-      .max_height = 10,
+      .leaves_block_type = BLOCK_TYPE_LEAVES2,
+      .min_height = 10,
+      .max_height = 35,
       .min_width = 1,
       .max_width = 2,
       .rarity = 1.0f
@@ -51,9 +52,9 @@ void init_trees(){
     (tree_t){
       .tree_name = "tree3",
       .trunk_block_type = BLOCK_TYPE_TREE_TRUNK3,
-      .leaves_block_type = BLOCK_TYPE_LEAVES,
-      .min_height = 4,
-      .max_height = 10,
+      .leaves_block_type = BLOCK_TYPE_LEAVES3,
+      .min_height = 8,
+      .max_height = 28,
       .min_width = 1,
       .max_width = 2,
       .rarity = 1.0f
@@ -65,9 +66,9 @@ void init_trees(){
     (tree_t){
       .tree_name = "tree4",
       .trunk_block_type = BLOCK_TYPE_TREE_TRUNK4,
-      .leaves_block_type = BLOCK_TYPE_LEAVES,
-      .min_height = 4,
-      .max_height = 10,
+      .leaves_block_type = BLOCK_TYPE_LEAVES4,
+      .min_height = 6,
+      .max_height = 20,
       .min_width = 1,
       .max_width = 2,
       .rarity = 1.0f
@@ -79,9 +80,9 @@ void init_trees(){
     (tree_t){
       .tree_name = "tree5",
       .trunk_block_type = BLOCK_TYPE_TREE_TRUNK5,
-      .leaves_block_type = BLOCK_TYPE_LEAVES,
-      .min_height = 4,
-      .max_height = 10,
+      .leaves_block_type = BLOCK_TYPE_LEAVES5,
+      .min_height = 10,
+      .max_height = 25,
       .min_width = 1,
       .max_width = 2,
       .rarity = 1.0f
@@ -93,9 +94,9 @@ void init_trees(){
     (tree_t){
       .tree_name = "tree6",
       .trunk_block_type = BLOCK_TYPE_TREE_TRUNK6,
-      .leaves_block_type = BLOCK_TYPE_LEAVES,
-      .min_height = 4,
-      .max_height = 10,
+      .leaves_block_type = BLOCK_TYPE_LEAVES6,
+      .min_height = 8,
+      .max_height = 32,
       .min_width = 1,
       .max_width = 2,
       .rarity = 1.0f
@@ -107,9 +108,37 @@ void init_trees(){
     (tree_t){
       .tree_name = "tree7",
       .trunk_block_type = BLOCK_TYPE_TREE_TRUNK7,
-      .leaves_block_type = BLOCK_TYPE_LEAVES,
-      .min_height = 4,
-      .max_height = 10,
+      .leaves_block_type = BLOCK_TYPE_LEAVES7,
+      .min_height = 10,
+      .max_height = 30,
+      .min_width = 1,
+      .max_width = 2,
+      .rarity = 1.0f
+    }
+  );
+  
+  array_push(
+    trees, 
+    (tree_t){
+      .tree_name = "tree8",
+      .trunk_block_type = BLOCK_TYPE_TREE_TRUNK7,
+      .leaves_block_type = BLOCK_TYPE_LEAVES8,
+      .min_height = 10,
+      .max_height = 30,
+      .min_width = 1,
+      .max_width = 2,
+      .rarity = 1.0f
+    }
+  );
+
+  array_push(
+    trees, 
+    (tree_t){
+      .tree_name = "tree9",
+      .trunk_block_type = BLOCK_TYPE_TREE_TRUNK7,
+      .leaves_block_type = BLOCK_TYPE_LEAVES9,
+      .min_height = 10,
+      .max_height = 30,
       .min_width = 1,
       .max_width = 2,
       .rarity = 1.0f
@@ -128,9 +157,11 @@ void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
       break;
     }
   }
-  
+
+  uint32_t height = (float)tree.min_height + (float)(tree.max_height - tree.min_height) * (float)(rand_i(z_row * x_col) / 4294967295.0);
+
   int32_t tree_bottom = first_solid_y - 3; // -3 to place trunk below ground
-  int32_t tree_top    = first_solid_y + tree.max_height;
+  int32_t tree_top    = first_solid_y + height;
   int32_t tree_middle = (tree_bottom + tree_top) / 2;
 
   // leaves

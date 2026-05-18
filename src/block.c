@@ -213,8 +213,143 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .side_texture       = load_texture("./assets/textures/blocks/tree_leaves.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/tree_leaves.png")   
+      .side_texture       = load_texture("./assets/textures/blocks/leaves0.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/leaves0.png")   
+    })
+  );
+  array_push(
+    block_materials,
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF80FF20},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/leaves1.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/leaves1.png")   
+    })
+  );
+  array_push(
+    block_materials,
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF80FF20},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/leaves2.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/leaves2.png")   
+    })
+  );
+  array_push(
+    block_materials,
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF80FF20},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/leaves3.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/leaves3.png")   
+    })
+  );
+  array_push(
+    block_materials,
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF80FF20},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/leaves4.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/leaves4.png")   
+    })
+  );
+  array_push(
+    block_materials,
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF80FF20},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/leaves5.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/leaves5.png")   
+    })
+  );
+  array_push(
+    block_materials,
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF80FF20},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/leaves6.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/leaves6.png")   
+    })
+  );
+  array_push(
+    block_materials,
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF80FF20},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/leaves7.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/leaves7.png")   
+    })
+  );
+  array_push(
+    block_materials,
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF80FF20},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/leaves8.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/leaves8.png")   
+    })
+  );
+  array_push(
+    block_materials,
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF80FF20},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/leaves9.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/leaves9.png")   
     })
   );
 
@@ -248,7 +383,16 @@ char *block_type_names[] = {
   "treetrunk5",
   "treetrunk6",
   "treetrunk7",
-  "leaves",
+  "leaves0",
+  "leaves1",
+  "leaves2",
+  "leaves3",
+  "leaves4",
+  "leaves5",
+  "leaves6",
+  "leaves7",
+  "leaves8",
+  "leaves9",
   "glass"
 };
 
@@ -291,7 +435,7 @@ void init_block_map(){
               block_at(y, z, x).solid = true;
             }
             else{
-              assign_block_material(y, z, x, BLOCK_TYPE_LEAVES);
+              assign_block_material(y, z, x, BLOCK_TYPE_LEAVES0);
               block_at(y, z, x).solid = true;
             }
           }
@@ -299,7 +443,7 @@ void init_block_map(){
 
         if((x <= 10 || x >= MAP_NUM_VOXELS_X - 10 || z <= 10 || z >= MAP_NUM_VOXELS_Z - 10) && y >= 0.4 * MAP_NUM_VOXELS_Y && y <= 0.43 * MAP_NUM_VOXELS_Y){
           if(xorshift32() % 5 == 0){
-            assign_block_material(y, z, x, BLOCK_TYPE_LEAVES);
+            assign_block_material(y, z, x, BLOCK_TYPE_LEAVES0);
             block_at(y, z, x).solid = true;
           }
           else{
@@ -321,20 +465,10 @@ void init_block_map(){
     for(uint32_t x = 32; x < MAP_NUM_VOXELS_X - 32; x++){
       if(x % 27 == 0 && z % 23 == 0){
         int32_t rand = xorshift32();
-        if(rand % 7 == 0)
+        if(rand % 3 == 0)
           place_tree(z, x, TREE0);
-        else if(rand % 7 == 1)
-          place_tree(z, x, TREE1);
-        else if(rand % 7 == 2)
-          place_tree(z, x, TREE2);
-        else if(rand % 7 == 3)
-          place_tree(z, x, TREE3);
-        else if(rand % 7 == 4)
-          place_tree(z, x, TREE4);
-        else if(rand % 7 == 5)
-          place_tree(z, x, TREE5);
-        else if(rand % 7 == 6)
-          place_tree(z, x, TREE6);
+        else if(rand % 3 == 1)
+          place_tree(z, x, TREE9);
         else
           place_tree(z, x, TREE7);
       }

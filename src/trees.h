@@ -11,7 +11,9 @@ typedef enum{
   TREE4 = 4,
   TREE5 = 5,
   TREE6 = 6,
-  TREE7 = 7
+  TREE7 = 7,
+  TREE8 = 8,
+  TREE9 = 9
 } tree_type_t;
 
 typedef struct{
