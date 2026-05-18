@@ -1,4 +1,5 @@
 #include "player.h"
+#include "voxel.h"
 
 player_t player = {
   .position                     = {.x = 100.0f, .y = 116.0f, .z = 100.0f},
@@ -41,6 +42,16 @@ aabb_3d_t make_player_aabb_at_position(vector3_t position){
   aabb.z_max = position.z + player.radius;
 
   return aabb;
+}
+
+void init_player(){
+  player.block_inventory[0].block_type = BLOCK_TYPE_TREE_TRUNK;
+  player.block_inventory[0].number     = 200;
+  player.block_inventory[1].block_type = BLOCK_TYPE_STONE;
+  player.block_inventory[1].number     = 200;
+
+  player.block_inventory_size = 2;
+  player.block_inventory_active_index = 0;
 }
 
 // check if player already has the block type, if so add +1 to entry

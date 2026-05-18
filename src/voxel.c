@@ -8,7 +8,7 @@
 #include "log.h"
 
 // Y slowest changing dimension, X is fastest changing
-voxel_t *voxels;
+voxel_t *blocks;
 
 // voxel currently being looked at
 voxel_raycast_hit_t looked_at_block;
@@ -120,7 +120,7 @@ void place_tree(int32_t z_row, int32_t x_col, int32_t height){
   int32_t first_solid_y = 0;
   // find first solid block along y
   for(int32_t y = MAP_NUM_VOXELS_Y - 1; y >= 0; y--){
-    if(voxel_at(y, z_row, x_col).solid){
+    if(block_at(y, z_row, x_col).solid){
       first_solid_y = y;
       break;
     }
@@ -135,12 +135,12 @@ void place_tree(int32_t z_row, int32_t x_col, int32_t height){
     for(int32_t z = z_row - 3; z <= z_row + 3; z++){
       for(int32_t x = x_col - 3; x <= x_col + 3; x++){
         if(xorshift32() % 2 == 0){
-          assign_block_material(y, z, x, VOXEL_TYPE_TREE_LEAVES);
-          voxel_at(y, z, x).solid = true;
+          assign_block_material(y, z, x, BLOCK_TYPE_LEAVES);
+          block_at(y, z, x).solid = true;
         }
         else{
-          assign_block_material(y, z, x, VOXEL_TYPE_AIR);
-          voxel_at(y, z, x).solid = false;
+          assign_block_material(y, z, x, BLOCK_TYPE_AIR);
+          block_at(y, z, x).solid = false;
         }
       }
     }
@@ -148,15 +148,15 @@ void place_tree(int32_t z_row, int32_t x_col, int32_t height){
 
   // trunk
   for(int32_t y  = tree_bottom; y <= tree_top; y++){
-    assign_block_material(y, z_row, x_col, VOXEL_TYPE_TREE_TRUNK);
-    voxel_at(y, z_row, x_col).solid = true;
+    assign_block_material(y, z_row, x_col, BLOCK_TYPE_TREE_TRUNK);
+    block_at(y, z_row, x_col).solid = true;
   }
 }
 
 void init_voxel_map(){
 
-  voxels = malloc(sizeof(voxel_t) * MAP_NUM_VOXELS_Y * MAP_NUM_VOXELS_Z * MAP_NUM_VOXELS_X);
-  if(voxels == NULL){
+  blocks = malloc(sizeof(voxel_t) * MAP_NUM_VOXELS_Y * MAP_NUM_VOXELS_Z * MAP_NUM_VOXELS_X);
+  if(blocks == NULL){
     print_log("ERROR: unable to allocate map memory");
     exit(1);
   }
@@ -164,40 +164,56 @@ void init_voxel_map(){
   for(uint32_t y = 0; y < MAP_NUM_VOXELS_Y; y++){
     for(uint32_t z = 0; z < MAP_NUM_VOXELS_Z; z++){
       for(uint32_t x = 0; x < MAP_NUM_VOXELS_X; x++){
-        voxel_at(y, z, x).solid = false;
-        assign_block_material(y, z, x, VOXEL_TYPE_AIR);
+        block_at(y, z, x).solid = false;
+        assign_block_material(y, z, x, BLOCK_TYPE_AIR);
 
         if(y <= (uint32_t)(0.3 * MAP_NUM_VOXELS_Y)){
-          assign_block_material(y, z, x, VOXEL_TYPE_STONE);
-          voxel_at(y, z, x).solid = true;
+          assign_block_material(y, z, x, BLOCK_TYPE_STONE);
+          block_at(y, z, x).solid = true;
         }
-        else if(y > (uint32_t)(0.3 * MAP_NUM_VOXELS_Y) && y < (uint32_t)(0.4 * MAP_NUM_VOXELS_Y)){
-          assign_block_material(y, z, x, VOXEL_TYPE_DIRT);
-          voxel_at(y, z, x).solid = true;
+        else if(y > (uint32_t)(0.3 * MAP_NUM_VOXELS_Y) && y < (uint32_t)(0.4 * MAP_NUM_VOXELS_Y) - 1){
+          assign_block_material(y, z, x, BLOCK_TYPE_DIRT);
+          block_at(y, z, x).solid = true;
+        }
+        else if(y == (uint32_t)(0.4 * MAP_NUM_VOXELS_Y) - 1){
+          if(xorshift32() % 5 == 0){
+            assign_block_material(y, z, x, BLOCK_TYPE_DIRT);
+          }
+          else{
+            assign_block_material(y, z, x, BLOCK_TYPE_GRASS);
+          }
+          block_at(y, z, x).solid = true;
         }
         else if(y == (uint32_t)(0.4 * MAP_NUM_VOXELS_Y)){
           if(xorshift32() % 5 == 0){
-            assign_block_material(y, z, x, VOXEL_TYPE_GRASS);
-            voxel_at(y, z, x).solid = true;
+            uint32_t random = xorshift32();
+            if(random % 2 == 0){
+              assign_block_material(y, z, x, BLOCK_TYPE_GRASS);
+              block_at(y, z, x).solid = true;
+            }
+            else{
+              assign_block_material(y, z, x, BLOCK_TYPE_LEAVES);
+              block_at(y, z, x).solid = true;
+            }
           }
         }
 
         if((x <= 10 || x >= MAP_NUM_VOXELS_X - 10 || z <= 10 || z >= MAP_NUM_VOXELS_Z - 10) && y >= 0.4 * MAP_NUM_VOXELS_Y && y <= 0.43 * MAP_NUM_VOXELS_Y){
           if(xorshift32() % 5 == 0){
-            assign_block_material(y, z, x, VOXEL_TYPE_TREE_LEAVES);
-            voxel_at(y, z, x).solid = true;
+            assign_block_material(y, z, x, BLOCK_TYPE_LEAVES);
+            block_at(y, z, x).solid = true;
           }
           else{
-            voxel_at(y, z, x).type = VOXEL_TYPE_AIR;
+            block_at(y, z, x).type = BLOCK_TYPE_AIR;
           }
         }
 
-        voxel_at(y, z, x).aabb.x_min = x;
-        voxel_at(y, z, x).aabb.x_max = x + 1.0;
-        voxel_at(y, z, x).aabb.z_min = z;
-        voxel_at(y, z, x).aabb.z_max = z + 1.0;
-        voxel_at(y, z, x).aabb.y_min = y;
-        voxel_at(y, z, x).aabb.y_max = y + 1.0;
+        block_at(y, z, x).aabb.x_min = x;
+        block_at(y, z, x).aabb.x_max = x + 1.0;
+        block_at(y, z, x).aabb.z_min = z;
+        block_at(y, z, x).aabb.z_max = z + 1.0;
+        block_at(y, z, x).aabb.y_min = y;
+        block_at(y, z, x).aabb.y_max = y + 1.0;
       }
     }
   }
@@ -445,7 +461,7 @@ voxel_raycast_hit_t raycast_voxels(
        voxel_y >= 0 && voxel_y < MAP_NUM_VOXELS_Y &&
        voxel_z >= 0 && voxel_z < MAP_NUM_VOXELS_Z
     ){
-      if(voxel_at(voxel_y, voxel_z, voxel_x).solid){
+      if(block_at(voxel_y, voxel_z, voxel_x).solid){
         hit_result.hit = 1;
         hit_result.voxel_x = voxel_x;
         hit_result.voxel_y = voxel_y;
@@ -496,8 +512,8 @@ void calculate_currently_looked_at_voxel(){
 }
 
 void assign_block_material(int32_t block_y, int32_t block_z, int32_t block_x, voxel_type_t block_type){
-  voxel_at(block_y, block_z, block_x).type = block_type;
-  voxel_at(block_y, block_z, block_x).voxel_material = &voxel_materials[block_type];
+  block_at(block_y, block_z, block_x).type = block_type;
+  block_at(block_y, block_z, block_x).voxel_material = &voxel_materials[block_type];
 }
 
 char *block_type_to_string(voxel_type_t block_type){

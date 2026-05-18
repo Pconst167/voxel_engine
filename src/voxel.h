@@ -22,16 +22,16 @@
 #define MAP_X_STRIDE 1
 #define MAP_Z_STRIDE MAP_NUM_VOXELS_X
 #define MAP_Y_STRIDE (MAP_NUM_VOXELS_X * MAP_NUM_VOXELS_Z)
-#define voxel_at(y, z, x) voxels[(y) * MAP_Y_STRIDE + (z) * MAP_Z_STRIDE + (x)]
+#define block_at(y, z, x) blocks[(y) * MAP_Y_STRIDE + (z) * MAP_Z_STRIDE + (x)]
 
 
 typedef enum{
-  VOXEL_TYPE_AIR          = 0,
-  VOXEL_TYPE_STONE        = 1,
-  VOXEL_TYPE_DIRT         = 2,
-  VOXEL_TYPE_GRASS        = 3,
-  VOXEL_TYPE_TREE_TRUNK   = 4,
-  VOXEL_TYPE_TREE_LEAVES  = 5
+  BLOCK_TYPE_AIR          = 0,
+  BLOCK_TYPE_STONE        = 1,
+  BLOCK_TYPE_DIRT         = 2,
+  BLOCK_TYPE_GRASS        = 3,
+  BLOCK_TYPE_TREE_TRUNK   = 4,
+  BLOCK_TYPE_LEAVES       = 5
 } voxel_type_t;
 
 typedef enum{
@@ -91,7 +91,7 @@ extern char *block_type_names[];
 extern voxel_material_t *voxel_materials;
 
 // Y slowest changing dimension, X is fastest changing
-extern voxel_t *voxels;
+extern voxel_t *blocks;
 
 // voxel currently being looked at
 extern voxel_raycast_hit_t looked_at_block;
