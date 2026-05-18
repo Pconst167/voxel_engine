@@ -1,18 +1,18 @@
 #include "player.h"
 
 player_t player = {
-  .position                   = {.x = 100.0f, .y = 116.0f, .z = 100.0f},
-  .velocity                   = {.x = 0.0f, .y = 0.0f, .z = 0.0f},
-  .direction                  = {.x = 0.0f, .y = 0.0f, .z = 1.0f},
-  .theta                      = M_PI_2,
-  .eta                        = 0.0f,
-  .radius                     = 0.30f,
-  .height                     = 1.80f,
-  .aabb                       = {0},
-  .on_ground                  = false,
-  .active_block_holding_index = 0,
-  .blocks_holding             = {{0}},
-  .num_blocks_holding_entries = 0
+  .position                     = {.x = 100.0f, .y = 116.0f, .z = 100.0f},
+  .velocity                     = {.x = 0.0f, .y = 0.0f, .z = 0.0f},
+  .direction                    = {.x = 0.0f, .y = 0.0f, .z = 1.0f},
+  .theta                        = M_PI_2,
+  .eta                          = 0.0f,
+  .radius                       = 0.30f,
+  .height                       = 1.80f,
+  .aabb                         = {0},
+  .on_ground                    = false,
+  .block_inventory_active_index = 0,
+  .block_inventory              = {{0}},
+  .block_inventory_size         = 0
 };
 
 vector3_t player_direction_orthogonal_left_right;
@@ -47,26 +47,27 @@ aabb_3d_t make_player_aabb_at_position(vector3_t position){
 // if player is not holding that type, add new entry
 void player_obtain_block(voxel_type_t block_type){
   // check if player currently holds that block type and add to list if so
-  for(uint32_t holding_index = 0; holding_index < player.num_blocks_holding_entries; holding_index++){
-    if(player.blocks_holding[holding_index].block_type == block_type){
-      player.blocks_holding[holding_index].number_holding++;
+  for(uint32_t block_inventory_index = 0; block_inventory_index < player.block_inventory_size; block_inventory_index++){
+    if(player.block_inventory[block_inventory_index].block_type == block_type){
+      player.block_inventory[block_inventory_index].number++;
       return;
     }
   }
 
   // if player does not hold that block type, then add new entry to blocks holding list and set it to 1
   // create new entry into blocks holding list
-  player.blocks_holding[player.num_blocks_holding_entries].block_type = block_type;
-  player.blocks_holding[player.num_blocks_holding_entries].number_holding = 1;
-  player.num_blocks_holding_entries++;
+  player.block_inventory[player.block_inventory_size].block_type = block_type;
+  player.block_inventory[player.block_inventory_size].number = 1;
+  player.block_inventory_size++;
 }
 
-void player_uses_block(){
-  if(player.blocks_holding[player.active_block_holding_index].number_holding > 0){
-    player.blocks_holding[player.active_block_holding_index].number_holding--;
+void player_use_block(){
+  if(player.block_inventory[player.block_inventory_active_index].number > 0){
+    player.block_inventory[player.block_inventory_active_index].number--;
   }
 }
 
-void player_select_block_type(uint32_t block_holding_index){
-  player.active_block_holding_index = block_holding_index;
+void player_set_block_inventory_index(uint32_t block_inventory_index){
+  if(player.block_inventory[block_inventory_index].number > 0)
+    player.block_inventory_active_index = block_inventory_index;
 }

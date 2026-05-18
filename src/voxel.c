@@ -206,10 +206,12 @@ void init_voxel_map(){
     for(uint32_t x = 32; x < MAP_NUM_VOXELS_X - 32; x++){
       if(x % 27 == 0 && z % 23 == 0){
         int32_t rand = xorshift32();
-        if(rand % 2 == 0)
-          place_tree(z, x, 10);
-        else if(rand % 2 == 1)
-          place_tree(z, x, 15);
+        if(rand % 3 == 0)
+          place_tree(z, x, 8);
+        else if(rand % 3 == 1)
+          place_tree(z, x, 12);
+        else if(rand % 3 == 2)
+          place_tree(z, x, 16);
         else
           place_tree(z, x, 20);
       }

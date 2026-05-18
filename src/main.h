@@ -11,6 +11,7 @@
 #include "color.h"
 #include "chunk.h"
 #include "collision.h"
+#include "font.h"
 
 void print_debug_data();
 void render_console();
@@ -31,8 +32,8 @@ void process_game_input(SDL_Event *event);
 void run_console_command();
 void setup(void);
 
-void draw_char_to_color_buffer(int x, int y, char character, color_t color, int scale);
-void draw_text_to_color_buffer(int x, int y, const char *text, color_t color, int scale);
+void draw_char(int x, int y, char character, color_t color, int scale, font_type_t type);
+void draw_text(int x, int y, const char *text, color_t color, int scale, font_type_t type);
 
 uint32_t rasterize_triangle(triangle_t *triangle);
 uint32_t rasterize_triangle_no_zbuffer_write(triangle_t *triangle, material_t face_material, light_intensity_rgb_t total_light_intensity);

@@ -3,11 +3,23 @@
 
 #include <stdint.h>
 
-#define FONT_WIDTH 6
-#define FONT_HEIGHT 8
 #define FONT_HOR_SPACING 1
-#define FONT_VER_SPACING 4
+#define FONT_VER_SPACING 1
 
-const uint8_t *get_font_terminal_char(char character);
+typedef enum{
+  FONT_5X5,
+  FONT_6X8
+} font_type_t;
+
+typedef struct{
+  int width;
+  int height;
+  uint8_t font_chars[95][8]; // max font width = 8 bits for now
+  uint8_t font_unknown[8];
+} font_t;
+
+extern font_t fonts[];
+
+const uint8_t *get_font_char(char character, font_type_t type);
 
 #endif

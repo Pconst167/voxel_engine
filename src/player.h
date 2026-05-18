@@ -14,12 +14,12 @@
 #define PLAYER_XZ_ACCEL            10.0f
 #define PLAYER_MAX_XZ_VELOCITY     6.0f
 
-#define PLAYER_MAX_BLOCKS_HOLDING 50
+#define PLAYER_BLOCK_INVENTORY_MAX_SIZE 50
 
 typedef struct{
   voxel_type_t block_type;
-  uint32_t number_holding;
-} player_block_holding_t;
+  uint32_t number;
+} player_block_inventory_entry_t;
 
 typedef struct{
   vector3_t position;
@@ -33,9 +33,9 @@ typedef struct{
   bool on_ground;
 
   // currently holding
-  player_block_holding_t blocks_holding[PLAYER_MAX_BLOCKS_HOLDING];
-  uint32_t num_blocks_holding_entries;
-  int32_t active_block_holding_index; // index of block type being held currently
+  player_block_inventory_entry_t block_inventory[PLAYER_BLOCK_INVENTORY_MAX_SIZE];
+  uint32_t block_inventory_size;
+  uint32_t block_inventory_active_index; // index of block type being held currently
 } player_t;
 
 extern player_t player;
@@ -45,7 +45,6 @@ void update_player_aabb(void);
 aabb_3d_t make_player_aabb_at_position(vector3_t position);
 
 void player_obtain_block(voxel_type_t block_type);
-void player_use_block(voxel_type_t block_type);
-void player_select_block_type(uint32_t block_holding_index);
+void player_set_block_inventory_index(uint32_t block_inventory_index);
 
 #endif

@@ -267,34 +267,34 @@ void process_game_input(SDL_Event *event){
     //Uint16 modifiers = event->key.keysym.mod;
 
     if(keycode == SDLK_1){
-      player_select_block_type(0);
+      player_set_block_inventory_index(0);
     }
     if(keycode == SDLK_2){
-      player_select_block_type(1);
+      player_set_block_inventory_index(1);
     }
     if(keycode == SDLK_3){
-      player_select_block_type(2);
+      player_set_block_inventory_index(2);
     }
     if(keycode == SDLK_4){
-      player_select_block_type(3);
+      player_set_block_inventory_index(3);
     }
     if(keycode == SDLK_5){
-      player_select_block_type(4);
+      player_set_block_inventory_index(4);
     }
     if(keycode == SDLK_6){
-      player_select_block_type(5);
+      player_set_block_inventory_index(5);
     }
     if(keycode == SDLK_7){
-      player_select_block_type(6);
+      player_set_block_inventory_index(6);
     }
     if(keycode == SDLK_8){
-      player_select_block_type(7);
+      player_set_block_inventory_index(7);
     }
     if(keycode == SDLK_9){
-      player_select_block_type(8);
+      player_set_block_inventory_index(8);
     }
     if(keycode == SDLK_0){
-      player_select_block_type(9);
+      player_set_block_inventory_index(9);
     }
   }
 
@@ -317,11 +317,12 @@ void process_game_input(SDL_Event *event){
           int32_t voxel_y = looked_at_block.voxel_y + looked_at_block.normal_y;
           int32_t voxel_z = looked_at_block.voxel_z + looked_at_block.normal_z;
           int32_t voxel_x = looked_at_block.voxel_x + looked_at_block.normal_x;
+
           if((voxel_y != player_y_feet && voxel_y != player_y_head) || voxel_z != player_z || voxel_x != player_x){
-            if(player.blocks_holding[player.active_block_holding_index].number_holding > 0){
-              assign_block_material(voxel_y, voxel_z, voxel_x, player.blocks_holding[player.active_block_holding_index].block_type);
+            if(player.block_inventory[player.block_inventory_active_index].number > 0){
+              assign_block_material(voxel_y, voxel_z, voxel_x, player.block_inventory[player.block_inventory_active_index].block_type);
               voxel_at(voxel_y, voxel_z, voxel_x).solid = true;
-              player.blocks_holding[player.active_block_holding_index].number_holding--;
+              player.block_inventory[player.block_inventory_active_index].number--;
             }
           }
         }
@@ -329,6 +330,7 @@ void process_game_input(SDL_Event *event){
           int32_t voxel_y = looked_at_block.voxel_y;
           int32_t voxel_z = looked_at_block.voxel_z;
           int32_t voxel_x = looked_at_block.voxel_x;
+
           player_obtain_block(voxel_at(voxel_y, voxel_z, voxel_x).type);
           assign_block_material(voxel_y, voxel_z, voxel_x, VOXEL_TYPE_AIR);
           voxel_at(voxel_y, voxel_z, voxel_x).solid = false;
@@ -402,8 +404,8 @@ void process_console_input(SDL_Event *event){
 
 void render_console(){
   draw_rect(0, 0, window_width, 80, (color_t){.uint32 = 0xFF000000});
-  draw_text_to_color_buffer(10, 10, "> ", (color_t){.uint32 = 0xFFFFFFFF}, 1);
-  draw_text_to_color_buffer(20, 10, console.input_buffer, (color_t){.uint32 = 0xFFFFFFFF}, 1);
+  draw_text(10, 10, "> ", (color_t){.uint32 = 0xFFFFFFFF}, 1, FONT_5X5);
+  draw_text(20, 10, console.input_buffer, (color_t){.uint32 = 0xFFFFFFFF}, 1, FONT_5X5);
 }
 
 void run_console_command(){
@@ -2974,8 +2976,7 @@ void print_debug_data(){
         "on ground: %s, velocity: %.2f:%.2f:%.2f\n"
         "%ut, %upx, %uc, %ufps\n"
         "voxel coords: %d:%d:%d, chunk coords: %d:%d\n"
-        "player pos: %.2f:%.2f:%.2f, look direction: %.2f:%.2f:%.2f, theta/eta: %.2f:%.2f\n"
-        "active block: %s : %d", 
+        "player pos: %.2f:%.2f:%.2f, look direction: %.2f:%.2f:%.2f, theta/eta: %.2f:%.2f\n",
         player.on_ground ? "yes" : "no",
         player.velocity.x, player.velocity.y, player.velocity.z,
         total_triangles_rendered, total_pixels_rendered, total_chunks_rendered, fps, 
@@ -2983,22 +2984,38 @@ void print_debug_data(){
         player_chunk_x, player_chunk_z,
         player.position.x,  player.position.y,  player.position.z,
         player.direction.x, player.direction.y, player.direction.z,
-        player.theta, player.eta,
-        block_type_to_string(player.blocks_holding[player.active_block_holding_index].block_type),
-        player.blocks_holding[player.active_block_holding_index].number_holding
+        player.theta, player.eta
       );
     }
-    draw_text_to_color_buffer(10, 10, debug_screen_data, (color_t){.uint32 = 0xFFFFFFFF}, 1);
+    draw_text(10, 10, debug_screen_data, (color_t){.uint32 = 0xFFFFFFFF}, 1, FONT_6X8);
   }
 }
 
 void render_ui(){
+  char block_inventory_block_count[8] = "";
+  uint32_t block_y_offset = 0;
+
   // render blocks menu
   //draw_rect(5, window_height - 18, window_width - 10, 18, (color_t){.uint32 = 0xFFFFFFFF});
 
   // go through player's holding blocks list and display it
-  for(int32_t block_i = 0; block_i < player.num_blocks_holding_entries; block_i++){
-    draw_texture_flat(6 + (block_i << 4), window_height - 20, 16, 16, voxel_materials[player.blocks_holding[block_i].block_type].side_texture);
+  for(int32_t block_i = 0; block_i < player.block_inventory_size; block_i++){
+    if(player.block_inventory[block_i].number > 0){
+      uint32_t block_y = window_height - 20 - (block_y_offset * 20);
+      uint32_t block_x = 0;
+      uint32_t text_x = 2;
+      uint32_t text_y = block_y + 9;
+
+      draw_texture_flat(block_x, block_y, 20, 20, voxel_materials[player.block_inventory[block_i].block_type].side_texture);
+      // if active block holding is block_i, draw bar vertical bar to left of block
+      if(player.block_inventory_active_index == block_i){
+        draw_vertical_line(block_x, block_y, 20, (color_t){.uint32 = 0xFFFFFFFF});
+      }
+      sprintf(block_inventory_block_count, "%u", player.block_inventory[block_i].number);
+      draw_text(text_x, text_y, block_inventory_block_count, (color_t){.uint32 = 0xFFFFFFFF}, 1, FONT_5X5);
+
+      block_y_offset++;
+    }
   }
 }
 
@@ -3182,18 +3199,21 @@ uint32_t chunk_num_vertices_inside_plane(chunk_t *chunk, frustrum_plane_t frustr
   return 0;
 }
 
-void draw_char_to_color_buffer(
+void draw_char(
   int x, int y,
   char character, 
-  color_t color, int scale
+  color_t color, int scale, font_type_t type
 ){
-  const uint8_t *glyph = get_font_terminal_char(character);
+  const uint8_t *glyph = get_font_char(character, type);
 
-  for(int row = 0; row < FONT_HEIGHT; row++){
+  int32_t font_width = fonts[type].width;
+  int32_t font_height = fonts[type].height;
+
+  for(int row = 0; row < font_height; row++){
     uint8_t bits = glyph[row];
 
-    for(int col = 0; col < FONT_WIDTH; col++){
-      if(bits & (1 << (FONT_WIDTH - 1 - col))){
+    for(int col = 0; col < font_width; col++){
+      if(bits & (1 << (font_width - 1 - col))){
         for(int scale_y = 0; scale_y < scale; scale_y++){
           int pixel_y = y + row * scale + scale_y;
 
@@ -3210,22 +3230,25 @@ void draw_char_to_color_buffer(
   }
 }
 
-void draw_text_to_color_buffer(
+void draw_text(
   int x, int y,
   const char *text, 
-  color_t color, int scale
+  color_t color, int scale, font_type_t type
 ){
   int cursor_x = x;
   int cursor_y = y;
 
+  int32_t font_width = fonts[type].width;
+  int32_t font_height = fonts[type].height;
+
   while(*text != '\0'){
     if(*text == '\n'){
       cursor_x = x;
-      cursor_y += (FONT_HEIGHT + FONT_VER_SPACING) * scale;
+      cursor_y += (font_height + FONT_VER_SPACING) * scale;
     }
     else{
-      draw_char_to_color_buffer(cursor_x, cursor_y, *text, color, scale);
-      cursor_x += (FONT_WIDTH + FONT_HOR_SPACING) * scale;
+      draw_char(cursor_x, cursor_y, *text, color, scale, type);
+      cursor_x += (font_width + FONT_HOR_SPACING) * scale;
     }
 
     text++;
