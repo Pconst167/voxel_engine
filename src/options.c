@@ -10,5 +10,5 @@ options_t options = {
   .render_collision_aabb_outlines = false,
   .log                            = true,
   .sort                           = true,
-  .show_debug_info                = true
+  .show_debug_info                = false
 };
