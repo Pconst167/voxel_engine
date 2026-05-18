@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "vector.h"
-#include "voxel.h"
+#include "block.h"
 
 typedef enum{
   CHUNK_INTERSECTION_MODE_OUTSIDE,

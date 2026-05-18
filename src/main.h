@@ -42,10 +42,10 @@ bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane
 uint32_t chunk_num_vertices_inside_plane(chunk_t *chunk, frustrum_plane_t frustrum_plane);
 int get_chunk_intersection_mode(chunk_t *chunk);
 chunk_intersection_mode_t get_chunk_intersection_mode_fast(chunk_t *chunk);
-void render_chunk_voxels(int32_t y_plane, int32_t z_row, int32_t x_col);
+void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col);
 void render_visible_chunks(void);
 void render_visible_chunks_sorted(void);
-void render_voxel_quad(voxel_quad_t voxel_quad, voxel_material_t *voxel_material, bool looked_at);
+void render_block_quad(block_quad_t block_quad, block_material_t *block_material, bool looked_at);
 void draw_chunk_outlines(void);
 void draw_collision_aabb_outlines(void);
 

@@ -24,15 +24,22 @@
 #define MAP_Y_STRIDE (MAP_NUM_VOXELS_X * MAP_NUM_VOXELS_Z)
 #define block_at(y, z, x) blocks[(y) * MAP_Y_STRIDE + (z) * MAP_Z_STRIDE + (x)]
 
-
 typedef enum{
   BLOCK_TYPE_AIR          = 0,
   BLOCK_TYPE_STONE        = 1,
   BLOCK_TYPE_DIRT         = 2,
   BLOCK_TYPE_GRASS        = 3,
-  BLOCK_TYPE_TREE_TRUNK   = 4,
-  BLOCK_TYPE_LEAVES       = 5
-} voxel_type_t;
+  BLOCK_TYPE_TREE_TRUNK0  = 4,
+  BLOCK_TYPE_TREE_TRUNK1  = 5,
+  BLOCK_TYPE_TREE_TRUNK2  = 6,
+  BLOCK_TYPE_TREE_TRUNK3  = 7,
+  BLOCK_TYPE_TREE_TRUNK4  = 8,
+  BLOCK_TYPE_TREE_TRUNK5  = 9,
+  BLOCK_TYPE_TREE_TRUNK6  = 10,
+  BLOCK_TYPE_TREE_TRUNK7  = 11,
+  BLOCK_TYPE_LEAVES       = 12,
+  BLOCK_TYPE_GLASS        = 13,
+} block_type_t;
 
 typedef enum{
   VOXEL_QUAD_TOP,
@@ -41,9 +48,10 @@ typedef enum{
   VOXEL_QUAD_RIGHT,
   VOXEL_QUAD_FRONT,
   VOXEL_QUAD_BACK,
-} voxel_quad_type_t;
+} block_quad_type_t;
 
 typedef struct{
+  bool backface_culling;
   // color and light
   color_t base_color;
   color_t emissive_color;   //  object's own emission color */
@@ -56,55 +64,55 @@ typedef struct{
   // texture data
   texture_t *side_texture;
   texture_t *top_texture;
-} voxel_material_t;
+} block_material_t;
 
 typedef struct{
-  voxel_quad_type_t quad_type;
+  block_quad_type_t quad_type;
   vector3_t points[4];
   uv_t uv[6];
   light_intensity_rgb_t total_light_intensity;
-} voxel_quad_t;
+} block_quad_t;
 
 typedef struct{
-  voxel_type_t type;
+  block_type_t type;
   bool solid;
   aabb_3d_t aabb;
-  voxel_material_t *voxel_material;
+  block_material_t *block_material;
   float avg_w;
   bool looked_at;
-} voxel_t;
+} block_t;
 
 typedef struct{
   int32_t hit;
-  int32_t voxel_x;
-  int32_t voxel_y;
-  int32_t voxel_z;
+  int32_t block_x;
+  int32_t block_y;
+  int32_t block_z;
   int32_t normal_x;
   int32_t normal_y;
   int32_t normal_z;
   float distance;
-} voxel_raycast_hit_t;
+} block_raycast_hit_t;
 
 // keep block type names as strings
 extern char *block_type_names[];
 
-extern voxel_material_t *voxel_materials;
+extern block_material_t *block_materials;
 
 // Y slowest changing dimension, X is fastest changing
-extern voxel_t *blocks;
+extern block_t *blocks;
 
-// voxel currently being looked at
-extern voxel_raycast_hit_t looked_at_block;
+// block currently being looked at
+extern block_raycast_hit_t looked_at_block;
 
 void init_block_materials();
-void init_voxel_map();
-void get_voxel_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, int *start_y, int *end_y, int *start_z, int *end_z);
-voxel_quad_t generate_voxel_quad(voxel_quad_type_t quad_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col);
+void init_block_map();
+void get_block_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, int *start_y, int *end_y, int *start_z, int *end_z);
+block_quad_t generate_block_quad(block_quad_type_t quad_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col);
 
-voxel_raycast_hit_t raycast_voxels(vector3_t ray_origin, vector3_t ray_direction, float max_distance);
-void calculate_currently_looked_at_voxel();
-void assign_block_material(int32_t voxel_y, int32_t voxel_z, int32_t voxel_x, voxel_type_t block_type);
+block_raycast_hit_t raycast_blocks(vector3_t ray_origin, vector3_t ray_direction, float max_distance);
+void calculate_currently_looked_at_block();
+void assign_block_material(int32_t block_y, int32_t block_z, int32_t block_x, block_type_t block_type);
 
-char *block_type_to_string(voxel_type_t block_type);
+char *block_type_to_string(block_type_t block_type);
 
 #endif

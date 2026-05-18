@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include "vector.h"
 #include "aabb.h"
-#include "voxel.h"
+#include "block.h"
 
 #define PLAYER_GRAVITY             22.0f
 #define PLAYER_JUMP_VELOCITY       8.0f
@@ -17,7 +17,7 @@
 #define PLAYER_BLOCK_INVENTORY_MAX_SIZE 50
 
 typedef struct{
-  voxel_type_t block_type;
+  block_type_t block_type;
   uint32_t number;
 } player_block_inventory_entry_t;
 
@@ -45,7 +45,7 @@ void init_player();
 void update_player_aabb(void);
 aabb_3d_t make_player_aabb_at_position(vector3_t position);
 
-void player_obtain_block(voxel_type_t block_type);
+void player_obtain_block(block_type_t block_type);
 void player_set_block_inventory_index(uint32_t block_inventory_index);
 
 #endif

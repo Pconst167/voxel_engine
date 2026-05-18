@@ -35,26 +35,26 @@ bool aabb_3d_overlaps(const aabb_3d_t *a, const aabb_3d_t *b){
     a->z_max > b->z_min;
 }
 
-bool aabb_3d_overlaps_yz(const aabb_3d_t *aabb, const aabb_3d_t *voxel_aabb){
+bool aabb_3d_overlaps_yz(const aabb_3d_t *aabb, const aabb_3d_t *block_aabb){
   return
-    aabb->y_min < voxel_aabb->y_max &&
-    aabb->y_max > voxel_aabb->y_min &&
-    aabb->z_min < voxel_aabb->z_max &&
-    aabb->z_max > voxel_aabb->z_min;
+    aabb->y_min < block_aabb->y_max &&
+    aabb->y_max > block_aabb->y_min &&
+    aabb->z_min < block_aabb->z_max &&
+    aabb->z_max > block_aabb->z_min;
 }
 
-bool aabb_3d_overlaps_xy(const aabb_3d_t *aabb, const aabb_3d_t *voxel_aabb){
+bool aabb_3d_overlaps_xy(const aabb_3d_t *aabb, const aabb_3d_t *block_aabb){
   return
-    aabb->x_min < voxel_aabb->x_max &&
-    aabb->x_max > voxel_aabb->x_min &&
-    aabb->y_min < voxel_aabb->y_max &&
-    aabb->y_max > voxel_aabb->y_min;
+    aabb->x_min < block_aabb->x_max &&
+    aabb->x_max > block_aabb->x_min &&
+    aabb->y_min < block_aabb->y_max &&
+    aabb->y_max > block_aabb->y_min;
 }
 
-bool aabb_3d_overlaps_xz(const aabb_3d_t *aabb, const aabb_3d_t *voxel_aabb){
+bool aabb_3d_overlaps_xz(const aabb_3d_t *aabb, const aabb_3d_t *block_aabb){
   return
-    aabb->x_min < voxel_aabb->x_max &&
-    aabb->x_max > voxel_aabb->x_min &&
-    aabb->z_min < voxel_aabb->z_max &&
-    aabb->z_max > voxel_aabb->z_min;
+    aabb->x_min < block_aabb->x_max &&
+    aabb->x_max > block_aabb->x_min &&
+    aabb->z_min < block_aabb->z_max &&
+    aabb->z_max > block_aabb->z_min;
 }
