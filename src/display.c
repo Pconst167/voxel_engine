@@ -19,7 +19,7 @@ int fps;
 
 bool initialize_window(void){
 
-  window_width  = 640;
+  window_width  = 960;
   window_height = (float)window_width * ASPECT_RATIO_Y / ASPECT_RATIO_X;
 
   if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0){
