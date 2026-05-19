@@ -666,30 +666,8 @@ void init_block_map(){
     }
   }
 
-  // place trees
-  for(uint32_t z = 32; z < MAP_NUM_VOXELS_Z - 32; z++){
-    for(uint32_t x = 32; x < MAP_NUM_VOXELS_X - 32; x++){
-      if(x % 27 == 0 && z % 23 == 0){
-        int32_t rand = xorshift32();
-        if(rand % 3 == 0)
-          place_tree(z, x, TREE0);
-        else if(rand % 3 == 1)
-          place_tree(z, x, TREE9);
-        else
-          place_tree(z, x, TREE7);
-      }
-    }
-  }
-
-  // place ores
-  for(uint32_t z = 32; z < MAP_NUM_VOXELS_Z - 32; z++){
-    for(uint32_t x = 32; x < MAP_NUM_VOXELS_X - 32; x++){
-      place_ore(z, x, ORE_TYPE_COAL);
-      place_ore(z, x, ORE_TYPE_IRON);
-      place_ore(z, x, ORE_TYPE_GOLD);
-      place_ore(z, x, ORE_TYPE_DIAMOND);
-    }
-  }
+  place_trees();
+  place_ores();
 }
 
 void get_block_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, int *start_y, int *end_y, int *start_z, int *end_z){

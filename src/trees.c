@@ -1,4 +1,5 @@
 #include "trees.h"
+#include "block.h"
 #include "log.h"
 
 tree_t trees[] = {
@@ -7,10 +8,10 @@ tree_t trees[] = {
     .trunk_block_type = BLOCK_TYPE_TREE_TRUNK0,
     .leaves_block_type = BLOCK_TYPE_LEAVES0,
     .min_height = 10,
-    .max_height = 30,
+    .max_height = 100,
     .min_width = 1,
     .max_width = 2,
-    .rarity = 1.0f
+    .spawn_chance = 0.4f
   },
   {
     .tree_name = "tree1",
@@ -20,7 +21,7 @@ tree_t trees[] = {
     .max_height = 25,
     .min_width = 1,
     .max_width = 2,
-    .rarity = 1.0f
+    .spawn_chance = 0.2f
   },
   {
     .tree_name = "tree2",
@@ -30,7 +31,7 @@ tree_t trees[] = {
     .max_height = 35,
     .min_width = 1,
     .max_width = 2,
-    .rarity = 1.0f
+    .spawn_chance = 0.3f
   },
   {
     .tree_name = "tree3",
@@ -40,7 +41,7 @@ tree_t trees[] = {
     .max_height = 28,
     .min_width = 1,
     .max_width = 2,
-    .rarity = 1.0f
+    .spawn_chance = 0.15f
   },
   {
     .tree_name = "tree4",
@@ -50,7 +51,7 @@ tree_t trees[] = {
     .max_height = 20,
     .min_width = 1,
     .max_width = 2,
-    .rarity = 1.0f
+    .spawn_chance = 0.05f
   },
   {
     .tree_name = "tree5",
@@ -60,7 +61,7 @@ tree_t trees[] = {
     .max_height = 25,
     .min_width = 1,
     .max_width = 2,
-    .rarity = 1.0f
+    .spawn_chance = 0.08f
   },
   {
     .tree_name = "tree6",
@@ -70,7 +71,7 @@ tree_t trees[] = {
     .max_height = 32,
     .min_width = 1,
     .max_width = 2,
-    .rarity = 1.0f
+    .spawn_chance = 0.25f
   },
   {
     .tree_name = "tree7",
@@ -80,7 +81,7 @@ tree_t trees[] = {
     .max_height = 30,
     .min_width = 1,
     .max_width = 2,
-    .rarity = 1.0f
+    .spawn_chance = 0.3f
   },
   {
     .tree_name = "tree8",
@@ -90,7 +91,7 @@ tree_t trees[] = {
     .max_height = 30,
     .min_width = 1,
     .max_width = 2,
-    .rarity = 1.0f
+    .spawn_chance = 0.09f
   },
   {
     .tree_name = "tree9",
@@ -100,15 +101,20 @@ tree_t trees[] = {
     .max_height = 30,
     .min_width = 1,
     .max_width = 2,
-    .rarity = 1.0f
+    .spawn_chance = 0.04f
   }
 };
 
 void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
   tree_t tree = trees[tree_type];
 
-  int32_t first_solid_y = 0;
+  uint32_t tree_height_seed = (uint32_t)(z_row * 73856093u) ^ (uint32_t)(x_col * 19349663u); // two prime numbers for hashing
+  bool will_spawn = random_spawn_from_seed(tree_height_seed, tree.spawn_chance);
+
+  if(!will_spawn) return;
+
   // find first solid block along y
+  int32_t first_solid_y = 0;
   for(int32_t y = MAP_NUM_VOXELS_Y - 1; y >= 0; y--){
     if(block_at(y, z_row, x_col).solid){
       first_solid_y = y;
@@ -116,10 +122,10 @@ void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
     }
   }
 
-  uint32_t height = (double)tree.min_height + (double)(tree.max_height - tree.min_height) * (double)(rand_i(z_row * x_col) / (double)UINT32_MAX);
+  uint32_t height = (double)tree.min_height + (double)(tree.max_height - tree.min_height) * (double)(rand_i(tree_height_seed) / (double)UINT32_MAX);
 
   int32_t tree_bottom = first_solid_y - 3; // -3 to place trunk below ground
-  int32_t tree_top    = first_solid_y + height;
+  int32_t tree_top    = first_solid_y + height - 1;
   int32_t tree_middle = (tree_bottom + tree_top) / 2;
 
   // leaves
@@ -130,10 +136,6 @@ void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
           assign_block_material(y, z, x, tree.leaves_block_type);
           block_at(y, z, x).solid = true;
         }
-        else{
-          assign_block_material(y, z, x, BLOCK_TYPE_AIR);
-          block_at(y, z, x).solid = false;
-        }
       }
     }
   }
@@ -142,5 +144,17 @@ void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
   for(int32_t y  = tree_bottom; y <= tree_top; y++){
     assign_block_material(y, z_row, x_col, tree.trunk_block_type);
     block_at(y, z_row, x_col).solid = true;
+  }
+}
+
+void place_trees(){
+  int32_t step_size_x = 8;
+  int32_t step_size_z = 8;
+
+  // place trees
+  for(uint32_t z = 32; z < MAP_NUM_VOXELS_Z - 32; z += step_size_z){
+    for(uint32_t x = 32; x < MAP_NUM_VOXELS_X - 32; x += step_size_x){
+      place_tree(z, x, TREE0);
+    }
   }
 }

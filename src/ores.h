@@ -24,5 +24,6 @@ typedef struct{
 extern ore_t ores[];
 
 void place_ore(int32_t z_row, int32_t x_col, ore_type_t ore_type);
+void place_ores();
 
 #endif
