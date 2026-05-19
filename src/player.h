@@ -46,6 +46,7 @@ void update_player_aabb(void);
 aabb_3d_t make_player_aabb_at_position(vector3_t position);
 
 void player_obtain_block(block_type_t block_type);
+void player_use_block();
 void player_set_block_inventory_index(uint32_t block_inventory_index);
 
 #endif

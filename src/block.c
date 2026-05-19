@@ -17,6 +17,7 @@ block_raycast_hit_t looked_at_block;
 block_material_t *block_materials;
 
 void init_block_materials(){
+  // AIR
   array_push(
     block_materials, 
     ((block_material_t){
@@ -33,6 +34,37 @@ void init_block_materials(){
     })  
   );
 
+  // STONE
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF808080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/stone0.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/stone0.png")
+    })
+  );
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF808080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/stone1.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/stone1.png")
+    })
+  );
   array_push(
     block_materials, 
     ((block_material_t){
@@ -48,7 +80,226 @@ void init_block_materials(){
       .top_texture        = load_texture("./assets/textures/blocks/stone2.png")
     })
   );
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF808080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/stone3.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/stone3.png")
+    })
+  );
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF808080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/stone4.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/stone4.png")
+    })
+  );
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF808080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/stone5.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/stone5.png")
+    })
+  );
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF808080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/stone6.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/stone6.png")
+    })
+  );
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF808080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/stone7.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/stone7.png")
+    })
+  );
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF808080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/stone8.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/stone8.png")
+    })
+  );
 
+  // COAL
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF808080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/coal0.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/coal0.png")
+    })
+  );
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF808080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/coal1.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/coal1.png")
+    })
+  );
+
+  // IRON
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF808080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/iron0.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/iron0.png")
+    })
+  );
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF808080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/iron1.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/iron1.png")
+    })
+  );
+
+  // DIAMOND
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF808080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/diamond0.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/diamond0.png")
+    })
+  );
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF808080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/diamond1.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/diamond1.png")
+    })
+  );
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF808080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/diamond2.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/diamond2.png")
+    })
+  );
+
+  // GOLD
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF808080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/gold0.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/gold0.png")
+    })
+  );
+
+  // DIRT
   array_push(
     block_materials, 
     ((block_material_t){
@@ -65,6 +316,7 @@ void init_block_materials(){
     })
   );
 
+  // GRASS
   array_push(
     block_materials,
     ((block_material_t){
@@ -81,6 +333,7 @@ void init_block_materials(){
     })
   );
 
+  // TREE TRUNKS
   array_push(
     block_materials,
     (block_material_t){
@@ -202,6 +455,7 @@ void init_block_materials(){
     }
   );
 
+  // LEAVES
   array_push(
     block_materials,
     ((block_material_t){
@@ -353,6 +607,7 @@ void init_block_materials(){
     })
   );
 
+  // GLASS
   array_push(
     block_materials,
     ((block_material_t){
@@ -372,7 +627,23 @@ void init_block_materials(){
 
 char *block_type_names[] = {
   "air",
-  "stone",
+  "stone0",
+  "stone1",
+  "stone2",
+  "stone3",
+  "stone4",
+  "stone5",
+  "stone6",
+  "stone7",
+  "stone8",
+  "coal0",
+  "coal1",
+  "iron0",
+  "iron1",
+  "diamond0",
+  "diamond1",
+  "diamond2",
+  "gold0",
   "dirt",
   "grass",
   "treetrunk0",
@@ -411,7 +682,7 @@ void init_block_map(){
         assign_block_material(y, z, x, BLOCK_TYPE_AIR);
 
         if(y <= (uint32_t)(0.3 * MAP_NUM_VOXELS_Y)){
-          assign_block_material(y, z, x, BLOCK_TYPE_STONE);
+          assign_block_material(y, z, x, BLOCK_TYPE_STONE0);
           block_at(y, z, x).solid = true;
         }
         else if(y > (uint32_t)(0.3 * MAP_NUM_VOXELS_Y) && y < (uint32_t)(0.4 * MAP_NUM_VOXELS_Y) - 1){

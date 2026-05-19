@@ -325,7 +325,7 @@ void process_game_input(SDL_Event *event){
             if(player.block_inventory[player.block_inventory_active_index].number > 0){
               assign_block_material(block_y, block_z, block_x, player.block_inventory[player.block_inventory_active_index].block_type);
               block_at(block_y, block_z, block_x).solid = true;
-              player.block_inventory[player.block_inventory_active_index].number--;
+              player_use_block();
             }
           }
         }

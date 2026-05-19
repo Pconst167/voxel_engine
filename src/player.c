@@ -46,9 +46,9 @@ aabb_3d_t make_player_aabb_at_position(vector3_t position){
 
 void init_player(){
   player.block_inventory[0].block_type = BLOCK_TYPE_GLASS;
-  player.block_inventory[0].number = 200;
+  player.block_inventory[0].number = 10;
   player.block_inventory[1].block_type = BLOCK_TYPE_TREE_TRUNK0;
-  player.block_inventory[1].number = 200;
+  player.block_inventory[1].number = 10;
   player.block_inventory_size = 2;
 }
 
@@ -71,8 +71,24 @@ void player_obtain_block(block_type_t block_type){
 }
 
 void player_use_block(){
-  if(player.block_inventory[player.block_inventory_active_index].number > 0){
-    player.block_inventory[player.block_inventory_active_index].number--;
+
+  player.block_inventory[player.block_inventory_active_index].number--;
+
+  // if inventory block count reaches 0, then move all inventory block positions down by one
+  if(player.block_inventory[player.block_inventory_active_index].number == 0){
+    for(uint32_t block_inv_i = player.block_inventory_active_index; block_inv_i < player.block_inventory_size - 1; block_inv_i++){
+      player.block_inventory[block_inv_i] = player.block_inventory[block_inv_i + 1];
+      player.block_inventory[block_inv_i + 1].number = 0; // set the count of the slot above as 0 to clear any empty slots
+    }
+    player.block_inventory_size--;
+
+    // now find the next inventory slot which has a block count > 0 and select it
+    for(int32_t block_inv_i = player.block_inventory_active_index; block_inv_i >= 0; block_inv_i--){
+      if(player.block_inventory[block_inv_i].number > 0){
+        player.block_inventory_active_index = block_inv_i;
+        break;
+      }
+    }
   }
 }
 
