@@ -202,7 +202,6 @@ void setup(void) {
 
   /* calculate world chunks */
   init_block_materials();
-  init_trees();
   init_block_map();
   calculate_world_bounds();
   create_world_chunks();

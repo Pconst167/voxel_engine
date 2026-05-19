@@ -92,3 +92,7 @@ bool mod_range(int x, int min, int max){
   }
   return false;
 }
+
+bool random_spawn_from_seed(uint32_t seed, float spawn_chance){
+  return ((float)rand_i(seed) / 2147483647.0f) < spawn_chance;
+}

@@ -35,14 +35,10 @@ typedef enum{
   BLOCK_TYPE_STONE6     ,
   BLOCK_TYPE_STONE7     ,
   BLOCK_TYPE_STONE8     ,
-  BLOCK_TYPE_COAL0      ,
-  BLOCK_TYPE_COAL1      ,
-  BLOCK_TYPE_IRON0      ,
-  BLOCK_TYPE_IRON1      ,
-  BLOCK_TYPE_DIAMOND0   ,
-  BLOCK_TYPE_DIAMOND1   ,
-  BLOCK_TYPE_DIAMOND2   ,
-  BLOCK_TYPE_GOLD0      ,
+  BLOCK_TYPE_COAL       ,
+  BLOCK_TYPE_IRON       ,
+  BLOCK_TYPE_DIAMOND    ,
+  BLOCK_TYPE_GOLD       ,
   BLOCK_TYPE_DIRT       ,
   BLOCK_TYPE_GRASS      ,
   BLOCK_TYPE_TREE_TRUNK0,
@@ -76,6 +72,7 @@ typedef enum{
 } block_quad_type_t;
 
 typedef struct{
+  char *material_name;
   bool backface_culling;
   // color and light
   color_t base_color;
@@ -138,6 +135,6 @@ block_raycast_hit_t raycast_blocks(vector3_t ray_origin, vector3_t ray_direction
 void calculate_currently_looked_at_block();
 void assign_block_material(int32_t block_y, int32_t block_z, int32_t block_x, block_type_t block_type);
 
-char *block_type_to_string(block_type_t block_type);
+char *get_block_material_name(block_type_t block_type);
 
 #endif

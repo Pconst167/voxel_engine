@@ -36,4 +36,6 @@ int clamp_int(int value, int minimum_value, int maximum_value);
 
 bool mod_range(int x, int min, int max);
 
+bool random_spawn_from_seed(uint32_t seed, float spawn_chance);
+
 #endif

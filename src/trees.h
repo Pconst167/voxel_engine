@@ -27,9 +27,8 @@ typedef struct{
   float rarity;
 } tree_t;
 
-extern tree_t *trees;
+extern tree_t trees[];
 
 void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type);
-void init_trees();
 
 #endif

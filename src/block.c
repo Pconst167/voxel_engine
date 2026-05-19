@@ -6,6 +6,7 @@
 #include "camera.h"
 #include "array.h"
 #include "trees.h"
+#include "ores.h"
 #include "log.h"
 
 // Y slowest changing dimension, X is fastest changing
@@ -21,6 +22,7 @@ void init_block_materials(){
   array_push(
     block_materials, 
     ((block_material_t){
+      .material_name      = "air",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -38,6 +40,7 @@ void init_block_materials(){
   array_push(
     block_materials, 
     ((block_material_t){
+      .material_name      = "stone0",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -53,6 +56,7 @@ void init_block_materials(){
   array_push(
     block_materials, 
     ((block_material_t){
+      .material_name      = "stone1",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -68,6 +72,7 @@ void init_block_materials(){
   array_push(
     block_materials, 
     ((block_material_t){
+      .material_name      = "stone2",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -83,6 +88,7 @@ void init_block_materials(){
   array_push(
     block_materials, 
     ((block_material_t){
+      .material_name      = "stone3",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -98,6 +104,7 @@ void init_block_materials(){
   array_push(
     block_materials, 
     ((block_material_t){
+      .material_name      = "stone4",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -113,6 +120,7 @@ void init_block_materials(){
   array_push(
     block_materials, 
     ((block_material_t){
+      .material_name      = "stone5",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -128,6 +136,7 @@ void init_block_materials(){
   array_push(
     block_materials, 
     ((block_material_t){
+      .material_name      = "stone6",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -143,6 +152,7 @@ void init_block_materials(){
   array_push(
     block_materials, 
     ((block_material_t){
+      .material_name      = "stone7",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -158,6 +168,7 @@ void init_block_materials(){
   array_push(
     block_materials, 
     ((block_material_t){
+      .material_name      = "stone8",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -175,6 +186,7 @@ void init_block_materials(){
   array_push(
     block_materials, 
     ((block_material_t){
+      .material_name      = "coal",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -183,23 +195,8 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .side_texture       = load_texture("./assets/textures/blocks/coal0.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/coal0.png")
-    })
-  );
-  array_push(
-    block_materials, 
-    ((block_material_t){
-      .backface_culling   = true,
-      .base_color         = (color_t){.uint32 = 0xFF808080},
-      .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
-      .reflects_light     = true,
-      .dither             = false,
-      .blend_mode         = BLEND_MODE_OPAQUE,
-      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .side_texture       = load_texture("./assets/textures/blocks/coal1.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/coal1.png")
+      .side_texture       = load_texture("./assets/textures/blocks/coal_side.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/coal_top.png")
     })
   );
 
@@ -207,6 +204,7 @@ void init_block_materials(){
   array_push(
     block_materials, 
     ((block_material_t){
+      .material_name      = "iron",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -215,23 +213,8 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .side_texture       = load_texture("./assets/textures/blocks/iron0.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/iron0.png")
-    })
-  );
-  array_push(
-    block_materials, 
-    ((block_material_t){
-      .backface_culling   = true,
-      .base_color         = (color_t){.uint32 = 0xFF808080},
-      .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
-      .reflects_light     = true,
-      .dither             = false,
-      .blend_mode         = BLEND_MODE_OPAQUE,
-      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .side_texture       = load_texture("./assets/textures/blocks/iron1.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/iron1.png")
+      .side_texture       = load_texture("./assets/textures/blocks/iron_side.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/iron_top.png")
     })
   );
 
@@ -239,6 +222,7 @@ void init_block_materials(){
   array_push(
     block_materials, 
     ((block_material_t){
+      .material_name      = "diamong",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -247,38 +231,8 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .side_texture       = load_texture("./assets/textures/blocks/diamond0.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/diamond0.png")
-    })
-  );
-  array_push(
-    block_materials, 
-    ((block_material_t){
-      .backface_culling   = true,
-      .base_color         = (color_t){.uint32 = 0xFF808080},
-      .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
-      .reflects_light     = true,
-      .dither             = false,
-      .blend_mode         = BLEND_MODE_OPAQUE,
-      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .side_texture       = load_texture("./assets/textures/blocks/diamond1.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/diamond1.png")
-    })
-  );
-  array_push(
-    block_materials, 
-    ((block_material_t){
-      .backface_culling   = true,
-      .base_color         = (color_t){.uint32 = 0xFF808080},
-      .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
-      .reflects_light     = true,
-      .dither             = false,
-      .blend_mode         = BLEND_MODE_OPAQUE,
-      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .side_texture       = load_texture("./assets/textures/blocks/diamond2.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/diamond2.png")
+      .side_texture       = load_texture("./assets/textures/blocks/diamond_side.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/diamond_top.png")
     })
   );
 
@@ -286,6 +240,7 @@ void init_block_materials(){
   array_push(
     block_materials, 
     ((block_material_t){
+      .material_name      = "gold",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -294,8 +249,8 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .side_texture       = load_texture("./assets/textures/blocks/gold0.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/gold0.png")
+      .side_texture       = load_texture("./assets/textures/blocks/gold_side.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/gold_top.png")
     })
   );
 
@@ -303,6 +258,7 @@ void init_block_materials(){
   array_push(
     block_materials, 
     ((block_material_t){
+      .material_name      = "dirt",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF408080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -320,6 +276,7 @@ void init_block_materials(){
   array_push(
     block_materials,
     ((block_material_t){
+      .material_name      = "grass",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF0FF000},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -337,6 +294,7 @@ void init_block_materials(){
   array_push(
     block_materials,
     (block_material_t){
+      .material_name      = "treetrunk0",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -352,6 +310,7 @@ void init_block_materials(){
   array_push(
     block_materials,
     (block_material_t){
+      .material_name      = "treetrunk1",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -367,6 +326,7 @@ void init_block_materials(){
   array_push(
     block_materials,
     (block_material_t){
+      .material_name      = "treetrunk2",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -382,6 +342,7 @@ void init_block_materials(){
   array_push(
     block_materials,
     (block_material_t){
+      .material_name      = "treetrunk3",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -397,6 +358,7 @@ void init_block_materials(){
   array_push(
     block_materials,
     (block_material_t){
+      .material_name      = "treetrunk4",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -412,6 +374,7 @@ void init_block_materials(){
   array_push(
     block_materials,
     (block_material_t){
+      .material_name      = "treetrunk5",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -427,6 +390,7 @@ void init_block_materials(){
   array_push(
     block_materials,
     (block_material_t){
+      .material_name      = "treetrunk6",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -442,6 +406,7 @@ void init_block_materials(){
   array_push(
     block_materials,
     (block_material_t){
+      .material_name      = "treetrunk7",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -459,6 +424,7 @@ void init_block_materials(){
   array_push(
     block_materials,
     ((block_material_t){
+      .material_name      = "leaves0",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -474,6 +440,7 @@ void init_block_materials(){
   array_push(
     block_materials,
     ((block_material_t){
+      .material_name      = "leaves1",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -489,6 +456,7 @@ void init_block_materials(){
   array_push(
     block_materials,
     ((block_material_t){
+      .material_name      = "leaves2",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -504,6 +472,7 @@ void init_block_materials(){
   array_push(
     block_materials,
     ((block_material_t){
+      .material_name      = "leaves3",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -519,6 +488,7 @@ void init_block_materials(){
   array_push(
     block_materials,
     ((block_material_t){
+      .material_name      = "leaves4",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -534,6 +504,7 @@ void init_block_materials(){
   array_push(
     block_materials,
     ((block_material_t){
+      .material_name      = "leaves5",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -549,6 +520,7 @@ void init_block_materials(){
   array_push(
     block_materials,
     ((block_material_t){
+      .material_name      = "leaves6",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -564,6 +536,7 @@ void init_block_materials(){
   array_push(
     block_materials,
     ((block_material_t){
+      .material_name      = "leaves7",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -579,6 +552,7 @@ void init_block_materials(){
   array_push(
     block_materials,
     ((block_material_t){
+      .material_name      = "leaves8",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -594,6 +568,7 @@ void init_block_materials(){
   array_push(
     block_materials,
     ((block_material_t){
+      .material_name      = "leaves9",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -611,6 +586,7 @@ void init_block_materials(){
   array_push(
     block_materials,
     ((block_material_t){
+      .material_name      = "glass",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -624,48 +600,6 @@ void init_block_materials(){
     })
   );
 }
-
-char *block_type_names[] = {
-  "air",
-  "stone0",
-  "stone1",
-  "stone2",
-  "stone3",
-  "stone4",
-  "stone5",
-  "stone6",
-  "stone7",
-  "stone8",
-  "coal0",
-  "coal1",
-  "iron0",
-  "iron1",
-  "diamond0",
-  "diamond1",
-  "diamond2",
-  "gold0",
-  "dirt",
-  "grass",
-  "treetrunk0",
-  "treetrunk1",
-  "treetrunk2",
-  "treetrunk3",
-  "treetrunk4",
-  "treetrunk5",
-  "treetrunk6",
-  "treetrunk7",
-  "leaves0",
-  "leaves1",
-  "leaves2",
-  "leaves3",
-  "leaves4",
-  "leaves5",
-  "leaves6",
-  "leaves7",
-  "leaves8",
-  "leaves9",
-  "glass"
-};
 
 void init_block_map(){
 
@@ -682,7 +616,7 @@ void init_block_map(){
         assign_block_material(y, z, x, BLOCK_TYPE_AIR);
 
         if(y <= (uint32_t)(0.3 * MAP_NUM_VOXELS_Y)){
-          assign_block_material(y, z, x, BLOCK_TYPE_STONE0);
+          assign_block_material(y, z, x, BLOCK_TYPE_STONE3);
           block_at(y, z, x).solid = true;
         }
         else if(y > (uint32_t)(0.3 * MAP_NUM_VOXELS_Y) && y < (uint32_t)(0.4 * MAP_NUM_VOXELS_Y) - 1){
@@ -732,6 +666,7 @@ void init_block_map(){
     }
   }
 
+  // place trees
   for(uint32_t z = 32; z < MAP_NUM_VOXELS_Z - 32; z++){
     for(uint32_t x = 32; x < MAP_NUM_VOXELS_X - 32; x++){
       if(x % 27 == 0 && z % 23 == 0){
@@ -743,6 +678,16 @@ void init_block_map(){
         else
           place_tree(z, x, TREE7);
       }
+    }
+  }
+
+  // place ores
+  for(uint32_t z = 32; z < MAP_NUM_VOXELS_Z - 32; z++){
+    for(uint32_t x = 32; x < MAP_NUM_VOXELS_X - 32; x++){
+      place_ore(z, x, ORE_TYPE_COAL);
+      place_ore(z, x, ORE_TYPE_IRON);
+      place_ore(z, x, ORE_TYPE_GOLD);
+      place_ore(z, x, ORE_TYPE_DIAMOND);
     }
   }
 }
@@ -1028,6 +973,6 @@ void assign_block_material(int32_t block_y, int32_t block_z, int32_t block_x, bl
   block_at(block_y, block_z, block_x).block_material = &block_materials[block_type];
 }
 
-char *block_type_to_string(block_type_t block_type){
-  return block_type_names[block_type];
+char *get_block_material_name(block_type_t block_type){
+  return block_materials[block_type].material_name;
 }

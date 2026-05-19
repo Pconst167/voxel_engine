@@ -46,9 +46,9 @@ aabb_3d_t make_player_aabb_at_position(vector3_t position){
 
 void init_player(){
   player.block_inventory[0].block_type = BLOCK_TYPE_GLASS;
-  player.block_inventory[0].number = 10;
+  player.block_inventory[0].number = 200;
   player.block_inventory[1].block_type = BLOCK_TYPE_TREE_TRUNK0;
-  player.block_inventory[1].number = 10;
+  player.block_inventory[1].number = 200;
   player.block_inventory_size = 2;
 }
 
