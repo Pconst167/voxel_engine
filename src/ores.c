@@ -64,9 +64,12 @@ void place_ore(int32_t z_row, int32_t x_col, ore_type_t ore_type){
 }
 
 void place_ores(){
+  int32_t step_size_x = 4;
+  int32_t step_size_z = 4;
+
   // place ores
-  for(uint32_t z = 32; z < MAP_NUM_VOXELS_Z - 32; z++){
-    for(uint32_t x = 32; x < MAP_NUM_VOXELS_X - 32; x++){
+  for(uint32_t z = 32; z < MAP_NUM_VOXELS_Z - 32; z += step_size_z){
+    for(uint32_t x = 32; x < MAP_NUM_VOXELS_X - 32; x += step_size_x){
       place_ore(z, x, ORE_TYPE_COAL);
       place_ore(z, x, ORE_TYPE_IRON);
       place_ore(z, x, ORE_TYPE_GOLD);
