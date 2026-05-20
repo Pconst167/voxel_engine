@@ -333,9 +333,11 @@ void process_game_input(SDL_Event *event){
           int32_t block_z = looked_at_block.block_z;
           int32_t block_x = looked_at_block.block_x;
 
-          player_obtain_block(block_at(block_y, block_z, block_x).type);
-          assign_block_material(block_y, block_z, block_x, BLOCK_TYPE_AIR);
-          block_at(block_y, block_z, block_x).solid = false;
+          if(block_at(block_y, block_z, block_x).mineable){
+            player_obtain_block(block_at(block_y, block_z, block_x).type);
+            assign_block_material(block_y, block_z, block_x, BLOCK_TYPE_AIR);
+            block_at(block_y, block_z, block_x).solid = false;
+          }
         }
       }
     }
@@ -2626,6 +2628,14 @@ void update_state(void){
     .y = sinf(player.eta),
     .z = cosf(player.eta) * player.direction.z
   };
+
+  player_block_x = player.position.x;
+  player_block_y = player.position.y;
+  player_block_z = player.position.z;
+
+  player_chunk_x = player_block_x / CHUNK_SIZE;
+  player_chunk_y = player_block_y / CHUNK_SIZE;
+  player_chunk_z = player_block_z / CHUNK_SIZE;
 }
 
 inline uint32_t rasterize_triangle(triangle_t *triangle){
@@ -2969,14 +2979,6 @@ void process_frame_rate(void) {
 void print_debug_data(){
   if(options.show_debug_info){
     if((frame_id & 0x0F) == 0x0F){
-      player_block_x = player.position.x;
-      player_block_y = player.position.y;
-      player_block_z = player.position.z;
-
-      player_chunk_x = player_block_x / CHUNK_SIZE;
-      player_chunk_y = player_block_y / CHUNK_SIZE;
-      player_chunk_z = player_block_z / CHUNK_SIZE;
-
       snprintf(debug_screen_data, 1024, 
         "on ground: %s, velocity: %.2f:%.2f:%.2f\n"
         "%ut, %upx, %uc, %ufps\n"
@@ -2998,10 +3000,15 @@ void print_debug_data(){
 
 void render_ui(){
   char block_inventory_block_count[8] = "";
+  char temperature[8] = "";
   uint32_t block_y_offset = 0;
+  float temp;
 
   // render blocks menu
   //draw_rect(5, window_height - 18, window_width - 10, 18, (color_t){.uint32 = 0xFFFFFFFF});
+  temp = block_at(player_block_y, player_block_z, player_block_x).temperature;
+  snprintf(temperature, sizeof(temperature), "%.2fC", temp);
+  draw_text(22, window_height - 10, temperature, (color_t){.uint32 = 0xFFFFFFFF}, 1, FONT_5X5);
 
   // go through player's holding blocks list and display it
   for(uint32_t block_i = 0; block_i < player.block_inventory_size; block_i++){

@@ -73,8 +73,8 @@ void place_ore(int32_t z_row, int32_t x_col, ore_type_t ore_type){
 }
 
 void place_ores(){
-  int32_t step_size_x = 1;
-  int32_t step_size_z = 1;
+  int32_t step_size_x = 4;
+  int32_t step_size_z = 4;
 
   // place ores
   for(uint32_t z = 8; z < MAP_NUM_VOXELS_Z - 8; z += step_size_z){

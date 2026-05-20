@@ -26,6 +26,10 @@
 
 typedef enum{
   BLOCK_TYPE_AIR        ,
+  BLOCK_TYPE_CORE0      ,
+  BLOCK_TYPE_CORE1      ,
+  BLOCK_TYPE_CORE2      ,
+  BLOCK_TYPE_CORE3      ,
   BLOCK_TYPE_STONE0     ,
   BLOCK_TYPE_STONE1     ,
   BLOCK_TYPE_STONE2     ,
@@ -99,6 +103,8 @@ typedef struct{
 typedef struct{
   block_type_t type;
   bool solid;
+  float temperature;
+  bool mineable;
   aabb_3d_t aabb;
   block_material_t *block_material;
   float avg_w;

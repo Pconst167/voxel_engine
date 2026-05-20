@@ -10,8 +10,8 @@ tree_t trees[] = {
     .min_height = 10,
     .max_height = 35,
     .min_width = 1,
-    .max_width = 3,
-    .spawn_chance = 0.4f
+    .max_width = 2,
+    .spawn_chance = 0.3f
   },
   {
     .tree_name = "tree1",
@@ -125,8 +125,8 @@ void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
   uint32_t tree_width_seed  = seed ^ 0xA53A9B1Du; // generate two more seeds, one for y, and one for ore size
   uint32_t tree_height_seed = seed ^ 0xF12C77B3u;
 
-  int32_t height = (double)tree.min_height + (double)(tree.max_height - tree.min_height) * (double)(rand_i(tree_height_seed) / (double)UINT32_MAX);
-  int32_t trunk_width  = (double)tree.min_width  + (double)(tree.max_width - tree.min_width + 1) * (double)(rand_i(tree_width_seed) / (double)UINT32_MAX);
+  int32_t height      = (double)tree.min_height + (double)(tree.max_height - tree.min_height) * (double)(rand_i(tree_height_seed) / (double)UINT32_MAX);
+  int32_t trunk_width = (double)tree.min_width  + (double)(tree.max_width - tree.min_width + 1) * (double)(rand_i(tree_width_seed) / (double)UINT32_MAX);
   
   int32_t tree_bottom = first_solid_y - 3; // -3 to place trunk below ground
   int32_t tree_top    = first_solid_y + height - 1;
