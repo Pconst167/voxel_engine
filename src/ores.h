@@ -7,6 +7,7 @@
 typedef enum{
   ORE_TYPE_COAL,
   ORE_TYPE_IRON,
+  ORE_TYPE_SILVER,
   ORE_TYPE_GOLD,
   ORE_TYPE_DIAMOND
 } ore_type_t;

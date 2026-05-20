@@ -8,9 +8,9 @@ tree_t trees[] = {
     .trunk_block_type = BLOCK_TYPE_TREE_TRUNK0,
     .leaves_block_type = BLOCK_TYPE_LEAVES0,
     .min_height = 10,
-    .max_height = 100,
+    .max_height = 35,
     .min_width = 1,
-    .max_width = 2,
+    .max_width = 3,
     .spawn_chance = 0.4f
   },
   {
@@ -108,8 +108,8 @@ tree_t trees[] = {
 void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
   tree_t tree = trees[tree_type];
 
-  uint32_t tree_height_seed = (uint32_t)(z_row * 73856093u) ^ (uint32_t)(x_col * 19349663u); // two prime numbers for hashing
-  bool will_spawn = random_spawn_from_seed(tree_height_seed, tree.spawn_chance);
+  uint32_t seed = (uint32_t)(z_row * 73856093u) ^ (uint32_t)(x_col * 19349663u); // two prime numbers for hashing
+  bool will_spawn = random_spawn_from_seed(seed, tree.spawn_chance);
 
   if(!will_spawn) return;
 
@@ -122,8 +122,12 @@ void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
     }
   }
 
-  uint32_t height = (double)tree.min_height + (double)(tree.max_height - tree.min_height) * (double)(rand_i(tree_height_seed) / (double)UINT32_MAX);
+  uint32_t tree_width_seed  = seed ^ 0xA53A9B1Du; // generate two more seeds, one for y, and one for ore size
+  uint32_t tree_height_seed = seed ^ 0xF12C77B3u;
 
+  int32_t height = (double)tree.min_height + (double)(tree.max_height - tree.min_height) * (double)(rand_i(tree_height_seed) / (double)UINT32_MAX);
+  int32_t trunk_width  = (double)tree.min_width  + (double)(tree.max_width - tree.min_width + 1) * (double)(rand_i(tree_width_seed) / (double)UINT32_MAX);
+  
   int32_t tree_bottom = first_solid_y - 3; // -3 to place trunk below ground
   int32_t tree_top    = first_solid_y + height - 1;
   int32_t tree_middle = (tree_bottom + tree_top) / 2;
@@ -139,11 +143,17 @@ void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
       }
     }
   }
-
+  
   // trunk
-  for(int32_t y  = tree_bottom; y <= tree_top; y++){
-    assign_block_material(y, z_row, x_col, tree.trunk_block_type);
-    block_at(y, z_row, x_col).solid = true;
+  for(int32_t y = tree_bottom; y <= tree_top; y++){
+    float t = (float)(y - tree_bottom) / (float)(tree_top - tree_bottom);
+    int32_t width = lerp(t, trunk_width, 1.0f);
+    for(int32_t z = z_row - width / 2.0f; z < z_row + width / 2.0f; z++){
+      for(int32_t x = x_col - width / 2.0f; x < x_col + width / 2.0f; x++){
+        assign_block_material(y, z, x, tree.trunk_block_type);
+        block_at(y, z, x).solid = true;
+      }
+    }
   }
 }
 

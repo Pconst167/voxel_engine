@@ -236,6 +236,24 @@ void init_block_materials(){
     })
   );
 
+  // SILVER
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .material_name      = "silver",
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF808080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/silver_side.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/silver_top.png")
+    })
+  );
+
   // GOLD
   array_push(
     block_materials, 

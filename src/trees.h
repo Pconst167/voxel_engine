@@ -20,10 +20,10 @@ typedef struct{
   char *tree_name;
   block_type_t trunk_block_type;
   block_type_t leaves_block_type;
-  uint32_t min_height;
-  uint32_t max_height;
-  uint32_t min_width;
-  uint32_t max_width;
+  int32_t min_height;
+  int32_t max_height;
+  int32_t min_width;
+  int32_t max_width;
   float spawn_chance;
 } tree_t;
 

@@ -7,25 +7,34 @@ ore_t ores[] = {
     .block_type = BLOCK_TYPE_COAL,
     .min_y = 5,
     .max_y = 50,
-    .spawn_chance = 0.6f,
+    .spawn_chance = 0.8f,
     .vein_min_size = 2,
-    .vein_max_size = 4
+    .vein_max_size = 6
   },
   {
     .ore_name   = "iron",
     .block_type = BLOCK_TYPE_IRON,
     .min_y = 5,
     .max_y = 50,
-    .spawn_chance = 0.3f,
+    .spawn_chance = 0.4f,
     .vein_min_size = 2,
     .vein_max_size = 4
+  },
+  {
+    .ore_name   = "silver",
+    .block_type = BLOCK_TYPE_SILVER,
+    .min_y = 5,
+    .max_y = 50,
+    .spawn_chance = 0.35f,
+    .vein_min_size = 2,
+    .vein_max_size = 2
   },
   {
     .ore_name   = "gold",
     .block_type = BLOCK_TYPE_GOLD,
     .min_y = 5,
     .max_y = 50,
-    .spawn_chance = 0.2f,
+    .spawn_chance = 0.3f,
     .vein_min_size = 2,
     .vein_max_size = 2
   },
@@ -64,14 +73,15 @@ void place_ore(int32_t z_row, int32_t x_col, ore_type_t ore_type){
 }
 
 void place_ores(){
-  int32_t step_size_x = 4;
-  int32_t step_size_z = 4;
+  int32_t step_size_x = 1;
+  int32_t step_size_z = 1;
 
   // place ores
-  for(uint32_t z = 32; z < MAP_NUM_VOXELS_Z - 32; z += step_size_z){
-    for(uint32_t x = 32; x < MAP_NUM_VOXELS_X - 32; x += step_size_x){
+  for(uint32_t z = 8; z < MAP_NUM_VOXELS_Z - 8; z += step_size_z){
+    for(uint32_t x = 8; x < MAP_NUM_VOXELS_X - 8; x += step_size_x){
       place_ore(z, x, ORE_TYPE_COAL);
       place_ore(z, x, ORE_TYPE_IRON);
+      place_ore(z, x, ORE_TYPE_SILVER);
       place_ore(z, x, ORE_TYPE_GOLD);
       place_ore(z, x, ORE_TYPE_DIAMOND);
     }

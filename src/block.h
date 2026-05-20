@@ -38,6 +38,7 @@ typedef enum{
   BLOCK_TYPE_COAL       ,
   BLOCK_TYPE_IRON       ,
   BLOCK_TYPE_DIAMOND    ,
+  BLOCK_TYPE_SILVER     ,
   BLOCK_TYPE_GOLD       ,
   BLOCK_TYPE_DIRT       ,
   BLOCK_TYPE_GRASS      ,
