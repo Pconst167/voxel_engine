@@ -36,6 +36,40 @@ void init_block_materials(){
     })  
   );
 
+  // LAVA
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .material_name      = "lava0",
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0x00000000},
+      .emissive_color     = (color_t){.uint32 = 0xFF80FFFF},
+      .opacity            = 1.0f,
+      .reflects_light     = false,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/lava0.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/lava0.png")
+    })  
+  );
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .material_name      = "lava1",
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0x00000000},
+      .emissive_color     = (color_t){.uint32 = 0xFF80FFFF},
+      .opacity            = 1.0f,
+      .reflects_light     = false,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/lava1.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/lava1.png")
+    })  
+  );
+
   // CORE
   array_push(
     block_materials, 
@@ -43,7 +77,7 @@ void init_block_materials(){
       .material_name      = "core0",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
-      .emissive_color     = (color_t){.uint32 = 0xFFFFFFFF},
+      .emissive_color     = (color_t){.uint32 = 0xFF80FFFF},
       .opacity            = 1.0f,
       .reflects_light     = false,
       .dither             = false,
@@ -59,7 +93,7 @@ void init_block_materials(){
       .material_name      = "core1",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
-      .emissive_color     = (color_t){.uint32 = 0xFFFFFFFF},
+      .emissive_color     = (color_t){.uint32 = 0x0080FFFF},
       .opacity            = 1.0f,
       .reflects_light     = false,
       .dither             = false,
@@ -75,9 +109,9 @@ void init_block_materials(){
       .material_name      = "core2",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
-      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .emissive_color     = (color_t){.uint32 = 0x0080FFFF},
       .opacity            = 1.0f,
-      .reflects_light     = true,
+      .reflects_light     = false,
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
@@ -701,27 +735,8 @@ void init_block_map(){
         assign_block_material(y, z, x, BLOCK_TYPE_AIR);
         block_at(y, z, x).temperature = 30.0f;
 
-        if(y > (uint32_t)(0.1 * MAP_NUM_VOXELS_Y) && y <= (uint32_t)(0.3 * MAP_NUM_VOXELS_Y)){
-          assign_block_material(y, z, x, BLOCK_TYPE_STONE3);
-          block_at(y, z, x).solid = true;
-          block_at(y, z, x).mineable = true;
-        }
-        else if(y > (uint32_t)(0.3 * MAP_NUM_VOXELS_Y) && y < (uint32_t)(0.4 * MAP_NUM_VOXELS_Y) - 1){
-          assign_block_material(y, z, x, BLOCK_TYPE_DIRT);
-          block_at(y, z, x).solid = true;
-          block_at(y, z, x).mineable = true;
-        }
-        else if(y == (uint32_t)(0.4 * MAP_NUM_VOXELS_Y) - 1){
-          if(xorshift32() % 5 == 0){
-            assign_block_material(y, z, x, BLOCK_TYPE_DIRT);
-          }
-          else{
-            assign_block_material(y, z, x, BLOCK_TYPE_GRASS);
-          }
-          block_at(y, z, x).mineable = true;
-          block_at(y, z, x).solid = true;
-        }
-        else if(y == (uint32_t)(0.4 * MAP_NUM_VOXELS_Y)){
+
+        if(y == (uint32_t)(0.4 * MAP_NUM_VOXELS_Y)){
           if(xorshift32() % 5 == 0){
             uint32_t random = xorshift32();
             if(random % 2 == 0){
@@ -733,6 +748,31 @@ void init_block_map(){
             block_at(y, z, x).mineable = true;
             block_at(y, z, x).solid = true;
           }
+        }
+        if(y == (uint32_t)(0.4 * MAP_NUM_VOXELS_Y) - 1){
+          if(xorshift32() % 5 == 0){
+            assign_block_material(y, z, x, BLOCK_TYPE_DIRT);
+          }
+          else{
+            assign_block_material(y, z, x, BLOCK_TYPE_GRASS);
+          }
+          block_at(y, z, x).mineable = true;
+          block_at(y, z, x).solid = true;
+        }
+        if(y < (uint32_t)(0.4 * MAP_NUM_VOXELS_Y) - 1){
+          assign_block_material(y, z, x, BLOCK_TYPE_DIRT);
+          block_at(y, z, x).solid = true;
+          block_at(y, z, x).mineable = true;
+        }
+        if(y <= (uint32_t)(0.3 * MAP_NUM_VOXELS_Y)){
+          assign_block_material(y, z, x, BLOCK_TYPE_STONE3);
+          block_at(y, z, x).solid = true;
+          block_at(y, z, x).mineable = true;
+        }
+        if(y <= (uint32_t)(0.2 * MAP_NUM_VOXELS_Y)){
+          assign_block_material(y, z, x, BLOCK_TYPE_STONE0);
+          block_at(y, z, x).solid = true;
+          block_at(y, z, x).mineable = true;
         }
 
         if((x <= 10 || x >= MAP_NUM_VOXELS_X - 10 || z <= 10 || z >= MAP_NUM_VOXELS_Z - 10) && y >= 0.4 * MAP_NUM_VOXELS_Y && y <= 0.43 * MAP_NUM_VOXELS_Y){
@@ -758,23 +798,34 @@ void init_block_map(){
           block_at(y, z, x).solid = true;
           block_at(y, z, x).temperature = 200.0f;
         }
-        if(y <= (uint32_t)(0.05 * MAP_NUM_VOXELS_Y)){
+        if(y <= (uint32_t)(0.06 * MAP_NUM_VOXELS_Y)){
           assign_block_material(y, z, x, BLOCK_TYPE_CORE1);
           block_at(y, z, x).mineable = true;
           block_at(y, z, x).solid = true;
           block_at(y, z, x).temperature = 300.0f;
         }
-        if(y <= (uint32_t)(0.03 * MAP_NUM_VOXELS_Y)){
+        if(y <= (uint32_t)(0.04 * MAP_NUM_VOXELS_Y)){
           assign_block_material(y, z, x, BLOCK_TYPE_CORE0);
           block_at(y, z, x).mineable = true;
           block_at(y, z, x).solid = true;
           block_at(y, z, x).temperature = 400.0f;
         }
-        if(y == 0){
-          assign_block_material(y, z, x, BLOCK_TYPE_CORE0);
-          block_at(y, z, x).mineable = false;
+        if(y <= (uint32_t)(0.02 * MAP_NUM_VOXELS_Y)){
+          assign_block_material(y, z, x, BLOCK_TYPE_LAVA1);
+          block_at(y, z, x).mineable = true;
           block_at(y, z, x).solid = true;
           block_at(y, z, x).temperature = 400.0f;
+        }
+        if(y <= (uint32_t)(0.01 * MAP_NUM_VOXELS_Y)){
+          assign_block_material(y, z, x, BLOCK_TYPE_LAVA0);
+          block_at(y, z, x).mineable = true;
+          block_at(y, z, x).solid = true;
+          block_at(y, z, x).temperature = 800.0f;
+        }
+        if(y == 0){
+          block_at(y, z, x).mineable = false;
+          block_at(y, z, x).solid = true;
+          block_at(y, z, x).temperature = 1800.0f;
         }
 
         block_at(y, z, x).aabb.x_min = x;

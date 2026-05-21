@@ -26,6 +26,8 @@
 
 typedef enum{
   BLOCK_TYPE_AIR        ,
+  BLOCK_TYPE_LAVA0      ,
+  BLOCK_TYPE_LAVA1      ,
   BLOCK_TYPE_CORE0      ,
   BLOCK_TYPE_CORE1      ,
   BLOCK_TYPE_CORE2      ,
