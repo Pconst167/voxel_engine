@@ -111,7 +111,7 @@ void init_block_materials(){
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0x0080FFFF},
       .opacity            = 1.0f,
-      .reflects_light     = false,
+      .reflects_light     = true,
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
