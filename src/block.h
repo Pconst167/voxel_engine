@@ -13,7 +13,7 @@
 #define NUM_CHUNK_DIVISIONS_Y (MAP_NUM_VOXELS_Y / CHUNK_SIZE)
 #define NUM_CHUNK_DIVISIONS_Z (MAP_NUM_VOXELS_Z / CHUNK_SIZE)
 #define NUM_CHUNK_DIVISIONS_X (MAP_NUM_VOXELS_X / CHUNK_SIZE)
-#define CHUNK_RENDER_DISTANCE 5 // render this number of chunks around the player in XZ
+#define CHUNK_RENDER_DISTANCE 4 // render this number of chunks around the player in XZ
 
 #define MAX_VOXEL_LOOK_AT_DISTANCE 6.0f
 #define BLOCK_TYPE_STRING_NAME_MAX_LEN 32
@@ -28,10 +28,9 @@ typedef enum{
   BLOCK_TYPE_AIR        ,
   BLOCK_TYPE_LAVA0      ,
   BLOCK_TYPE_LAVA1      ,
-  BLOCK_TYPE_CORE0      ,
-  BLOCK_TYPE_CORE1      ,
-  BLOCK_TYPE_CORE2      ,
-  BLOCK_TYPE_CORE3      ,
+  BLOCK_TYPE_VOLCANIC0  ,
+  BLOCK_TYPE_VOLCANIC1  ,
+  BLOCK_TYPE_VOLCANIC2  ,
   BLOCK_TYPE_STONE0     ,
   BLOCK_TYPE_STONE1     ,
   BLOCK_TYPE_STONE2     ,
@@ -67,6 +66,7 @@ typedef enum{
   BLOCK_TYPE_LEAVES8    ,
   BLOCK_TYPE_LEAVES9    ,
   BLOCK_TYPE_GLASS      ,
+  BLOCK_TYPE_LAMP0      ,
 } block_type_t;
 
 typedef enum{

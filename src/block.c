@@ -70,11 +70,11 @@ void init_block_materials(){
     })  
   );
 
-  // CORE
+  // VOLCANIC
   array_push(
     block_materials, 
     ((block_material_t){
-      .material_name      = "core0",
+      .material_name      = "volcanic0",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0xFF80FFFF},
@@ -83,14 +83,14 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .side_texture       = load_texture("./assets/textures/blocks/core0.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/core0.png")
+      .side_texture       = load_texture("./assets/textures/blocks/volcanic0.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/volcanic0.png")
     })  
   );
   array_push(
     block_materials, 
     ((block_material_t){
-      .material_name      = "core1",
+      .material_name      = "volcanic1",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0x0080FFFF},
@@ -99,14 +99,14 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .side_texture       = load_texture("./assets/textures/blocks/core1.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/core1.png")
+      .side_texture       = load_texture("./assets/textures/blocks/volcanic1.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/volcanic1.png")
     })  
   );
   array_push(
     block_materials, 
     ((block_material_t){
-      .material_name      = "core2",
+      .material_name      = "volcanic2",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0x0080FFFF},
@@ -115,24 +115,8 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .side_texture       = load_texture("./assets/textures/blocks/core2.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/core2.png")
-    })  
-  );
-  array_push(
-    block_materials, 
-    ((block_material_t){
-      .material_name      = "core3",
-      .backface_culling   = true,
-      .base_color         = (color_t){.uint32 = 0x00000000},
-      .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
-      .reflects_light     = true,
-      .dither             = false,
-      .blend_mode         = BLEND_MODE_OPAQUE,
-      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .side_texture       = load_texture("./assets/textures/blocks/core3.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/core3.png")
+      .side_texture       = load_texture("./assets/textures/blocks/volcanic2.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/volcanic2.png")
     })  
   );
 
@@ -717,6 +701,24 @@ void init_block_materials(){
       .top_texture        = load_texture("./assets/textures/blocks/glass0.png")   
     })
   );
+
+  // LAMPS
+  array_push(
+    block_materials,
+    ((block_material_t){
+      .material_name      = "lamp0",
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF808080},
+      .emissive_color     = (color_t){.uint32 = 0x0040FFFF},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_ALPHA_TEST,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .side_texture       = load_texture("./assets/textures/blocks/lamp0.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/lamp0.png")   
+    })
+  );
 }
 
 void init_block_map(){
@@ -734,7 +736,6 @@ void init_block_map(){
         block_at(y, z, x).mineable = true;
         assign_block_material(y, z, x, BLOCK_TYPE_AIR);
         block_at(y, z, x).temperature = 30.0f;
-
 
         if(y == (uint32_t)(0.4 * MAP_NUM_VOXELS_Y)){
           if(xorshift32() % 5 == 0){
@@ -785,27 +786,21 @@ void init_block_map(){
           }
         }
 
-        // CORE
+        // VOLCANIC
         if(y <= (uint32_t)(0.1 * MAP_NUM_VOXELS_Y)){
-          assign_block_material(y, z, x, BLOCK_TYPE_CORE3);
+          assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC2);
           block_at(y, z, x).mineable = true;
           block_at(y, z, x).solid = true;
           block_at(y, z, x).temperature = 100.0f;
         }
-        if(y <= (uint32_t)(0.08 * MAP_NUM_VOXELS_Y)){
-          assign_block_material(y, z, x, BLOCK_TYPE_CORE2);
-          block_at(y, z, x).mineable = true;
-          block_at(y, z, x).solid = true;
-          block_at(y, z, x).temperature = 200.0f;
-        }
         if(y <= (uint32_t)(0.06 * MAP_NUM_VOXELS_Y)){
-          assign_block_material(y, z, x, BLOCK_TYPE_CORE1);
+          assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC1);
           block_at(y, z, x).mineable = true;
           block_at(y, z, x).solid = true;
           block_at(y, z, x).temperature = 300.0f;
         }
         if(y <= (uint32_t)(0.04 * MAP_NUM_VOXELS_Y)){
-          assign_block_material(y, z, x, BLOCK_TYPE_CORE0);
+          assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC0);
           block_at(y, z, x).mineable = true;
           block_at(y, z, x).solid = true;
           block_at(y, z, x).temperature = 400.0f;
