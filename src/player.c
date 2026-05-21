@@ -55,9 +55,11 @@ void init_player(){
   player.block_inventory[3].number = 200;
   player.block_inventory[4].block_type = BLOCK_TYPE_TREE_TRUNK3;
   player.block_inventory[4].number = 200;
-  player.block_inventory[0].block_type = BLOCK_TYPE_LAMP0;
-  player.block_inventory[0].number = 20;
-  player.block_inventory_size = 6;
+  player.block_inventory[5].block_type = BLOCK_TYPE_LAMP0;
+  player.block_inventory[5].number = 20;
+  player.block_inventory[6].block_type = BLOCK_TYPE_OVEN0;
+  player.block_inventory[6].number = 20;
+  player.block_inventory_size = 7;
 }
 
 // check if player already has the block type, if so add +1 to entry

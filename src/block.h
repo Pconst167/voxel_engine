@@ -67,6 +67,7 @@ typedef enum{
   BLOCK_TYPE_LEAVES9    ,
   BLOCK_TYPE_GLASS      ,
   BLOCK_TYPE_LAMP0      ,
+  BLOCK_TYPE_OVEN0      ,
 } block_type_t;
 
 typedef enum{
@@ -91,8 +92,11 @@ typedef struct{
   blend_mode_t blend_mode;
   uint8_t alpha_cutoff;
   // texture data
+  texture_t *front_texture;
+  texture_t *back_texture;
   texture_t *side_texture;
   texture_t *top_texture;
+  texture_t *bottom_texture;
 } block_material_t;
 
 typedef struct{

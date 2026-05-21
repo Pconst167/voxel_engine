@@ -2170,18 +2170,40 @@ void render_block_quad(block_quad_t block_quad, block_material_t *block_material
       projected_triangle.uv[j]     = triangle_after_clipping->uv[j];
     }
     
+    // select texture depending on face orientation
+    texture_t *quad_texture;
+    switch(block_quad.quad_type){
+      case VOXEL_QUAD_TOP:
+        quad_texture = block_material->top_texture;
+        break;
+      case VOXEL_QUAD_BOTTOM:
+        quad_texture = block_material->bottom_texture;
+        break;
+      case VOXEL_QUAD_FRONT:
+        quad_texture = block_material->front_texture;
+        break;
+      case VOXEL_QUAD_BACK:
+        quad_texture = block_material->back_texture;
+        break;
+      case VOXEL_QUAD_LEFT:
+      case VOXEL_QUAD_RIGHT:
+      default:
+        quad_texture = block_material->side_texture;
+        break;
+    }
+
     //projected_triangle.avg_w = (projected_triangle.points[0].w + projected_triangle.points[1].w + projected_triangle.points[2].w) / 3.0f;
     projected_triangle.face_material = (material_t){
-      .material_name = "",
-      .alpha_cutoff = block_material->alpha_cutoff,
-      .base_color = block_material->base_color,
-      .blend_mode = block_material->blend_mode,
-      .dither = block_material->dither,
-      .emissive_color = block_material->emissive_color,
-      .opacity = block_material->opacity,
-      .reflects_light = block_material->reflects_light,
+      .material_name      = "",
+      .alpha_cutoff       = block_material->alpha_cutoff,
+      .base_color         = block_material->base_color,
+      .blend_mode         = block_material->blend_mode,
+      .dither             = block_material->dither,
+      .emissive_color     = block_material->emissive_color,
+      .opacity            = block_material->opacity,
+      .reflects_light     = block_material->reflects_light,
       .two_sided_lighting = false,
-      .texture = (block_quad.quad_type == VOXEL_QUAD_TOP || block_quad.quad_type == VOXEL_QUAD_BOTTOM) ? block_material->top_texture : block_material->side_texture
+      .texture            = quad_texture
     };
     projected_triangle.total_light_intensity = total_light_intensity;
 

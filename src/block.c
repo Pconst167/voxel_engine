@@ -31,8 +31,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = NULL,
+      .back_texture       = NULL,
       .side_texture       = NULL,
-      .top_texture        = NULL
+      .top_texture        = NULL,
+      .bottom_texture     = NULL
     })  
   );
 
@@ -49,8 +52,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/lava0.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/lava0.png"),
       .side_texture       = load_texture("./assets/textures/blocks/lava0.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/lava0.png")
+      .top_texture        = load_texture("./assets/textures/blocks/lava0.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/lava0.png")
     })  
   );
   array_push(
@@ -65,8 +71,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .side_texture       = load_texture("./assets/textures/blocks/lava1.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/lava1.png")
+      .front_texture      = load_texture("./assets/textures/blocks/lava0.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/lava0.png"),
+      .side_texture       = load_texture("./assets/textures/blocks/lava0.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/lava0.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/lava0.png")
     })  
   );
 
@@ -83,8 +92,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/volcanic0.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/volcanic0.png"),
       .side_texture       = load_texture("./assets/textures/blocks/volcanic0.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/volcanic0.png")
+      .top_texture        = load_texture("./assets/textures/blocks/volcanic0.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/volcanic0.png")
     })  
   );
   array_push(
@@ -99,8 +111,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/volcanic1.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/volcanic1.png"),
       .side_texture       = load_texture("./assets/textures/blocks/volcanic1.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/volcanic1.png")
+      .top_texture        = load_texture("./assets/textures/blocks/volcanic1.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/volcanic1.png")
     })  
   );
   array_push(
@@ -111,12 +126,15 @@ void init_block_materials(){
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0x0080FFFF},
       .opacity            = 1.0f,
-      .reflects_light     = true,
+      .reflects_light     = false,
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/volcanic2.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/volcanic2.png"),
       .side_texture       = load_texture("./assets/textures/blocks/volcanic2.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/volcanic2.png")
+      .top_texture        = load_texture("./assets/textures/blocks/volcanic2.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/volcanic2.png")
     })  
   );
 
@@ -133,8 +151,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/stone0.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/stone0.png"),
       .side_texture       = load_texture("./assets/textures/blocks/stone0.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/stone0.png")
+      .top_texture        = load_texture("./assets/textures/blocks/stone0.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/stone0.png")
     })
   );
   array_push(
@@ -149,8 +170,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/stone1.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/stone1.png"),
       .side_texture       = load_texture("./assets/textures/blocks/stone1.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/stone1.png")
+      .top_texture        = load_texture("./assets/textures/blocks/stone1.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/stone1.png")
     })
   );
   array_push(
@@ -165,8 +189,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/stone2.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/stone2.png"),
       .side_texture       = load_texture("./assets/textures/blocks/stone2.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/stone2.png")
+      .top_texture        = load_texture("./assets/textures/blocks/stone2.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/stone2.png")
     })
   );
   array_push(
@@ -181,8 +208,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/stone3.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/stone3.png"),
       .side_texture       = load_texture("./assets/textures/blocks/stone3.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/stone3.png")
+      .top_texture        = load_texture("./assets/textures/blocks/stone3.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/stone3.png")
     })
   );
   array_push(
@@ -197,8 +227,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/stone4.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/stone4.png"),
       .side_texture       = load_texture("./assets/textures/blocks/stone4.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/stone4.png")
+      .top_texture        = load_texture("./assets/textures/blocks/stone4.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/stone4.png")
     })
   );
   array_push(
@@ -213,8 +246,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/stone5.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/stone5.png"),
       .side_texture       = load_texture("./assets/textures/blocks/stone5.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/stone5.png")
+      .top_texture        = load_texture("./assets/textures/blocks/stone5.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/stone5.png")
     })
   );
   array_push(
@@ -229,8 +265,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/stone6.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/stone6.png"),
       .side_texture       = load_texture("./assets/textures/blocks/stone6.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/stone6.png")
+      .top_texture        = load_texture("./assets/textures/blocks/stone6.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/stone6.png")
     })
   );
   array_push(
@@ -245,8 +284,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/stone7.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/stone7.png"),
       .side_texture       = load_texture("./assets/textures/blocks/stone7.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/stone7.png")
+      .top_texture        = load_texture("./assets/textures/blocks/stone7.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/stone7.png")
     })
   );
   array_push(
@@ -261,8 +303,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/stone8.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/stone8.png"),
       .side_texture       = load_texture("./assets/textures/blocks/stone8.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/stone8.png")
+      .top_texture        = load_texture("./assets/textures/blocks/stone8.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/stone8.png")
     })
   );
 
@@ -279,8 +324,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/coal_side.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/coal_side.png"),
       .side_texture       = load_texture("./assets/textures/blocks/coal_side.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/coal_top.png")
+      .top_texture        = load_texture("./assets/textures/blocks/coal_top.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/coal_top.png")
     })
   );
 
@@ -297,8 +345,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/iron_side.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/iron_side.png"),
       .side_texture       = load_texture("./assets/textures/blocks/iron_side.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/iron_top.png")
+      .top_texture        = load_texture("./assets/textures/blocks/iron_top.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/iron_top.png")
     })
   );
 
@@ -315,8 +366,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/diamond_side.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/diamond_side.png"),
       .side_texture       = load_texture("./assets/textures/blocks/diamond_side.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/diamond_top.png")
+      .top_texture        = load_texture("./assets/textures/blocks/diamond_top.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/diamond_top.png")
     })
   );
 
@@ -333,8 +387,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/silver_side.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/silver_side.png"),
       .side_texture       = load_texture("./assets/textures/blocks/silver_side.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/silver_top.png")
+      .top_texture        = load_texture("./assets/textures/blocks/silver_top.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/silver_top.png")
     })
   );
 
@@ -351,8 +408,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/gold_side.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/gold_side.png"),
       .side_texture       = load_texture("./assets/textures/blocks/gold_side.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/gold_top.png")
+      .top_texture        = load_texture("./assets/textures/blocks/gold_top.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/gold_top.png")
     })
   );
 
@@ -369,8 +429,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/dirt_2.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/dirt_2.png"),
       .side_texture       = load_texture("./assets/textures/blocks/dirt_2.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/dirt_2.png")
+      .top_texture        = load_texture("./assets/textures/blocks/dirt_2.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/dirt_2.png")
     })
   );
 
@@ -387,8 +450,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/grass_side_2.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/grass_side_2.png"),
       .side_texture       = load_texture("./assets/textures/blocks/grass_side_2.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/grass_top.png")   
+      .top_texture        = load_texture("./assets/textures/blocks/grass_top.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/grass_top.png")
     })
   );
 
@@ -405,8 +471,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/treetrunk0_side.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/treetrunk0_side.png"),
       .side_texture       = load_texture("./assets/textures/blocks/treetrunk0_side.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/treetrunk0_top.png")   
+      .top_texture        = load_texture("./assets/textures/blocks/treetrunk0_top.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk0_top.png")
     }
   );
   array_push(
@@ -421,8 +490,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/treetrunk1_side.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/treetrunk1_side.png"),
       .side_texture       = load_texture("./assets/textures/blocks/treetrunk1_side.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/treetrunk1_top.png")   
+      .top_texture        = load_texture("./assets/textures/blocks/treetrunk1_top.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk1_top.png")
     }
   );
   array_push(
@@ -437,8 +509,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/treetrunk2_side.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/treetrunk2_side.png"),
       .side_texture       = load_texture("./assets/textures/blocks/treetrunk2_side.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/treetrunk2_top.png")   
+      .top_texture        = load_texture("./assets/textures/blocks/treetrunk2_top.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk2_top.png")
     }
   );
   array_push(
@@ -453,8 +528,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/treetrunk3_side.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/treetrunk3_side.png"),
       .side_texture       = load_texture("./assets/textures/blocks/treetrunk3_side.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/treetrunk3_top.png")   
+      .top_texture        = load_texture("./assets/textures/blocks/treetrunk3_top.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk3_top.png")
     }
   );
   array_push(
@@ -469,8 +547,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/treetrunk4_side.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/treetrunk4_side.png"),
       .side_texture       = load_texture("./assets/textures/blocks/treetrunk4_side.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/treetrunk4_top.png")   
+      .top_texture        = load_texture("./assets/textures/blocks/treetrunk4_top.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk4_top.png")
     }
   );
   array_push(
@@ -485,8 +566,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/treetrunk5_side.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/treetrunk5_side.png"),
       .side_texture       = load_texture("./assets/textures/blocks/treetrunk5_side.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/treetrunk5_top.png")   
+      .top_texture        = load_texture("./assets/textures/blocks/treetrunk5_top.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk5_top.png")
     }
   );
   array_push(
@@ -501,8 +585,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/treetrunk6_side.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/treetrunk6_side.png"),
       .side_texture       = load_texture("./assets/textures/blocks/treetrunk6_side.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/treetrunk6_top.png")   
+      .top_texture        = load_texture("./assets/textures/blocks/treetrunk6_top.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk6_top.png")
     }
   );
   array_push(
@@ -517,8 +604,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/treetrunk7_side.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/treetrunk7_side.png"),
       .side_texture       = load_texture("./assets/textures/blocks/treetrunk7_side.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/treetrunk7_top.png")   
+      .top_texture        = load_texture("./assets/textures/blocks/treetrunk7_top.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk7_top.png")
     }
   );
 
@@ -535,8 +625,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/leaves0.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/leaves0.png"),
       .side_texture       = load_texture("./assets/textures/blocks/leaves0.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/leaves0.png")   
+      .top_texture        = load_texture("./assets/textures/blocks/leaves0.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/leaves0.png")
     })
   );
   array_push(
@@ -551,8 +644,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/leaves1.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/leaves1.png"),
       .side_texture       = load_texture("./assets/textures/blocks/leaves1.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/leaves1.png")   
+      .top_texture        = load_texture("./assets/textures/blocks/leaves1.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/leaves1.png")
     })
   );
   array_push(
@@ -567,8 +663,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/leaves2.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/leaves2.png"),
       .side_texture       = load_texture("./assets/textures/blocks/leaves2.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/leaves2.png")   
+      .top_texture        = load_texture("./assets/textures/blocks/leaves2.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/leaves2.png")
     })
   );
   array_push(
@@ -583,8 +682,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/leaves3.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/leaves3.png"),
       .side_texture       = load_texture("./assets/textures/blocks/leaves3.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/leaves3.png")   
+      .top_texture        = load_texture("./assets/textures/blocks/leaves3.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/leaves3.png")
     })
   );
   array_push(
@@ -599,8 +701,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/leaves4.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/leaves4.png"),
       .side_texture       = load_texture("./assets/textures/blocks/leaves4.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/leaves4.png")   
+      .top_texture        = load_texture("./assets/textures/blocks/leaves4.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/leaves4.png")
     })
   );
   array_push(
@@ -615,8 +720,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/leaves5.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/leaves5.png"),
       .side_texture       = load_texture("./assets/textures/blocks/leaves5.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/leaves5.png")   
+      .top_texture        = load_texture("./assets/textures/blocks/leaves5.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/leaves5.png")
     })
   );
   array_push(
@@ -631,8 +739,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/leaves6.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/leaves6.png"),
       .side_texture       = load_texture("./assets/textures/blocks/leaves6.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/leaves6.png")   
+      .top_texture        = load_texture("./assets/textures/blocks/leaves6.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/leaves6.png")
     })
   );
   array_push(
@@ -647,8 +758,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/leaves7.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/leaves7.png"),
       .side_texture       = load_texture("./assets/textures/blocks/leaves7.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/leaves7.png")   
+      .top_texture        = load_texture("./assets/textures/blocks/leaves7.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/leaves7.png")
     })
   );
   array_push(
@@ -663,8 +777,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/leaves8.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/leaves8.png"),
       .side_texture       = load_texture("./assets/textures/blocks/leaves8.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/leaves8.png")   
+      .top_texture        = load_texture("./assets/textures/blocks/leaves8.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/leaves8.png")
     })
   );
   array_push(
@@ -679,8 +796,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/leaves9.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/leaves9.png"),
       .side_texture       = load_texture("./assets/textures/blocks/leaves9.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/leaves9.png")   
+      .top_texture        = load_texture("./assets/textures/blocks/leaves9.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/leaves9.png")
     })
   );
 
@@ -697,8 +817,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_ALPHA_TEST,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/glass0.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/glass0.png"),
       .side_texture       = load_texture("./assets/textures/blocks/glass0.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/glass0.png")   
+      .top_texture        = load_texture("./assets/textures/blocks/glass0.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/glass0.png")
     })
   );
 
@@ -713,10 +836,34 @@ void init_block_materials(){
       .opacity            = 1.0f,
       .reflects_light     = true,
       .dither             = false,
-      .blend_mode         = BLEND_MODE_ALPHA_TEST,
+      .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/lamp0.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/lamp0.png"),
       .side_texture       = load_texture("./assets/textures/blocks/lamp0.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/lamp0.png")   
+      .top_texture        = load_texture("./assets/textures/blocks/lamp0.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/lamp0.png")
+    })
+  );
+
+  // OVENS
+  array_push(
+    block_materials,
+    ((block_material_t){
+      .material_name      = "oven0",
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF808080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/oven_front.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/oven.png"),
+      .side_texture       = load_texture("./assets/textures/blocks/oven_side.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/oven.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/oven.png")
     })
   );
 }
