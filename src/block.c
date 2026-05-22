@@ -105,7 +105,7 @@ void init_block_materials(){
       .material_name      = "volcanic1",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
-      .emissive_color     = (color_t){.uint32 = 0x0080FFFF},
+      .emissive_color     = (color_t){.uint32 = 0xFF80FFFF},
       .opacity            = 1.0f,
       .reflects_light     = false,
       .dither             = false,
@@ -124,9 +124,9 @@ void init_block_materials(){
       .material_name      = "volcanic2",
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
-      .emissive_color     = (color_t){.uint32 = 0x0080FFFF},
+      .emissive_color     = (color_t){.uint32 = 0xFF20FFFF},
       .opacity            = 1.0f,
-      .reflects_light     = false,
+      .reflects_light     = true,
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
@@ -135,6 +135,25 @@ void init_block_materials(){
       .side_texture       = load_texture("./assets/textures/blocks/volcanic2.png"),
       .top_texture        = load_texture("./assets/textures/blocks/volcanic2.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/volcanic2.png")
+    })  
+  );
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .material_name      = "volcanic3",
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0x00000000},
+      .emissive_color     = (color_t){.uint32 = 0000000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/volcanic3.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/volcanic3.png"),
+      .side_texture       = load_texture("./assets/textures/blocks/volcanic3.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/volcanic3.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/volcanic3.png")
     })  
   );
 
@@ -866,6 +885,27 @@ void init_block_materials(){
       .bottom_texture     = load_texture("./assets/textures/blocks/oven.png")
     })
   );
+
+  // CHESTS
+  array_push(
+    block_materials,
+    ((block_material_t){
+      .material_name      = "chest0",
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF808080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/chest_front.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/chest_sides.png"),
+      .side_texture       = load_texture("./assets/textures/blocks/chest_sides.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/chest_top_bottom.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/chest_top_bottom.png")
+    })
+  );
 }
 
 void init_block_map(){
@@ -935,13 +975,16 @@ void init_block_map(){
 
         // VOLCANIC
         if(y <= (uint32_t)(0.1 * MAP_NUM_VOXELS_Y)){
-          assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC2);
+          assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC3);
           block_at(y, z, x).mineable = true;
           block_at(y, z, x).solid = true;
           block_at(y, z, x).temperature = 100.0f;
         }
         if(y <= (uint32_t)(0.06 * MAP_NUM_VOXELS_Y)){
-          assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC1);
+          if(xorshift32() % 3 == 0)
+            assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC1);
+          else
+            assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC2);
           block_at(y, z, x).mineable = true;
           block_at(y, z, x).solid = true;
           block_at(y, z, x).temperature = 300.0f;

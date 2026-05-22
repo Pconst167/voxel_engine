@@ -18,7 +18,7 @@ typedef struct{
   bool render_chunk_outlines;
   bool render_collision_aabb_outlines;
   bool log;
-  bool sort;
+  bool chunk_sort;
   bool show_debug_info;
 } options_t;
 

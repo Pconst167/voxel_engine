@@ -31,6 +31,7 @@ typedef enum{
   BLOCK_TYPE_VOLCANIC0  ,
   BLOCK_TYPE_VOLCANIC1  ,
   BLOCK_TYPE_VOLCANIC2  ,
+  BLOCK_TYPE_VOLCANIC3  ,
   BLOCK_TYPE_STONE0     ,
   BLOCK_TYPE_STONE1     ,
   BLOCK_TYPE_STONE2     ,
@@ -68,6 +69,7 @@ typedef enum{
   BLOCK_TYPE_GLASS      ,
   BLOCK_TYPE_LAMP0      ,
   BLOCK_TYPE_OVEN0      ,
+  BLOCK_TYPE_CHEST0     ,
 } block_type_t;
 
 typedef enum{

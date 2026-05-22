@@ -59,7 +59,9 @@ void init_player(){
   player.block_inventory[5].number = 20;
   player.block_inventory[6].block_type = BLOCK_TYPE_OVEN0;
   player.block_inventory[6].number = 20;
-  player.block_inventory_size = 7;
+  player.block_inventory[7].block_type = BLOCK_TYPE_CHEST0;
+  player.block_inventory[7].number = 20;
+  player.block_inventory_size = 8;
 }
 
 // check if player already has the block type, if so add +1 to entry

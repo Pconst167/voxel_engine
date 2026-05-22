@@ -40,15 +40,14 @@
       for options such as adding culling etc, for objects or anything, use bit fields instead of bools, so I can see what the option is when looking
       at the function
 
+      the function sequence at main, such as update state, move player, render etc, need to be in the correct order
+      check if order is OK, and/or fix if necessary
+
 
       about lighting: we can interpolate the 3d x y z coordinates in a triangle per pixel, and use that to calculate the per pixel light values.
       for point light we can interpolate the real per pixel brightness with 1/r^2 law.
       but probably expensive.
 
-      chunking etc:
-        alternative: during load time, we can split triangles that cross chunks. i.e load time clipping, and separate them per chunk.
-
-      specular light has a bug when the angle is 100% parallel to the face.  value gets unstable
 
       IMPLEMENT OCCLUSION CULLING: for each object, project its bounding box AABB 8 vertices to world_view->space->screen and from the 8 vertices form rectangle with min/max of x/y
       then form a grid inside rectangle. for each grid point, we replace its own depth with the nearest object depth, and test that vs zbuffer.
@@ -195,7 +194,7 @@ void setup(void) {
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
 
   create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = 0.0f,  .z = 0.0f}, (color_t){.uint32 = 0xFFFFBBBB}, 0.7f);
-  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
+  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 1.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
 
   /* normalize all light direction vectors to unity */
   initialize_lights();
@@ -407,7 +406,7 @@ void process_console_input(SDL_Event *event){
 }
 
 void render_console(){
-  draw_rect(0, 0, window_width, 80, (color_t){.uint32 = 0xFF000000});
+  draw_filled_rect(0, 0, window_width, 80, (color_t){.uint32 = 0xFF000000});
   draw_text(10, 10, "> ", (color_t){.uint32 = 0xFFFFFFFF}, 1, FONT_5X5);
   draw_text(20, 10, console.input_buffer, (color_t){.uint32 = 0xFFFFFFFF}, 1, FONT_5X5);
 }
@@ -443,8 +442,8 @@ void run_console_command(){
   else if(!strcmp(console.input_buffer, "dither")){
     options.dither = !options.dither;
   }
-  else if(!strcmp(console.input_buffer, "st")){
-    options.sort = !options.sort;
+  else if(!strcmp(console.input_buffer, "cst")){
+    options.chunk_sort = !options.chunk_sort;
   }
 }
 
@@ -1748,12 +1747,12 @@ inline void render_visible_chunks(void) {
   total_pixels_rendered = 0;
   total_chunks_rendered = 0;
 
-  int32_t player_chunk_start_y = ((int)player.position.y / CHUNK_SIZE) - CHUNK_RENDER_DISTANCE;
-  int32_t player_chunk_end_y   = ((int)player.position.y / CHUNK_SIZE) + CHUNK_RENDER_DISTANCE;
-  int32_t player_chunk_start_z = ((int)player.position.z / CHUNK_SIZE) - CHUNK_RENDER_DISTANCE;
-  int32_t player_chunk_end_z   = ((int)player.position.z / CHUNK_SIZE) + CHUNK_RENDER_DISTANCE;
-  int32_t player_chunk_start_x = ((int)player.position.x / CHUNK_SIZE) - CHUNK_RENDER_DISTANCE;
-  int32_t player_chunk_end_x   = ((int)player.position.x / CHUNK_SIZE) + CHUNK_RENDER_DISTANCE;
+  int32_t player_chunk_start_y = player_chunk_y - CHUNK_RENDER_DISTANCE;
+  int32_t player_chunk_end_y   = player_chunk_y + CHUNK_RENDER_DISTANCE;
+  int32_t player_chunk_start_z = player_chunk_z - CHUNK_RENDER_DISTANCE;
+  int32_t player_chunk_end_z   = player_chunk_z + CHUNK_RENDER_DISTANCE;
+  int32_t player_chunk_start_x = player_chunk_x - CHUNK_RENDER_DISTANCE;
+  int32_t player_chunk_end_x   = player_chunk_x + CHUNK_RENDER_DISTANCE;
   player_chunk_start_y = clamp_int(player_chunk_start_y, 0, NUM_CHUNK_DIVISIONS_Y - 1);
   player_chunk_end_y   = clamp_int(player_chunk_end_y, 0, NUM_CHUNK_DIVISIONS_Y - 1);
   player_chunk_start_z = clamp_int(player_chunk_start_z, 0, NUM_CHUNK_DIVISIONS_Z - 1);
@@ -1784,7 +1783,10 @@ inline void render_visible_chunks(void) {
 // sort chunks front to back and render
 inline void render_visible_chunks_sorted(void) {
   /* reset color buffer */
-  memset(color_buffer, color_buffer_reset, total_buffer_pixels * sizeof(uint32_t));
+  for(uint32_t pixel_i = 0; pixel_i < total_buffer_pixels; pixel_i++){
+    color_buffer[pixel_i] = (color_t){.uint32 = 0xFFFF8050};
+  }
+  //memset(color_buffer, color_buffer_reset, total_buffer_pixels * sizeof(uint32_t));
 
   /* reset zbuffer */
   memset(zbuffer, 0x00, total_buffer_pixels * sizeof(uint32_t));
@@ -1795,13 +1797,26 @@ inline void render_visible_chunks_sorted(void) {
   total_pixels_rendered = 0;
   total_chunks_rendered = 0;
 
+  int32_t player_chunk_start_y = player_chunk_y - CHUNK_RENDER_DISTANCE;
+  int32_t player_chunk_end_y   = player_chunk_y + CHUNK_RENDER_DISTANCE;
+  int32_t player_chunk_start_z = player_chunk_z - CHUNK_RENDER_DISTANCE;
+  int32_t player_chunk_end_z   = player_chunk_z + CHUNK_RENDER_DISTANCE;
+  int32_t player_chunk_start_x = player_chunk_x - CHUNK_RENDER_DISTANCE;
+  int32_t player_chunk_end_x   = player_chunk_x + CHUNK_RENDER_DISTANCE;
+  player_chunk_start_y = clamp_int(player_chunk_start_y, 0, NUM_CHUNK_DIVISIONS_Y - 1);
+  player_chunk_end_y   = clamp_int(player_chunk_end_y, 0, NUM_CHUNK_DIVISIONS_Y - 1);
+  player_chunk_start_z = clamp_int(player_chunk_start_z, 0, NUM_CHUNK_DIVISIONS_Z - 1);
+  player_chunk_end_z   = clamp_int(player_chunk_end_z, 0, NUM_CHUNK_DIVISIONS_Z - 1);
+  player_chunk_start_x = clamp_int(player_chunk_start_x, 0, NUM_CHUNK_DIVISIONS_X - 1);
+  player_chunk_end_x   = clamp_int(player_chunk_end_x, 0, NUM_CHUNK_DIVISIONS_X - 1);
+
   chunk_sort_key_t chunk_sort_keys[NUM_CHUNK_DIVISIONS_Y * NUM_CHUNK_DIVISIONS_X * NUM_CHUNK_DIVISIONS_Z];
   int num_visible_chunks = 0;
 
   /* collect visible chunks */
-  for(int y_plane = 0; y_plane < NUM_CHUNK_DIVISIONS_Y; y_plane++){
-    for(int z_row = 0; z_row < NUM_CHUNK_DIVISIONS_Z; z_row++){
-      for(int x_col = 0; x_col < NUM_CHUNK_DIVISIONS_X; x_col++){
+  for(int y_plane = player_chunk_start_y; y_plane <= player_chunk_end_y; y_plane++){
+    for(int z_row = player_chunk_start_z; z_row <= player_chunk_end_z; z_row++){
+      for(int x_col = player_chunk_start_x; x_col <= player_chunk_end_x; x_col++){
         chunk_t *chunk = &chunks[y_plane][z_row][x_col];
 
         chunk_intersection_mode_t intersection_mode = get_chunk_intersection_mode_fast(chunk);
@@ -2193,6 +2208,7 @@ void render_block_quad(block_quad_t block_quad, block_material_t *block_material
     }
 
     //projected_triangle.avg_w = (projected_triangle.points[0].w + projected_triangle.points[1].w + projected_triangle.points[2].w) / 3.0f;
+
     projected_triangle.face_material = (material_t){
       .material_name      = "",
       .alpha_cutoff       = block_material->alpha_cutoff,
@@ -2208,24 +2224,17 @@ void render_block_quad(block_quad_t block_quad, block_material_t *block_material
     projected_triangle.total_light_intensity = total_light_intensity;
 
     /* TRIANGLE RASTERIZATION */
-    // option to sort the triangles inside the chunk by average w
-    if(options.sort){
-      triangles_to_render[total_chunk_triangles_to_render] = projected_triangle;
-    }
-    else{
-      total_pixels_rendered += rasterize_triangle(&projected_triangle);
-      if(options.wireframe_overlay){
-        draw_triangle(
-          projected_triangle.points[0].x,
-          projected_triangle.points[0].y, 
-          projected_triangle.points[1].x, 
-          projected_triangle.points[1].y, 
-          projected_triangle.points[2].x, 
-          projected_triangle.points[2].y, 
-          (color_t){.uint32 = 0xffffff00}
-        );
-      }
-    }
+    total_pixels_rendered += rasterize_triangle(&projected_triangle);
+    if(options.wireframe_overlay)
+      draw_triangle(
+        projected_triangle.points[0].x,
+        projected_triangle.points[0].y, 
+        projected_triangle.points[1].x, 
+        projected_triangle.points[1].y, 
+        projected_triangle.points[2].x, 
+        projected_triangle.points[2].y, 
+        (color_t){.uint32 = 0xffffff00}
+      );
 
     total_triangles_rendered++;
     total_chunk_triangles_to_render++;
@@ -2318,26 +2327,6 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
           block_quad = generate_block_quad(VOXEL_QUAD_FRONT, y_plane, z_row, x_col);
           render_block_quad(block_quad, block_material, block_looked_at_front);
         }
-      }
-    }
-  }
-
-  // sort triangles inside this chunk by average w, and then render sorted list
-  if(options.sort){
-    triangle_quicksort(triangles_to_render, total_chunk_triangles_to_render);
-
-    for(uint32_t i = 0; i < total_chunk_triangles_to_render; i++){
-      total_pixels_rendered += rasterize_triangle(&triangles_to_render[i]);
-      if(options.wireframe_overlay){
-        draw_triangle(
-          triangles_to_render[i].points[0].x,
-          triangles_to_render[i].points[0].y, 
-          triangles_to_render[i].points[1].x, 
-          triangles_to_render[i].points[1].y, 
-          triangles_to_render[i].points[2].x, 
-          triangles_to_render[i].points[2].y, 
-          (color_t){.uint32 = 0xffffff00}
-        );
       }
     }
   }
@@ -3068,7 +3057,10 @@ int main(int argc, char *argv[]){
       update_state();
       calculate_currently_looked_at_block();
       move_player();
-      render_visible_chunks();
+      if(options.chunk_sort) 
+        render_visible_chunks_sorted();
+      else 
+        render_visible_chunks();
       print_debug_data();
       render_ui();
     }
