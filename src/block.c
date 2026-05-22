@@ -71,11 +71,11 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .front_texture      = load_texture("./assets/textures/blocks/lava0.png"),
-      .back_texture       = load_texture("./assets/textures/blocks/lava0.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/lava0.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/lava0.png"),
-      .bottom_texture     = load_texture("./assets/textures/blocks/lava0.png")
+      .front_texture      = load_texture("./assets/textures/blocks/lava1.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/lava1.png"),
+      .side_texture       = load_texture("./assets/textures/blocks/lava1.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/lava1.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/lava1.png")
     })  
   );
 
