@@ -299,7 +299,20 @@ void process_game_input(SDL_Event *event){
     }
   }
 
-  // MOUSE
+  // MOUSE WHEEL
+  if(event->type == SDL_MOUSEWHEEL){
+    if(event->wheel.y > 0){
+      if(player.block_inventory_active_index < player.block_inventory_size - 1)
+        player.block_inventory_active_index++;
+    }
+
+    if(event->wheel.y < 0){
+      if(player.block_inventory_active_index > 0)
+        player.block_inventory_active_index--;
+    }
+  }
+
+  // MOUSE BUTTONS
   if(event->type == SDL_MOUSEMOTION){
     player.theta  -= MOUSE_SENSITIVITY                        * event->motion.xrel;
     player.eta    += MOUSE_SENSITIVITY * PLAYER_ETA_DIRECTION * event->motion.yrel;
