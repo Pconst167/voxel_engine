@@ -1068,10 +1068,7 @@ void init_block_map(){
               assign_block_material(y, z, x, BLOCK_TYPE_GRASS);
             }
             else{
-              if(xorshift32() % 2 == 0)
-                assign_block_material(y, z, x, BLOCK_TYPE_LEAVES0);
-              else
-                assign_block_material(y, z, x, BLOCK_TYPE_FLOWER_LEAVES0);
+              assign_block_material(y, z, x, BLOCK_TYPE_LEAVES0);
             }
             block_at(y, z, x).mineable = true;
             block_at(y, z, x).solid = true;

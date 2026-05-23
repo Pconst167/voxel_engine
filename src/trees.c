@@ -117,8 +117,8 @@ tree_t trees[] = {
   },
   {
     .tree_name = "flowertree1",
-    .trunk_block_type = BLOCK_TYPE_TREE_TRUNK5,
-    .leaves_block_type = BLOCK_TYPE_FLOWER_LEAVES1,
+    .trunk_block_type = BLOCK_TYPE_TREE_TRUNK0,
+    .leaves_block_type = BLOCK_TYPE_FLOWER_LEAVES0,
     .min_height = 10,
     .max_height = 30,
     .min_width = 1,
