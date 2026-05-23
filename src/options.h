@@ -20,6 +20,7 @@ typedef struct{
   bool log;
   bool chunk_sort;
   bool show_debug_info;
+  bool instant_mining;
 } options_t;
 
 extern options_t options;

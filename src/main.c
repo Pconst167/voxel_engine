@@ -454,6 +454,9 @@ void run_console_command(){
   else if(!strcmp(console.input_buffer, "cst")){
     options.chunk_sort = !options.chunk_sort;
   }
+  else if(!strcmp(console.input_buffer, "im")){
+    options.instant_mining = !options.instant_mining;
+  }
 }
 
 void move_player(void){
@@ -2155,10 +2158,6 @@ void render_block_quad(block_quad_t block_quad, block_material_t *block_material
         }
       }
 
-      if(looked_at){
-        light_intensities[light_index] += 0.20f;
-      }
-
       // clamp to [0.0, 1.0]
       if(light_intensities[light_index] < 0.0f) light_intensities[light_index] = 0.0f;
       else if(light_intensities[light_index] > 1.0f) light_intensities[light_index] = 1.0f;
@@ -2253,6 +2252,19 @@ void render_block_quad(block_quad_t block_quad, block_material_t *block_material
       .texture            = quad_texture
     };
     projected_triangle.total_light_intensity = total_light_intensity;
+
+    if(looked_at){
+      int32_t red   = projected_triangle.face_material.emissive_color.rgb.red   + 100;
+      int32_t green = projected_triangle.face_material.emissive_color.rgb.green + 100;
+      int32_t blue  = projected_triangle.face_material.emissive_color.rgb.blue  + 100;
+
+      if(red   > 255) red   = 255;
+      if(green > 255) green = 255;
+      if(blue  > 255) blue  = 255;
+      projected_triangle.face_material.emissive_color.rgb.red   = red;
+      projected_triangle.face_material.emissive_color.rgb.green = green;
+      projected_triangle.face_material.emissive_color.rgb.blue  = blue;
+    }
 
     /* TRIANGLE RASTERIZATION */
     total_pixels_rendered += rasterize_triangle(&projected_triangle);
@@ -3082,6 +3094,7 @@ void process_mining(){
 
     if(block_at(block_y, block_z, block_x).mineable){
       block_at(block_y, block_z, block_x).mining_amount--;
+      if(options.instant_mining) block_at(block_y, block_z, block_x).mining_amount = 0;
       if(block_at(block_y, block_z, block_x).mining_amount == 0){
         player_obtain_block(block_at(block_y, block_z, block_x).type);
         assign_block_material(block_y, block_z, block_x, BLOCK_TYPE_AIR);

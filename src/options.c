@@ -10,5 +10,6 @@ options_t options = {
   .render_collision_aabb_outlines = false,
   .log                            = true,
   .chunk_sort                     = false,
-  .show_debug_info                = false
+  .show_debug_info                = false,
+  .instant_mining                 = true
 };
