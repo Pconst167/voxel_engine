@@ -66,6 +66,8 @@ typedef enum{
   BLOCK_TYPE_LEAVES7    ,
   BLOCK_TYPE_LEAVES8    ,
   BLOCK_TYPE_LEAVES9    ,
+  BLOCK_TYPE_FLOWER_LEAVES0,
+  BLOCK_TYPE_FLOWER_LEAVES1,
   BLOCK_TYPE_GLASS      ,
   BLOCK_TYPE_LAMP0      ,
   BLOCK_TYPE_OVEN0      ,
@@ -90,6 +92,9 @@ typedef enum{
 
 typedef struct{
   char *material_name;
+  // physical properties
+  uint8_t mining_amount;
+  // rendering
   bool backface_culling;
   // color and light
   color_t base_color;
@@ -120,6 +125,7 @@ typedef struct{
   block_type_t type;
   block_orientation_t orientation;
   bool solid;
+  uint8_t mining_amount;
   float temperature;
   bool mineable;
   aabb_3d_t aabb;

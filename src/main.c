@@ -177,6 +177,8 @@ float sun_eta = (M_PI_2); /* sun's eta angle */
 triangle_t triangles_to_render[50000];
 uint32_t total_chunk_triangles_to_render = 0;
 
+// mining time
+bool mining = false;
 
 void setup(void) {
   
@@ -319,40 +321,34 @@ void process_game_input(SDL_Event *event){
     if(player.eta  < -ETA_MAX) player.eta = -ETA_MAX;
   }
   if(event->type == SDL_MOUSEBUTTONDOWN){
-    if(event->button.button == SDL_BUTTON_LEFT || event->button.button == SDL_BUTTON_RIGHT){
-      int32_t player_y_feet = player.position.y;
-      int32_t player_y_head = player.position.y + player.height;
-      int32_t player_z = player.position.z;
-      int32_t player_x = player.position.x;
-
+    if(event->button.button == SDL_BUTTON_RIGHT){
       if(looked_at_block.hit){
-        if(event->button.button == SDL_BUTTON_LEFT){
-          int32_t block_y = looked_at_block.block_y + looked_at_block.normal_y;
-          int32_t block_z = looked_at_block.block_z + looked_at_block.normal_z;
-          int32_t block_x = looked_at_block.block_x + looked_at_block.normal_x;
+        int32_t player_y_feet = player.position.y;
+        int32_t player_y_head = player.position.y + player.height;
+        int32_t player_z = player.position.z;
+        int32_t player_x = player.position.x;
 
-          if((block_y != player_y_feet && block_y != player_y_head) || block_z != player_z || block_x != player_x){
-            if(player.block_inventory[player.block_inventory_active_index].number > 0){
-              assign_block_material(block_y, block_z, block_x, player.block_inventory[player.block_inventory_active_index].block_type);
-              set_block_orientation(block_y, block_z, block_x, player.position);
-              block_at(block_y, block_z, block_x).solid = true;
-              player_use_block();
-            }
-          }
-        }
-        else if(event->button.button == SDL_BUTTON_RIGHT){
-          int32_t block_y = looked_at_block.block_y;
-          int32_t block_z = looked_at_block.block_z;
-          int32_t block_x = looked_at_block.block_x;
+        int32_t block_y = looked_at_block.block_y + looked_at_block.normal_y;
+        int32_t block_z = looked_at_block.block_z + looked_at_block.normal_z;
+        int32_t block_x = looked_at_block.block_x + looked_at_block.normal_x;
 
-          if(block_at(block_y, block_z, block_x).mineable){
-            player_obtain_block(block_at(block_y, block_z, block_x).type);
-            assign_block_material(block_y, block_z, block_x, BLOCK_TYPE_AIR);
-            block_at(block_y, block_z, block_x).solid = false;
+        if((block_y != player_y_feet && block_y != player_y_head) || block_z != player_z || block_x != player_x){
+          if(player.block_inventory[player.block_inventory_active_index].number > 0){
+            assign_block_material(block_y, block_z, block_x, player.block_inventory[player.block_inventory_active_index].block_type);
+            set_block_orientation(block_y, block_z, block_x, player.position);
+            block_at(block_y, block_z, block_x).solid = true;
+            block_at(block_y, block_z, block_x).mining_amount = block_at(block_y, block_z, block_x).block_material->mining_amount;
+            player_use_block();
           }
         }
       }
     }
+    else if(event->button.button == SDL_BUTTON_LEFT){
+      mining = true;
+    }
+  }
+  else if(event->type == SDL_MOUSEBUTTONUP){
+    if(event->button.button == SDL_BUTTON_LEFT) mining = false;
   }
 }
 
@@ -3078,6 +3074,23 @@ void render_ui(){
   }
 }
 
+void process_mining(){
+  if(mining && looked_at_block.hit){
+    int32_t block_y = looked_at_block.block_y;
+    int32_t block_z = looked_at_block.block_z;
+    int32_t block_x = looked_at_block.block_x;
+
+    if(block_at(block_y, block_z, block_x).mineable){
+      block_at(block_y, block_z, block_x).mining_amount--;
+      if(block_at(block_y, block_z, block_x).mining_amount == 0){
+        player_obtain_block(block_at(block_y, block_z, block_x).type);
+        assign_block_material(block_y, block_z, block_x, BLOCK_TYPE_AIR);
+        block_at(block_y, block_z, block_x).solid = false;
+      }
+    }
+  }
+}
+
 int main(int argc, char *argv[]){
   (void)argc;
   (void)argv;
@@ -3099,6 +3112,8 @@ int main(int argc, char *argv[]){
         render_visible_chunks();
       print_debug_data();
       render_ui();
+
+      process_mining();
     }
     else{
       render_console();

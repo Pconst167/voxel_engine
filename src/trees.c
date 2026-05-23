@@ -11,7 +11,7 @@ tree_t trees[] = {
     .max_height = 35,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.3f
+    .spawn_chance = 0.5f
   },
   {
     .tree_name = "tree1",
@@ -102,6 +102,28 @@ tree_t trees[] = {
     .min_width = 1,
     .max_width = 2,
     .spawn_chance = 0.04f
+  },
+
+  // FLOWER TREES
+  {
+    .tree_name = "flowertree0",
+    .trunk_block_type = BLOCK_TYPE_TREE_TRUNK0,
+    .leaves_block_type = BLOCK_TYPE_FLOWER_LEAVES0,
+    .min_height = 10,
+    .max_height = 30,
+    .min_width = 1,
+    .max_width = 2,
+    .spawn_chance = 0.2f
+  },
+  {
+    .tree_name = "flowertree1",
+    .trunk_block_type = BLOCK_TYPE_TREE_TRUNK5,
+    .leaves_block_type = BLOCK_TYPE_FLOWER_LEAVES1,
+    .min_height = 10,
+    .max_height = 30,
+    .min_width = 1,
+    .max_width = 2,
+    .spawn_chance = 0.9f
   }
 };
 
@@ -164,7 +186,13 @@ void place_trees(){
   // place trees
   for(uint32_t z = 32; z < MAP_NUM_VOXELS_Z - 32; z += step_size_z){
     for(uint32_t x = 32; x < MAP_NUM_VOXELS_X - 32; x += step_size_x){
-      place_tree(z, x, TREE0);
+      int32_t rand = xorshift32();
+      if(rand % 3 == 0)
+        place_tree(z, x, TREE0);
+      else if(rand % 3 == 1)
+        place_tree(z, x, FLOWER_TREE1);
+      else if(rand % 3 == 2)
+        place_tree(z, x, FLOWER_TREE0);
     }
   }
 }
