@@ -305,7 +305,6 @@ void process_game_input(SDL_Event *event){
       if(player.block_inventory_active_index < player.block_inventory_size - 1)
         player.block_inventory_active_index++;
     }
-
     if(event->wheel.y < 0){
       if(player.block_inventory_active_index > 0)
         player.block_inventory_active_index--;
@@ -335,6 +334,7 @@ void process_game_input(SDL_Event *event){
           if((block_y != player_y_feet && block_y != player_y_head) || block_z != player_z || block_x != player_x){
             if(player.block_inventory[player.block_inventory_active_index].number > 0){
               assign_block_material(block_y, block_z, block_x, player.block_inventory[player.block_inventory_active_index].block_type);
+              set_block_orientation(block_y, block_z, block_x, player.position);
               block_at(block_y, block_z, block_x).solid = true;
               player_use_block();
             }
@@ -2039,7 +2039,7 @@ bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane
   return false;
 }
 
-void render_block_quad(block_quad_t block_quad, block_material_t *block_material, bool looked_at){
+void render_block_quad(block_quad_t block_quad, block_material_t *block_material, bool looked_at, block_orientation_t block_orientation){
   /* triangles list for clipped triangles */
   triangle_t triangles_after_clipping[MAX_NUM_POLYGON_VERTICES - 2]; /* for a polygon with N vertices, the number of nested triangles is always N-2 */
   vector4_t transformed_vertices[4];
@@ -2198,7 +2198,7 @@ void render_block_quad(block_quad_t block_quad, block_material_t *block_material
       projected_triangle.uv[j]     = triangle_after_clipping->uv[j];
     }
     
-    // select texture depending on face orientation
+    // select texture depending on which face this is
     texture_t *quad_texture;
     switch(block_quad.quad_type){
       case VOXEL_QUAD_TOP:
@@ -2208,15 +2208,37 @@ void render_block_quad(block_quad_t block_quad, block_material_t *block_material
         quad_texture = block_material->bottom_texture;
         break;
       case VOXEL_QUAD_FRONT:
-        quad_texture = block_material->front_texture;
+        switch(block_orientation){
+          case BLOCK_ORIENTATION_FRONT: quad_texture = block_material->front_texture; break;
+          case BLOCK_ORIENTATION_BACK:  quad_texture = block_material->back_texture; break;
+          case BLOCK_ORIENTATION_LEFT:  quad_texture = block_material->left_texture; break;
+          case BLOCK_ORIENTATION_RIGHT: default: quad_texture = block_material->right_texture; break;
+        }
         break;
       case VOXEL_QUAD_BACK:
-        quad_texture = block_material->back_texture;
+        switch(block_orientation){
+          case BLOCK_ORIENTATION_FRONT: quad_texture = block_material->back_texture; break;
+          case BLOCK_ORIENTATION_BACK:  quad_texture = block_material->front_texture; break;
+          case BLOCK_ORIENTATION_LEFT:  quad_texture = block_material->left_texture; break;
+          case BLOCK_ORIENTATION_RIGHT: default: quad_texture = block_material->right_texture; break;
+        }
         break;
       case VOXEL_QUAD_LEFT:
+        switch(block_orientation){
+          case BLOCK_ORIENTATION_FRONT: quad_texture = block_material->left_texture; break;
+          case BLOCK_ORIENTATION_BACK:  quad_texture = block_material->right_texture; break;
+          case BLOCK_ORIENTATION_LEFT:  quad_texture = block_material->front_texture; break;
+          case BLOCK_ORIENTATION_RIGHT: default: quad_texture = block_material->front_texture; break;
+        }
+        break;
       case VOXEL_QUAD_RIGHT:
       default:
-        quad_texture = block_material->side_texture;
+        switch(block_orientation){
+          case BLOCK_ORIENTATION_FRONT: quad_texture = block_material->right_texture; break;
+          case BLOCK_ORIENTATION_BACK:  quad_texture = block_material->left_texture; break;
+          case BLOCK_ORIENTATION_LEFT:  quad_texture = block_material->front_texture; break;
+          case BLOCK_ORIENTATION_RIGHT: default: quad_texture = block_material->front_texture; break;
+        }
         break;
     }
 
@@ -2285,60 +2307,61 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
         int32_t right_neighbour_index   = x_col + 1;
         int32_t top_neighbour_index     = y_plane + 1; 
         int32_t bottom_neighbour_index  = y_plane - 1;
-        int32_t back_neighbour_index    = z_row - 1;
-        int32_t front_neighbour_index   = z_row + 1;
+        int32_t front_neighbour_index   = z_row - 1;
+        int32_t back_neighbour_index    = z_row + 1;
 
         // a quad is rendered only if its adjescent block is AIR or if it is transparent (using alpha test)
         bool render_left_quad    = (left_neighbour_index < 0)                  ? false : (block_at(y_plane, z_row, left_neighbour_index).type  == BLOCK_TYPE_AIR || block_at(y_plane, z_row, left_neighbour_index).block_material->blend_mode == BLEND_MODE_ALPHA_TEST );
         bool render_right_quad   = (right_neighbour_index == MAP_NUM_VOXELS_X) ? false : (block_at(y_plane, z_row, right_neighbour_index).type == BLOCK_TYPE_AIR || block_at(y_plane, z_row, right_neighbour_index).block_material->blend_mode == BLEND_MODE_ALPHA_TEST);
         bool render_top_quad     = (top_neighbour_index == MAP_NUM_VOXELS_Y)   ? false : (block_at(top_neighbour_index, z_row, x_col).type     == BLOCK_TYPE_AIR || block_at(top_neighbour_index, z_row, x_col).block_material->blend_mode == BLEND_MODE_ALPHA_TEST    );
         bool render_bottom_quad  = (bottom_neighbour_index < 0)                ? false : (block_at(bottom_neighbour_index, z_row, x_col).type  == BLOCK_TYPE_AIR || block_at(bottom_neighbour_index, z_row, x_col).block_material->blend_mode == BLEND_MODE_ALPHA_TEST );
-        bool render_back_quad    = (back_neighbour_index < 0)                  ? false : (block_at(y_plane, back_neighbour_index, x_col).type  == BLOCK_TYPE_AIR || block_at(y_plane, back_neighbour_index, x_col).block_material->blend_mode == BLEND_MODE_ALPHA_TEST );
-        bool render_front_quad   = (front_neighbour_index == MAP_NUM_VOXELS_Z) ? false : (block_at(y_plane, front_neighbour_index, x_col).type == BLOCK_TYPE_AIR || block_at(y_plane, front_neighbour_index, x_col).block_material->blend_mode == BLEND_MODE_ALPHA_TEST);
+        bool render_front_quad   = (front_neighbour_index < 0)                 ? false : (block_at(y_plane, front_neighbour_index, x_col).type == BLOCK_TYPE_AIR || block_at(y_plane, front_neighbour_index, x_col).block_material->blend_mode == BLEND_MODE_ALPHA_TEST );
+        bool render_back_quad    = (back_neighbour_index == MAP_NUM_VOXELS_Z)  ? false : (block_at(y_plane, back_neighbour_index, x_col).type  == BLOCK_TYPE_AIR || block_at(y_plane, back_neighbour_index, x_col).block_material->blend_mode == BLEND_MODE_ALPHA_TEST);
 
         block_material_t *block_material = block_at(y_plane, z_row, x_col).block_material;
 
-        bool block_looked_at_left = false;
-        bool block_looked_at_right = false;
-        bool block_looked_at_top = false;
+        bool block_looked_at_left   = false;
+        bool block_looked_at_right  = false;
+        bool block_looked_at_top    = false;
         bool block_looked_at_bottom = false;
-        bool block_looked_at_front = false;
-        bool block_looked_at_back = false;
+        bool block_looked_at_front  = false;
+        bool block_looked_at_back   = false;
         if(looked_at_block.hit){
           if(y_plane == looked_at_block.block_y && z_row == looked_at_block.block_z && x_col == looked_at_block.block_x){
             if(looked_at_block.normal_x == -1) block_looked_at_left = true;
-            if(looked_at_block.normal_x ==  1) block_looked_at_right = true;
-            if(looked_at_block.normal_y == -1) block_looked_at_bottom = true;
-            if(looked_at_block.normal_y ==  1) block_looked_at_top = true;
-            if(looked_at_block.normal_z == -1) block_looked_at_back = true;
-            if(looked_at_block.normal_z ==  1) block_looked_at_front = true;
+            else if(looked_at_block.normal_x ==  1) block_looked_at_right = true;
+            else if(looked_at_block.normal_y == -1) block_looked_at_bottom = true;
+            else if(looked_at_block.normal_y ==  1) block_looked_at_top = true;
+            else if(looked_at_block.normal_z == -1) block_looked_at_front = true;
+            else if(looked_at_block.normal_z ==  1) block_looked_at_back = true;
           }
         }
 
+        block_orientation_t block_orientation = block_at(y_plane, z_row, x_col).orientation;
         block_quad_t block_quad;
         if(render_left_quad){
           block_quad = generate_block_quad(VOXEL_QUAD_LEFT, y_plane, z_row, x_col);
-          render_block_quad(block_quad, block_material, block_looked_at_left);
+          render_block_quad(block_quad, block_material, block_looked_at_left, block_orientation);
         }
         if(render_right_quad){
           block_quad = generate_block_quad(VOXEL_QUAD_RIGHT, y_plane, z_row, x_col);
-          render_block_quad(block_quad, block_material, block_looked_at_right);
+          render_block_quad(block_quad, block_material, block_looked_at_right, block_orientation);
         }
         if(render_top_quad){
           block_quad = generate_block_quad(VOXEL_QUAD_TOP, y_plane, z_row, x_col);
-          render_block_quad(block_quad, block_material, block_looked_at_top);
+          render_block_quad(block_quad, block_material, block_looked_at_top, block_orientation);
         }
         if(render_bottom_quad){
           block_quad = generate_block_quad(VOXEL_QUAD_BOTTOM, y_plane, z_row, x_col);
-          render_block_quad(block_quad, block_material, block_looked_at_bottom);
-        }
-        if(render_back_quad){
-          block_quad = generate_block_quad(VOXEL_QUAD_BACK, y_plane, z_row, x_col);
-          render_block_quad(block_quad, block_material, block_looked_at_back);
+          render_block_quad(block_quad, block_material, block_looked_at_bottom, block_orientation);
         }
         if(render_front_quad){
           block_quad = generate_block_quad(VOXEL_QUAD_FRONT, y_plane, z_row, x_col);
-          render_block_quad(block_quad, block_material, block_looked_at_front);
+          render_block_quad(block_quad, block_material, block_looked_at_front, block_orientation);
+        }
+        if(render_back_quad){
+          block_quad = generate_block_quad(VOXEL_QUAD_BACK, y_plane, z_row, x_col);
+          render_block_quad(block_quad, block_material, block_looked_at_back, block_orientation);
         }
       }
     }
@@ -3042,7 +3065,7 @@ void render_ui(){
       uint32_t text_x = 2;
       uint32_t text_y = block_y + 9;
 
-      draw_texture_flat(block_x, block_y, 20, 20, block_materials[player.block_inventory[block_i].block_type].side_texture);
+      draw_texture_flat(block_x, block_y, 20, 20, block_materials[player.block_inventory[block_i].block_type].left_texture);
       // if active block holding is block_i, draw bar vertical bar to left of block
       if(player.block_inventory_active_index == block_i){
         draw_vertical_line(block_x, block_y, 20, (color_t){.uint32 = 0xFFFFFFFF});

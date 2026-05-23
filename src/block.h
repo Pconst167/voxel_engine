@@ -73,6 +73,13 @@ typedef enum{
 } block_type_t;
 
 typedef enum{
+  BLOCK_ORIENTATION_LEFT,
+  BLOCK_ORIENTATION_RIGHT,
+  BLOCK_ORIENTATION_FRONT,
+  BLOCK_ORIENTATION_BACK
+} block_orientation_t;
+
+typedef enum{
   VOXEL_QUAD_TOP,
   VOXEL_QUAD_BOTTOM,
   VOXEL_QUAD_LEFT,
@@ -96,7 +103,8 @@ typedef struct{
   // texture data
   texture_t *front_texture;
   texture_t *back_texture;
-  texture_t *side_texture;
+  texture_t *left_texture;
+  texture_t *right_texture;
   texture_t *top_texture;
   texture_t *bottom_texture;
 } block_material_t;
@@ -110,6 +118,7 @@ typedef struct{
 
 typedef struct{
   block_type_t type;
+  block_orientation_t orientation;
   bool solid;
   float temperature;
   bool mineable;
@@ -149,6 +158,8 @@ block_quad_t generate_block_quad(block_quad_type_t quad_type, uint32_t y_plane, 
 block_raycast_hit_t raycast_blocks(vector3_t ray_origin, vector3_t ray_direction, float max_distance);
 void calculate_currently_looked_at_block();
 void assign_block_material(int32_t block_y, int32_t block_z, int32_t block_x, block_type_t block_type);
+
+void set_block_orientation(int32_t block_y, int32_t block_z, int32_t block_x, vector3_t player_position);
 
 char *get_block_material_name(block_type_t block_type);
 

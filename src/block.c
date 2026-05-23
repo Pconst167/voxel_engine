@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include <stdint.h>
 #include <float.h>
 #include <stdlib.h>
+#include "vector.h"
 #include "block.h"
 #include "misc.h"
 #include "camera.h"
@@ -33,7 +35,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = NULL,
       .back_texture       = NULL,
-      .side_texture       = NULL,
+      .left_texture       = NULL,
+      .right_texture      = NULL,
       .top_texture        = NULL,
       .bottom_texture     = NULL
     })  
@@ -54,7 +57,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/lava0.png"),
       .back_texture       = load_texture("./assets/textures/blocks/lava0.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/lava0.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/lava0.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/lava0.png"),
       .top_texture        = load_texture("./assets/textures/blocks/lava0.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/lava0.png")
     })  
@@ -73,7 +77,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/lava1.png"),
       .back_texture       = load_texture("./assets/textures/blocks/lava1.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/lava1.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/lava1.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/lava1.png"),
       .top_texture        = load_texture("./assets/textures/blocks/lava1.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/lava1.png")
     })  
@@ -94,7 +99,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/volcanic0.png"),
       .back_texture       = load_texture("./assets/textures/blocks/volcanic0.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/volcanic0.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/volcanic0.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/volcanic0.png"),
       .top_texture        = load_texture("./assets/textures/blocks/volcanic0.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/volcanic0.png")
     })  
@@ -113,7 +119,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/volcanic1.png"),
       .back_texture       = load_texture("./assets/textures/blocks/volcanic1.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/volcanic1.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/volcanic1.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/volcanic1.png"),
       .top_texture        = load_texture("./assets/textures/blocks/volcanic1.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/volcanic1.png")
     })  
@@ -132,7 +139,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/volcanic2.png"),
       .back_texture       = load_texture("./assets/textures/blocks/volcanic2.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/volcanic2.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/volcanic2.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/volcanic2.png"),
       .top_texture        = load_texture("./assets/textures/blocks/volcanic2.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/volcanic2.png")
     })  
@@ -151,7 +159,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/volcanic3.png"),
       .back_texture       = load_texture("./assets/textures/blocks/volcanic3.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/volcanic3.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/volcanic3.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/volcanic3.png"),
       .top_texture        = load_texture("./assets/textures/blocks/volcanic3.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/volcanic3.png")
     })  
@@ -172,7 +181,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/stone0.png"),
       .back_texture       = load_texture("./assets/textures/blocks/stone0.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/stone0.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/stone0.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/stone0.png"),
       .top_texture        = load_texture("./assets/textures/blocks/stone0.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/stone0.png")
     })
@@ -191,7 +201,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/stone1.png"),
       .back_texture       = load_texture("./assets/textures/blocks/stone1.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/stone1.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/stone1.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/stone1.png"),
       .top_texture        = load_texture("./assets/textures/blocks/stone1.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/stone1.png")
     })
@@ -210,7 +221,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/stone2.png"),
       .back_texture       = load_texture("./assets/textures/blocks/stone2.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/stone2.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/stone2.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/stone2.png"),
       .top_texture        = load_texture("./assets/textures/blocks/stone2.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/stone2.png")
     })
@@ -229,7 +241,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/stone3.png"),
       .back_texture       = load_texture("./assets/textures/blocks/stone3.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/stone3.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/stone3.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/stone3.png"),
       .top_texture        = load_texture("./assets/textures/blocks/stone3.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/stone3.png")
     })
@@ -248,7 +261,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/stone4.png"),
       .back_texture       = load_texture("./assets/textures/blocks/stone4.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/stone4.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/stone4.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/stone4.png"),
       .top_texture        = load_texture("./assets/textures/blocks/stone4.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/stone4.png")
     })
@@ -267,7 +281,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/stone5.png"),
       .back_texture       = load_texture("./assets/textures/blocks/stone5.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/stone5.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/stone5.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/stone5.png"),
       .top_texture        = load_texture("./assets/textures/blocks/stone5.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/stone5.png")
     })
@@ -286,7 +301,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/stone6.png"),
       .back_texture       = load_texture("./assets/textures/blocks/stone6.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/stone6.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/stone6.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/stone6.png"),
       .top_texture        = load_texture("./assets/textures/blocks/stone6.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/stone6.png")
     })
@@ -305,7 +321,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/stone7.png"),
       .back_texture       = load_texture("./assets/textures/blocks/stone7.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/stone7.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/stone7.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/stone7.png"),
       .top_texture        = load_texture("./assets/textures/blocks/stone7.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/stone7.png")
     })
@@ -324,7 +341,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/stone8.png"),
       .back_texture       = load_texture("./assets/textures/blocks/stone8.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/stone8.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/stone8.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/stone8.png"),
       .top_texture        = load_texture("./assets/textures/blocks/stone8.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/stone8.png")
     })
@@ -345,7 +363,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/coal_side.png"),
       .back_texture       = load_texture("./assets/textures/blocks/coal_side.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/coal_side.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/coal_side.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/coal_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/coal_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/coal_top.png")
     })
@@ -366,7 +385,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/iron_side.png"),
       .back_texture       = load_texture("./assets/textures/blocks/iron_side.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/iron_side.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/iron_side.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/iron_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/iron_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/iron_top.png")
     })
@@ -387,7 +407,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/diamond_side.png"),
       .back_texture       = load_texture("./assets/textures/blocks/diamond_side.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/diamond_side.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/diamond_side.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/diamond_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/diamond_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/diamond_top.png")
     })
@@ -408,7 +429,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/silver_side.png"),
       .back_texture       = load_texture("./assets/textures/blocks/silver_side.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/silver_side.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/silver_side.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/silver_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/silver_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/silver_top.png")
     })
@@ -429,7 +451,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/gold_side.png"),
       .back_texture       = load_texture("./assets/textures/blocks/gold_side.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/gold_side.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/gold_side.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/gold_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/gold_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/gold_top.png")
     })
@@ -450,7 +473,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/dirt_2.png"),
       .back_texture       = load_texture("./assets/textures/blocks/dirt_2.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/dirt_2.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/dirt_2.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/dirt_2.png"),
       .top_texture        = load_texture("./assets/textures/blocks/dirt_2.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/dirt_2.png")
     })
@@ -471,7 +495,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/grass_side_2.png"),
       .back_texture       = load_texture("./assets/textures/blocks/grass_side_2.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/grass_side_2.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/grass_side_2.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/grass_side_2.png"),
       .top_texture        = load_texture("./assets/textures/blocks/grass_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/grass_top.png")
     })
@@ -492,7 +517,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/treetrunk0_side.png"),
       .back_texture       = load_texture("./assets/textures/blocks/treetrunk0_side.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/treetrunk0_side.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/treetrunk0_side.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/treetrunk0_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/treetrunk0_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk0_top.png")
     }
@@ -511,7 +537,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/treetrunk1_side.png"),
       .back_texture       = load_texture("./assets/textures/blocks/treetrunk1_side.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/treetrunk1_side.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/treetrunk1_side.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/treetrunk1_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/treetrunk1_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk1_top.png")
     }
@@ -530,7 +557,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/treetrunk2_side.png"),
       .back_texture       = load_texture("./assets/textures/blocks/treetrunk2_side.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/treetrunk2_side.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/treetrunk2_side.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/treetrunk2_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/treetrunk2_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk2_top.png")
     }
@@ -549,7 +577,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/treetrunk3_side.png"),
       .back_texture       = load_texture("./assets/textures/blocks/treetrunk3_side.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/treetrunk3_side.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/treetrunk3_side.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/treetrunk3_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/treetrunk3_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk3_top.png")
     }
@@ -568,7 +597,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/treetrunk4_side.png"),
       .back_texture       = load_texture("./assets/textures/blocks/treetrunk4_side.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/treetrunk4_side.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/treetrunk4_side.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/treetrunk4_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/treetrunk4_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk4_top.png")
     }
@@ -587,7 +617,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/treetrunk5_side.png"),
       .back_texture       = load_texture("./assets/textures/blocks/treetrunk5_side.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/treetrunk5_side.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/treetrunk5_side.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/treetrunk5_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/treetrunk5_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk5_top.png")
     }
@@ -606,7 +637,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/treetrunk6_side.png"),
       .back_texture       = load_texture("./assets/textures/blocks/treetrunk6_side.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/treetrunk6_side.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/treetrunk6_side.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/treetrunk6_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/treetrunk6_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk6_top.png")
     }
@@ -625,7 +657,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/treetrunk7_side.png"),
       .back_texture       = load_texture("./assets/textures/blocks/treetrunk7_side.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/treetrunk7_side.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/treetrunk7_side.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/treetrunk7_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/treetrunk7_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk7_top.png")
     }
@@ -646,7 +679,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/leaves0.png"),
       .back_texture       = load_texture("./assets/textures/blocks/leaves0.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/leaves0.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/leaves0.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/leaves0.png"),
       .top_texture        = load_texture("./assets/textures/blocks/leaves0.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/leaves0.png")
     })
@@ -665,7 +699,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/leaves1.png"),
       .back_texture       = load_texture("./assets/textures/blocks/leaves1.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/leaves1.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/leaves1.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/leaves1.png"),
       .top_texture        = load_texture("./assets/textures/blocks/leaves1.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/leaves1.png")
     })
@@ -684,7 +719,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/leaves2.png"),
       .back_texture       = load_texture("./assets/textures/blocks/leaves2.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/leaves2.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/leaves2.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/leaves2.png"),
       .top_texture        = load_texture("./assets/textures/blocks/leaves2.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/leaves2.png")
     })
@@ -703,7 +739,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/leaves3.png"),
       .back_texture       = load_texture("./assets/textures/blocks/leaves3.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/leaves3.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/leaves3.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/leaves3.png"),
       .top_texture        = load_texture("./assets/textures/blocks/leaves3.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/leaves3.png")
     })
@@ -722,7 +759,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/leaves4.png"),
       .back_texture       = load_texture("./assets/textures/blocks/leaves4.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/leaves4.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/leaves4.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/leaves4.png"),
       .top_texture        = load_texture("./assets/textures/blocks/leaves4.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/leaves4.png")
     })
@@ -741,7 +779,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/leaves5.png"),
       .back_texture       = load_texture("./assets/textures/blocks/leaves5.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/leaves5.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/leaves5.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/leaves5.png"),
       .top_texture        = load_texture("./assets/textures/blocks/leaves5.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/leaves5.png")
     })
@@ -760,7 +799,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/leaves6.png"),
       .back_texture       = load_texture("./assets/textures/blocks/leaves6.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/leaves6.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/leaves6.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/leaves6.png"),
       .top_texture        = load_texture("./assets/textures/blocks/leaves6.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/leaves6.png")
     })
@@ -779,7 +819,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/leaves7.png"),
       .back_texture       = load_texture("./assets/textures/blocks/leaves7.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/leaves7.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/leaves7.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/leaves7.png"),
       .top_texture        = load_texture("./assets/textures/blocks/leaves7.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/leaves7.png")
     })
@@ -798,7 +839,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/leaves8.png"),
       .back_texture       = load_texture("./assets/textures/blocks/leaves8.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/leaves8.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/leaves8.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/leaves8.png"),
       .top_texture        = load_texture("./assets/textures/blocks/leaves8.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/leaves8.png")
     })
@@ -817,7 +859,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/leaves9.png"),
       .back_texture       = load_texture("./assets/textures/blocks/leaves9.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/leaves9.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/leaves9.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/leaves9.png"),
       .top_texture        = load_texture("./assets/textures/blocks/leaves9.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/leaves9.png")
     })
@@ -838,7 +881,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/glass0.png"),
       .back_texture       = load_texture("./assets/textures/blocks/glass0.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/glass0.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/glass0.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/glass0.png"),
       .top_texture        = load_texture("./assets/textures/blocks/glass0.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/glass0.png")
     })
@@ -859,7 +903,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/lamp0.png"),
       .back_texture       = load_texture("./assets/textures/blocks/lamp0.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/lamp0.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/lamp0.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/lamp0.png"),
       .top_texture        = load_texture("./assets/textures/blocks/lamp0.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/lamp0.png")
     })
@@ -880,7 +925,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/oven_front.png"),
       .back_texture       = load_texture("./assets/textures/blocks/oven.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/oven_side.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/oven_side.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/oven_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/oven.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/oven.png")
     })
@@ -901,7 +947,8 @@ void init_block_materials(){
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/chest_front.png"),
       .back_texture       = load_texture("./assets/textures/blocks/chest_sides.png"),
-      .side_texture       = load_texture("./assets/textures/blocks/chest_sides.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/chest_sides.png"),
+      .right_texture       = load_texture("./assets/textures/blocks/chest_sides.png"),
       .top_texture        = load_texture("./assets/textures/blocks/chest_top_bottom.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/chest_top_bottom.png")
     })
@@ -923,6 +970,7 @@ void init_block_map(){
         block_at(y, z, x).mineable = true;
         assign_block_material(y, z, x, BLOCK_TYPE_AIR);
         block_at(y, z, x).temperature = 30.0f;
+        block_at(y, z, x).orientation = BLOCK_ORIENTATION_FRONT;
 
         if(y == (uint32_t)(0.4 * MAP_NUM_VOXELS_Y)){
           if(xorshift32() % 5 == 0){
@@ -1159,36 +1207,6 @@ inline block_quad_t generate_block_quad(block_quad_type_t quad_type, uint32_t y_
       return quad;
       
     case VOXEL_QUAD_BACK:
-      quad.points[0].x = x_col;
-      quad.points[0].y = y_plane;
-      quad.points[0].z = z_row;
-      quad.points[1].x = x_col;
-      quad.points[1].y = y_plane + 1.0f;
-      quad.points[1].z = z_row;
-      quad.points[2].x = x_col + 1.0f;
-      quad.points[2].y = y_plane;
-      quad.points[2].z = z_row;
-      quad.uv[0].u = 0.0f;
-      quad.uv[0].v = 0.0f;
-      quad.uv[1].u = 0.0f;
-      quad.uv[1].v = 1.0f;
-      quad.uv[2].u = 1.0f;
-      quad.uv[2].v = 0.0f;
-      // right side unshared vertex
-      quad.points[3].x = x_col + 1.0f;
-      quad.points[3].y = y_plane + 1.0f;
-      quad.points[3].z = z_row;
-      quad.uv[3].u = 1.0f;
-      quad.uv[3].v = 1.0f;
-      quad.uv[4].u = 1.0f;
-      quad.uv[4].v = 0.0f;
-      quad.uv[5].u = 0.0f;
-      quad.uv[5].v = 1.0f;
-      quad.quad_type = VOXEL_QUAD_BACK;
-      return quad;
-      
-    case VOXEL_QUAD_FRONT:
-    default:
       quad.points[0].x = x_col + 1.0f;
       quad.points[0].y = y_plane;
       quad.points[0].z = z_row + 1.0f;
@@ -1208,6 +1226,36 @@ inline block_quad_t generate_block_quad(block_quad_type_t quad_type, uint32_t y_
       quad.points[3].x = x_col;
       quad.points[3].y = y_plane + 1.0f;
       quad.points[3].z = z_row + 1.0f;
+      quad.uv[3].u = 1.0f;
+      quad.uv[3].v = 1.0f;
+      quad.uv[4].u = 1.0f;
+      quad.uv[4].v = 0.0f;
+      quad.uv[5].u = 0.0f;
+      quad.uv[5].v = 1.0f;
+      quad.quad_type = VOXEL_QUAD_BACK;
+      return quad;
+      
+    case VOXEL_QUAD_FRONT:
+    default:
+      quad.points[0].x = x_col;
+      quad.points[0].y = y_plane;
+      quad.points[0].z = z_row;
+      quad.points[1].x = x_col;
+      quad.points[1].y = y_plane + 1.0f;
+      quad.points[1].z = z_row;
+      quad.points[2].x = x_col + 1.0f;
+      quad.points[2].y = y_plane;
+      quad.points[2].z = z_row;
+      quad.uv[0].u = 0.0f;
+      quad.uv[0].v = 0.0f;
+      quad.uv[1].u = 0.0f;
+      quad.uv[1].v = 1.0f;
+      quad.uv[2].u = 1.0f;
+      quad.uv[2].v = 0.0f;
+      // right side unshared vertex
+      quad.points[3].x = x_col + 1.0f;
+      quad.points[3].y = y_plane + 1.0f;
+      quad.points[3].z = z_row;
       quad.uv[3].u = 1.0f;
       quad.uv[3].v = 1.0f;
       quad.uv[4].u = 1.0f;
@@ -1310,4 +1358,28 @@ void assign_block_material(int32_t block_y, int32_t block_z, int32_t block_x, bl
 
 char *get_block_material_name(block_type_t block_type){
   return block_materials[block_type].material_name;
+}
+
+void set_block_orientation(int32_t block_y, int32_t block_z, int32_t block_x, vector3_t player_position){
+  vector2_t block_center = {block_x + 0.5f, block_z + 0.5f};
+
+  vector2_t player_pos = {
+    player_position.x - block_center.x,
+    player_position.z - block_center.y
+  };
+
+  vector2_t block_v1 = {0.5f, -0.5f};
+  vector2_t block_v2 = {0.5f, 0.5f};
+
+  float player_dot_v1 = player_pos.x * block_v1.x + player_pos.y * block_v1.y;
+  float player_dot_v2 = player_pos.x * block_v2.x + player_pos.y * block_v2.y;
+
+  if(player_dot_v1 >= 0.0f && player_dot_v2 <= 0.0f)
+    block_at(block_y, block_z, block_x).orientation = BLOCK_ORIENTATION_FRONT;
+  else if(player_dot_v1 >= 0.0f && player_dot_v2 >= 0.0f)
+    block_at(block_y, block_z, block_x).orientation = BLOCK_ORIENTATION_RIGHT;
+  else if(player_dot_v1 <= 0.0f && player_dot_v2 >= 0.0f)
+    block_at(block_y, block_z, block_x).orientation = BLOCK_ORIENTATION_BACK;
+  else if(player_dot_v1 <= 0.0f && player_dot_v2 <= 0.0f)
+    block_at(block_y, block_z, block_x).orientation = BLOCK_ORIENTATION_LEFT;
 }
