@@ -11,5 +11,5 @@ options_t options = {
   .log                            = true,
   .chunk_sort                     = false,
   .show_debug_info                = false,
-  .instant_mining                 = true
+  .instant_mining                 = false
 };
