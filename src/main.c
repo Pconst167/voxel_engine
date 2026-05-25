@@ -2899,7 +2899,7 @@ void update_state(void){
   if(mining){
     if(animation_direction == 1){
       animation_frame++;
-      if(animation_frame == 4) animation_direction = -1;
+      if(animation_frame == 8) animation_direction = -1;
     }
     else{
       animation_frame--;
@@ -2908,7 +2908,7 @@ void update_state(void){
   }
 
   objects[pickaxe_id].rotation.y  = -player.theta + M_PI_2;
-  float animation_angle = (M_PI_2+0.2) * (float)animation_frame / 4.0f;
+  float animation_angle = (1.4*M_PI) * (float)animation_frame / 8.0f;
   float rotation_x = -M_PI_4 - player.eta + animation_angle;
   objects[pickaxe_id].rotation.x = rotation_x;
   objects[pickaxe_id].rotation.z = -0.2;
