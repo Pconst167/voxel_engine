@@ -35,6 +35,7 @@ typedef enum{
 
 typedef struct{
   player_tool_type_t tool_type;
+  uint32_t object_id;
   uint8_t use_remaining;
 } player_tool_t;
 
@@ -75,5 +76,8 @@ aabb_3d_t make_player_aabb_at_position(vector3_t position);
 void player_obtain_block(block_type_t block_type);
 void player_use_block();
 void player_set_block_inventory_index(uint32_t block_inventory_index);
+
+void player_obtain_tool(player_tool_type_t tool_type, uint32_t object_id);
+void player_set_active_tool_index(uint32_t tool_index);
 
 #endif

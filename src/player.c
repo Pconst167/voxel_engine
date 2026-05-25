@@ -18,13 +18,8 @@ player_t player = {
 
   .block_inventory_size         = 0,
   // tools holding
-  .tools                        = {
-    {
-      .tool_type     = PLAYER_TOOL_STONE_PICKAXE,
-      .use_remaining = 255
-    }
-  },
-  .num_tools                    = 1,
+  .tools                        = {{0}},
+  .num_tools                    = 0,
   .active_tool_index            = 0
 };
 
@@ -111,4 +106,17 @@ void player_use_block(){
 void player_set_block_inventory_index(uint32_t block_inventory_index){
   if(player.block_inventory[block_inventory_index].number > 0)
     player.block_inventory_active_index = block_inventory_index;
+}
+
+void player_obtain_tool(player_tool_type_t tool_type, uint32_t object_id){
+  player.tools[player.num_tools].object_id     = object_id;
+  player.tools[player.num_tools].tool_type     = tool_type;
+  player.tools[player.num_tools].use_remaining = 255;
+  player.num_tools++;
+}
+
+void player_set_active_tool_index(uint32_t tool_index){
+  if(tool_index < player.num_tools){
+    player.active_tool_index = tool_index;
+  }
 }

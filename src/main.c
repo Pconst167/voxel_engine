@@ -179,7 +179,6 @@ uint32_t total_chunk_triangles_to_render = 0;
 
 // mining and tools
 bool mining = false;
-int32_t pickaxe_id;
 int8_t animation_frame;
 int8_t animation_direction = 1;
 
@@ -213,12 +212,21 @@ void setup(void) {
 
   // CREATE OBJECTS
   mesh_t *mesh;
-  mesh = load_mesh("./assets/obj/blocks/axe.obj", false);
-  pickaxe_id = create_object(mesh, OBJECT_TYPE_TOOL, true, false, false,
+  uint32_t object_id;
+  mesh = load_mesh("./assets/obj/blocks/pickaxe3.obj", false);
+  object_id = create_object(mesh, OBJECT_TYPE_TOOL, true, false, false,
                            (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
                            (vector3_t){1.8f, 1.8f, 1.8f}, (vector3_t){0, 0, 0}, (vector3_t){player.position.x, player.position.y - 2, player.position.z},
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
+  player_obtain_tool(PLAYER_TOOL_STONE_PICKAXE, object_id);
+  mesh = load_mesh("./assets/obj/blocks/axe.obj", false);
+  object_id = create_object(mesh, OBJECT_TYPE_TOOL, true, false, false,
+                           (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
+                           (vector3_t){1.8f, 1.8f, 1.8f}, (vector3_t){0, 0, 0}, (vector3_t){player.position.x, player.position.y - 2, player.position.z},
+                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  );
+  player_obtain_tool(PLAYER_TOOL_STONE_AXE, object_id);
 }
 
 void process_input(void){
@@ -279,37 +287,48 @@ void process_game_input(SDL_Event *event){
   // KEYBOARD
   if(event->type == SDL_KEYDOWN && !event->key.repeat){
     SDL_Keycode keycode = event->key.keysym.sym;
-    //Uint16 modifiers = event->key.keysym.mod;
+    Uint16 modifiers = event->key.keysym.mod;
 
-    if(keycode == SDLK_1){
-      player_set_block_inventory_index(0);
+    if(keycode == SDLK_1 && (modifiers & KMOD_SHIFT)){
+      player_set_active_tool_index(0);
     }
-    if(keycode == SDLK_2){
-      player_set_block_inventory_index(1);
+    else if(keycode == SDLK_2 && (modifiers & KMOD_SHIFT)){
+      player_set_active_tool_index(1);
     }
-    if(keycode == SDLK_3){
-      player_set_block_inventory_index(2);
+    else if(keycode == SDLK_3 && (modifiers & KMOD_SHIFT)){
+      player_set_active_tool_index(2);
     }
-    if(keycode == SDLK_4){
-      player_set_block_inventory_index(3);
-    }
-    if(keycode == SDLK_5){
-      player_set_block_inventory_index(4);
-    }
-    if(keycode == SDLK_6){
-      player_set_block_inventory_index(5);
-    }
-    if(keycode == SDLK_7){
-      player_set_block_inventory_index(6);
-    }
-    if(keycode == SDLK_8){
-      player_set_block_inventory_index(7);
-    }
-    if(keycode == SDLK_9){
-      player_set_block_inventory_index(8);
-    }
-    if(keycode == SDLK_0){
-      player_set_block_inventory_index(9);
+    else{
+      if(keycode == SDLK_1){
+        player_set_block_inventory_index(0);
+      }
+      else if(keycode == SDLK_2){
+        player_set_block_inventory_index(1);
+      }
+      else if(keycode == SDLK_3){
+        player_set_block_inventory_index(2);
+      }
+      else if(keycode == SDLK_4){
+        player_set_block_inventory_index(3);
+      }
+      else if(keycode == SDLK_5){
+        player_set_block_inventory_index(4);
+      }
+      else if(keycode == SDLK_6){
+        player_set_block_inventory_index(5);
+      }
+      else if(keycode == SDLK_7){
+        player_set_block_inventory_index(6);
+      }
+      else if(keycode == SDLK_8){
+        player_set_block_inventory_index(7);
+      }
+      else if(keycode == SDLK_9){
+        player_set_block_inventory_index(8);
+      }
+      else if(keycode == SDLK_0){
+        player_set_block_inventory_index(9);
+      }
     }
   }
 
@@ -2925,15 +2944,16 @@ void update_state(void){
 
   vector3_t tool_direction = vector3_rotate_y(camera.direction, 0.5);
 
-  objects[pickaxe_id].translation.x = camera.position.x + -0.6*yu.x + ZNEAR * camera.direction.x + (mining? 0.3 : 0.05)* tool_direction.x - 0.4f * player_direction_orthogonal_left_right.x ;
-  objects[pickaxe_id].translation.y = camera.position.y + -0.6*yu.y + ZNEAR * camera.direction.y + (mining? 0.3 : 0.05)* tool_direction.y;
-  objects[pickaxe_id].translation.z = camera.position.z + -0.6*yu.z + ZNEAR * camera.direction.z + (mining? 0.3 : 0.05)* tool_direction.z - 0.4f * player_direction_orthogonal_left_right.z;
+  uint32_t player_active_tool_object_id = player.tools[player.active_tool_index].object_id;
+  objects[player_active_tool_object_id].translation.x = camera.position.x + -0.6*yu.x + ZNEAR * camera.direction.x + (mining? 0.3 : 0.05)* tool_direction.x - 0.4f * player_direction_orthogonal_left_right.x ;
+  objects[player_active_tool_object_id].translation.y = camera.position.y + -0.6*yu.y + ZNEAR * camera.direction.y + (mining? 0.3 : 0.05)* tool_direction.y;
+  objects[player_active_tool_object_id].translation.z = camera.position.z + -0.6*yu.z + ZNEAR * camera.direction.z + (mining? 0.3 : 0.05)* tool_direction.z - 0.4f * player_direction_orthogonal_left_right.z;
 
   // ROTATION
-  objects[pickaxe_id].rotation.y  = -player.theta + M_PI_2 - 0.5;
+  objects[player_active_tool_object_id].rotation.y  = -player.theta + M_PI_2 - 0.5;
   float animation_angle = 20*(M_PI) * (float)animation_frame / 8.0f;
   float rotation_x = -M_PI_4 - player.eta + animation_angle * delta_time;
-  objects[pickaxe_id].rotation.x = rotation_x;
+  objects[player_active_tool_object_id].rotation.x = rotation_x;
 }
 
 inline uint32_t rasterize_triangle(triangle_t *triangle){
@@ -3278,9 +3298,8 @@ void process_mining(){
 
 void render_objects(){
   zbuffer_test = false;
-  for(uint32_t object_i = 0; object_i < num_objects; object_i++){
-    render_object(&objects[object_i]);
-  }
+  uint32_t player_active_tool_object_id = player.tools[player.active_tool_index].object_id;
+  render_object(&objects[player_active_tool_object_id]);
   zbuffer_test = true;
 }
 
