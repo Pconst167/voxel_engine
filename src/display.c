@@ -10,7 +10,8 @@ SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 color_t *color_buffer = NULL;
 float *zbuffer = NULL;
-bool zbuffer_test;
+bool zbuffer_test = true;
+bool zbuffer_write = true;
 SDL_Texture *color_buffer_texture = NULL;
 int window_width;
 int window_height;
@@ -20,7 +21,7 @@ int fps;
 
 bool initialize_window(void){
 
-  window_width  = 960;
+  window_width  = 640;
   window_height = (float)window_width * ASPECT_RATIO_Y / ASPECT_RATIO_X;
 
   if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0){

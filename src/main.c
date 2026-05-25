@@ -2562,7 +2562,7 @@ void render_object(object_t *object){
 
       /* TRIANGLE RASTERIZATION */
       //total_pixels_rendered += rasterize_triangle(&projected_triangle);
-      total_pixels_rendered += rasterize_triangle_no_zbuffer_write(&projected_triangle, face_material, total_light_intensity);
+      total_pixels_rendered += rasterize_triangle(&projected_triangle);
       if(options.wireframe_overlay){
         draw_triangle(
           projected_triangle.points[0].x,
@@ -2973,7 +2973,7 @@ inline uint32_t rasterize_triangle(triangle_t *triangle){
         );
 
       case BLEND_MODE_ALPHA_TEST:
-        return draw_textured_triangle_alpha_test(
+        return draw_textured_triangle_alpha_test_float(
           &triangle->points[0], triangle->uv[0],
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
@@ -2986,7 +2986,7 @@ inline uint32_t rasterize_triangle(triangle_t *triangle){
         );
 
       case BLEND_MODE_ALPHA_BLEND:
-        return draw_textured_triangle_alpha_blend(
+        return draw_textured_triangle_alpha_blend_float(
           &triangle->points[0], triangle->uv[0],
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
@@ -2996,77 +2996,6 @@ inline uint32_t rasterize_triangle(triangle_t *triangle){
           triangle->face_material.reflects_light,
           options.dither || triangle->face_material.dither,
           triangle->face_material.opacity
-        );
-    }
-  }
-
-  return 0;
-}
-
-inline uint32_t rasterize_triangle_no_zbuffer_write(
-  triangle_t *triangle, 
-  material_t face_material,
-  light_intensity_rgb_t total_light_intensity
-){
-  if(options.projection_mode == TEXT_FILLED){
-    return draw_filled_triangle_no_zbuffer_write(
-      &triangle->points[0], 
-      &triangle->points[1], 
-      &triangle->points[2], 
-      face_material.base_color,
-      total_light_intensity,
-      face_material.emissive_color,
-      face_material.reflects_light,
-      options.dither
-    );
-  }
-  else if(options.projection_mode == TEXT_WIREFRAME){
-    draw_triangle(
-      triangle->points[0].x, triangle->points[0].y,
-      triangle->points[1].x, triangle->points[1].y,
-      triangle->points[2].x, triangle->points[2].y,
-      (color_t){.uint32 = 0xFFFFFFFF}
-    );
-    return 0;
-  }
-  else{
-    switch(face_material.blend_mode){
-      case BLEND_MODE_OPAQUE:
-        return draw_textured_triangle_opaque_no_zbuffer_write(
-          &triangle->points[0], triangle->uv[0],
-          &triangle->points[1], triangle->uv[1],
-          &triangle->points[2], triangle->uv[2],
-          face_material.texture->texture, face_material.texture->texture_width, face_material.texture->texture_height,
-          total_light_intensity,
-          face_material.emissive_color,
-          face_material.reflects_light,
-          options.dither
-        );
-
-      case BLEND_MODE_ALPHA_TEST:
-        return draw_textured_triangle_alpha_test_no_zbuffer_write(
-          &triangle->points[0], triangle->uv[0],
-          &triangle->points[1], triangle->uv[1],
-          &triangle->points[2], triangle->uv[2],
-          face_material.texture->texture, face_material.texture->texture_width, face_material.texture->texture_height,
-          total_light_intensity,
-          face_material.emissive_color,
-          face_material.reflects_light,
-          options.dither,
-          face_material.alpha_cutoff
-        );
-
-      case BLEND_MODE_ALPHA_BLEND:
-        return draw_textured_triangle_alpha_blend(
-          &triangle->points[0], triangle->uv[0],
-          &triangle->points[1], triangle->uv[1],
-          &triangle->points[2], triangle->uv[2],
-          face_material.texture->texture, face_material.texture->texture_width, face_material.texture->texture_height,
-          total_light_intensity,
-          face_material.emissive_color,
-          face_material.reflects_light,
-          options.dither,
-          face_material.opacity
         );
     }
   }
@@ -3348,9 +3277,11 @@ void process_mining(){
 }
 
 void render_objects(){
+  zbuffer_test = false;
   for(uint32_t object_i = 0; object_i < num_objects; object_i++){
     render_object(&objects[object_i]);
   }
+  zbuffer_test = true;
 }
 
 int main(int argc, char *argv[]){

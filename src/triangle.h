@@ -75,14 +75,6 @@ uint32_t draw_filled_triangle_float(
   bool reflects_light,
   bool dither
 );
-uint32_t  draw_filled_triangle_no_zbuffer_write(
-  vector4_t *v0, vector4_t *v1, vector4_t *v2, 
-  color_t color, 
-  light_intensity_rgb_t total_light_intensity,
-  color_t emissive_color,
-  bool reflects_light,
-  bool dither
-);
 
 uint32_t draw_textured_triangle_opaque(
   vector4_t *v0, uv_t v0_uv,
@@ -104,17 +96,7 @@ uint32_t draw_textured_triangle_opaque_float(
   bool reflects_light,
   bool dither
 );
-uint32_t draw_textured_triangle_opaque_no_zbuffer_write(
-  vector4_t *v0, uv_t v0_uv,
-  vector4_t *v1, uv_t v1_uv,
-  vector4_t *v2, uv_t v2_uv,
-  color_t *texture, int texture_width, int texture_height,
-  light_intensity_rgb_t total_light_intensity,
-  color_t emissive_color,
-  bool reflects_light,
-  bool dither
-);
-uint32_t draw_textured_triangle_alpha_test(
+uint32_t draw_textured_triangle_alpha_test_float(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
@@ -125,7 +107,7 @@ uint32_t draw_textured_triangle_alpha_test(
   bool dither,
   uint8_t alpha_cutoff
 );
-uint32_t draw_textured_triangle_alpha_test_no_zbuffer_write(
+uint32_t draw_textured_triangle_alpha_blend_float(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
   vector4_t *v2, uv_t v2_uv,
@@ -134,31 +116,6 @@ uint32_t draw_textured_triangle_alpha_test_no_zbuffer_write(
   color_t emissive_color,
   bool reflects_light,
   bool dither,
-  uint8_t alpha_cutoff
-);
-uint32_t draw_textured_triangle_alpha_blend(
-  vector4_t *v0, uv_t v0_uv,
-  vector4_t *v1, uv_t v1_uv,
-  vector4_t *v2, uv_t v2_uv,
-  color_t *texture, int texture_width, int texture_height,
-  light_intensity_rgb_t total_light_intensity,
-  color_t emissive_color,
-  bool reflects_light,
-  bool dither,
-  float opacity
-);
-
-uint32_t draw_textured_triangle(
-  vector4_t *v0, uv_t v0_uv,
-  vector4_t *v1, uv_t v1_uv,
-  vector4_t *v2, uv_t v2_uv,
-  color_t *texture, int texture_width, int texture_height,
-  light_intensity_rgb_t total_light_intensity,
-  color_t emissive_color,
-  bool reflects_light,
-  bool dither,
-  blend_mode_t blend_mode,
-  uint8_t alpha_cutoff,
   float opacity
 );
 

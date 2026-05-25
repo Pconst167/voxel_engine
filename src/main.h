@@ -36,7 +36,6 @@ void draw_char(int x, int y, char character, color_t color, int scale, font_type
 void draw_text(int x, int y, const char *text, color_t color, int scale, font_type_t type);
 
 uint32_t rasterize_triangle(triangle_t *triangle);
-uint32_t rasterize_triangle_no_zbuffer_write(triangle_t *triangle, material_t face_material, light_intensity_rgb_t total_light_intensity);
 
 bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane);
 uint32_t chunk_num_vertices_inside_plane(chunk_t *chunk, frustrum_plane_t frustrum_plane);
