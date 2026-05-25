@@ -2908,7 +2908,7 @@ void update_state(void){
   }
 
   objects[pickaxe_id].rotation.y  = -player.theta + M_PI_2;
-  float animation_angle = M_PI_2 * (float)animation_frame / 4.0f;
+  float animation_angle = (M_PI_2+0.2) * (float)animation_frame / 4.0f;
   float rotation_x = -M_PI_4 - player.eta + animation_angle;
   objects[pickaxe_id].rotation.x = rotation_x;
   objects[pickaxe_id].rotation.z = -0.2;
