@@ -213,7 +213,7 @@ void setup(void) {
 
   // CREATE OBJECTS
   mesh_t *mesh;
-  mesh = load_mesh("./assets/obj/blocks/pickaxe3.obj", false);
+  mesh = load_mesh("./assets/obj/blocks/axe.obj", false);
   pickaxe_id = create_object(mesh, OBJECT_TYPE_TOOL, true, false, false,
                            (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
                            (vector3_t){1.8f, 1.8f, 1.8f}, (vector3_t){0, 0, 0}, (vector3_t){player.position.x, player.position.y - 2, player.position.z},
