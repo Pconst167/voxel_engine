@@ -15,26 +15,19 @@
 #include "aabb.h"
 #include "material.h"
 
-#define MAX_NUM_OBJECTS 1000
+#define MAX_NUM_OBJECTS 300
 #define MAX_LEN_OBJECT_NAME 64
 
 typedef enum{
-  OBJECT_TYPE_SKYBOX, /* skyboxes are special objects that track camera movement so they are always at constant distance from camera */
+  OBJECT_TYPE_SKYBOX,
   OBJECT_TYPE_ROOM,
   OBJECT_TYPE_FURNITURE,
   OBJECT_TYPE_DOOR,
-  OBJECT_TYPE_COMPUTER,
-  OBJECT_TYPE_ROBOT,
   OBJECT_TYPE_BUTTON,
-  OBJECT_TYPE_ITEM
+  OBJECT_TYPE_ITEM,
+  OBJECT_TYPE_TOOL,
+  OBJECT_TYPE_WEAPON
 } object_type_t;
-
-typedef struct{
-  char name[MAX_LEN_OBJECT_NAME];
-  bool turned_on;
-  texture_t *screen_texture;
-  uint32_t cycles_per_frame;
-} computer_data_t;
 
 typedef struct{
   bool open;
@@ -50,7 +43,6 @@ typedef struct{
 } item_data_t;
 
 typedef union{
-  computer_data_t as_computer;
   door_data_t as_door;
   button_data_t as_button;
   item_data_t as_item;
@@ -58,23 +50,19 @@ typedef union{
 
 typedef struct{
   mesh_t *mesh;
-  vector3_t *transformed_vertices; /* if object is fixed, then we hold a copy of the original vertices here, only with baked transformations */
   object_type_t object_type;
-  bool fixed; /* object is static and does not change */
   bool backface_culling;
   /* bounding box/sphere - for static objects with baked in transforms (bbox not present for now) */
   aabb_3d_t bbox_aabb; /* object's bounding box aabb */
   vector3_t bounding_center;
   float bsphere_radius;
-  /* current object's trandformation state */
+  /* current object's transformation state */
   vector3_t scale;
   vector3_t rotation;
   vector3_t translation;
   /* these are added to the current transformation state for potential movement */
   vector3_t velocity;
   vector3_t angular_velocity;
-  /* an array indicating the frame id where each object face was last drawn - used to avoid redrawing the same face in different chunks */
-  uint32_t *face_draw_stamp;
   // overriding materials
   material_t *material_overrides;  // array of overriding materials for the object
   bool *material_override_flags; // an override flag for each material - same number of elements as materials array
@@ -94,7 +82,6 @@ extern uint32_t num_objects;
 int32_t create_object(
   mesh_t *mesh,
   object_type_t object_type,
-  bool fixed,
   bool backface_culling,
   bool attach_collision_aabb,
   bool collision_aabb_active,
