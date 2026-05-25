@@ -10,6 +10,7 @@ SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 color_t *color_buffer = NULL;
 float *zbuffer = NULL;
+bool zbuffer_test;
 SDL_Texture *color_buffer_texture = NULL;
 int window_width;
 int window_height;

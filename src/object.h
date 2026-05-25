@@ -68,6 +68,9 @@ typedef struct{
   bool *material_override_flags; // an override flag for each material - same number of elements as materials array
   // object's gameplay data
   gameplay_data_t gameplay_data;
+  // animation data 
+  int32_t animation_frame;
+  int8_t animation_direction;
 } object_t;
 
 /* used to sort objects for rendering */

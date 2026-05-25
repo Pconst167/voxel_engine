@@ -10,10 +10,22 @@ player_t player = {
   .radius                       = 0.30f,
   .height                       = 1.80f,
   .aabb                         = {0},
+
   .on_ground                    = false,
+  // blocks holding
   .block_inventory_active_index = 0,
   .block_inventory              = {{0}},
-  .block_inventory_size         = 0
+
+  .block_inventory_size         = 0,
+  // tools holding
+  .tools                        = {
+    {
+      .tool_type     = PLAYER_TOOL_STONE_PICKAXE,
+      .use_remaining = 255
+    }
+  },
+  .num_tools                    = 1,
+  .active_tool_index            = 0
 };
 
 vector3_t player_direction_orthogonal_left_right;
@@ -46,22 +58,14 @@ aabb_3d_t make_player_aabb_at_position(vector3_t position){
 
 void init_player(){
   player.block_inventory[0].block_type = BLOCK_TYPE_GLASS;
-  player.block_inventory[0].number = 400;
-  player.block_inventory[1].block_type = BLOCK_TYPE_TREE_TRUNK0;
-  player.block_inventory[1].number = 400;
-  player.block_inventory[2].block_type = BLOCK_TYPE_TREE_TRUNK1;
-  player.block_inventory[2].number = 400;
-  player.block_inventory[3].block_type = BLOCK_TYPE_TREE_TRUNK2;
-  player.block_inventory[3].number = 400;
-  player.block_inventory[4].block_type = BLOCK_TYPE_TREE_TRUNK3;
-  player.block_inventory[4].number = 400;
-  player.block_inventory[5].block_type = BLOCK_TYPE_LAMP0;
-  player.block_inventory[5].number = 400;
-  player.block_inventory[6].block_type = BLOCK_TYPE_OVEN0;
-  player.block_inventory[6].number = 400;
-  player.block_inventory[7].block_type = BLOCK_TYPE_CHEST0;
-  player.block_inventory[7].number = 400;
-  player.block_inventory_size = 8;
+  player.block_inventory[0].number = 40;
+  player.block_inventory[1].block_type = BLOCK_TYPE_LAMP0;
+  player.block_inventory[1].number = 40;
+  player.block_inventory[2].block_type = BLOCK_TYPE_OVEN0;
+  player.block_inventory[2].number = 40;
+  player.block_inventory[3].block_type = BLOCK_TYPE_CHEST0;
+  player.block_inventory[3].number = 40;
+  player.block_inventory_size = 4;
 }
 
 // check if player already has the block type, if so add +1 to entry

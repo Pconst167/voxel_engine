@@ -2561,7 +2561,8 @@ void render_object(object_t *object){
       projected_triangle.total_light_intensity = total_light_intensity;
 
       /* TRIANGLE RASTERIZATION */
-      total_pixels_rendered += rasterize_triangle(&projected_triangle);
+      //total_pixels_rendered += rasterize_triangle(&projected_triangle);
+      total_pixels_rendered += rasterize_triangle_no_zbuffer_write(&projected_triangle, face_material, total_light_intensity);
       if(options.wireframe_overlay){
         draw_triangle(
           projected_triangle.points[0].x,
@@ -2933,7 +2934,6 @@ void update_state(void){
   float animation_angle = 20*(M_PI) * (float)animation_frame / 8.0f;
   float rotation_x = -M_PI_4 - player.eta + animation_angle * delta_time;
   objects[pickaxe_id].rotation.x = rotation_x;
-  //objects[pickaxe_id].rotation.z = -0.1;
 }
 
 inline uint32_t rasterize_triangle(triangle_t *triangle){

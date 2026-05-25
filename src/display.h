@@ -17,6 +17,7 @@ extern SDL_Renderer *renderer;
 extern color_t *color_buffer;
 extern SDL_Texture *color_buffer_texture;
 extern float *zbuffer;
+extern bool zbuffer_test;
 
 extern int window_width;
 extern int window_height;

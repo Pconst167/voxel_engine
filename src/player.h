@@ -16,6 +16,28 @@
 
 #define PLAYER_BLOCK_INVENTORY_MAX_SIZE 50
 
+#define MAX_PLAYER_TOOLS_HOLDING 10
+
+typedef enum{
+  PLAYER_TOOL_STONE_PICKAXE,
+  PLAYER_TOOL_IRON_PICKAXE,
+  PLAYER_TOOL_DIAMOND_PICKAXE,
+
+  PLAYER_TOOL_STONE_AXE,
+  PLAYER_TOOL_IRON_AXE,
+  PLAYER_TOOL_DIAMOND_AXE,
+
+  PLAYER_TOOL_WOODEN_SHOVEL,
+  PLAYER_TOOL_STONE_SHOVEL,
+  PLAYER_TOOL_IRON_SHOVEL,
+  PLAYER_TOOL_DIAMOND_SHOVEL
+} player_tool_type_t;
+
+typedef struct{
+  player_tool_type_t tool_type;
+  uint8_t use_remaining;
+} player_tool_t;
+
 typedef struct{
   block_type_t block_type;
   uint32_t number;
@@ -32,7 +54,12 @@ typedef struct{
   aabb_3d_t aabb;
   bool on_ground;
 
-  // currently holding
+  // tools currently holding
+  player_tool_t tools[MAX_PLAYER_TOOLS_HOLDING];
+  uint32_t num_tools;
+  uint8_t active_tool_index;
+
+  // blocks currently holding
   player_block_inventory_entry_t block_inventory[PLAYER_BLOCK_INVENTORY_MAX_SIZE];
   uint32_t block_inventory_size;
   uint32_t block_inventory_active_index; // index of block type being held currently

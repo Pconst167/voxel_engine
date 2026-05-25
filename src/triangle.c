@@ -1124,7 +1124,7 @@ uint32_t draw_textured_triangle_opaque_no_zbuffer_write(
 
         float interpolated_reciprocal_w = alpha * one_over_v0_w + beta * one_over_v1_w + gamma * one_over_v2_w;
 
-        if(zbuffer[y * window_width + x] == 0.0f){
+        if(zbuffer[y * window_width + x] == 0.0f || !zbuffer_test){
           float interpolated_u = alpha * v0_u_over_v0_w + beta  * v1_u_over_v1_w + gamma * v2_u_over_v2_w;
           float interpolated_v = alpha * v0_v_over_v0_w + beta  * v1_v_over_v1_w + gamma * v2_v_over_v2_w;
 
