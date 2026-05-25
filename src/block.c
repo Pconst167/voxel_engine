@@ -493,12 +493,12 @@ void init_block_materials(){
       .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .front_texture      = load_texture("./assets/textures/blocks/dirt_2.png"),
-      .back_texture       = load_texture("./assets/textures/blocks/dirt_2.png"),
-      .left_texture       = load_texture("./assets/textures/blocks/dirt_2.png"),
-      .right_texture       = load_texture("./assets/textures/blocks/dirt_2.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/dirt_2.png"),
-      .bottom_texture     = load_texture("./assets/textures/blocks/dirt_2.png")
+      .front_texture      = load_texture("./assets/textures/blocks/dirt.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/dirt.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/dirt.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/dirt.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/dirt.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/dirt.png")
     })
   );
 

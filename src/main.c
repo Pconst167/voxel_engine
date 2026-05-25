@@ -180,7 +180,7 @@ uint32_t total_chunk_triangles_to_render = 0;
 // mining and tools
 bool mining = false;
 int32_t pickaxe_id;
-uint8_t animation_frame;
+int8_t animation_frame;
 int8_t animation_direction = 1;
 
 void setup(void) {
@@ -216,7 +216,7 @@ void setup(void) {
   mesh = load_mesh("./assets/obj/blocks/pickaxe3.obj", false);
   pickaxe_id = create_object(mesh, OBJECT_TYPE_TOOL, true, false, false,
                            (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-                           (vector3_t){1.5f, 1.5f, 1.5f}, (vector3_t){0, 0, 0}, (vector3_t){player.position.x, player.position.y - 2, player.position.z},
+                           (vector3_t){1.8f, 1.8f, 1.8f}, (vector3_t){0, 0, 0}, (vector3_t){player.position.x, player.position.y - 2, player.position.z},
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 }
@@ -2899,19 +2899,13 @@ void update_state(void){
   if(mining){
     if(animation_direction == 1){
       animation_frame++;
-      if(animation_frame == 8) animation_direction = -1;
+      if(animation_frame >= 0) animation_direction = -1;
     }
     else{
       animation_frame--;
-      if(animation_frame == 0) animation_direction = 1;
+      if(animation_frame <= -3) animation_direction = 1;
     }
   }
-
-  objects[pickaxe_id].rotation.y  = -player.theta + M_PI_2;
-  float animation_angle = (1.4*M_PI) * (float)animation_frame / 8.0f;
-  float rotation_x = -M_PI_4 - player.eta + animation_angle;
-  objects[pickaxe_id].rotation.x = rotation_x;
-  objects[pickaxe_id].rotation.z = -0.2;
 
   vector3_t zf = camera.direction;
   /* up cross zf */
@@ -2928,10 +2922,18 @@ void update_state(void){
     .z = zf.x * xr.y - zf.y * xr.x
   };
 
-  objects[pickaxe_id].translation.x = camera.position.x + -0.2*yu.x + 2*ZNEAR * camera.direction.x - 0.2f * player_direction_orthogonal_left_right.x ;
-  objects[pickaxe_id].translation.y = camera.position.y + -0.2*yu.y + 2*ZNEAR * camera.direction.y;
-  objects[pickaxe_id].translation.z = camera.position.z + -0.2*yu.z + 2*ZNEAR * camera.direction.z - 0.2f * player_direction_orthogonal_left_right.z;
+  vector3_t tool_direction = vector3_rotate_y(camera.direction, 0.5);
 
+  objects[pickaxe_id].translation.x = camera.position.x + -0.6*yu.x + ZNEAR * camera.direction.x + (mining? 0.3 : 0.05)* tool_direction.x - 0.4f * player_direction_orthogonal_left_right.x ;
+  objects[pickaxe_id].translation.y = camera.position.y + -0.6*yu.y + ZNEAR * camera.direction.y + (mining? 0.3 : 0.05)* tool_direction.y;
+  objects[pickaxe_id].translation.z = camera.position.z + -0.6*yu.z + ZNEAR * camera.direction.z + (mining? 0.3 : 0.05)* tool_direction.z - 0.4f * player_direction_orthogonal_left_right.z;
+
+  // ROTATION
+  objects[pickaxe_id].rotation.y  = -player.theta + M_PI_2 - 0.5;
+  float animation_angle = 20*(M_PI) * (float)animation_frame / 8.0f;
+  float rotation_x = -M_PI_4 - player.eta + animation_angle * delta_time;
+  objects[pickaxe_id].rotation.x = rotation_x;
+  //objects[pickaxe_id].rotation.z = -0.1;
 }
 
 inline uint32_t rasterize_triangle(triangle_t *triangle){
