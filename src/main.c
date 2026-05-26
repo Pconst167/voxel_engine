@@ -138,14 +138,6 @@ float turn_speed = 2.0f;
 bool quit = false;
 bool is_paused = false;
 
-/* player data */
-int player_chunk_x;
-int player_chunk_z;
-int player_chunk_y;
-int32_t player_block_x;
-int32_t player_block_z;
-int32_t player_block_y;
-
 // debug window
 char debug_info_str[4096];
 int debug_x_collision_start_x, debug_x_collision_start_y, debug_x_collision_start_z;
@@ -210,6 +202,8 @@ void setup(void) {
   create_world_chunks();
   init_player();
 
+  load_skybox();
+
   // CREATE OBJECTS
   mesh_t *mesh;
   uint32_t object_id;
@@ -236,6 +230,14 @@ void setup(void) {
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
   player_obtain_tool(PLAYER_TOOL_STONE_SWORD, object_id);
+
+  mesh = load_mesh("./assets/obj/blocks/shovel.obj", false);
+  object_id = create_object(mesh, OBJECT_TYPE_TOOL, true, false, false,
+                           (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
+                           (vector3_t){1.8f, 1.8f, 1.8f}, (vector3_t){0, 0, 0}, (vector3_t){player.position.x, player.position.y - 2, player.position.z},
+                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  );
+  player_obtain_tool(PLAYER_TOOL_STONE_SHOVEL, object_id);
 }
 
 void process_input(void){
@@ -304,6 +306,9 @@ void process_game_input(SDL_Event *event){
     }
     else if(scancode == SDL_SCANCODE_C){
       player_set_active_tool_index(2);
+    }
+    else if(scancode == SDL_SCANCODE_V){
+      player_set_active_tool_index(3);
     }
     else{
       if(scancode == SDL_SCANCODE_1){
@@ -1786,21 +1791,14 @@ RENDER STAGE
 
 */
 inline void render_visible_chunks(void) {
-  /* reset color buffer */
-  for(uint32_t pixel_i = 0; pixel_i < total_buffer_pixels; pixel_i++){
-    color_buffer[pixel_i] = (color_t){.uint32 = 0xFFFF8050};
-  }
-  //memset(color_buffer, color_buffer_reset, total_buffer_pixels * sizeof(uint32_t));
-
-  /* reset zbuffer */
-  memset(zbuffer, 0x00, total_buffer_pixels * sizeof(uint32_t));
-  
-  view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
 
   total_triangles_rendered = 0;
   total_pixels_rendered = 0;
   total_chunks_rendered = 0;
 
+  int32_t player_chunk_x = player.position.x / CHUNK_SIZE;
+  int32_t player_chunk_y = player.position.y / CHUNK_SIZE;
+  int32_t player_chunk_z = player.position.z / CHUNK_SIZE;
   int32_t player_chunk_start_y = player_chunk_y - CHUNK_RENDER_DISTANCE;
   int32_t player_chunk_end_y   = player_chunk_y + CHUNK_RENDER_DISTANCE;
   int32_t player_chunk_start_z = player_chunk_z - CHUNK_RENDER_DISTANCE;
@@ -1836,21 +1834,14 @@ inline void render_visible_chunks(void) {
 
 // sort chunks front to back and render
 inline void render_visible_chunks_sorted(void) {
-  /* reset color buffer */
-  for(uint32_t pixel_i = 0; pixel_i < total_buffer_pixels; pixel_i++){
-    color_buffer[pixel_i] = (color_t){.uint32 = 0xFFFF8050};
-  }
-  //memset(color_buffer, color_buffer_reset, total_buffer_pixels * sizeof(uint32_t));
-
-  /* reset zbuffer */
-  memset(zbuffer, 0x00, total_buffer_pixels * sizeof(uint32_t));
-
-  view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
 
   total_triangles_rendered = 0;
   total_pixels_rendered = 0;
   total_chunks_rendered = 0;
 
+  int32_t player_chunk_x = player.position.x / CHUNK_SIZE;
+  int32_t player_chunk_y = player.position.y / CHUNK_SIZE;
+  int32_t player_chunk_z = player.position.z / CHUNK_SIZE;
   int32_t player_chunk_start_y = player_chunk_y - CHUNK_RENDER_DISTANCE;
   int32_t player_chunk_end_y   = player_chunk_y + CHUNK_RENDER_DISTANCE;
   int32_t player_chunk_start_z = player_chunk_z - CHUNK_RENDER_DISTANCE;
@@ -2862,33 +2853,30 @@ void update_light(void){
 
     if(sin_eta < 0.0f) sin_eta = 0.0f;
 
-    light_sources[1].direction = (vector3_t){sun_direction.x, -sun_direction.y, -sun_direction.z};
+    //light_sources[1].direction = (vector3_t){sun_direction.x, -sun_direction.y, -sun_direction.z};
 
-    skybox->translation.x  = player.position.x; 
-    skybox->translation.y  = player.position.y;
-    skybox->translation.z  = player.position.z;
+    skybox->translation.x  = camera.position.x; 
+    skybox->translation.y  = camera.position.y;
+    skybox->translation.z  = camera.position.z;
 
-    skybox->mesh->materials[0].emissive_color.rgb.red   = light_sources[1].color.rgb.red   = 200 +  55 * (1.0f - sin_eta);
-    skybox->mesh->materials[0].emissive_color.rgb.green = light_sources[1].color.rgb.green = 100 + 155 * sin_eta;
-    skybox->mesh->materials[0].emissive_color.rgb.blue  = light_sources[1].color.rgb.blue  = 255       * sin_eta;
+    //skybox->mesh->materials[0].emissive_color.rgb.red   = light_sources[1].color.rgb.red   = 200 +  55 * (1.0f - sin_eta);
+    //skybox->mesh->materials[0].emissive_color.rgb.green = light_sources[1].color.rgb.green = 100 + 155 * sin_eta;
+    //skybox->mesh->materials[0].emissive_color.rgb.blue  = light_sources[1].color.rgb.blue  = 255       * sin_eta;
 
     //* obj 0 is skybox */
-    float emissive_intensity = (sin_eta < MIN_SKYBOX_INTENSITY) ? MIN_SKYBOX_INTENSITY : sin_eta;
-    skybox->mesh->materials[0].emissive_color.rgb.red   = 255.0f * (emissive_intensity); /* sky luminosity as a function of time */
-    skybox->mesh->materials[0].emissive_color.rgb.green = 255.0f * (emissive_intensity); /* sky luminosity as a function of time */
-    skybox->mesh->materials[0].emissive_color.rgb.blue  = 255.0f * (emissive_intensity); /* sky luminosity as a function of time */
+    //float emissive_intensity = (sin_eta < MIN_SKYBOX_INTENSITY) ? MIN_SKYBOX_INTENSITY : sin_eta;
+    //skybox->mesh->materials[0].emissive_color.rgb.red   = 255.0f * (emissive_intensity); /* sky luminosity as a function of time */
+    //skybox->mesh->materials[0].emissive_color.rgb.green = 255.0f * (emissive_intensity); /* sky luminosity as a function of time */
+    //skybox->mesh->materials[0].emissive_color.rgb.blue  = 255.0f * (emissive_intensity); /* sky luminosity as a function of time */
 
-    light_sources[1].intensity = sin_eta;
+    //light_sources[1].intensity = sin_eta;
     /* as sun sets or rises, ambient light should get bluer, and oranger towards noon */
-    light_sources[0].color = skybox->mesh->materials[0].emissive_color; 
-    light_sources[0].intensity = MIN_AMBIENT_LIGHT_INTENSITY + AMBIENT_LIGHT_MAX_FACTOR * sin_eta;
+    //light_sources[0].color = skybox->mesh->materials[0].emissive_color; 
+    //light_sources[0].intensity = MIN_AMBIENT_LIGHT_INTENSITY + AMBIENT_LIGHT_MAX_FACTOR * sin_eta;
   }
 }
 
-void update_state(void){
-
-  update_light();
-
+void update_player_directions(){
   player.direction = (vector3_t){
     .x = cosf(player.theta),
     .y = 0.0f,
@@ -2901,7 +2889,9 @@ void update_state(void){
     .y =  0.0f,
     .z =  player.direction.x * up.y
   };
+}
 
+void update_camera(){
   /* camera tracks player */
   camera.position = (vector3_t){
     .x = player.position.x,
@@ -2913,54 +2903,6 @@ void update_state(void){
     .y = sinf(player.eta),
     .z = cosf(player.eta) * player.direction.z
   };
-
-  player_block_x = player.position.x;
-  player_block_y = player.position.y;
-  player_block_z = player.position.z;
-
-  player_chunk_x = player_block_x / CHUNK_SIZE;
-  player_chunk_y = player_block_y / CHUNK_SIZE;
-  player_chunk_z = player_block_z / CHUNK_SIZE;
-
-  // PLAYER TOOLS
-  if(mining){
-    if(animation_direction == 1){
-      animation_frame++;
-      if(animation_frame >= 0) animation_direction = -1;
-    }
-    else{
-      animation_frame--;
-      if(animation_frame <= -3) animation_direction = 1;
-    }
-  }
-
-  vector3_t zf = camera.direction;
-  /* up cross zf */
-  vector3_t xr = {
-    .x = up.y * zf.z - up.z * zf.y,
-    .y = up.z * zf.x - up.x * zf.z,
-    .z = up.x * zf.y - up.y * zf.x
-  };
-  vector3_normalize(&xr);
-  /* zf cross xr */
-  vector3_t yu = {
-    .x = zf.y * xr.z - zf.z * xr.y,
-    .y = zf.z * xr.x - zf.x * xr.z,
-    .z = zf.x * xr.y - zf.y * xr.x
-  };
-
-  vector3_t tool_direction = vector3_rotate_y(camera.direction, 0.5);
-
-  uint32_t player_active_tool_object_id = player.tools[player.active_tool_index].object_id;
-  objects[player_active_tool_object_id].translation.x = camera.position.x + -0.6*yu.x + ZNEAR * camera.direction.x + (mining? 0.3 : 0.05)* tool_direction.x - 0.4f * player_direction_orthogonal_left_right.x ;
-  objects[player_active_tool_object_id].translation.y = camera.position.y + -0.6*yu.y + ZNEAR * camera.direction.y + (mining? 0.3 : 0.05)* tool_direction.y;
-  objects[player_active_tool_object_id].translation.z = camera.position.z + -0.6*yu.z + ZNEAR * camera.direction.z + (mining? 0.3 : 0.05)* tool_direction.z - 0.4f * player_direction_orthogonal_left_right.z;
-
-  // ROTATION
-  objects[player_active_tool_object_id].rotation.y  = -player.theta + M_PI_2 - 0.5;
-  float animation_angle = 20*(M_PI) * (float)animation_frame / 8.0f;
-  float rotation_x = -M_PI_4 - player.eta + animation_angle * delta_time;
-  objects[player_active_tool_object_id].rotation.x = rotation_x;
 }
 
 inline uint32_t rasterize_triangle(triangle_t *triangle){
@@ -3233,16 +3175,22 @@ void process_frame_rate(void) {
 void print_debug_data(){
   if(options.show_debug_info){
     if((frame_id & 0x0F) == 0x0F){
+      int32_t player_block_x = player.position.x;
+      int32_t player_block_y = player.position.y;
+      int32_t player_block_z = player.position.z;
+      int32_t player_chunk_x = player_block_x / CHUNK_SIZE;
+      int32_t player_chunk_y = player_block_y / CHUNK_SIZE;
+      int32_t player_chunk_z = player_block_z / CHUNK_SIZE;
       snprintf(debug_screen_data, 1024, 
         "on ground: %s, velocity: %.2f:%.2f:%.2f\n"
         "%ut, %upx, %uc, %ufps\n"
-        "block coords: %d:%d:%d, chunk coords: %d:%d\n"
+        "block coords: %d:%d:%d, chunk coords: %d:%d:%d\n"
         "player pos: %.2f:%.2f:%.2f, look direction: %.2f:%.2f:%.2f, theta/eta: %.2f:%.2f\n",
         player.on_ground ? "yes" : "no",
         player.velocity.x, player.velocity.y, player.velocity.z,
         total_triangles_rendered, total_pixels_rendered, total_chunks_rendered, fps, 
         player_block_x, player_block_y, player_block_z,
-        player_chunk_x, player_chunk_z,
+        player_chunk_x, player_chunk_y, player_chunk_z,
         player.position.x,  player.position.y,  player.position.z,
         player.direction.x, player.direction.y, player.direction.z,
         player.theta, player.eta
@@ -3260,6 +3208,9 @@ void render_ui(){
 
   // render blocks menu
   //draw_rect(5, window_height - 18, window_width - 10, 18, (color_t){.uint32 = 0xFFFFFFFF});
+  int32_t player_block_x = player.position.x;
+  int32_t player_block_y = player.position.y;
+  int32_t player_block_z = player.position.z;
   temp = block_at(player_block_y, player_block_z, player_block_x).temperature;
   snprintf(temperature, sizeof(temperature), "%.2fC", temp);
   draw_text(22, window_height - 10, temperature, (color_t){.uint32 = 0xFFFFFFFF}, 1, FONT_5X5);
@@ -3303,9 +3254,49 @@ void process_mining(){
   }
 }
 
-void render_objects(){
-  zbuffer_test = false;
+void render_player_tools(){
+  // PLAYER TOOLS
+  if(mining){
+    if(animation_direction == 1){
+      animation_frame++;
+      if(animation_frame >= 0) animation_direction = -1;
+    }
+    else{
+      animation_frame--;
+      if(animation_frame <= -3) animation_direction = 1;
+    }
+  }
+
+  vector3_t zf = camera.direction;
+  /* up cross zf */
+  vector3_t xr = {
+    .x = up.y * zf.z - up.z * zf.y,
+    .y = up.z * zf.x - up.x * zf.z,
+    .z = up.x * zf.y - up.y * zf.x
+  };
+  vector3_normalize(&xr);
+  /* zf cross xr */
+  vector3_t yu = {
+    .x = zf.y * xr.z - zf.z * xr.y,
+    .y = zf.z * xr.x - zf.x * xr.z,
+    .z = zf.x * xr.y - zf.y * xr.x
+  };
+
+  vector3_t tool_direction = vector3_rotate_y(camera.direction, 0.5);
+
   uint32_t player_active_tool_object_id = player.tools[player.active_tool_index].object_id;
+  objects[player_active_tool_object_id].translation.x = camera.position.x + -0.6*yu.x + ZNEAR * camera.direction.x + (mining? 0.3 : 0.05)* tool_direction.x - 0.4f * player_direction_orthogonal_left_right.x ;
+  objects[player_active_tool_object_id].translation.y = camera.position.y + -0.6*yu.y + ZNEAR * camera.direction.y + (mining? 0.3 : 0.05)* tool_direction.y;
+  objects[player_active_tool_object_id].translation.z = camera.position.z + -0.6*yu.z + ZNEAR * camera.direction.z + (mining? 0.3 : 0.05)* tool_direction.z - 0.4f * player_direction_orthogonal_left_right.z;
+
+  // ROTATION
+  objects[player_active_tool_object_id].rotation.y  = -player.theta + M_PI_2 - 0.5;
+  float animation_angle = 20*(M_PI) * (float)animation_frame / 8.0f;
+  float rotation_x = -M_PI_4 - player.eta + animation_angle * delta_time;
+  objects[player_active_tool_object_id].rotation.x = rotation_x;
+
+  // RENDER
+  zbuffer_test = false;
   render_object(&objects[player_active_tool_object_id]);
   zbuffer_test = true;
 }
@@ -3322,20 +3313,30 @@ int main(int argc, char *argv[]){
     process_input();
 
     if(!console.is_open){
-      update_state();
-      calculate_currently_looked_at_block();
+      /* reset zbuffer */
+      memset(zbuffer, 0x00, total_buffer_pixels * sizeof(uint32_t));
+      for(uint32_t pixel_i = 0; pixel_i < total_buffer_pixels; pixel_i++){
+        color_buffer[pixel_i].uint32 = 0xFFFF8040;
+      }
+
+      update_player_directions();
       move_player();
+      update_camera();
+      calculate_currently_looked_at_block();
+      update_light();
+
+      view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
+
       if(options.chunk_sort) 
         render_visible_chunks_sorted();
       else 
         render_visible_chunks();
 
-      render_objects();
+      render_player_tools();
       process_mining();
 
       print_debug_data();
       render_ui();
-
     }
     else{
       render_console();
@@ -3356,10 +3357,10 @@ int main(int argc, char *argv[]){
 void load_skybox(){
   mesh_t *mesh;
 
-  mesh = load_mesh("./assets/obj/skybox_cube.obj", false);
+  mesh = load_mesh("./assets/obj/blocks/skybox/skybox_cube.obj", false);
   skybox_id = create_object(mesh, OBJECT_TYPE_SKYBOX, false, false, false, 
                            (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-                           (vector3_t){1, 1, 1}, (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}, 
+                           (vector3_t){1, 1, 1}, (vector3_t){0.1, 0.1, 0.1}, (vector3_t){0, 0, 0}, 
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
 }

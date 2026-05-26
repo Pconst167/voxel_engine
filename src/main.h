@@ -23,7 +23,8 @@ void qs_chunk(chunk_sort_key_t *array, int left, int right);
 void triangle_quicksort(triangle_t *array, int count);
 void qs_triangle(triangle_t *array, int left, int right);
 void render_sun(void);
-void update_state(void);
+void update_player_directions();
+void update_camera();
 void move_player(void);
 void update_light(void);
 void process_input(void);
@@ -47,6 +48,8 @@ void render_visible_chunks_sorted(void);
 void render_block_quad(block_quad_t block_quad, block_material_t *block_material, bool looked_at, block_orientation_t block_orientation);
 void draw_chunk_outlines(void);
 void draw_collision_aabb_outlines(void);
+
+void render_player_tools();
 
 bool resolve_player_against_object_aabb_xz(const collision_aabb_t *box);
 
