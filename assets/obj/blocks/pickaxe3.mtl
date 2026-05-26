@@ -1,7 +1,7 @@
 # Blender 4.0.2 MTL File: 'None'
 # www.blender.org
 
-newmtl stone
+newmtl stone.001
 Ns 0.000000
 Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000
@@ -11,7 +11,7 @@ d 1.000000
 illum 2
 map_Kd /home/pconst/Desktop/3d_blocks/assets/textures/blocks/stone2.png
 
-newmtl wood1
+newmtl wood1.001
 Ns 0.000000
 Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000

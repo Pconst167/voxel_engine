@@ -21,7 +21,7 @@ int fps;
 
 bool initialize_window(void){
 
-  window_width  = 640;
+  window_width  = 800;
   window_height = (float)window_width * ASPECT_RATIO_Y / ASPECT_RATIO_X;
 
   if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS) != 0){
@@ -56,7 +56,7 @@ bool initialize_window(void){
   }
 
   SDL_RenderSetLogicalSize(renderer, window_width, window_height);
-  SDL_RenderSetIntegerScale(renderer, SDL_TRUE);
+  //SDL_RenderSetIntegerScale(renderer, SDL_TRUE);
   SDL_SetRelativeMouseMode(SDL_TRUE);
   //SDL_MaximizeWindow(window);
 
