@@ -114,6 +114,50 @@ matrix4_t matrix4_gen_rot_z(float rz){
   return m;
 }
 
+inline matrix4_t matrix4_gen_axis_rot(vector3_t axis, float angle, vector3_t origin){
+  float axis_length = q_rsqrt(axis.x * axis.x + axis.y * axis.y + axis.z * axis.z);
+
+  float x = axis.x * axis_length;
+  float y = axis.y * axis_length;
+  float z = axis.z * axis_length;
+
+  float c = cosf(angle);
+  float s = sinf(angle);
+  float one_minus_c = 1.0f - c;
+
+  float r00 = c + x * x * one_minus_c;
+  float r01 = x * y * one_minus_c - z * s;
+  float r02 = x * z * one_minus_c + y * s;
+
+  float r10 = y * x * one_minus_c + z * s;
+  float r11 = c + y * y * one_minus_c;
+  float r12 = y * z * one_minus_c - x * s;
+
+  float r20 = z * x * one_minus_c - y * s;
+  float r21 = z * y * one_minus_c + x * s;
+  float r22 = c + z * z * one_minus_c;
+
+  /*
+    Translation for rotating around origin/pivot:
+
+      final = R * (v - origin) + origin
+      final = R * v + (origin - R * origin)
+  */
+
+  float tx = origin.x - (r00 * origin.x + r01 * origin.y + r02 * origin.z);
+  float ty = origin.y - (r10 * origin.x + r11 * origin.y + r12 * origin.z);
+  float tz = origin.z - (r20 * origin.x + r21 * origin.y + r22 * origin.z);
+
+  matrix4_t matrix = {{
+    {r00, r01, r02, tx},
+    {r10, r11, r12, ty},
+    {r20, r21, r22, tz},
+    {0,   0,   0,   1}
+  }};
+
+  return matrix;
+}
+
 inline vector4_t matrix4_mul_vector3(const matrix4_t *m, const vector3_t v){
   return (vector4_t){
     .x = m->element[0][0] * v.x + m->element[0][1] * v.y + m->element[0][2] * v.z + m->element[0][3],

@@ -358,10 +358,10 @@ void process_game_input(SDL_Event *event){
 
   // MOUSE BUTTONS
   if(event->type == SDL_MOUSEMOTION){
-    player.theta  -= MOUSE_SENSITIVITY                        * event->motion.xrel;
-    player.eta    += MOUSE_SENSITIVITY * PLAYER_ETA_DIRECTION * event->motion.yrel;
-    if(player.eta  >  ETA_MAX) player.eta =  ETA_MAX;
-    if(player.eta  < -ETA_MAX) player.eta = -ETA_MAX;
+    camera.theta  -= MOUSE_SENSITIVITY                        * event->motion.xrel;
+    camera.eta    += MOUSE_SENSITIVITY * PLAYER_ETA_DIRECTION * event->motion.yrel;
+    if(camera.eta  >  ETA_MAX) camera.eta =  ETA_MAX;
+    if(camera.eta  < -ETA_MAX) camera.eta = -ETA_MAX;
   }
   if(event->type == SDL_MOUSEBUTTONDOWN){
     if(event->button.button == SDL_BUTTON_RIGHT){
@@ -513,6 +513,13 @@ void move_player(void){
   float move_speed_delta_time = ((shift) ? PLAYER_SPEED_SHIFT_KEY_FACTOR * move_speed : move_speed) * delta_time;
   float turn_speed_delta_time = turn_speed * delta_time;
 
+  /* vector orthogonal to camera direction: camera.direction (in XZ plane) cross up */
+  vector3_t camera_orthogonal_left_right = {
+    .x = -camera.direction.z * up.y,
+    .y =  0.0f,
+    .z =  camera.direction.x * up.y
+  };
+
   vector3_t movement = {
     .x = 0.0f,
     .y = 0.0f,
@@ -520,39 +527,39 @@ void move_player(void){
   };
 
   if(keys[SDL_SCANCODE_LEFT])
-    player.theta += turn_speed_delta_time;
+    camera.theta += turn_speed_delta_time;
 
   if(keys[SDL_SCANCODE_RIGHT])
-    player.theta -= turn_speed_delta_time;
+    camera.theta -= turn_speed_delta_time;
 
   if(keys[SDL_SCANCODE_UP]){
-    player.eta += turn_speed_delta_time;
-    if(player.eta > ETA_MAX) player.eta = ETA_MAX;
+    camera.eta += turn_speed_delta_time;
+    if(camera.eta > ETA_MAX) camera.eta = ETA_MAX;
   }
 
   if(keys[SDL_SCANCODE_DOWN]){
-    player.eta -= turn_speed_delta_time;
-    if(player.eta < -ETA_MAX) player.eta = -ETA_MAX;
+    camera.eta -= turn_speed_delta_time;
+    if(camera.eta < -ETA_MAX) camera.eta = -ETA_MAX;
   }
 
   if(keys[SDL_SCANCODE_A]){
-    movement.x += player_direction_orthogonal_left_right.x * move_speed_delta_time;
-    movement.z += player_direction_orthogonal_left_right.z * move_speed_delta_time;
+    movement.x += camera_orthogonal_left_right.x * move_speed_delta_time;
+    movement.z += camera_orthogonal_left_right.z * move_speed_delta_time;
   }
 
   if(keys[SDL_SCANCODE_D]){
-    movement.x -= player_direction_orthogonal_left_right.x * move_speed_delta_time;
-    movement.z -= player_direction_orthogonal_left_right.z * move_speed_delta_time;
+    movement.x -= camera_orthogonal_left_right.x * move_speed_delta_time;
+    movement.z -= camera_orthogonal_left_right.z * move_speed_delta_time;
   }
 
   if(keys[SDL_SCANCODE_W]){
-    movement.x += player.direction.x * move_speed_delta_time;
-    movement.z += player.direction.z * move_speed_delta_time;
-  }
+    movement.x += camera.direction.x * move_speed_delta_time;
+    movement.z += camera.direction.z * move_speed_delta_time;
+  }                     
 
   if(keys[SDL_SCANCODE_S]){
-    movement.x -= player.direction.x * move_speed_delta_time;
-    movement.z -= player.direction.z * move_speed_delta_time;
+    movement.x -= camera.direction.x * move_speed_delta_time;
+    movement.z -= camera.direction.z * move_speed_delta_time;
   }
 
   if(keys[SDL_SCANCODE_SPACE] && player.on_ground){
@@ -2876,21 +2883,6 @@ void update_light(void){
   }
 }
 
-void update_player_directions(){
-  player.direction = (vector3_t){
-    .x = cosf(player.theta),
-    .y = 0.0f,
-    .z = sinf(player.theta)
-  };
-
-  /* vector orthogonal to player direction: layer.direction (in XZ plane) cross up */
-  player_direction_orthogonal_left_right = (vector3_t){
-    .x = -player.direction.z * up.y,
-    .y =  0.0f,
-    .z =  player.direction.x * up.y
-  };
-}
-
 void update_camera(){
   /* camera tracks player */
   camera.position = (vector3_t){
@@ -2899,9 +2891,9 @@ void update_camera(){
     .z = player.position.z
   };
   camera.direction = (vector3_t){
-    .x = cosf(player.eta) * player.direction.x,
-    .y = sinf(player.eta),
-    .z = cosf(player.eta) * player.direction.z
+    .x = cosf(camera.eta) * cosf(camera.theta),
+    .y = sinf(camera.eta),
+    .z = cosf(camera.eta) * sinf(camera.theta)
   };
 }
 
@@ -3185,15 +3177,15 @@ void print_debug_data(){
         "on ground: %s, velocity: %.2f:%.2f:%.2f\n"
         "%ut, %upx, %uc, %ufps\n"
         "block coords: %d:%d:%d, chunk coords: %d:%d:%d\n"
-        "player pos: %.2f:%.2f:%.2f, look direction: %.2f:%.2f:%.2f, theta/eta: %.2f:%.2f\n",
+        "cam pos: %.2f:%.2f:%.2f, cam direction: %.2f:%.2f:%.2f, theta/eta: %.2f:%.2f\n",
         player.on_ground ? "yes" : "no",
         player.velocity.x, player.velocity.y, player.velocity.z,
         total_triangles_rendered, total_pixels_rendered, total_chunks_rendered, fps, 
         player_block_x, player_block_y, player_block_z,
         player_chunk_x, player_chunk_y, player_chunk_z,
-        player.position.x,  player.position.y,  player.position.z,
-        player.direction.x, player.direction.y, player.direction.z,
-        player.theta, player.eta
+        camera.position.x,  camera.position.y,  camera.position.z,
+        camera.direction.x, camera.direction.y, camera.direction.z,
+        camera.theta, camera.eta
       );
     }
     draw_text(10, 10, debug_screen_data, (color_t){.uint32 = 0xFFFFFFFF}, 1, FONT_6X8);
@@ -3282,18 +3274,40 @@ void render_player_tools(){
     .z = zf.x * xr.y - zf.y * xr.x
   };
 
-  vector3_t tool_direction = vector3_rotate_y(camera.direction, 0.5);
+  //vector3_t tool_direction = vector3_rotate_y(camera.direction, 0.5);
+  //
+  //uint32_t player_active_tool_object_id = player.tools[player.active_tool_index].object_id;
+  //objects[player_active_tool_object_id].translation.x = camera.position.x + -0.6*yu.x + ZNEAR * camera.direction.x + (mining? 0.3 : 0.05)* tool_direction.x - 0.4f * player_direction_orthogonal_left_right.x ;
+  //objects[player_active_tool_object_id].translation.y = camera.position.y + -0.6*yu.y + ZNEAR * camera.direction.y + (mining? 0.3 : 0.05)* tool_direction.y;
+  //objects[player_active_tool_object_id].translation.z = camera.position.z + -0.6*yu.z + ZNEAR * camera.direction.z + (mining? 0.3 : 0.05)* tool_direction.z - 0.4f * player_direction_orthogonal_left_right.z;
+  //
+  //// ROTATION
+  //objects[player_active_tool_object_id].rotation.y  = -player.theta + M_PI_2 - 0.5;
+  //float animation_angle = 20*(M_PI) * (float)animation_frame / 8.0f;
+  //float rotation_x = -M_PI_4 - player.eta + animation_angle * delta_time;
+  //objects[player_active_tool_object_id].rotation.x = rotation_x;
+
+  /* vector orthogonal to camera direction: camera.direction (in XZ plane) cross up */
+  vector3_t camera_orthogonal_left_right = {
+    .x = -camera.direction.z * up.y,
+    .y =  0.0f,
+    .z =  camera.direction.x * up.y
+  };
+
+  matrix4_t m_tool_rotation = matrix4_gen_axis_rot(yu, 0.5, (vector3_t){0, 0, 0});
+  vector4_t tool_direction = matrix4_mul_vector3(&m_tool_rotation, camera.direction);
 
   uint32_t player_active_tool_object_id = player.tools[player.active_tool_index].object_id;
-  objects[player_active_tool_object_id].translation.x = camera.position.x + -0.6*yu.x + ZNEAR * camera.direction.x + (mining? 0.3 : 0.05)* tool_direction.x - 0.4f * player_direction_orthogonal_left_right.x ;
+  objects[player_active_tool_object_id].translation.x = camera.position.x + -0.6*yu.x + ZNEAR * camera.direction.x + (mining? 0.3 : 0.05)* tool_direction.x - 0.4f * camera_orthogonal_left_right.x ;
   objects[player_active_tool_object_id].translation.y = camera.position.y + -0.6*yu.y + ZNEAR * camera.direction.y + (mining? 0.3 : 0.05)* tool_direction.y;
-  objects[player_active_tool_object_id].translation.z = camera.position.z + -0.6*yu.z + ZNEAR * camera.direction.z + (mining? 0.3 : 0.05)* tool_direction.z - 0.4f * player_direction_orthogonal_left_right.z;
+  objects[player_active_tool_object_id].translation.z = camera.position.z + -0.6*yu.z + ZNEAR * camera.direction.z + (mining? 0.3 : 0.05)* tool_direction.z - 0.4f * camera_orthogonal_left_right.z;
 
   // ROTATION
-  objects[player_active_tool_object_id].rotation.y  = -player.theta + M_PI_2 - 0.5;
+  objects[player_active_tool_object_id].rotation.y  = -camera.theta + M_PI_2 - 0.5;
   float animation_angle = 20*(M_PI) * (float)animation_frame / 8.0f;
-  float rotation_x = -M_PI_4 - player.eta + animation_angle * delta_time;
+  float rotation_x = -M_PI_4 - camera.eta + animation_angle * delta_time;
   objects[player_active_tool_object_id].rotation.x = rotation_x;
+
 
   // RENDER
   zbuffer_test = false;
@@ -3319,7 +3333,6 @@ int main(int argc, char *argv[]){
         color_buffer[pixel_i].uint32 = 0xFFFF8040;
       }
 
-      update_player_directions();
       move_player();
       update_camera();
       calculate_currently_looked_at_block();

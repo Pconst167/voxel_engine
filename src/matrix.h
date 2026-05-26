@@ -23,6 +23,7 @@ matrix4_t matrix4_gen_rot(float rx, float ry, float rz);
 matrix4_t matrix4_gen_rot_x(float rx);
 matrix4_t matrix4_gen_rot_y(float ry);
 matrix4_t matrix4_gen_rot_z(float rz);
+matrix4_t matrix4_gen_axis_rot(vector3_t axis, float angle, vector3_t origin);
 
 vector4_t matrix4_mul_vector3(const matrix4_t *m, const vector3_t v);
 vector4_t matrix4_mul_vector4(const matrix4_t *m, const vector4_t v);

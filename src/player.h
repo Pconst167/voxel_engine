@@ -53,8 +53,6 @@ typedef struct{
   vector3_t position;
   vector3_t velocity;
   vector3_t direction;
-  float theta;
-  float eta;
   float radius;
   float height;
   aabb_3d_t aabb;
