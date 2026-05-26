@@ -213,13 +213,14 @@ void setup(void) {
   // CREATE OBJECTS
   mesh_t *mesh;
   uint32_t object_id;
-  mesh = load_mesh("./assets/obj/blocks/pickaxe3.obj", false);
+  mesh = load_mesh("./assets/obj/blocks/pickaxe.obj", false);
   object_id = create_object(mesh, OBJECT_TYPE_TOOL, true, false, false,
                            (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
                            (vector3_t){1.8f, 1.8f, 1.8f}, (vector3_t){0, 0, 0}, (vector3_t){player.position.x, player.position.y - 2, player.position.z},
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
   player_obtain_tool(PLAYER_TOOL_STONE_PICKAXE, object_id);
+
   mesh = load_mesh("./assets/obj/blocks/axe.obj", false);
   object_id = create_object(mesh, OBJECT_TYPE_TOOL, true, false, false,
                            (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
@@ -227,6 +228,14 @@ void setup(void) {
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
   player_obtain_tool(PLAYER_TOOL_STONE_AXE, object_id);
+
+  mesh = load_mesh("./assets/obj/blocks/sword.obj", false);
+  object_id = create_object(mesh, OBJECT_TYPE_TOOL, true, false, false,
+                           (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
+                           (vector3_t){1.8f, 1.8f, 1.8f}, (vector3_t){0, 0, 0}, (vector3_t){player.position.x, player.position.y - 2, player.position.z},
+                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+  );
+  player_obtain_tool(PLAYER_TOOL_STONE_SWORD, object_id);
 }
 
 void process_input(void){
@@ -240,7 +249,7 @@ void process_input(void){
 
     if(event.type == SDL_KEYDOWN && !event.key.repeat){
       SDL_Keycode keycode = event.key.keysym.sym;
-      Uint16 modifiers = event.key.keysym.mod;
+      SDL_Keymod modifiers = SDL_GetModState();
 
       if(keycode == SDLK_ESCAPE){
         if(console.is_open){
@@ -262,7 +271,6 @@ void process_input(void){
         else{
           SDL_StopTextInput();
         }
-
         continue;
       }
 
@@ -270,7 +278,6 @@ void process_input(void){
         options.show_debug_info = !options.show_debug_info;
         continue;
       }
-
     }
 
     if(console.is_open){
@@ -286,47 +293,47 @@ void process_game_input(SDL_Event *event){
 
   // KEYBOARD
   if(event->type == SDL_KEYDOWN && !event->key.repeat){
-    SDL_Keycode keycode = event->key.keysym.sym;
-    Uint16 modifiers = event->key.keysym.mod;
+    SDL_Scancode scancode = event->key.keysym.scancode;
+    SDL_Keymod modifiers = SDL_GetModState();
 
-    if(keycode == SDLK_1 && (modifiers & KMOD_SHIFT)){
+    if(scancode == SDL_SCANCODE_Z){
       player_set_active_tool_index(0);
     }
-    else if(keycode == SDLK_2 && (modifiers & KMOD_SHIFT)){
+    else if(scancode == SDL_SCANCODE_X){
       player_set_active_tool_index(1);
     }
-    else if(keycode == SDLK_3 && (modifiers & KMOD_SHIFT)){
+    else if(scancode == SDL_SCANCODE_C){
       player_set_active_tool_index(2);
     }
     else{
-      if(keycode == SDLK_1){
+      if(scancode == SDL_SCANCODE_1){
         player_set_block_inventory_index(0);
       }
-      else if(keycode == SDLK_2){
+      else if(scancode == SDL_SCANCODE_2){
         player_set_block_inventory_index(1);
       }
-      else if(keycode == SDLK_3){
+      else if(scancode == SDL_SCANCODE_3){
         player_set_block_inventory_index(2);
       }
-      else if(keycode == SDLK_4){
+      else if(scancode == SDL_SCANCODE_4){
         player_set_block_inventory_index(3);
       }
-      else if(keycode == SDLK_5){
+      else if(scancode == SDL_SCANCODE_5){
         player_set_block_inventory_index(4);
       }
-      else if(keycode == SDLK_6){
+      else if(scancode == SDL_SCANCODE_6){
         player_set_block_inventory_index(5);
       }
-      else if(keycode == SDLK_7){
+      else if(scancode == SDL_SCANCODE_7){
         player_set_block_inventory_index(6);
       }
-      else if(keycode == SDLK_8){
+      else if(scancode == SDL_SCANCODE_8){
         player_set_block_inventory_index(7);
       }
-      else if(keycode == SDLK_9){
+      else if(scancode == SDL_SCANCODE_9){
         player_set_block_inventory_index(8);
       }
-      else if(keycode == SDLK_0){
+      else if(scancode == SDL_SCANCODE_0){
         player_set_block_inventory_index(9);
       }
     }

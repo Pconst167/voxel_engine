@@ -147,10 +147,10 @@ static void load_mtl_file(
       if(sscanf(line, "illum %d", &illum) == 1){
         switch(illum){
           case 0:
-            current_material.reflects_light      = false;
+            current_material.reflects_light = false;
             break;
           default:
-            current_material.reflects_light      = true;
+            current_material.reflects_light = true;
             break;
         }
       }
