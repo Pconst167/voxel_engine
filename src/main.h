@@ -13,6 +13,19 @@
 #include "collision.h"
 #include "font.h"
 
+typedef struct{
+  bool quit_requested;
+
+  int mouse_wheel_delta;
+  bool left_mouse_pressed;
+  bool right_mouse_pressed;
+
+  int mouse_x;
+  int mouse_y;
+
+  bool key_down[SDL_NUM_SCANCODES];
+} input_state_t;
+
 void print_debug_data();
 void render_console();
 void free_resources(void);
