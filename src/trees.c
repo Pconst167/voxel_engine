@@ -137,7 +137,7 @@ void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
 
   // find first solid block along y
   int32_t first_solid_y = 0;
-  for(int32_t y = MAP_NUM_VOXELS_Y - 1; y >= 0; y--){
+  for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
     if(block_at(y, z_row, x_col).solid){
       first_solid_y = y;
       break;
@@ -184,8 +184,8 @@ void place_trees(){
   int32_t step_size_z = 8;
 
   // place trees
-  for(uint32_t z = 32; z < MAP_NUM_VOXELS_Z - 32; z += step_size_z){
-    for(uint32_t x = 32; x < MAP_NUM_VOXELS_X - 32; x += step_size_x){
+  for(uint32_t z = 32; z < MAP_NUM_BLOCKS_Z - 32; z += step_size_z){
+    for(uint32_t x = 32; x < MAP_NUM_BLOCKS_X - 32; x += step_size_x){
       int32_t rand = xorshift32();
       if(rand % 3 == 0)
         place_tree(z, x, TREE0);

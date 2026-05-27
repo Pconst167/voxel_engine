@@ -253,7 +253,7 @@ void init_block_materials(){
       .front_texture      = load_texture("./assets/textures/blocks/stone3.png"),
       .back_texture       = load_texture("./assets/textures/blocks/stone3.png"),
       .left_texture       = load_texture("./assets/textures/blocks/stone3.png"),
-      .right_texture       = load_texture("./assets/textures/blocks/stone3.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/stone3.png"),
       .top_texture        = load_texture("./assets/textures/blocks/stone3.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/stone3.png")
     })
@@ -1046,22 +1046,22 @@ void init_block_materials(){
 
 void init_block_map(){
 
-  blocks = malloc(sizeof(block_t) * MAP_NUM_VOXELS_Y * MAP_NUM_VOXELS_Z * MAP_NUM_VOXELS_X);
+  blocks = malloc(sizeof(block_t) * MAP_NUM_BLOCKS_Y * MAP_NUM_BLOCKS_Z * MAP_NUM_BLOCKS_X);
   if(blocks == NULL){
     print_log("ERROR: unable to allocate map memory");
     exit(1);
   }
 
-  for(uint32_t y = 0; y < MAP_NUM_VOXELS_Y; y++){
-    for(uint32_t z = 0; z < MAP_NUM_VOXELS_Z; z++){
-      for(uint32_t x = 0; x < MAP_NUM_VOXELS_X; x++){
+  for(uint32_t y = 0; y < MAP_NUM_BLOCKS_Y; y++){
+    for(uint32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+      for(uint32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
         block_at(y, z, x).solid = false;
         block_at(y, z, x).mineable = true;
         assign_block_material(y, z, x, BLOCK_TYPE_AIR);
         block_at(y, z, x).temperature = 30.0f;
         block_at(y, z, x).orientation = BLOCK_ORIENTATION_FRONT;
 
-        if(y == (uint32_t)(0.4 * MAP_NUM_VOXELS_Y)){
+        if(y == (uint32_t)(0.4 * MAP_NUM_BLOCKS_Y)){
           if(xorshift32() % 5 == 0){
             uint32_t random = xorshift32();
             if(random % 2 == 0){
@@ -1074,7 +1074,7 @@ void init_block_map(){
             block_at(y, z, x).solid = true;
           }
         }
-        if(y == (uint32_t)(0.4 * MAP_NUM_VOXELS_Y) - 1){
+        if(y == (uint32_t)(0.4 * MAP_NUM_BLOCKS_Y) - 1){
           if(xorshift32() % 5 == 0){
             assign_block_material(y, z, x, BLOCK_TYPE_DIRT);
           }
@@ -1084,23 +1084,23 @@ void init_block_map(){
           block_at(y, z, x).mineable = true;
           block_at(y, z, x).solid = true;
         }
-        if(y < (uint32_t)(0.4 * MAP_NUM_VOXELS_Y) - 1){
+        if(y < (uint32_t)(0.4 * MAP_NUM_BLOCKS_Y) - 1){
           assign_block_material(y, z, x, BLOCK_TYPE_DIRT);
           block_at(y, z, x).solid = true;
           block_at(y, z, x).mineable = true;
         }
-        if(y <= (uint32_t)(0.3 * MAP_NUM_VOXELS_Y)){
+        if(y <= (uint32_t)(0.3 * MAP_NUM_BLOCKS_Y)){
           assign_block_material(y, z, x, BLOCK_TYPE_STONE3);
           block_at(y, z, x).solid = true;
           block_at(y, z, x).mineable = true;
         }
-        if(y <= (uint32_t)(0.2 * MAP_NUM_VOXELS_Y)){
+        if(y <= (uint32_t)(0.2 * MAP_NUM_BLOCKS_Y)){
           assign_block_material(y, z, x, BLOCK_TYPE_STONE0);
           block_at(y, z, x).solid = true;
           block_at(y, z, x).mineable = true;
         }
 
-        if((x <= 10 || x >= MAP_NUM_VOXELS_X - 10 || z <= 10 || z >= MAP_NUM_VOXELS_Z - 10) && y >= 0.4 * MAP_NUM_VOXELS_Y && y <= 0.43 * MAP_NUM_VOXELS_Y){
+        if((x <= 10 || x >= MAP_NUM_BLOCKS_X - 10 || z <= 10 || z >= MAP_NUM_BLOCKS_Z - 10) && y >= 0.4 * MAP_NUM_BLOCKS_Y && y <= 0.43 * MAP_NUM_BLOCKS_Y){
           if(xorshift32() % 5 == 0){
             assign_block_material(y, z, x, BLOCK_TYPE_LEAVES0);
             block_at(y, z, x).solid = true;
@@ -1111,13 +1111,13 @@ void init_block_map(){
         }
 
         // VOLCANIC
-        if(y <= (uint32_t)(0.1 * MAP_NUM_VOXELS_Y)){
+        if(y <= (uint32_t)(0.1 * MAP_NUM_BLOCKS_Y)){
           assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC3);
           block_at(y, z, x).mineable = true;
           block_at(y, z, x).solid = true;
           block_at(y, z, x).temperature = 100.0f;
         }
-        if(y <= (uint32_t)(0.06 * MAP_NUM_VOXELS_Y)){
+        if(y <= (uint32_t)(0.06 * MAP_NUM_BLOCKS_Y)){
           if(xorshift32() % 3 == 0)
             assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC1);
           else
@@ -1126,19 +1126,19 @@ void init_block_map(){
           block_at(y, z, x).solid = true;
           block_at(y, z, x).temperature = 300.0f;
         }
-        if(y <= (uint32_t)(0.04 * MAP_NUM_VOXELS_Y)){
+        if(y <= (uint32_t)(0.04 * MAP_NUM_BLOCKS_Y)){
           assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC0);
           block_at(y, z, x).mineable = true;
           block_at(y, z, x).solid = true;
           block_at(y, z, x).temperature = 400.0f;
         }
-        if(y <= (uint32_t)(0.02 * MAP_NUM_VOXELS_Y)){
+        if(y <= (uint32_t)(0.02 * MAP_NUM_BLOCKS_Y)){
           assign_block_material(y, z, x, BLOCK_TYPE_LAVA1);
           block_at(y, z, x).mineable = true;
           block_at(y, z, x).solid = true;
           block_at(y, z, x).temperature = 400.0f;
         }
-        if(y <= (uint32_t)(0.01 * MAP_NUM_VOXELS_Y)){
+        if(y <= (uint32_t)(0.01 * MAP_NUM_BLOCKS_Y)){
           assign_block_material(y, z, x, BLOCK_TYPE_LAVA0);
           block_at(y, z, x).mineable = true;
           block_at(y, z, x).solid = true;
@@ -1165,14 +1165,14 @@ void init_block_map(){
 }
 
 void get_block_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, int *start_y, int *end_y, int *start_z, int *end_z){
-  *start_x = clamp_int((int)floorf(aabb->x_min), 0, MAP_NUM_VOXELS_X - 1);
-  *end_x   = clamp_int((int)floorf(aabb->x_max), 0, MAP_NUM_VOXELS_X - 1);
+  *start_x = clamp_int((int)floorf(aabb->x_min), 0, MAP_NUM_BLOCKS_X - 1);
+  *end_x   = clamp_int((int)floorf(aabb->x_max), 0, MAP_NUM_BLOCKS_X - 1);
 
-  *start_y = clamp_int((int)floorf(aabb->y_min), 0, MAP_NUM_VOXELS_Y - 1);
-  *end_y   = clamp_int((int)floorf(aabb->y_max), 0, MAP_NUM_VOXELS_Y - 1);
+  *start_y = clamp_int((int)floorf(aabb->y_min), 0, MAP_NUM_BLOCKS_Y - 1);
+  *end_y   = clamp_int((int)floorf(aabb->y_max), 0, MAP_NUM_BLOCKS_Y - 1);
 
-  *start_z = clamp_int((int)floorf(aabb->z_min), 0, MAP_NUM_VOXELS_Z - 1);
-  *end_z   = clamp_int((int)floorf(aabb->z_max), 0, MAP_NUM_VOXELS_Z - 1);
+  *start_z = clamp_int((int)floorf(aabb->z_min), 0, MAP_NUM_BLOCKS_Z - 1);
+  *end_z   = clamp_int((int)floorf(aabb->z_max), 0, MAP_NUM_BLOCKS_Z - 1);
 }
 
 inline block_quad_t generate_block_quad(block_quad_type_t quad_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col){
@@ -1386,9 +1386,9 @@ block_raycast_hit_t raycast_blocks(
   float current_distance = 0.0f;
 
   while(current_distance <= max_distance){
-    if(block_x >= 0 && block_x < MAP_NUM_VOXELS_X &&
-       block_y >= 0 && block_y < MAP_NUM_VOXELS_Y &&
-       block_z >= 0 && block_z < MAP_NUM_VOXELS_Z
+    if(block_x >= 0 && block_x < MAP_NUM_BLOCKS_X &&
+       block_y >= 0 && block_y < MAP_NUM_BLOCKS_Y &&
+       block_z >= 0 && block_z < MAP_NUM_BLOCKS_Z
     ){
       if(block_at(block_y, block_z, block_x).solid){
         hit_result.hit = 1;

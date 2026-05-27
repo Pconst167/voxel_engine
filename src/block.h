@@ -6,13 +6,13 @@
 #include "mesh.h"
 #include "light.h"
 
-#define MAP_NUM_VOXELS_X 512
-#define MAP_NUM_VOXELS_Z 512
-#define MAP_NUM_VOXELS_Y 256
+#define MAP_NUM_BLOCKS_X 512
+#define MAP_NUM_BLOCKS_Z 512
+#define MAP_NUM_BLOCKS_Y 256
 #define CHUNK_SIZE 16
-#define NUM_CHUNK_DIVISIONS_Y (MAP_NUM_VOXELS_Y / CHUNK_SIZE)
-#define NUM_CHUNK_DIVISIONS_Z (MAP_NUM_VOXELS_Z / CHUNK_SIZE)
-#define NUM_CHUNK_DIVISIONS_X (MAP_NUM_VOXELS_X / CHUNK_SIZE)
+#define NUM_CHUNK_DIVISIONS_Y (MAP_NUM_BLOCKS_Y / CHUNK_SIZE)
+#define NUM_CHUNK_DIVISIONS_Z (MAP_NUM_BLOCKS_Z / CHUNK_SIZE)
+#define NUM_CHUNK_DIVISIONS_X (MAP_NUM_BLOCKS_X / CHUNK_SIZE)
 #define CHUNK_RENDER_DISTANCE 4 // render this number of chunks around the player in XZ
 
 #define MAX_VOXEL_LOOK_AT_DISTANCE 6.0f
@@ -20,8 +20,8 @@
 
 // macro to get block at coordiates x y z
 #define MAP_X_STRIDE 1
-#define MAP_Z_STRIDE MAP_NUM_VOXELS_X
-#define MAP_Y_STRIDE (MAP_NUM_VOXELS_X * MAP_NUM_VOXELS_Z)
+#define MAP_Z_STRIDE MAP_NUM_BLOCKS_X
+#define MAP_Y_STRIDE (MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Z)
 #define block_at(y, z, x) blocks[(y) * MAP_Y_STRIDE + (z) * MAP_Z_STRIDE + (x)]
 
 typedef enum{

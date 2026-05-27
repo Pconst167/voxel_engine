@@ -30,11 +30,11 @@ double world_y_max;
 void calculate_world_bounds(void){
   /* set world boundaries */
   world_x_min = 0;
-  world_x_max = MAP_NUM_VOXELS_X;
+  world_x_max = MAP_NUM_BLOCKS_X;
   world_z_min = 0;
-  world_z_max = MAP_NUM_VOXELS_Z;
+  world_z_max = MAP_NUM_BLOCKS_Z;
   world_y_min = 0;
-  world_y_max = MAP_NUM_VOXELS_Y;
+  world_y_max = MAP_NUM_BLOCKS_Y;
 }
 
 /* split the world into chunks */

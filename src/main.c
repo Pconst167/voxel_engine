@@ -105,6 +105,7 @@
 #include "trees.h"
 #include "font.h"
 #include "game.h"
+#include "save_state.h"
 #include "debug.h"
 
 #define PLAYER_SPEED_SHIFT_KEY_FACTOR 2.0f
@@ -280,6 +281,16 @@ void process_input(void){
         options.show_debug_info = !options.show_debug_info;
         continue;
       }
+      else if(keycode == SDLK_F11){
+        print_log("[INFO] saving state...");
+        save();
+        continue;
+      }
+      else if(keycode == SDLK_F10){
+        print_log("[INFO] loading state...");
+        load();
+        continue;
+      }
     }
 
     if(console.is_open){
@@ -296,7 +307,7 @@ void process_game_input(SDL_Event *event){
   // KEYBOARD
   if(event->type == SDL_KEYDOWN && !event->key.repeat){
     SDL_Scancode scancode = event->key.keysym.scancode;
-    SDL_Keymod modifiers = SDL_GetModState();
+    //SDL_Keymod modifiers = SDL_GetModState();
 
     if(scancode == SDL_SCANCODE_Z){
       player_set_active_tool_index(0);
@@ -513,11 +524,7 @@ void move_player(void){
   float move_speed_delta_time = ((shift) ? PLAYER_SPEED_SHIFT_KEY_FACTOR * move_speed : move_speed) * delta_time;
   float turn_speed_delta_time = turn_speed * delta_time;
 
-  vector3_t movement = {
-    .x = 0.0f,
-    .y = 0.0f,
-    .z = 0.0f
-  };
+  vector3_t movement = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
 
   if(keys[SDL_SCANCODE_LEFT])
     player.theta += turn_speed_delta_time;
@@ -575,7 +582,7 @@ inline void move_player_x(float movement_x){
   if(movement_x == 0.0f) return;
 
   if(player.position.x + movement_x < 0) return;
-  if(player.position.x + movement_x > MAP_NUM_VOXELS_X) return;
+  if(player.position.x + movement_x > MAP_NUM_BLOCKS_X) return;
 
   vector3_t target_position = player.position;
   target_position.x += movement_x;
@@ -914,7 +921,7 @@ inline void move_player_z(float movement_z){
   if(movement_z == 0.0f) return;
 
   if(player.position.z + movement_z < 0) return;
-  if(player.position.z + movement_z > MAP_NUM_VOXELS_Z) return;
+  if(player.position.z + movement_z > MAP_NUM_BLOCKS_Z) return;
 
   vector3_t target_position = player.position;
   target_position.z += movement_z;
@@ -1255,7 +1262,7 @@ inline void move_player_y(float movement_y){
   if(movement_y == 0.0f) return;
 
   if(player.position.y + movement_y < 0.0f) return;
-  if(player.position.y + movement_y > MAP_NUM_VOXELS_Y) return;
+  if(player.position.y + movement_y > MAP_NUM_BLOCKS_Y) return;
 
   vector3_t target_position = player.position;
   target_position.y += movement_y;
@@ -1625,7 +1632,7 @@ inline void move_player_y(float movement_y){
 
 void move_player_z_old(float movement_z){
   if(player.position.z + movement_z < 0) return;
-  if(player.position.z + movement_z > MAP_NUM_VOXELS_Z) return;
+  if(player.position.z + movement_z > MAP_NUM_BLOCKS_Z) return;
 
   if(movement_z == 0.0f) return;
 
@@ -1673,7 +1680,7 @@ void move_player_y_old(float movement_y){
   target_position.y += movement_y;
 
   if(player.position.y + movement_y < 0) return;
-  if(player.position.y + movement_y > MAP_NUM_VOXELS_Y) return;
+  if(player.position.y + movement_y > MAP_NUM_BLOCKS_Y) return;
 
   aabb_3d_t target_aabb = make_player_aabb_at_position(target_position);
 
@@ -2353,11 +2360,11 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
 
         // a quad is rendered only if its adjescent block is AIR or if it is transparent (using alpha test)
         bool render_left_quad    = (left_neighbour_index < 0)                  ? false : (block_at(y_plane, z_row, left_neighbour_index).type  == BLOCK_TYPE_AIR || block_at(y_plane, z_row, left_neighbour_index).block_material->blend_mode == BLEND_MODE_ALPHA_TEST );
-        bool render_right_quad   = (right_neighbour_index == MAP_NUM_VOXELS_X) ? false : (block_at(y_plane, z_row, right_neighbour_index).type == BLOCK_TYPE_AIR || block_at(y_plane, z_row, right_neighbour_index).block_material->blend_mode == BLEND_MODE_ALPHA_TEST);
-        bool render_top_quad     = (top_neighbour_index == MAP_NUM_VOXELS_Y)   ? false : (block_at(top_neighbour_index, z_row, x_col).type     == BLOCK_TYPE_AIR || block_at(top_neighbour_index, z_row, x_col).block_material->blend_mode == BLEND_MODE_ALPHA_TEST    );
+        bool render_right_quad   = (right_neighbour_index == MAP_NUM_BLOCKS_X) ? false : (block_at(y_plane, z_row, right_neighbour_index).type == BLOCK_TYPE_AIR || block_at(y_plane, z_row, right_neighbour_index).block_material->blend_mode == BLEND_MODE_ALPHA_TEST);
+        bool render_top_quad     = (top_neighbour_index == MAP_NUM_BLOCKS_Y)   ? false : (block_at(top_neighbour_index, z_row, x_col).type     == BLOCK_TYPE_AIR || block_at(top_neighbour_index, z_row, x_col).block_material->blend_mode == BLEND_MODE_ALPHA_TEST    );
         bool render_bottom_quad  = (bottom_neighbour_index < 0)                ? false : (block_at(bottom_neighbour_index, z_row, x_col).type  == BLOCK_TYPE_AIR || block_at(bottom_neighbour_index, z_row, x_col).block_material->blend_mode == BLEND_MODE_ALPHA_TEST );
         bool render_front_quad   = (front_neighbour_index < 0)                 ? false : (block_at(y_plane, front_neighbour_index, x_col).type == BLOCK_TYPE_AIR || block_at(y_plane, front_neighbour_index, x_col).block_material->blend_mode == BLEND_MODE_ALPHA_TEST );
-        bool render_back_quad    = (back_neighbour_index == MAP_NUM_VOXELS_Z)  ? false : (block_at(y_plane, back_neighbour_index, x_col).type  == BLOCK_TYPE_AIR || block_at(y_plane, back_neighbour_index, x_col).block_material->blend_mode == BLEND_MODE_ALPHA_TEST);
+        bool render_back_quad    = (back_neighbour_index == MAP_NUM_BLOCKS_Z)  ? false : (block_at(y_plane, back_neighbour_index, x_col).type  == BLOCK_TYPE_AIR || block_at(y_plane, back_neighbour_index, x_col).block_material->blend_mode == BLEND_MODE_ALPHA_TEST);
 
         block_material_t *block_material = block_at(y_plane, z_row, x_col).block_material;
 
@@ -3285,9 +3292,9 @@ void render_player_tools(){
   vector3_t tool_direction = vector3_rotate_y(camera.direction, 0.5);
 
   uint32_t player_active_tool_object_id = player.tools[player.active_tool_index].object_id;
-  objects[player_active_tool_object_id].translation.x = camera.position.x + -0.6*yu.x + ZNEAR * camera.direction.x + (mining? 0.3 : 0.05)* tool_direction.x - 0.4f * player_direction_orthogonal_left_right.x ;
-  objects[player_active_tool_object_id].translation.y = camera.position.y + -0.6*yu.y + ZNEAR * camera.direction.y + (mining? 0.3 : 0.05)* tool_direction.y;
-  objects[player_active_tool_object_id].translation.z = camera.position.z + -0.6*yu.z + ZNEAR * camera.direction.z + (mining? 0.3 : 0.05)* tool_direction.z - 0.4f * player_direction_orthogonal_left_right.z;
+  objects[player_active_tool_object_id].translation.x = camera.position.x + -0.6*yu.x + ZNEAR * camera.direction.x + (mining? 0.28 : 0.1)* tool_direction.x - 0.4f * player_direction_orthogonal_left_right.x ;
+  objects[player_active_tool_object_id].translation.y = camera.position.y + -0.6*yu.y + ZNEAR * camera.direction.y + (mining? 0.28 : 0.1)* tool_direction.y;
+  objects[player_active_tool_object_id].translation.z = camera.position.z + -0.6*yu.z + ZNEAR * camera.direction.z + (mining? 0.28 : 0.1)* tool_direction.z - 0.4f * player_direction_orthogonal_left_right.z;
 
   // ROTATION
   objects[player_active_tool_object_id].rotation.y  = -player.theta + M_PI_2 - 0.5;
@@ -3327,10 +3334,8 @@ int main(int argc, char *argv[]){
 
       view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
 
-      if(options.chunk_sort) 
-        render_visible_chunks_sorted();
-      else 
-        render_visible_chunks();
+      if(options.chunk_sort) render_visible_chunks_sorted();
+      else render_visible_chunks();
 
       render_player_tools();
       process_mining();

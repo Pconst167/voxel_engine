@@ -77,8 +77,8 @@ void place_ores(){
   int32_t step_size_z = 4;
 
   // place ores
-  for(uint32_t z = 8; z < MAP_NUM_VOXELS_Z - 8; z += step_size_z){
-    for(uint32_t x = 8; x < MAP_NUM_VOXELS_X - 8; x += step_size_x){
+  for(uint32_t z = 8; z < MAP_NUM_BLOCKS_Z - 8; z += step_size_z){
+    for(uint32_t x = 8; x < MAP_NUM_BLOCKS_X - 8; x += step_size_x){
       place_ore(z, x, ORE_TYPE_COAL);
       place_ore(z, x, ORE_TYPE_IRON);
       place_ore(z, x, ORE_TYPE_SILVER);
