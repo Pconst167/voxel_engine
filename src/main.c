@@ -543,6 +543,19 @@ void move_player(void){
     if(player.eta < -ETA_MAX) player.eta = -ETA_MAX;
   }
 
+  player.direction = (vector3_t){
+    .x = cosf(player.theta),
+    .y = 0.0f,
+    .z = sinf(player.theta)
+  };
+
+  /* vector orthogonal to player direction: layer.direction (in XZ plane) cross up */
+  player_direction_orthogonal_left_right = (vector3_t){
+    .x = -player.direction.z * up.y,
+    .y =  0.0f,
+    .z =  player.direction.x * up.y
+  };
+
   if(keys[SDL_SCANCODE_A]){
     movement.x += player_direction_orthogonal_left_right.x * move_speed_delta_time;
     movement.z += player_direction_orthogonal_left_right.z * move_speed_delta_time;
@@ -2884,21 +2897,6 @@ void update_light(void){
   }
 }
 
-void update_player_directions(){
-  player.direction = (vector3_t){
-    .x = cosf(player.theta),
-    .y = 0.0f,
-    .z = sinf(player.theta)
-  };
-
-  /* vector orthogonal to player direction: layer.direction (in XZ plane) cross up */
-  player_direction_orthogonal_left_right = (vector3_t){
-    .x = -player.direction.z * up.y,
-    .y =  0.0f,
-    .z =  player.direction.x * up.y
-  };
-}
-
 void update_camera(){
   /* camera tracks player */
   camera.position = (vector3_t){
@@ -2911,6 +2909,8 @@ void update_camera(){
     .y = sinf(player.eta),
     .z = cosf(player.eta) * player.direction.z
   };
+  camera.theta = player.theta;
+  camera.eta = player.eta;
 }
 
 inline uint32_t rasterize_triangle(triangle_t *triangle){
@@ -3298,7 +3298,7 @@ void render_player_tools(){
   objects[player_active_tool_object_id].translation.z = camera.position.z + -0.6*yu.z + ZNEAR * camera.direction.z + (mining? 0.28 : 0.1)* tool_direction.z - 0.4f * player_direction_orthogonal_left_right.z;
 
   // ROTATION
-  objects[player_active_tool_object_id].rotation.y  = -player.theta + M_PI_2 - 0.5;
+  objects[player_active_tool_object_id].rotation.y = -camera.theta + M_PI_2 - 0.5;
   float animation_angle = 20*(M_PI) * (float)animation_frame / 8.0f;
   float rotation_x = -M_PI_4 - player.eta + animation_angle * delta_time;
   objects[player_active_tool_object_id].rotation.x = rotation_x;
@@ -3327,7 +3327,6 @@ int main(int argc, char *argv[]){
         color_buffer[pixel_i].uint32 = 0xFFFF8040;
       }
 
-      update_player_directions();
       move_player();
       update_camera();
       calculate_currently_looked_at_block();

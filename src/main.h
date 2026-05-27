@@ -23,7 +23,6 @@ void qs_chunk(chunk_sort_key_t *array, int left, int right);
 void triangle_quicksort(triangle_t *array, int count);
 void qs_triangle(triangle_t *array, int left, int right);
 void render_sun(void);
-void update_player_directions();
 void update_camera();
 void move_player(void);
 void update_light(void);
