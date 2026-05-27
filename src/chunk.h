@@ -17,11 +17,9 @@ typedef struct{
   double y_min, y_max;
   double z_min, z_max;
   uint32_t y_plane_start;
-  uint32_t y_plane_end;
   uint32_t z_row_start;
-  uint32_t z_row_end;
   uint32_t x_col_start;
-  uint32_t x_col_end;
+  bool modified;
 } chunk_t;
 
 /* used to sort chunks for rendering */

@@ -1442,8 +1442,7 @@ void calculate_currently_looked_at_block(){
 
 void assign_block_material(int32_t block_y, int32_t block_z, int32_t block_x, block_type_t block_type){
   block_at(block_y, block_z, block_x).type = block_type;
-  block_at(block_y, block_z, block_x).block_material = &block_materials[block_type];
-  block_at(block_y, block_z, block_x).mining_amount = block_at(block_y, block_z, block_x).block_material->mining_amount;
+  block_at(block_y, block_z, block_x).mining_amount = block_materials[block_type].mining_amount;
 }
 
 char *get_block_material_name(block_type_t block_type){

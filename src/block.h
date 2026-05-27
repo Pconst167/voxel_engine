@@ -129,7 +129,6 @@ typedef struct{
   float temperature;
   bool mineable;
   aabb_3d_t aabb;
-  block_material_t *block_material;
   float avg_w;
   bool looked_at;
 } block_t;

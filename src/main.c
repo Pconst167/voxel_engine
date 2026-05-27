@@ -282,13 +282,8 @@ void process_input(void){
         continue;
       }
       else if(keycode == SDLK_F11){
-        print_log("[INFO] saving state...");
-        save();
-        continue;
-      }
-      else if(keycode == SDLK_F10){
         print_log("[INFO] loading state...");
-        load();
+        load_all_saved_chunks();
         continue;
       }
     }
@@ -391,8 +386,14 @@ void process_game_input(SDL_Event *event){
             assign_block_material(block_y, block_z, block_x, player.block_inventory[player.block_inventory_active_index].block_type);
             set_block_orientation(block_y, block_z, block_x, player.position);
             block_at(block_y, block_z, block_x).solid = true;
-            block_at(block_y, block_z, block_x).mining_amount = block_at(block_y, block_z, block_x).block_material->mining_amount;
             player_use_block();
+
+            // set chunk as modified
+            int32_t player_chunk_y = player.position.y / CHUNK_SIZE;
+            int32_t player_chunk_z = player.position.z / CHUNK_SIZE;
+            int32_t player_chunk_x = player.position.x / CHUNK_SIZE;
+            save_chunk(player_chunk_z, player_chunk_y, player_chunk_x);
+            print_log("saved chunk %d %d %d", player_chunk_z, player_chunk_y, player_chunk_x);
           }
         }
       }
@@ -2338,16 +2339,16 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
   
   // find the start and end block indices inside chunk
   int32_t y_plane_start = chunk->y_plane_start;
-  int32_t y_plane_end   = chunk->y_plane_end;
+  int32_t y_plane_end   = chunk->y_plane_start + CHUNK_SIZE;
   int32_t z_row_start   = chunk->z_row_start;
-  int32_t z_row_end     = chunk->z_row_end;
+  int32_t z_row_end     = chunk->z_row_start + CHUNK_SIZE;
   int32_t x_col_start   = chunk->x_col_start;
-  int32_t x_col_end     = chunk->x_col_end;
+  int32_t x_col_end     = chunk->x_col_start + CHUNK_SIZE;
 
   // loop through all blocks in chunk
-  for(int32_t y_plane = y_plane_start; y_plane <= y_plane_end; y_plane++){
-    for(int32_t z_row = z_row_start; z_row <= z_row_end; z_row++){
-      for(int32_t x_col = x_col_start; x_col <= x_col_end; x_col++){
+  for(int32_t y_plane = y_plane_start; y_plane < y_plane_end; y_plane++){
+    for(int32_t z_row = z_row_start; z_row < z_row_end; z_row++){
+      for(int32_t x_col = x_col_start; x_col < x_col_end; x_col++){
         
         if(block_at(y_plane, z_row, x_col).solid == false) continue;
         
@@ -2359,14 +2360,14 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
         int32_t back_neighbour_index    = z_row + 1;
 
         // a quad is rendered only if its adjescent block is AIR or if it is transparent (using alpha test)
-        bool render_left_quad    = (left_neighbour_index < 0)                  ? false : (block_at(y_plane, z_row, left_neighbour_index).type  == BLOCK_TYPE_AIR || block_at(y_plane, z_row, left_neighbour_index).block_material->blend_mode == BLEND_MODE_ALPHA_TEST );
-        bool render_right_quad   = (right_neighbour_index == MAP_NUM_BLOCKS_X) ? false : (block_at(y_plane, z_row, right_neighbour_index).type == BLOCK_TYPE_AIR || block_at(y_plane, z_row, right_neighbour_index).block_material->blend_mode == BLEND_MODE_ALPHA_TEST);
-        bool render_top_quad     = (top_neighbour_index == MAP_NUM_BLOCKS_Y)   ? false : (block_at(top_neighbour_index, z_row, x_col).type     == BLOCK_TYPE_AIR || block_at(top_neighbour_index, z_row, x_col).block_material->blend_mode == BLEND_MODE_ALPHA_TEST    );
-        bool render_bottom_quad  = (bottom_neighbour_index < 0)                ? false : (block_at(bottom_neighbour_index, z_row, x_col).type  == BLOCK_TYPE_AIR || block_at(bottom_neighbour_index, z_row, x_col).block_material->blend_mode == BLEND_MODE_ALPHA_TEST );
-        bool render_front_quad   = (front_neighbour_index < 0)                 ? false : (block_at(y_plane, front_neighbour_index, x_col).type == BLOCK_TYPE_AIR || block_at(y_plane, front_neighbour_index, x_col).block_material->blend_mode == BLEND_MODE_ALPHA_TEST );
-        bool render_back_quad    = (back_neighbour_index == MAP_NUM_BLOCKS_Z)  ? false : (block_at(y_plane, back_neighbour_index, x_col).type  == BLOCK_TYPE_AIR || block_at(y_plane, back_neighbour_index, x_col).block_material->blend_mode == BLEND_MODE_ALPHA_TEST);
+        bool render_left_quad    = (left_neighbour_index < 0)                  ? false : (block_at(y_plane, z_row, left_neighbour_index).type  == BLOCK_TYPE_AIR || block_materials[block_at(y_plane, z_row, left_neighbour_index).type ].blend_mode == BLEND_MODE_ALPHA_TEST );
+        bool render_right_quad   = (right_neighbour_index == MAP_NUM_BLOCKS_X) ? false : (block_at(y_plane, z_row, right_neighbour_index).type == BLOCK_TYPE_AIR || block_materials[block_at(y_plane, z_row, right_neighbour_index).type].blend_mode == BLEND_MODE_ALPHA_TEST);
+        bool render_top_quad     = (top_neighbour_index == MAP_NUM_BLOCKS_Y)   ? false : (block_at(top_neighbour_index, z_row, x_col).type     == BLOCK_TYPE_AIR || block_materials[block_at(top_neighbour_index, z_row, x_col).type    ].blend_mode == BLEND_MODE_ALPHA_TEST    );
+        bool render_bottom_quad  = (bottom_neighbour_index < 0)                ? false : (block_at(bottom_neighbour_index, z_row, x_col).type  == BLOCK_TYPE_AIR || block_materials[block_at(bottom_neighbour_index, z_row, x_col).type ].blend_mode == BLEND_MODE_ALPHA_TEST );
+        bool render_front_quad   = (front_neighbour_index < 0)                 ? false : (block_at(y_plane, front_neighbour_index, x_col).type == BLOCK_TYPE_AIR || block_materials[block_at(y_plane, front_neighbour_index, x_col).type].blend_mode == BLEND_MODE_ALPHA_TEST );
+        bool render_back_quad    = (back_neighbour_index == MAP_NUM_BLOCKS_Z)  ? false : (block_at(y_plane, back_neighbour_index, x_col).type  == BLOCK_TYPE_AIR || block_materials[block_at(y_plane, back_neighbour_index, x_col).type ].blend_mode == BLEND_MODE_ALPHA_TEST);
 
-        block_material_t *block_material = block_at(y_plane, z_row, x_col).block_material;
+        block_material_t *block_material = &block_materials[block_at(y_plane, z_row, x_col).type];
 
         bool block_looked_at_left   = false;
         bool block_looked_at_right  = false;

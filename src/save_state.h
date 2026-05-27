@@ -5,13 +5,11 @@
 #include "block.h"
 
 typedef struct{
-  vector3_t player_position;
-  vector3_t player_direction;
-
-  block_t blocks[MAP_NUM_BLOCKS_Y][MAP_NUM_BLOCKS_Z][MAP_NUM_BLOCKS_X];
+  block_t blocks[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
 } save_state_t;
 
-bool save();
-bool load();
+bool save_chunk(int32_t chunk_y, int32_t chunk_z, int32_t chunk_x);
+bool load_all_saved_chunks(void);
+bool load_chunk(int32_t chunk_y, int32_t chunk_z, int32_t chunk_x);
 
 #endif

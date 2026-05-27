@@ -12,21 +12,6 @@ double world_z_max;
 double world_y_min;
 double world_y_max;
 
-/*
-            /----/----/----/----/               /----/
-           /    /    /    /    /      .        /    / 
-          /----/----/----/----/      .        /----/
-         /    /    /    /    /      .        /    /
-        /----/----/----/----/      .        /----/
-       /    /    /    /    /      .        /    /           10x10
-      /----/----/----/----/      .        /----/
-                              .....      
-    /----/----/----/----/      .        /----/
-   /    /    /    /    /      .        /    /
-  /----/----/----/----/               /----/
-
-*/
-
 void calculate_world_bounds(void){
   /* set world boundaries */
   world_x_min = 0;
@@ -44,19 +29,20 @@ void create_world_chunks(void){
   for(uint32_t y_plane = 0; y_plane < NUM_CHUNK_DIVISIONS_Y; y_plane++){
     for(uint32_t z_row = 0; z_row < NUM_CHUNK_DIVISIONS_Z; z_row++){
       for(uint32_t x_col = 0; x_col < NUM_CHUNK_DIVISIONS_X; x_col++){
-        chunks[y_plane][z_row][x_col].y_min = world_y_min + (y_plane    ) * CHUNK_SIZE;     
-        chunks[y_plane][z_row][x_col].y_max = world_y_min + (y_plane + 1) * CHUNK_SIZE;     
-        chunks[y_plane][z_row][x_col].z_min = world_z_min + (z_row      ) * CHUNK_SIZE;     
-        chunks[y_plane][z_row][x_col].z_max = world_z_min + (z_row + 1  ) * CHUNK_SIZE;     
-        chunks[y_plane][z_row][x_col].x_min = world_x_min + (x_col      ) * CHUNK_SIZE;     
-        chunks[y_plane][z_row][x_col].x_max = world_x_min + (x_col + 1  ) * CHUNK_SIZE;     
+        chunk_t *chunk = &chunks[y_plane][z_row][x_col];
+
+        chunk->modified = false;
+
+        chunk->y_min = world_y_min + (y_plane    ) * CHUNK_SIZE;     
+        chunk->y_max = world_y_min + (y_plane + 1) * CHUNK_SIZE;     
+        chunk->z_min = world_z_min + (z_row      ) * CHUNK_SIZE;     
+        chunk->z_max = world_z_min + (z_row + 1  ) * CHUNK_SIZE;     
+        chunk->x_min = world_x_min + (x_col      ) * CHUNK_SIZE;     
+        chunk->x_max = world_x_min + (x_col + 1  ) * CHUNK_SIZE;     
         
-        chunks[y_plane][z_row][x_col].y_plane_start = (y_plane    ) * CHUNK_SIZE;
-        chunks[y_plane][z_row][x_col].y_plane_end   = (y_plane + 1) * CHUNK_SIZE - 1;
-        chunks[y_plane][z_row][x_col].z_row_start   = (z_row      ) * CHUNK_SIZE;
-        chunks[y_plane][z_row][x_col].z_row_end     = (z_row + 1  ) * CHUNK_SIZE - 1;
-        chunks[y_plane][z_row][x_col].x_col_start   = (x_col      ) * CHUNK_SIZE;     
-        chunks[y_plane][z_row][x_col].x_col_end     = (x_col + 1  ) * CHUNK_SIZE - 1;     
+        chunk->y_plane_start = (y_plane    ) * CHUNK_SIZE;
+        chunk->z_row_start   = (z_row      ) * CHUNK_SIZE;
+        chunk->x_col_start   = (x_col      ) * CHUNK_SIZE;     
       }
     }
   }
