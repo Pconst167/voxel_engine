@@ -519,9 +519,30 @@ void init_block_materials(){
       .front_texture      = load_texture("./assets/textures/blocks/grass_side_2.png"),
       .back_texture       = load_texture("./assets/textures/blocks/grass_side_2.png"),
       .left_texture       = load_texture("./assets/textures/blocks/grass_side_2.png"),
-      .right_texture       = load_texture("./assets/textures/blocks/grass_side_2.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/grass_side_2.png"),
       .top_texture        = load_texture("./assets/textures/blocks/grass_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/grass_top.png")
+    })
+  );
+  array_push(
+    block_materials,
+    ((block_material_t){
+      .material_name      = "cherrygrass",
+      .mining_amount      = 15,
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF0FF000},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .opacity            = 1.0f,
+      .reflects_light     = true,
+      .dither             = false,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/cherry_grass_side.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/cherry_grass_side.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/cherry_grass_side.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/cherry_grass_side.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/cherry_grass_top.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/cherry_grass_top.png")
     })
   );
 
@@ -1064,11 +1085,14 @@ void init_block_map(){
         if(y == (uint32_t)(0.4 * MAP_NUM_BLOCKS_Y)){
           if(xorshift32() % 5 == 0){
             uint32_t random = xorshift32();
-            if(random % 2 == 0){
-              assign_block_material(y, z, x, BLOCK_TYPE_GRASS);
+            if(random % 3 == 0){
+              assign_block_material(y, z, x, BLOCK_TYPE_CHERRY_GRASS);
+            }
+            else if(random % 3 == 1){
+              assign_block_material(y, z, x, BLOCK_TYPE_LEAVES0);
             }
             else{
-              assign_block_material(y, z, x, BLOCK_TYPE_LEAVES0);
+              assign_block_material(y, z, x, BLOCK_TYPE_GRASS);
             }
             block_at(y, z, x).mineable = true;
             block_at(y, z, x).solid = true;
@@ -1079,7 +1103,12 @@ void init_block_map(){
             assign_block_material(y, z, x, BLOCK_TYPE_DIRT);
           }
           else{
-            assign_block_material(y, z, x, BLOCK_TYPE_GRASS);
+            if(xorshift32() % 13 != 0){
+              assign_block_material(y, z, x, BLOCK_TYPE_GRASS);
+            }
+            else{
+              assign_block_material(y, z, x, BLOCK_TYPE_CHERRY_GRASS);
+            }
           }
           block_at(y, z, x).mineable = true;
           block_at(y, z, x).solid = true;
