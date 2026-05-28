@@ -50,7 +50,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "lava0",
       .solid              = true,
-      .mass               = 100,
+      .mass               = 60,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0xFF80FFFF},
@@ -72,7 +72,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "lava1",
       .solid              = true,
-      .mass               = 100,
+      .mass               = 60,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0xFF80FFFF},
@@ -96,7 +96,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "volcanic0",
       .solid              = true,
-      .mass               = 100,
+      .mass               = 60,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0xFF80FFFF},
@@ -118,7 +118,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "volcanic1",
       .solid              = true,
-      .mass               = 100,
+      .mass               = 60,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0xFF80FFFF},
@@ -140,7 +140,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "volcanic2",
       .solid              = true,
-      .mass               = 100,
+      .mass               = 60,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0xFF20FFFF},
@@ -162,7 +162,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "volcanic3",
       .solid              = true,
-      .mass               = 100,
+      .mass               = 60,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0000000000},
@@ -186,7 +186,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "stone0",
       .solid              = true,
-      .mass               = 100,
+      .mass               = 60,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -208,7 +208,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "stone1",
       .solid              = true,
-      .mass               = 100,
+      .mass               = 60,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -230,7 +230,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "stone2",
       .solid              = true,
-      .mass               = 100,
+      .mass               = 60,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -252,7 +252,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "stone3",
       .solid              = true,
-      .mass               = 100,
+      .mass               = 60,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -274,7 +274,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "stone4",
       .solid              = true,
-      .mass               = 100,
+      .mass               = 60,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -296,7 +296,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "stone5",
       .solid              = true,
-      .mass               = 100,
+      .mass               = 60,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -318,7 +318,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "stone6",
       .solid              = true,
-      .mass               = 100,
+      .mass               = 60,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -340,7 +340,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "stone7",
       .solid              = true,
-      .mass        = 100,
+      .mass        = 60,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -362,7 +362,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "stone8",
       .solid              = true,
-      .mass        = 100,
+      .mass        = 60,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -506,7 +506,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "dirt",
       .solid              = true,
-      .mass               = 50,
+      .mass               = 30,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF408080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -530,7 +530,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "grass",
       .solid              = true,
-      .mass               = 50,
+      .mass               = 30,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF0FF000},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -552,7 +552,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "cherrygrass",
       .solid              = true,
-      .mass      = 50,
+      .mass      = 30,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF0FF000},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
