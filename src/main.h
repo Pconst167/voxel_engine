@@ -29,6 +29,7 @@ typedef struct{
   int mouse_yrel;
 
   bool key_down[SDL_NUM_SCANCODES];
+  bool key_pressed[SDL_NUM_SCANCODES];
 
   bool shift_pressed;
   bool ctrl_pressed;

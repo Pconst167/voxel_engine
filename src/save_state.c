@@ -110,6 +110,7 @@ bool load_all_saved_chunks(void){
     for(int32_t chunk_z = 0; chunk_z < NUM_CHUNK_DIVISIONS_Z; chunk_z++){
       for(int32_t chunk_x = 0; chunk_x < NUM_CHUNK_DIVISIONS_X; chunk_x++){
         if(load_chunk(chunk_y, chunk_z, chunk_x)){
+          print_log("[INFO] loaded chunk: %d:%d:%d", chunk_y, chunk_z, chunk_x);
           loaded_any_chunks = true;
         }
       }

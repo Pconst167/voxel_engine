@@ -241,12 +241,17 @@ void setup(void) {
   player_obtain_tool(PLAYER_TOOL_STONE_SHOVEL, object_id);
 }
 
+// poll input and save in input_state struct
 void poll_input(input_state_t *input_state){
   SDL_Event event;
 
   while(SDL_PollEvent(&event)){
     if(event.type == SDL_QUIT){
       input_state->quit_requested = true;
+    }
+
+    if(event.type == SDL_KEYDOWN && !event.key.repeat){
+      input_state->key_pressed[event.key.keysym.scancode] = true;
     }
 
     if(event.type == SDL_MOUSEWHEEL){
@@ -297,15 +302,17 @@ void poll_input(input_state_t *input_state){
 }
 
 void handle_game_input_actions(input_state_t *input_state){
-  if(input_state->key_down[SDL_SCANCODE_ESCAPE]){
+  if(input_state->key_pressed[SDL_SCANCODE_ESCAPE]){
     input_state->quit_requested = true;
   }
-  if(input_state->key_down[SDL_SCANCODE_F12]){
+  if(input_state->key_pressed[SDL_SCANCODE_F12]){
     options.show_debug_info = !options.show_debug_info;
   }
-  if(input_state->key_down[SDL_SCANCODE_F11]){
-    print_log("[INFO] loading state...");
-    load_all_saved_chunks();
+  if(input_state->key_pressed[SDL_SCANCODE_F11]){
+    print_log("[INFO] trying to load any saved chunks...");
+    if(!load_all_saved_chunks()){
+      print_log("[INFO] no saved chunks found");
+    }
   }
 }
 
@@ -387,12 +394,16 @@ void handle_mouse_actions(input_state_t *input_state){
           block_at(block_y, block_z, block_x).solid = true;
           player_use_block();
 
-          int32_t player_chunk_y = player.position.y / CHUNK_SIZE;
-          int32_t player_chunk_z = player.position.z / CHUNK_SIZE;
-          int32_t player_chunk_x = player.position.x / CHUNK_SIZE;
-
-          save_chunk(player_chunk_z, player_chunk_y, player_chunk_x);
-          print_log("saved chunk %d %d %d", player_chunk_z, player_chunk_y, player_chunk_x);
+          // SAVE THE CHUNK THAT THE BLOCK IS INSIDE OF
+          int32_t chunk_y = block_y / CHUNK_SIZE;
+          int32_t chunk_z = block_z / CHUNK_SIZE;
+          int32_t chunk_x = block_x / CHUNK_SIZE;
+          if(save_chunk(chunk_y, chunk_z, chunk_x)){
+            print_log("saved chunk %d:%d:%d", chunk_y, chunk_z, chunk_x);
+          }
+          else{
+            print_log("[ERROR] failed to save chunk %d:%d:%d", chunk_y, chunk_z, chunk_x);
+          }
         }
       }
     }
@@ -3166,6 +3177,17 @@ void process_mining(){
         player_obtain_block(block_at(block_y, block_z, block_x).type);
         assign_block_material(block_y, block_z, block_x, BLOCK_TYPE_AIR);
         block_at(block_y, block_z, block_x).solid = false;
+
+        // SAVE THE CHUNK THAT THE BLOCK IS INSIDE OF
+        int32_t chunk_y = block_y / CHUNK_SIZE;
+        int32_t chunk_z = block_z / CHUNK_SIZE;
+        int32_t chunk_x = block_x / CHUNK_SIZE;
+        if(save_chunk(chunk_y, chunk_z, chunk_x)){
+          print_log("saved chunk %d:%d:%d", chunk_y, chunk_z, chunk_x);
+        }
+        else{
+          print_log("[ERROR] failed to save chunk %d:%d:%d", chunk_y, chunk_z, chunk_x);
+        }
       }
     }
   }
