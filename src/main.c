@@ -250,14 +250,17 @@ void poll_input(input_state_t *input_state){
       input_state->quit_requested = true;
     }
 
+    // detect one shot key downs
     if(event.type == SDL_KEYDOWN && !event.key.repeat){
       input_state->key_pressed[event.key.keysym.scancode] = true;
     }
 
+    // detect mouse wheels
     if(event.type == SDL_MOUSEWHEEL){
       input_state->mouse_wheel_delta += event.wheel.y;
     }
 
+    // detect mouse button down
     if(event.type == SDL_MOUSEBUTTONDOWN){
       if(event.button.button == SDL_BUTTON_LEFT){
         input_state->left_mouse_pressed = true;
@@ -266,6 +269,7 @@ void poll_input(input_state_t *input_state){
       }
     }
 
+    // detect mouse button up
     if(event.type == SDL_MOUSEBUTTONUP){
       if(event.button.button == SDL_BUTTON_LEFT){
         input_state->left_mouse_released = true;
@@ -274,6 +278,7 @@ void poll_input(input_state_t *input_state){
       }
     }
 
+    // detect mouse motion
     if(event.type == SDL_MOUSEMOTION){
       input_state->mouse_x = event.motion.x;
       input_state->mouse_y = event.motion.y;
@@ -284,21 +289,14 @@ void poll_input(input_state_t *input_state){
 
   const Uint8 *keyboard_state = SDL_GetKeyboardState(NULL);
 
+  // loop each key to see if pressed
   for(int scancode = 0; scancode < SDL_NUM_SCANCODES; scancode++){
     input_state->key_down[scancode] = keyboard_state[scancode];
   }
 
-  input_state->shift_pressed =
-    keyboard_state[SDL_SCANCODE_LSHIFT] ||
-    keyboard_state[SDL_SCANCODE_RSHIFT];
-
-  input_state->ctrl_pressed =
-    keyboard_state[SDL_SCANCODE_LCTRL] ||
-    keyboard_state[SDL_SCANCODE_RCTRL];
-
-  input_state->alt_pressed =
-    keyboard_state[SDL_SCANCODE_LALT] ||
-    keyboard_state[SDL_SCANCODE_RALT];
+  input_state->shift_pressed = keyboard_state[SDL_SCANCODE_LSHIFT] || keyboard_state[SDL_SCANCODE_RSHIFT];
+  input_state->ctrl_pressed = keyboard_state[SDL_SCANCODE_LCTRL] || keyboard_state[SDL_SCANCODE_RCTRL];
+  input_state->alt_pressed = keyboard_state[SDL_SCANCODE_LALT] || keyboard_state[SDL_SCANCODE_RALT];
 }
 
 void handle_game_input_actions(input_state_t *input_state){
@@ -3113,7 +3111,8 @@ void print_debug_data(){
         "on ground: %s, velocity: %.2f:%.2f:%.2f\n"
         "%ut, %upx, %uc, %ufps\n"
         "block coords: %d:%d:%d, chunk coords: %d:%d:%d\n"
-        "player pos: %.2f:%.2f:%.2f, look direction: %.2f:%.2f:%.2f, theta/eta: %.2f:%.2f\n",
+        "player pos: %.2f:%.2f:%.2f, look direction: %.2f:%.2f:%.2f, theta/eta: %.2f:%.2f\n"
+        "block looked at: %d:%d:%d",
         player.on_ground ? "yes" : "no",
         player.velocity.x, player.velocity.y, player.velocity.z,
         total_triangles_rendered, total_pixels_rendered, total_chunks_rendered, fps, 
@@ -3121,7 +3120,8 @@ void print_debug_data(){
         player_chunk_x, player_chunk_y, player_chunk_z,
         player.position.x,  player.position.y,  player.position.z,
         player.direction.x, player.direction.y, player.direction.z,
-        player.theta, player.eta
+        player.theta, player.eta,
+        looked_at_block.block_x, looked_at_block.block_y, looked_at_block.block_z
       );
     }
     draw_text(10, 10, debug_screen_data, (color_t){.uint32 = 0xFFFFFFFF}, 1, FONT_6X8);
@@ -3165,30 +3165,39 @@ void render_ui(){
 }
 
 void process_mining(){
-  if(mining && looked_at_block.hit){
+  if(looked_at_block.hit){
     int32_t block_y = looked_at_block.block_y;
     int32_t block_z = looked_at_block.block_z;
     int32_t block_x = looked_at_block.block_x;
 
-    if(block_at(block_y, block_z, block_x).mineable){
-      block_at(block_y, block_z, block_x).mining_amount--;
-      if(options.instant_mining) block_at(block_y, block_z, block_x).mining_amount = 0;
-      if(block_at(block_y, block_z, block_x).mining_amount == 0){
-        player_obtain_block(block_at(block_y, block_z, block_x).type);
-        assign_block_material(block_y, block_z, block_x, BLOCK_TYPE_AIR);
-        block_at(block_y, block_z, block_x).solid = false;
+    if(mining){
+      if(block_at(block_y, block_z, block_x).mineable){
+        player_tool_type_t tool_type = player.tools[player.active_tool_index].tool_type;
+        
+        block_at(block_y, block_z, block_x).mining_amount -= player_tool_definitions[tool_type].mining_power;
+        //player.tools[player.active_tool_index].durability -= 1;
 
-        // SAVE THE CHUNK THAT THE BLOCK IS INSIDE OF
-        int32_t chunk_y = block_y / CHUNK_SIZE;
-        int32_t chunk_z = block_z / CHUNK_SIZE;
-        int32_t chunk_x = block_x / CHUNK_SIZE;
-        if(save_chunk(chunk_y, chunk_z, chunk_x)){
-          print_log("saved chunk %d:%d:%d", chunk_y, chunk_z, chunk_x);
-        }
-        else{
-          print_log("[ERROR] failed to save chunk %d:%d:%d", chunk_y, chunk_z, chunk_x);
+        if(options.instant_mining) block_at(block_y, block_z, block_x).mining_amount = 0;
+        if(block_at(block_y, block_z, block_x).mining_amount <= 0){
+          player_obtain_block(block_at(block_y, block_z, block_x).type);
+          assign_block_material(block_y, block_z, block_x, BLOCK_TYPE_AIR);
+          block_at(block_y, block_z, block_x).solid = false;
+
+          // SAVE THE CHUNK THAT THE BLOCK IS INSIDE OF
+          int32_t chunk_y = block_y / CHUNK_SIZE;
+          int32_t chunk_z = block_z / CHUNK_SIZE;
+          int32_t chunk_x = block_x / CHUNK_SIZE;
+          if(save_chunk(chunk_y, chunk_z, chunk_x)){
+            print_log("saved chunk %d:%d:%d", chunk_y, chunk_z, chunk_x);
+          }
+          else{
+            print_log("[ERROR] failed to save chunk %d:%d:%d", chunk_y, chunk_z, chunk_x);
+          }
         }
       }
+    }
+    else{
+      block_at(block_y, block_z, block_x).mining_amount = block_materials[block_at(block_y, block_z, block_x).type].mining_amount;
     }
   }
 }

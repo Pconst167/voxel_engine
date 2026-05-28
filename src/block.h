@@ -126,7 +126,7 @@ typedef struct{
   block_type_t type;
   block_orientation_t orientation;
   bool solid;
-  uint8_t mining_amount;
+  int32_t mining_amount;
   float temperature;
   bool mineable;
   aabb_3d_t aabb;

@@ -19,10 +19,12 @@
 #define MAX_PLAYER_TOOLS_HOLDING 10
 
 typedef enum{
+  PLAYER_TOOL_WOODEN_PICKAXE,
   PLAYER_TOOL_STONE_PICKAXE,
   PLAYER_TOOL_IRON_PICKAXE,
   PLAYER_TOOL_DIAMOND_PICKAXE,
 
+  PLAYER_TOOL_WOODEN_AXE,
   PLAYER_TOOL_STONE_AXE,
   PLAYER_TOOL_IRON_AXE,
   PLAYER_TOOL_DIAMOND_AXE,
@@ -39,9 +41,16 @@ typedef enum{
 } player_tool_type_t;
 
 typedef struct{
+  const char *name;
+  uint8_t mining_power;
+  uint8_t attack_damage;
+  uint8_t durability_max;
+} player_tool_definition_t;
+
+typedef struct{
   player_tool_type_t tool_type;
   uint32_t object_id;
-  uint8_t use_remaining;
+  uint8_t durability;
 } player_tool_t;
 
 typedef struct{
@@ -59,12 +68,10 @@ typedef struct{
   float height;
   aabb_3d_t aabb;
   bool on_ground;
-
   // tools currently holding
   player_tool_t tools[MAX_PLAYER_TOOLS_HOLDING];
   uint32_t num_tools;
   uint8_t active_tool_index;
-
   // blocks currently holding
   player_block_inventory_entry_t block_inventory[PLAYER_BLOCK_INVENTORY_MAX_SIZE];
   uint32_t block_inventory_size;
@@ -73,6 +80,7 @@ typedef struct{
 
 extern player_t player;
 extern vector3_t player_direction_orthogonal_left_right;
+extern player_tool_definition_t player_tool_definitions[];
 
 void init_player();
 void update_player_aabb(void);
