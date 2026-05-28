@@ -241,304 +241,207 @@ void setup(void) {
   player_obtain_tool(PLAYER_TOOL_STONE_SHOVEL, object_id);
 }
 
-void process_input(void){
+void poll_input(input_state_t *input_state){
   SDL_Event event;
 
   while(SDL_PollEvent(&event)){
     if(event.type == SDL_QUIT){
-      quit = true;
-      continue;
+      input_state->quit_requested = true;
     }
 
-    if(event.type == SDL_KEYDOWN && !event.key.repeat){
-      SDL_Keycode keycode = event.key.keysym.sym;
-      SDL_Keymod modifiers = SDL_GetModState();
+    if(event.type == SDL_MOUSEWHEEL){
+      input_state->mouse_wheel_delta += event.wheel.y;
+    }
 
-      if(keycode == SDLK_ESCAPE){
-        if(console.is_open){
-          console.is_open = false;
-          SDL_StopTextInput();
-        }
-        else{
-          quit = true;
-        }
-        continue;
-      }
-
-      if(keycode == SDLK_BACKQUOTE && (modifiers & KMOD_CTRL)){
-        console.is_open = !console.is_open;
-
-        if(console.is_open){
-          SDL_StartTextInput();
-        }
-        else{
-          SDL_StopTextInput();
-        }
-        continue;
-      }
-
-      if(keycode == SDLK_F12){
-        options.show_debug_info = !options.show_debug_info;
-        continue;
-      }
-      else if(keycode == SDLK_F11){
-        print_log("[INFO] loading state...");
-        load_all_saved_chunks();
-        continue;
+    if(event.type == SDL_MOUSEBUTTONDOWN){
+      if(event.button.button == SDL_BUTTON_LEFT){
+        input_state->left_mouse_pressed = true;
+      }else if(event.button.button == SDL_BUTTON_RIGHT){
+        input_state->right_mouse_pressed = true;
       }
     }
 
-    if(console.is_open){
-      process_console_input(&event);
+    if(event.type == SDL_MOUSEBUTTONUP){
+      if(event.button.button == SDL_BUTTON_LEFT){
+        input_state->left_mouse_released = true;
+      }else if(event.button.button == SDL_BUTTON_RIGHT){
+        input_state->right_mouse_released = true;
+      }
     }
-    else{
-      process_game_input(&event);
+
+    if(event.type == SDL_MOUSEMOTION){
+      input_state->mouse_x = event.motion.x;
+      input_state->mouse_y = event.motion.y;
+      input_state->mouse_xrel += event.motion.xrel;
+      input_state->mouse_yrel += event.motion.yrel;
+    }
+  }
+
+  const Uint8 *keyboard_state = SDL_GetKeyboardState(NULL);
+
+  for(int scancode = 0; scancode < SDL_NUM_SCANCODES; scancode++){
+    input_state->key_down[scancode] = keyboard_state[scancode];
+  }
+
+  input_state->shift_pressed =
+    keyboard_state[SDL_SCANCODE_LSHIFT] ||
+    keyboard_state[SDL_SCANCODE_RSHIFT];
+
+  input_state->ctrl_pressed =
+    keyboard_state[SDL_SCANCODE_LCTRL] ||
+    keyboard_state[SDL_SCANCODE_RCTRL];
+
+  input_state->alt_pressed =
+    keyboard_state[SDL_SCANCODE_LALT] ||
+    keyboard_state[SDL_SCANCODE_RALT];
+}
+
+void handle_game_input_actions(input_state_t *input_state){
+  if(input_state->key_down[SDL_SCANCODE_ESCAPE]){
+    input_state->quit_requested = true;
+  }
+  if(input_state->key_down[SDL_SCANCODE_F12]){
+    options.show_debug_info = !options.show_debug_info;
+  }
+  if(input_state->key_down[SDL_SCANCODE_F11]){
+    print_log("[INFO] loading state...");
+    load_all_saved_chunks();
+  }
+}
+
+void handle_player_tool_selection_input(input_state_t *input_state){
+  if(input_state->key_down[SDL_SCANCODE_Z]){
+    player_set_active_tool_index(0);
+  }
+  else if(input_state->key_down[SDL_SCANCODE_X]){
+    player_set_active_tool_index(1);
+  }
+  else if(input_state->key_down[SDL_SCANCODE_C]){
+    player_set_active_tool_index(2);
+  }
+  else if(input_state->key_down[SDL_SCANCODE_V]){
+    player_set_active_tool_index(3);
+  }
+  else{
+    if(input_state->key_down[SDL_SCANCODE_1]){
+      player_set_block_inventory_index(0);
+    }
+    else if(input_state->key_down[SDL_SCANCODE_2]){
+      player_set_block_inventory_index(1);
+    }
+    else if(input_state->key_down[SDL_SCANCODE_3]){
+      player_set_block_inventory_index(2);
+    }
+    else if(input_state->key_down[SDL_SCANCODE_4]){
+      player_set_block_inventory_index(3);
+    }
+    else if(input_state->key_down[SDL_SCANCODE_5]){
+      player_set_block_inventory_index(4);
+    }
+    else if(input_state->key_down[SDL_SCANCODE_6]){
+      player_set_block_inventory_index(5);
+    }
+    else if(input_state->key_down[SDL_SCANCODE_7]){
+      player_set_block_inventory_index(6);
+    }
+    else if(input_state->key_down[SDL_SCANCODE_8]){
+      player_set_block_inventory_index(7);
+    }
+    else if(input_state->key_down[SDL_SCANCODE_9]){
+      player_set_block_inventory_index(8);
+    }
+    else if(input_state->key_down[SDL_SCANCODE_0]){
+      player_set_block_inventory_index(9);
     }
   }
 }
 
-void process_game_input(SDL_Event *event){
-
-  // KEYBOARD
-  if(event->type == SDL_KEYDOWN && !event->key.repeat){
-    SDL_Scancode scancode = event->key.keysym.scancode;
-    //SDL_Keymod modifiers = SDL_GetModState();
-
-    if(scancode == SDL_SCANCODE_Z){
-      player_set_active_tool_index(0);
-    }
-    else if(scancode == SDL_SCANCODE_X){
-      player_set_active_tool_index(1);
-    }
-    else if(scancode == SDL_SCANCODE_C){
-      player_set_active_tool_index(2);
-    }
-    else if(scancode == SDL_SCANCODE_V){
-      player_set_active_tool_index(3);
-    }
-    else{
-      if(scancode == SDL_SCANCODE_1){
-        player_set_block_inventory_index(0);
-      }
-      else if(scancode == SDL_SCANCODE_2){
-        player_set_block_inventory_index(1);
-      }
-      else if(scancode == SDL_SCANCODE_3){
-        player_set_block_inventory_index(2);
-      }
-      else if(scancode == SDL_SCANCODE_4){
-        player_set_block_inventory_index(3);
-      }
-      else if(scancode == SDL_SCANCODE_5){
-        player_set_block_inventory_index(4);
-      }
-      else if(scancode == SDL_SCANCODE_6){
-        player_set_block_inventory_index(5);
-      }
-      else if(scancode == SDL_SCANCODE_7){
-        player_set_block_inventory_index(6);
-      }
-      else if(scancode == SDL_SCANCODE_8){
-        player_set_block_inventory_index(7);
-      }
-      else if(scancode == SDL_SCANCODE_9){
-        player_set_block_inventory_index(8);
-      }
-      else if(scancode == SDL_SCANCODE_0){
-        player_set_block_inventory_index(9);
-      }
-    }
-  }
-
+void handle_mouse_actions(input_state_t *input_state){
   // MOUSE WHEEL
-  if(event->type == SDL_MOUSEWHEEL){
-    if(event->wheel.y > 0){
-      if(player.block_inventory_active_index < player.block_inventory_size - 1)
-        player.block_inventory_active_index++;
-    }
-    if(event->wheel.y < 0){
-      if(player.block_inventory_active_index > 0)
-        player.block_inventory_active_index--;
-    }
+  if(input_state->mouse_wheel_delta > 0){
+    if(player.block_inventory_active_index < player.block_inventory_size - 1)
+      player.block_inventory_active_index++;
   }
 
-  // MOUSE BUTTONS
-  if(event->type == SDL_MOUSEMOTION){
-    player.theta  -= MOUSE_SENSITIVITY                        * event->motion.xrel;
-    player.eta    += MOUSE_SENSITIVITY * PLAYER_ETA_DIRECTION * event->motion.yrel;
-    if(player.eta  >  ETA_MAX) player.eta =  ETA_MAX;
-    if(player.eta  < -ETA_MAX) player.eta = -ETA_MAX;
+  if(input_state->mouse_wheel_delta < 0){
+    if(player.block_inventory_active_index > 0)
+      player.block_inventory_active_index--;
   }
-  if(event->type == SDL_MOUSEBUTTONDOWN){
-    if(event->button.button == SDL_BUTTON_RIGHT){
-      if(looked_at_block.hit){
-        int32_t player_y_feet = player.position.y;
-        int32_t player_y_head = player.position.y + player.height;
-        int32_t player_z = player.position.z;
-        int32_t player_x = player.position.x;
 
-        int32_t block_y = looked_at_block.block_y + looked_at_block.normal_y;
-        int32_t block_z = looked_at_block.block_z + looked_at_block.normal_z;
-        int32_t block_x = looked_at_block.block_x + looked_at_block.normal_x;
+  // RIGHT CLICK: PLACE BLOCK
+  if(input_state->right_mouse_pressed){
+    if(looked_at_block.hit){
+      int32_t player_y_feet = player.position.y;
+      int32_t player_y_head = player.position.y + player.height;
+      int32_t player_z = player.position.z;
+      int32_t player_x = player.position.x;
 
-        if((block_y != player_y_feet && block_y != player_y_head) || block_z != player_z || block_x != player_x){
-          if(player.block_inventory[player.block_inventory_active_index].number > 0){
-            assign_block_material(block_y, block_z, block_x, player.block_inventory[player.block_inventory_active_index].block_type);
-            set_block_orientation(block_y, block_z, block_x, player.position);
-            block_at(block_y, block_z, block_x).solid = true;
-            player_use_block();
+      int32_t block_y = looked_at_block.block_y + looked_at_block.normal_y;
+      int32_t block_z = looked_at_block.block_z + looked_at_block.normal_z;
+      int32_t block_x = looked_at_block.block_x + looked_at_block.normal_x;
 
-            // set chunk as modified
-            int32_t player_chunk_y = player.position.y / CHUNK_SIZE;
-            int32_t player_chunk_z = player.position.z / CHUNK_SIZE;
-            int32_t player_chunk_x = player.position.x / CHUNK_SIZE;
-            save_chunk(player_chunk_z, player_chunk_y, player_chunk_x);
-            print_log("saved chunk %d %d %d", player_chunk_z, player_chunk_y, player_chunk_x);
-          }
+      if((block_y != player_y_feet && block_y != player_y_head) || block_z != player_z || block_x != player_x){
+        if(player.block_inventory[player.block_inventory_active_index].number > 0){
+          assign_block_material(block_y, block_z, block_x, player.block_inventory[player.block_inventory_active_index].block_type);
+          set_block_orientation(block_y, block_z, block_x, player.position);
+          block_at(block_y, block_z, block_x).solid = true;
+          player_use_block();
+
+          int32_t player_chunk_y = player.position.y / CHUNK_SIZE;
+          int32_t player_chunk_z = player.position.z / CHUNK_SIZE;
+          int32_t player_chunk_x = player.position.x / CHUNK_SIZE;
+
+          save_chunk(player_chunk_z, player_chunk_y, player_chunk_x);
+          print_log("saved chunk %d %d %d", player_chunk_z, player_chunk_y, player_chunk_x);
         }
       }
     }
-    else if(event->button.button == SDL_BUTTON_LEFT){
-      mining = true;
-    }
   }
-  else if(event->type == SDL_MOUSEBUTTONUP){
-    if(event->button.button == SDL_BUTTON_LEFT){
-      mining = false;
-      animation_frame = 0;
-      animation_direction = 1;
-    }
+
+  // LEFT CLICK: START MINING
+  if(input_state->left_mouse_pressed){
+    mining = true;
+  }
+
+  // LEFT RELEASE: STOP MINING
+  if(input_state->left_mouse_released){
+    mining = false;
+    animation_frame = 0;
+    animation_direction = 1;
   }
 }
 
-void process_console_input(SDL_Event *event){
-  if(event->type == SDL_KEYDOWN && !event->key.repeat){
-    switch(event->key.keysym.sym){
+void update_player_from_input(input_state_t *input_state){
 
-      case SDLK_BACKSPACE:
-        if(console.cursor_position > 0){
-          memmove(&console.input_buffer[console.cursor_position - 1], &console.input_buffer[console.cursor_position], console.input_length - console.cursor_position + 1);
-          console.cursor_position--;
-          console.input_length--;
-        }
-        break;
-
-      case SDLK_DELETE:
-        if(console.cursor_position < console.input_length){
-          memmove(&console.input_buffer[console.cursor_position], &console.input_buffer[console.cursor_position + 1], console.input_length - console.cursor_position);
-          console.input_length--;
-        }
-        break;
-
-      case SDLK_LEFT:
-        if(console.cursor_position > 0){
-          console.cursor_position--;
-        }
-        break;
-
-      case SDLK_RIGHT:
-        if(console.cursor_position < console.input_length){
-          console.cursor_position++;
-        }
-        break;
-
-      case SDLK_HOME:
-        console.cursor_position = 0;
-        break;
-
-      case SDLK_END:
-        console.cursor_position = console.input_length;
-        break;
-
-      case SDLK_RETURN:
-        run_console_command(console.input_buffer);
-
-        console.input_length = 0;
-        console.cursor_position = 0;
-        console.input_buffer[0] = '\0';
-        break;
-    }
-  }
-
-  if(event->type == SDL_TEXTINPUT){
-    const char *input_text = event->text.text;
-    int text_length = strlen(input_text);
-
-    if(console.input_length + text_length < (int)sizeof(console.input_buffer) - 1){
-      memmove(&console.input_buffer[console.cursor_position + text_length], &console.input_buffer[console.cursor_position], console.input_length - console.cursor_position + 1);
-      memcpy(&console.input_buffer[console.cursor_position], input_text, text_length);
-      console.cursor_position += text_length;
-      console.input_length += text_length;
-    }
-  }
-}
-
-void render_console(){
-  draw_filled_rect(0, 0, window_width, 80, (color_t){.uint32 = 0xFF000000});
-  draw_text(10, 10, "> ", (color_t){.uint32 = 0xFFFFFFFF}, 1, FONT_5X5);
-  draw_text(20, 10, console.input_buffer, (color_t){.uint32 = 0xFFFFFFFF}, 1, FONT_5X5);
-}
-
-void run_console_command(){
-  if(!strcmp(console.input_buffer, "mp")){
-    options.projection_mode = TEXT_PERSPECTIVE_CORRECT; 
-  }
-  else if(!strcmp(console.input_buffer, "ma")){
-    options.projection_mode = TEXT_AFFINE; 
-  }
-  else if(!strcmp(console.input_buffer, "mf")){
-    options.projection_mode = TEXT_FILLED; 
-  }
-  else if(!strcmp(console.input_buffer, "mw")){
-    options.projection_mode = TEXT_WIREFRAME; 
-  }
-  else if(!strcmp(console.input_buffer, "ca")){
-    options.render_collision_aabb_outlines = !options.render_collision_aabb_outlines; 
-  }
-  else if(!strcmp(console.input_buffer, "co")){
-    options.render_chunk_outlines = !options.render_chunk_outlines; 
-  }
-  else if(!strcmp(console.input_buffer, "bfc ovrd")){
-   options.backface_culling_override = !options.backface_culling_override; 
-  }
-  else if(!strcmp(console.input_buffer, "bfc")){
-   options.backface_culling = !options.backface_culling; 
-  }
-  else if(!strcmp(console.input_buffer, "wireframe")){
-    options.wireframe_overlay = !options.wireframe_overlay; 
-  }
-  else if(!strcmp(console.input_buffer, "dither")){
-    options.dither = !options.dither;
-  }
-  else if(!strcmp(console.input_buffer, "cst")){
-    options.chunk_sort = !options.chunk_sort;
-  }
-  else if(!strcmp(console.input_buffer, "im")){
-    options.instant_mining = !options.instant_mining;
-  }
-}
-
-void move_player(void){
-  const uint8_t *keys = SDL_GetKeyboardState(NULL);
-  bool shift = keys[SDL_SCANCODE_LSHIFT] || keys[SDL_SCANCODE_RSHIFT];
-
-  float move_speed_delta_time = ((shift) ? PLAYER_SPEED_SHIFT_KEY_FACTOR * move_speed : move_speed) * delta_time;
+  float move_speed_delta_time = ((input_state->shift_pressed) ? PLAYER_SPEED_SHIFT_KEY_FACTOR * move_speed : move_speed) * delta_time;
   float turn_speed_delta_time = turn_speed * delta_time;
 
   vector3_t movement = {.x = 0.0f, .y = 0.0f, .z = 0.0f};
 
-  if(keys[SDL_SCANCODE_LEFT])
+  // MOUSE MOTION
+  if(input_state->mouse_xrel != 0 || input_state->mouse_yrel != 0){
+    player.theta -= MOUSE_SENSITIVITY * input_state->mouse_xrel;
+    player.eta   += MOUSE_SENSITIVITY * PLAYER_ETA_DIRECTION * input_state->mouse_yrel;
+
+    if(player.eta > ETA_MAX)
+      player.eta = ETA_MAX;
+
+    if(player.eta < -ETA_MAX)
+      player.eta = -ETA_MAX;
+  }
+
+  if(input_state->key_down[SDL_SCANCODE_LEFT])
     player.theta += turn_speed_delta_time;
 
-  if(keys[SDL_SCANCODE_RIGHT])
+  if(input_state->key_down[SDL_SCANCODE_RIGHT])
     player.theta -= turn_speed_delta_time;
 
-  if(keys[SDL_SCANCODE_UP]){
+  if(input_state->key_down[SDL_SCANCODE_UP]){
     player.eta += turn_speed_delta_time;
     if(player.eta > ETA_MAX) player.eta = ETA_MAX;
   }
 
-  if(keys[SDL_SCANCODE_DOWN]){
+  if(input_state->key_down[SDL_SCANCODE_DOWN]){
     player.eta -= turn_speed_delta_time;
     if(player.eta < -ETA_MAX) player.eta = -ETA_MAX;
   }
@@ -556,27 +459,27 @@ void move_player(void){
     .z =  player.direction.x * up.y
   };
 
-  if(keys[SDL_SCANCODE_A]){
+  if(input_state->key_down[SDL_SCANCODE_A]){
     movement.x += player_direction_orthogonal_left_right.x * move_speed_delta_time;
     movement.z += player_direction_orthogonal_left_right.z * move_speed_delta_time;
   }
 
-  if(keys[SDL_SCANCODE_D]){
+  if(input_state->key_down[SDL_SCANCODE_D]){
     movement.x -= player_direction_orthogonal_left_right.x * move_speed_delta_time;
     movement.z -= player_direction_orthogonal_left_right.z * move_speed_delta_time;
   }
 
-  if(keys[SDL_SCANCODE_W]){
+  if(input_state->key_down[SDL_SCANCODE_W]){
     movement.x += player.direction.x * move_speed_delta_time;
     movement.z += player.direction.z * move_speed_delta_time;
   }
 
-  if(keys[SDL_SCANCODE_S]){
+  if(input_state->key_down[SDL_SCANCODE_S]){
     movement.x -= player.direction.x * move_speed_delta_time;
     movement.z -= player.direction.z * move_speed_delta_time;
   }
 
-  if(keys[SDL_SCANCODE_SPACE] && player.on_ground){
+  if(input_state->key_down[SDL_SCANCODE_SPACE] && player.on_ground){
     player.velocity.y = PLAYER_JUMP_VELOCITY;
     player.on_ground = false;
   }
@@ -2897,7 +2800,7 @@ void update_light(void){
   }
 }
 
-void update_camera(){
+void update_camera_from_player(){
   /* camera tracks player */
   camera.position = (vector3_t){
     .x = player.position.x,
@@ -2911,6 +2814,12 @@ void update_camera(){
   };
   camera.theta = player.theta;
   camera.eta = player.eta;
+
+  looked_at_block = raycast_blocks(
+    camera.position,
+    camera.direction,
+    MAX_VOXEL_LOOK_AT_DISTANCE
+  );
 }
 
 inline uint32_t rasterize_triangle(triangle_t *triangle){
@@ -3317,38 +3226,40 @@ int main(int argc, char *argv[]){
   setup();
   
   for(; !quit; ){
+    /* reset zbuffer */
+    memset(zbuffer, 0x00, total_buffer_pixels * sizeof(uint32_t));
+    for(uint32_t pixel_i = 0; pixel_i < total_buffer_pixels; pixel_i++){
+      color_buffer[pixel_i].uint32 = 0xFFFF8040;
+    }
+
     process_frame_rate();
-    process_input();
 
-    if(!console.is_open){
-      /* reset zbuffer */
-      memset(zbuffer, 0x00, total_buffer_pixels * sizeof(uint32_t));
-      for(uint32_t pixel_i = 0; pixel_i < total_buffer_pixels; pixel_i++){
-        color_buffer[pixel_i].uint32 = 0xFFFF8040;
-      }
+    input_state_t input_state = {0};
+    poll_input(&input_state);
 
-      move_player();
-      update_camera();
-      calculate_currently_looked_at_block();
-      update_light();
+    handle_game_input_actions(&input_state);
+    update_player_from_input(&input_state);
+    update_camera_from_player();
+    handle_player_tool_selection_input(&input_state);   
+    handle_mouse_actions(&input_state);
 
-      view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
+    update_light();
 
-      if(options.chunk_sort) render_visible_chunks_sorted();
-      else render_visible_chunks();
+    view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
 
-      render_player_tools();
-      process_mining();
+    if(options.chunk_sort) render_visible_chunks_sorted();
+    else render_visible_chunks();
 
-      print_debug_data();
-      render_ui();
-    }
-    else{
-      render_console();
-    }
+    render_player_tools();
+    process_mining();
 
+    print_debug_data();
+    render_ui();
+      
     sdl_render();
     frame_id++; /* one count per frame */
+
+    quit = input_state.quit_requested;
   }
 
   destroy_window();

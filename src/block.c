@@ -1432,14 +1432,6 @@ block_raycast_hit_t raycast_blocks(
   return hit_result;
 }
 
-void calculate_currently_looked_at_block(){
-  looked_at_block = raycast_blocks(
-    camera.position,
-    camera.direction,
-    MAX_VOXEL_LOOK_AT_DISTANCE
-  );
-}
-
 void assign_block_material(int32_t block_y, int32_t block_z, int32_t block_x, block_type_t block_type){
   block_at(block_y, block_z, block_x).type = block_type;
   block_at(block_y, block_z, block_x).mining_amount = block_materials[block_type].mining_amount;

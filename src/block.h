@@ -161,7 +161,6 @@ void get_block_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, 
 block_quad_t generate_block_quad(block_quad_type_t quad_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col);
 
 block_raycast_hit_t raycast_blocks(vector3_t ray_origin, vector3_t ray_direction, float max_distance);
-void calculate_currently_looked_at_block();
 void assign_block_material(int32_t block_y, int32_t block_z, int32_t block_x, block_type_t block_type);
 
 void set_block_orientation(int32_t block_y, int32_t block_z, int32_t block_x, vector3_t player_position);

@@ -16,18 +16,28 @@
 typedef struct{
   bool quit_requested;
 
-  int mouse_wheel_delta;
   bool left_mouse_pressed;
+  bool left_mouse_released;
   bool right_mouse_pressed;
+  bool right_mouse_released;
+
+  int mouse_wheel_delta;
 
   int mouse_x;
   int mouse_y;
+  int mouse_xrel;
+  int mouse_yrel;
 
   bool key_down[SDL_NUM_SCANCODES];
+
+  bool shift_pressed;
+  bool ctrl_pressed;
+  bool alt_pressed;
 } input_state_t;
 
+void setup(void);
+
 void print_debug_data();
-void render_console();
 void free_resources(void);
 void object_quicksort(object_sort_key_t *array, int count);
 void qs_object(object_sort_key_t *array, int left, int right);
@@ -36,14 +46,18 @@ void qs_chunk(chunk_sort_key_t *array, int left, int right);
 void triangle_quicksort(triangle_t *array, int count);
 void qs_triangle(triangle_t *array, int left, int right);
 void render_sun(void);
-void update_camera();
-void move_player(void);
 void update_light(void);
-void process_input(void);
-void process_console_input(SDL_Event *event);
-void process_game_input(SDL_Event *event);
-void run_console_command();
-void setup(void);
+
+// INPUT
+void poll_input(input_state_t *input_state);
+void handle_game_input_actions(input_state_t *input_state);
+void handle_player_tool_selection_input(input_state_t *input_state);
+void update_player_from_input(input_state_t *input_state);
+
+// ACTIONS
+void handle_mouse_actions(input_state_t *input_state);
+
+// GAME UPDATE
 
 void draw_char(int x, int y, char character, color_t color, int scale, font_type_t type);
 void draw_text(int x, int y, const char *text, color_t color, int scale, font_type_t type);
