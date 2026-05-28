@@ -3173,8 +3173,14 @@ void process_mining(){
     if(mining){
       if(block_at(block_y, block_z, block_x).mineable){
         player_tool_type_t tool_type = player.tools[player.active_tool_index].tool_type;
-        
-        block_at(block_y, block_z, block_x).current_mass -= player_tool_definitions[tool_type].mining_power;
+        player_tool_definition_t *player_tool_definition = &player_tool_definitions[tool_type];
+        int32_t tool_mining_power = player_tool_definition->mining_power;
+
+        int32_t mining_power = tool_mining_power;
+        if(player_tool_definition->tool_class != block_materials[block_at(block_y, block_z, block_x).type].preferred_tool_class){
+          mining_power = ceilf((float)mining_power / 5.0f);
+        }
+        block_at(block_y, block_z, block_x).current_mass -= mining_power;
         //player.tools[player.active_tool_index].durability -= 1;
 
         if(options.instant_mining) block_at(block_y, block_z, block_x).current_mass = 0;

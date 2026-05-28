@@ -5,6 +5,7 @@
 #include "vector.h"
 #include "aabb.h"
 #include "block.h"
+#include "player_tools.h"
 
 #define PLAYER_GRAVITY             22.0f
 #define PLAYER_JUMP_VELOCITY       8.0f
@@ -17,41 +18,6 @@
 #define PLAYER_BLOCK_INVENTORY_MAX_SIZE 50
 
 #define MAX_PLAYER_TOOLS_HOLDING 10
-
-typedef enum{
-  PLAYER_TOOL_WOODEN_PICKAXE,
-  PLAYER_TOOL_STONE_PICKAXE,
-  PLAYER_TOOL_IRON_PICKAXE,
-  PLAYER_TOOL_DIAMOND_PICKAXE,
-
-  PLAYER_TOOL_WOODEN_AXE,
-  PLAYER_TOOL_STONE_AXE,
-  PLAYER_TOOL_IRON_AXE,
-  PLAYER_TOOL_DIAMOND_AXE,
-
-  PLAYER_TOOL_WOODEN_SHOVEL,
-  PLAYER_TOOL_STONE_SHOVEL,
-  PLAYER_TOOL_IRON_SHOVEL,
-  PLAYER_TOOL_DIAMOND_SHOVEL,
-
-  PLAYER_TOOL_WOODEN_SWORD,
-  PLAYER_TOOL_STONE_SWORD,
-  PLAYER_TOOL_IRON_SWORD,
-  PLAYER_TOOL_DIAMOND_SWORD
-} player_tool_type_t;
-
-typedef struct{
-  const char *name;
-  uint8_t mining_power;
-  uint8_t attack_damage;
-  uint8_t durability_max;
-} player_tool_definition_t;
-
-typedef struct{
-  player_tool_type_t tool_type;
-  uint32_t object_id;
-  uint8_t durability;
-} player_tool_t;
 
 typedef struct{
   block_type_t block_type;

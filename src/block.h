@@ -5,6 +5,7 @@
 #include "material.h"
 #include "mesh.h"
 #include "light.h"
+#include "player_tools.h"
 
 #define MAP_NUM_BLOCKS_X 512
 #define MAP_NUM_BLOCKS_Z 512
@@ -96,6 +97,8 @@ typedef struct{
   // physical properties
   int32_t mass;
   bool solid;
+  player_tool_class_t preferred_tool_class;
+  float wrong_tool_multiplier;
   // rendering
   bool backface_culling;
   // color and light
