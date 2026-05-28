@@ -389,7 +389,6 @@ void handle_mouse_actions(input_state_t *input_state){
         if(player.block_inventory[player.block_inventory_active_index].number > 0){
           assign_block_material(block_y, block_z, block_x, player.block_inventory[player.block_inventory_active_index].block_type);
           set_block_orientation(block_y, block_z, block_x, player.position);
-          block_at(block_y, block_z, block_x).solid = true;
           player_use_block();
 
           // SAVE THE CHUNK THAT THE BLOCK IS INSIDE OF
@@ -522,6 +521,7 @@ inline void move_player_x(float movement_x){
 
   int block_x, block_y, block_z;
   block_t *block;
+
   if(movement_x > 0.0f){
     // y position at player's feet
 
@@ -534,7 +534,7 @@ inline void move_player_x(float movement_x){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_max > block->aabb.x_min){
         target_position.x = block->aabb.x_min - player.radius - COLLISION_EPSILON;
         target_aabb = make_player_aabb_at_position(target_position);
@@ -550,7 +550,7 @@ inline void move_player_x(float movement_x){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.z_max > block->aabb.z_min)
         if(target_aabb.x_max > block->aabb.x_min){
           target_position.x = block->aabb.x_min - player.radius - COLLISION_EPSILON;
@@ -567,7 +567,7 @@ inline void move_player_x(float movement_x){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.z_min < block->aabb.z_max)
         if(target_aabb.x_max > block->aabb.x_min){
           target_position.x = block->aabb.x_min - player.radius - COLLISION_EPSILON;
@@ -585,7 +585,7 @@ inline void move_player_x(float movement_x){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_max > block->aabb.x_min){
         target_position.x = block->aabb.x_min - player.radius - COLLISION_EPSILON;
         target_aabb = make_player_aabb_at_position(target_position);
@@ -601,7 +601,7 @@ inline void move_player_x(float movement_x){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.z_max > block->aabb.z_min)
         if(target_aabb.x_max > block->aabb.x_min){
           target_position.x = block->aabb.x_min - player.radius - COLLISION_EPSILON;
@@ -618,7 +618,7 @@ inline void move_player_x(float movement_x){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.z_min < block->aabb.z_max)
         if(target_aabb.x_max > block->aabb.x_min){
           target_position.x = block->aabb.x_min - player.radius - COLLISION_EPSILON;
@@ -636,7 +636,7 @@ inline void move_player_x(float movement_x){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.y_max > block->aabb.y_min)
         if(target_aabb.x_max > block->aabb.x_min){
           target_position.x = block->aabb.x_min - player.radius - COLLISION_EPSILON;
@@ -653,7 +653,7 @@ inline void move_player_x(float movement_x){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.y_max > block->aabb.y_min)
         if(target_aabb.z_max > block->aabb.z_min)
           if(target_aabb.x_max > block->aabb.x_min){
@@ -671,7 +671,7 @@ inline void move_player_x(float movement_x){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.y_max > block->aabb.y_min)
         if(target_aabb.z_min < block->aabb.z_max)
           if(target_aabb.x_max > block->aabb.x_min){
@@ -692,7 +692,7 @@ inline void move_player_x(float movement_x){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_min < block->aabb.x_max){
         target_position.x = block->aabb.x_max + player.radius + COLLISION_EPSILON;
         target_aabb = make_player_aabb_at_position(target_position);
@@ -708,7 +708,7 @@ inline void move_player_x(float movement_x){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.z_max > block->aabb.z_min)
         if(target_aabb.x_min < block->aabb.x_max){
           target_position.x = block->aabb.x_max + player.radius + COLLISION_EPSILON;
@@ -725,7 +725,7 @@ inline void move_player_x(float movement_x){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.z_min < block->aabb.z_max)
         if(target_aabb.x_min < block->aabb.x_max){
           target_position.x = block->aabb.x_max + player.radius + COLLISION_EPSILON;
@@ -743,7 +743,7 @@ inline void move_player_x(float movement_x){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_min < block->aabb.x_max){
         target_position.x = block->aabb.x_max + player.radius + COLLISION_EPSILON;
         target_aabb = make_player_aabb_at_position(target_position);
@@ -759,7 +759,7 @@ inline void move_player_x(float movement_x){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.z_max > block->aabb.z_min)
         if(target_aabb.x_min < block->aabb.x_max){
           target_position.x = block->aabb.x_max + player.radius + COLLISION_EPSILON;
@@ -776,7 +776,7 @@ inline void move_player_x(float movement_x){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.z_min < block->aabb.z_max)
         if(target_aabb.x_min < block->aabb.x_max){
           target_position.x = block->aabb.x_max + player.radius + COLLISION_EPSILON;
@@ -794,7 +794,7 @@ inline void move_player_x(float movement_x){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.y_max > block->aabb.y_min)
         if(target_aabb.x_min < block->aabb.x_max){
           target_position.x = block->aabb.x_max + player.radius + COLLISION_EPSILON;
@@ -811,7 +811,7 @@ inline void move_player_x(float movement_x){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.y_max > block->aabb.y_min)
         if(target_aabb.z_max > block->aabb.z_min)
           if(target_aabb.x_min < block->aabb.x_max){
@@ -829,7 +829,7 @@ inline void move_player_x(float movement_x){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.y_max > block->aabb.y_min)
         if(target_aabb.z_min < block->aabb.z_max)
           if(target_aabb.x_min < block->aabb.x_max){
@@ -874,7 +874,7 @@ inline void move_player_z(float movement_z){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.z_max > block->aabb.z_min){
         target_position.z = block->aabb.z_min - player.radius - COLLISION_EPSILON;
         target_aabb = make_player_aabb_at_position(target_position);
@@ -890,7 +890,7 @@ inline void move_player_z(float movement_z){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_max > block->aabb.x_min)
         if(target_aabb.z_max > block->aabb.z_min){
           target_position.z = block->aabb.z_min - player.radius - COLLISION_EPSILON;
@@ -907,7 +907,7 @@ inline void move_player_z(float movement_z){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_min < block->aabb.x_max)
         if(target_aabb.z_max > block->aabb.z_min){
           target_position.z = block->aabb.z_min - player.radius - COLLISION_EPSILON;
@@ -925,7 +925,7 @@ inline void move_player_z(float movement_z){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.z_max > block->aabb.z_min){
         target_position.z = block->aabb.z_min - player.radius - COLLISION_EPSILON;
         target_aabb = make_player_aabb_at_position(target_position);
@@ -941,7 +941,7 @@ inline void move_player_z(float movement_z){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_max > block->aabb.x_min)
         if(target_aabb.z_max > block->aabb.z_min){
           target_position.z = block->aabb.z_min - player.radius - COLLISION_EPSILON;
@@ -958,7 +958,7 @@ inline void move_player_z(float movement_z){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_min < block->aabb.x_max)
         if(target_aabb.z_max > block->aabb.z_min){
           target_position.z = block->aabb.z_min - player.radius - COLLISION_EPSILON;
@@ -976,7 +976,7 @@ inline void move_player_z(float movement_z){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.y_max > block->aabb.y_min)
         if(target_aabb.z_max > block->aabb.z_min){
           target_position.z = block->aabb.z_min - player.radius - COLLISION_EPSILON;
@@ -993,7 +993,7 @@ inline void move_player_z(float movement_z){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.y_max > block->aabb.y_min)
         if(target_aabb.x_max > block->aabb.x_min)
           if(target_aabb.z_max > block->aabb.z_min){
@@ -1011,7 +1011,7 @@ inline void move_player_z(float movement_z){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.y_max > block->aabb.y_min)
         if(target_aabb.x_min < block->aabb.x_max)
           if(target_aabb.z_max > block->aabb.z_min){
@@ -1032,7 +1032,7 @@ inline void move_player_z(float movement_z){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.z_min < block->aabb.z_max){
         target_position.z = block->aabb.z_max + player.radius + COLLISION_EPSILON;
         target_aabb = make_player_aabb_at_position(target_position);
@@ -1048,7 +1048,7 @@ inline void move_player_z(float movement_z){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_max > block->aabb.x_min)
         if(target_aabb.z_min < block->aabb.z_max){
           target_position.z = block->aabb.z_max + player.radius + COLLISION_EPSILON;
@@ -1065,7 +1065,7 @@ inline void move_player_z(float movement_z){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_min < block->aabb.x_max)
         if(target_aabb.z_min < block->aabb.z_max){
           target_position.z = block->aabb.z_max + player.radius + COLLISION_EPSILON;
@@ -1083,7 +1083,7 @@ inline void move_player_z(float movement_z){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.z_min < block->aabb.z_max){
         target_position.z = block->aabb.z_max + player.radius + COLLISION_EPSILON;
         target_aabb = make_player_aabb_at_position(target_position);
@@ -1099,7 +1099,7 @@ inline void move_player_z(float movement_z){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_max > block->aabb.x_min)
         if(target_aabb.z_min < block->aabb.z_max){
           target_position.z = block->aabb.z_max + player.radius + COLLISION_EPSILON;
@@ -1116,7 +1116,7 @@ inline void move_player_z(float movement_z){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_min < block->aabb.x_max)
         if(target_aabb.z_min < block->aabb.z_max){
           target_position.z = block->aabb.z_max + player.radius + COLLISION_EPSILON;
@@ -1134,7 +1134,7 @@ inline void move_player_z(float movement_z){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.y_max > block->aabb.y_min)
         if(target_aabb.z_min < block->aabb.z_max){
           target_position.z = block->aabb.z_max + player.radius + COLLISION_EPSILON;
@@ -1151,7 +1151,7 @@ inline void move_player_z(float movement_z){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.y_max > block->aabb.y_min)
         if(target_aabb.x_max > block->aabb.x_min)
           if(target_aabb.z_min < block->aabb.z_max){
@@ -1169,7 +1169,7 @@ inline void move_player_z(float movement_z){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.y_max > block->aabb.y_min)
         if(target_aabb.x_min < block->aabb.x_max)
           if(target_aabb.z_min < block->aabb.z_max){
@@ -1218,7 +1218,7 @@ inline void move_player_y(float movement_y){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.y_min < block->aabb.y_max){
         target_position.y = block->aabb.y_max + COLLISION_EPSILON;
         target_aabb = make_player_aabb_at_position(target_position);
@@ -1236,7 +1236,7 @@ inline void move_player_y(float movement_y){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_min < block->aabb.x_max)
         if(target_aabb.y_min < block->aabb.y_max){
           target_position.y = block->aabb.y_max + COLLISION_EPSILON;
@@ -1255,7 +1255,7 @@ inline void move_player_y(float movement_y){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_max > block->aabb.x_min)
         if(target_aabb.y_min < block->aabb.y_max){
           target_position.y = block->aabb.y_max + COLLISION_EPSILON;
@@ -1274,7 +1274,7 @@ inline void move_player_y(float movement_y){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.z_max > block->aabb.z_min)
         if(target_aabb.y_min < block->aabb.y_max){
           target_position.y = block->aabb.y_max + COLLISION_EPSILON;
@@ -1293,7 +1293,7 @@ inline void move_player_y(float movement_y){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.z_min < block->aabb.z_max)
         if(target_aabb.y_min < block->aabb.y_max){
           target_position.y = block->aabb.y_max + COLLISION_EPSILON;
@@ -1312,7 +1312,7 @@ inline void move_player_y(float movement_y){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_min < block->aabb.x_max)
         if(target_aabb.z_max > block->aabb.z_min)
           if(target_aabb.y_min < block->aabb.y_max){
@@ -1332,7 +1332,7 @@ inline void move_player_y(float movement_y){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_max > block->aabb.x_min)
         if(target_aabb.z_max > block->aabb.z_min)
           if(target_aabb.y_min < block->aabb.y_max){
@@ -1352,7 +1352,7 @@ inline void move_player_y(float movement_y){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_max > block->aabb.x_min)
         if(target_aabb.z_min < block->aabb.z_max)
           if(target_aabb.y_min < block->aabb.y_max){
@@ -1372,7 +1372,7 @@ inline void move_player_y(float movement_y){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_min < block->aabb.x_max)
         if(target_aabb.z_min < block->aabb.z_max)
           if(target_aabb.y_min < block->aabb.y_max){
@@ -1395,7 +1395,7 @@ inline void move_player_y(float movement_y){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.y_max > block->aabb.y_min){
         target_position.y = block->aabb.y_min - player.height - COLLISION_EPSILON;
         target_aabb = make_player_aabb_at_position(target_position);
@@ -1412,7 +1412,7 @@ inline void move_player_y(float movement_y){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_min < block->aabb.x_max)
         if(target_aabb.y_max > block->aabb.y_min){
           target_position.y = block->aabb.y_min - player.height - COLLISION_EPSILON;
@@ -1430,7 +1430,7 @@ inline void move_player_y(float movement_y){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_max > block->aabb.x_min)
         if(target_aabb.y_max > block->aabb.y_min){
           target_position.y = block->aabb.y_min - player.height - COLLISION_EPSILON;
@@ -1448,7 +1448,7 @@ inline void move_player_y(float movement_y){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.z_max > block->aabb.z_min)
         if(target_aabb.y_max > block->aabb.y_min){
           target_position.y = block->aabb.y_min - player.height - COLLISION_EPSILON;
@@ -1466,7 +1466,7 @@ inline void move_player_y(float movement_y){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.z_min < block->aabb.z_max)
         if(target_aabb.y_max > block->aabb.y_min){
           target_position.y = block->aabb.y_min - player.height - COLLISION_EPSILON;
@@ -1484,7 +1484,7 @@ inline void move_player_y(float movement_y){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_min < block->aabb.x_max)
         if(target_aabb.z_max > block->aabb.z_min)
           if(target_aabb.y_max > block->aabb.y_min){
@@ -1503,7 +1503,7 @@ inline void move_player_y(float movement_y){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_max > block->aabb.x_min)
         if(target_aabb.z_max > block->aabb.z_min)
           if(target_aabb.y_max > block->aabb.y_min){
@@ -1522,7 +1522,7 @@ inline void move_player_y(float movement_y){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_max > block->aabb.x_min)
         if(target_aabb.z_min < block->aabb.z_max)
           if(target_aabb.y_max > block->aabb.y_min){
@@ -1541,7 +1541,7 @@ inline void move_player_y(float movement_y){
 
     block = &block_at(block_y, block_z, block_x);
 
-    if(block->solid){
+    if(block_materials[block->type].solid){
       if(target_aabb.x_min < block->aabb.x_max)
         if(target_aabb.z_min < block->aabb.z_max)
           if(target_aabb.y_max > block->aabb.y_min){
@@ -1578,7 +1578,7 @@ void move_player_z_old(float movement_z){
       for(int block_x = start_x; block_x <= end_x; block_x++){
         block_t *block = &block_at(block_y, block_z, block_x);
 
-        if(block->solid == false) continue;
+        if(!block_materials[block->type].solid) continue;
         if(!aabb_3d_overlaps_xy(&target_aabb, &block->aabb)) continue;
 
         if(movement_z > 0.0f){
@@ -1623,7 +1623,7 @@ void move_player_y_old(float movement_y){
       for(int block_x = start_x; block_x <= end_x; block_x++){
         block_t *block = &block_at(block_y, block_z, block_x);
 
-        if(block->solid == false) continue;
+        if(!block_materials[block->type].solid) continue;
         if(!aabb_3d_overlaps_xz(&target_aabb, &block->aabb)) continue;
 
         if(movement_y < 0.0f){
@@ -2275,7 +2275,7 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
     for(int32_t z_row = z_row_start; z_row < z_row_end; z_row++){
       for(int32_t x_col = x_col_start; x_col < x_col_end; x_col++){
         
-        if(block_at(y_plane, z_row, x_col).solid == false) continue;
+        if(block_materials[block_at(y_plane, z_row, x_col).type].solid == false) continue;
         
         int32_t left_neighbour_index    = x_col - 1;
         int32_t right_neighbour_index   = x_col + 1;
@@ -3174,14 +3174,13 @@ void process_mining(){
       if(block_at(block_y, block_z, block_x).mineable){
         player_tool_type_t tool_type = player.tools[player.active_tool_index].tool_type;
         
-        block_at(block_y, block_z, block_x).mining_amount -= player_tool_definitions[tool_type].mining_power;
+        block_at(block_y, block_z, block_x).current_mass -= player_tool_definitions[tool_type].mining_power;
         //player.tools[player.active_tool_index].durability -= 1;
 
-        if(options.instant_mining) block_at(block_y, block_z, block_x).mining_amount = 0;
-        if(block_at(block_y, block_z, block_x).mining_amount <= 0){
+        if(options.instant_mining) block_at(block_y, block_z, block_x).current_mass = 0;
+        if(block_at(block_y, block_z, block_x).current_mass <= 0){
           player_obtain_block(block_at(block_y, block_z, block_x).type);
           assign_block_material(block_y, block_z, block_x, BLOCK_TYPE_AIR);
-          block_at(block_y, block_z, block_x).solid = false;
 
           // SAVE THE CHUNK THAT THE BLOCK IS INSIDE OF
           int32_t chunk_y = block_y / CHUNK_SIZE;
@@ -3197,7 +3196,7 @@ void process_mining(){
       }
     }
     else{
-      block_at(block_y, block_z, block_x).mining_amount = block_materials[block_at(block_y, block_z, block_x).type].mining_amount;
+      block_at(block_y, block_z, block_x).current_mass = block_materials[block_at(block_y, block_z, block_x).type].mass;
     }
   }
 }

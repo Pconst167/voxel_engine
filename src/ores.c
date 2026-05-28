@@ -66,7 +66,6 @@ void place_ore(int32_t z_row, int32_t x_col, ore_type_t ore_type){
     for(int32_t z = z_row; z < z_row + ore_size; z++){
       for(int32_t x = x_col; x < x_col + ore_size; x++){
         assign_block_material(y, z, x, ores[ore_type].block_type);
-        block_at(y, z, x).solid = true;
       }
     }
   }

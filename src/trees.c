@@ -138,7 +138,7 @@ void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
   // find first solid block along y
   int32_t first_solid_y = 0;
   for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
-    if(block_at(y, z_row, x_col).solid){
+    if(block_materials[block_at(y, z_row, x_col).type].solid){
       first_solid_y = y;
       break;
     }
@@ -160,7 +160,6 @@ void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
       for(int32_t x = x_col - 3; x <= x_col + 3; x++){
         if(xorshift32() % 2 == 0){
           assign_block_material(y, z, x, tree.leaves_block_type);
-          block_at(y, z, x).solid = true;
         }
       }
     }
@@ -173,7 +172,6 @@ void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
     for(int32_t z = z_row - width / 2.0f; z < z_row + width / 2.0f; z++){
       for(int32_t x = x_col - width / 2.0f; x < x_col + width / 2.0f; x++){
         assign_block_material(y, z, x, tree.trunk_block_type);
-        block_at(y, z, x).solid = true;
       }
     }
   }

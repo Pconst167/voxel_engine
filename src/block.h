@@ -94,7 +94,8 @@ typedef enum{
 typedef struct{
   char *material_name;
   // physical properties
-  uint8_t mining_amount;
+  int32_t mass;
+  bool solid;
   // rendering
   bool backface_culling;
   // color and light
@@ -125,8 +126,7 @@ typedef struct{
 typedef struct{
   block_type_t type;
   block_orientation_t orientation;
-  bool solid;
-  int32_t mining_amount;
+  int32_t current_mass;
   float temperature;
   bool mineable;
   aabb_3d_t aabb;
