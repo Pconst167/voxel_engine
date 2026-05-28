@@ -42,7 +42,7 @@ typedef enum{
 
 typedef struct{
   const char *name;
-  float mining_power; // 0 to 100% of block mass
+  uint8_t mining_power;
   uint8_t attack_damage;
   uint8_t durability_max;
 } player_tool_definition_t;
