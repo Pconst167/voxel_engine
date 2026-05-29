@@ -191,7 +191,8 @@ void setup(void) {
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
 
   create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = 0.0f,  .z = 0.0f}, (color_t){.uint32 = 0xFFFFBBBB}, 0.7f);
-  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 1.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
+  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
+  create_light_source(LIGHT_POINT, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
 
   /* normalize all light direction vectors to unity */
   initialize_lights();
@@ -2101,12 +2102,13 @@ void render_block_quad(
 
     light_intensities field is initialized to zero below in declaration - so that the light_intensities field is all 0 in case object not reflects_light
   */
- float depth_intensity;
-  float height = block_quad.points[0].y;
-  if(height >= 0.4f * MAP_NUM_BLOCKS_Y - 1) depth_intensity = 1.0f;
+  float depth_intensity;
+  float height = block_quad.points[0].y / (float)(MAP_NUM_BLOCKS_Y * 0.4f);
+  if(height >= 1.0f) depth_intensity = 1.0f;
   else{
-    depth_intensity = height / (float)(MAP_NUM_BLOCKS_Y * 0.4f);
+    depth_intensity = height * height * height * height * height * height * height * height;
   }
+
   vector3_t v_face_centroid = v_a;
   float light_intensities[MAX_NUM_LIGHT_SOURCES] = {0.0f}; // keeps the total light intensity for this face
   if(block_material->reflects_light){
@@ -2255,9 +2257,9 @@ void render_block_quad(
       if(red   > 255) red   = 255;
       if(green > 255) green = 255;
       if(blue  > 255) blue  = 255;
-      projected_triangle.face_material.emissive_color.rgb.red   = red;
-      projected_triangle.face_material.emissive_color.rgb.green = green;
-      projected_triangle.face_material.emissive_color.rgb.blue  = blue;
+      projected_triangle.face_material.emissive_color.rgb.red   = red * depth_intensity;
+      projected_triangle.face_material.emissive_color.rgb.green = green * depth_intensity;
+      projected_triangle.face_material.emissive_color.rgb.blue  = blue * depth_intensity;
     }
 
     /* TRIANGLE RASTERIZATION */
@@ -2356,10 +2358,12 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
           render_block_quad(block_quad, block_material, block_looked_at_top, block_orientation, has_sky_visibility);
         }
         if(render_bottom_quad){
+          has_sky_visibility = false;
           block_quad = generate_block_quad(VOXEL_QUAD_BOTTOM, y_plane, z_row, x_col);
           render_block_quad(block_quad, block_material, block_looked_at_bottom, block_orientation, has_sky_visibility);
         }
         if(render_front_quad){
+          has_sky_visibility = true;
           block_quad = generate_block_quad(VOXEL_QUAD_FRONT, y_plane, z_row, x_col);
           render_block_quad(block_quad, block_material, block_looked_at_front, block_orientation, has_sky_visibility);
         }
@@ -2376,6 +2380,10 @@ void render_object(object_t *object){
   /* triangles list for clipped triangles */
   triangle_t triangles_after_clipping[MAX_NUM_POLYGON_VERTICES - 2]; /* for a polygon with N vertices, the number of nested triangles is always N-2 */
 
+  // calculate a vertex for the position of the object (before view matrix so we get actual physical position)
+  matrix4_t world_matrix        = matrix4_gen_world_matrix(object);
+  vector4_t object_depth_vertex = matrix4_mul_vector3(&world_matrix, object->mesh->vertices[0]);
+
   /* loop through all faces in the face list for object */
   uint32_t num_faces = object->mesh->num_faces;
   for(uint32_t face_idx = 0; face_idx < num_faces; face_idx++){
@@ -2390,7 +2398,6 @@ void render_object(object_t *object){
     face_vertices[2] = object->mesh->vertices[face.vertex_indices[2]];
 
     /* generate the final world matrix, which combines scaling, rotation, and translation, all into one */
-    matrix4_t world_matrix      = matrix4_gen_world_matrix(object);
     matrix4_t world_view_matrix = matrix4_mul_mat4(&view_matrix, &world_matrix);
 
     transformed_vertices[0] = matrix4_mul_vector3(&world_view_matrix, face_vertices[0]); /* affine transform so can use this faster multiply */
@@ -2453,6 +2460,12 @@ void render_object(object_t *object){
       face_material = object->mesh->materials[face.material_id];
 
     /* LIGHT CALCULATIONS */
+    float depth_intensity;
+    float height = object_depth_vertex.y / (float)(MAP_NUM_BLOCKS_Y * 0.4f);
+    if(height >= 1.0f) depth_intensity = 1.0f;
+    else{
+      depth_intensity = height * height * height * height * height * height * height * height;
+    }
     //vector3_t v_face_centroid = {(v_a.x + v_b.x + v_c.x) / 3.0f, (v_a.y + v_b.y + v_c.y) / 3.0f, (v_a.z + v_b.z + v_c.z) / 3.0f};
     vector3_t v_face_centroid = v_a;
     float light_intensities[MAX_NUM_LIGHT_SOURCES] = {0.0f}; // keeps the total light intensity for this face
@@ -2473,7 +2486,7 @@ void render_object(object_t *object){
             }
             else light_intensities[light_index] = 0.0f;
           }
-          light_intensities[light_index] *= light_sources[light_index].intensity;
+          light_intensities[light_index] *= light_sources[light_index].intensity * depth_intensity;
         }
         else if(light_sources[light_index].type == LIGHT_POINT){
           vector4_t light_position_view = matrix4_mul_vector3(&view_matrix, (vector3_t){light_sources[light_index].position.x, light_sources[light_index].position.y, light_sources[light_index].position.z});
@@ -2483,7 +2496,7 @@ void render_object(object_t *object){
           if(face_material.two_sided_lighting){
             light_intensities[light_index] = fabsf(v_face_normal.x * lightpos_to_v_face_centroid_ray.x + v_face_normal.y * lightpos_to_v_face_centroid_ray.y + v_face_normal.z * lightpos_to_v_face_centroid_ray.z) / (lightpos_to_v_face_centroid_ray_length);
             light_intensities[light_index] /= 1.0f + lightpos_to_v_face_centroid_ray_length;
-            light_intensities[light_index] *= light_sources[light_index].intensity;
+            light_intensities[light_index] *= light_sources[light_index].intensity * depth_intensity;
           }
           else{
             vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
@@ -2499,7 +2512,7 @@ void render_object(object_t *object){
           } 
         }
         else if(light_sources[light_index].type == LIGHT_AMBIENT){
-          light_intensities[light_index] = light_sources[light_index].intensity;
+          light_intensities[light_index] = light_sources[light_index].intensity * depth_intensity;
         }
         /* clamp to [0.0, 1.0] */
         if(light_intensities[light_index] < 0.0f) light_intensities[light_index] = 0.0f;
@@ -2837,6 +2850,9 @@ void update_light(void){
     //light_sources[0].color = skybox->mesh->materials[0].emissive_color; 
     //light_sources[0].intensity = MIN_AMBIENT_LIGHT_INTENSITY + AMBIENT_LIGHT_MAX_FACTOR * sin_eta;
   }
+
+  light_sources[2].position = player.position;
+  light_sources[2].position.y += player.height;
 }
 
 void update_camera_from_player(){
