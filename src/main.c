@@ -3171,14 +3171,15 @@ void process_mining(){
     int32_t block_x = looked_at_block.block_x;
 
     if(mining){
-      if(block_at(block_y, block_z, block_x).mineable){
+      if(block_materials[block_at(block_y, block_z, block_x).type].mineable){
         player_tool_type_t tool_type = player.tools[player.active_tool_index].tool_type;
         player_tool_definition_t *player_tool_definition = &player_tool_definitions[tool_type];
         int32_t tool_mining_power = player_tool_definition->mining_power;
 
         int32_t mining_power = tool_mining_power;
         if(player_tool_definition->tool_class != block_materials[block_at(block_y, block_z, block_x).type].preferred_tool_class){
-          mining_power = ceilf((float)mining_power / 5.0f);
+          mining_power = (float)mining_power / 5.0f;
+          if(mining_power == 0) mining_power = 1;
         }
         block_at(block_y, block_z, block_x).current_mass -= mining_power;
         //player.tools[player.active_tool_index].durability -= 1;
@@ -3200,6 +3201,7 @@ void process_mining(){
           }
         }
       }
+      else print_log("fail");
     }
     else{
       block_at(block_y, block_z, block_x).current_mass = block_materials[block_at(block_y, block_z, block_x).type].mass;

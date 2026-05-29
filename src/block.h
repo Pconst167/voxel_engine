@@ -99,6 +99,7 @@ typedef struct{
   bool solid;
   player_tool_class_t preferred_tool_class;
   float wrong_tool_multiplier;
+  bool mineable;
   // rendering
   bool backface_culling;
   // color and light
@@ -131,7 +132,6 @@ typedef struct{
   block_orientation_t orientation;
   int32_t current_mass;
   float temperature;
-  bool mineable;
   aabb_3d_t aabb;
   float avg_w;
   bool looked_at;
