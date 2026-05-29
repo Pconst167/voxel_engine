@@ -135,6 +135,7 @@ typedef struct{
   aabb_3d_t aabb;
   float avg_w;
   bool looked_at;
+  bool has_sky_visibility;
 } block_t;
 
 typedef struct{

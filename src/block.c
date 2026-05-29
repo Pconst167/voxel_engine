@@ -1309,6 +1309,21 @@ void init_block_map(){
 
   place_trees();
   place_ores();
+
+  // set sky visibility of all blocks
+  for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+    for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+      bool found_solid = false;
+      for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
+        if(block_materials[block_at(y, z, x).type].solid && !found_solid){
+          found_solid = true;
+          block_at(y, z, x).has_sky_visibility = true;
+          continue;
+        }
+        if(found_solid) block_at(y, z, x).has_sky_visibility = false;        
+      }
+    }
+  }
 }
 
 void get_block_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, int *start_y, int *end_y, int *start_z, int *end_z){

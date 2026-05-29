@@ -391,6 +391,20 @@ void handle_mouse_actions(input_state_t *input_state){
           set_block_orientation(block_y, block_z, block_x, player.position);
           player_use_block();
 
+          // set sky visibility of all blocks below the placed one to false
+          block_type_t placed_block_type = block_at(block_y, block_z, block_x).type;
+          for(int32_t test_y = block_y - 1; test_y >= 0; test_y--){
+            block_t *block = &block_at(test_y, block_z, block_x);
+            if(placed_block_type != BLOCK_TYPE_GLASS) block->has_sky_visibility = false;
+          }
+          // set sky visibility of all blocks above and equal to placed block
+          bool blocked_by_solid_above = false;
+          for(int32_t test_y = MAP_NUM_BLOCKS_Y - 1; test_y >= block_y; test_y--){
+            block_t *block = &block_at(test_y, block_z, block_x);
+            block->has_sky_visibility = !blocked_by_solid_above;
+            if(block_materials[block->type].solid) blocked_by_solid_above = true;
+          }
+
           // SAVE THE CHUNK THAT THE BLOCK IS INSIDE OF
           int32_t chunk_y = block_y / CHUNK_SIZE;
           int32_t chunk_z = block_z / CHUNK_SIZE;
@@ -2004,7 +2018,14 @@ bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane
   return false;
 }
 
-void render_block_quad(block_quad_t block_quad, block_material_t *block_material, bool looked_at, block_orientation_t block_orientation){
+void render_block_quad(
+  block_quad_t block_quad, 
+  block_material_t *block_material, 
+  bool looked_at, 
+  block_orientation_t block_orientation, 
+  bool has_sky_visibility
+){
+
   /* triangles list for clipped triangles */
   triangle_t triangles_after_clipping[MAX_NUM_POLYGON_VERTICES - 2]; /* for a polygon with N vertices, the number of nested triangles is always N-2 */
   vector4_t transformed_vertices[4];
@@ -2080,25 +2101,32 @@ void render_block_quad(block_quad_t block_quad, block_material_t *block_material
 
     light_intensities field is initialized to zero below in declaration - so that the light_intensities field is all 0 in case object not reflects_light
   */
+ float depth_intensity;
+  float height = block_quad.points[0].y;
+  if(height >= 0.4f * MAP_NUM_BLOCKS_Y - 1) depth_intensity = 1.0f;
+  else{
+    depth_intensity = height / (float)(MAP_NUM_BLOCKS_Y * 0.4f);
+  }
   vector3_t v_face_centroid = v_a;
   float light_intensities[MAX_NUM_LIGHT_SOURCES] = {0.0f}; // keeps the total light intensity for this face
   if(block_material->reflects_light){
     vector3_normalize_fast_approx(&v_face_normal); /* normalize here for use below */
     for(uint32_t light_index = 0; light_index < num_light_sources; light_index++){
       switch(light_sources[light_index].type){
-        case LIGHT_DIRECTIONAL:{
-          vector4_t light_direction_view = matrix4_mul_vector4(&view_matrix, (vector4_t){light_sources[light_index].direction.x, light_sources[light_index].direction.y, light_sources[light_index].direction.z, 0});
-          /* if not translucent, then face only lights up if sgn(cam_ray dot normal) == sgn (light_direction dot normal) */
-          vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
-          float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
-          float light_direction_dot_normal  = -(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
-          if((light_direction_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_direction_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
-            light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
+        case LIGHT_DIRECTIONAL:
+          if(has_sky_visibility){
+            vector4_t light_direction_view = matrix4_mul_vector4(&view_matrix, (vector4_t){light_sources[light_index].direction.x, light_sources[light_index].direction.y, light_sources[light_index].direction.z, 0});
+            /* if not translucent, then face only lights up if sgn(cam_ray dot normal) == sgn (light_direction dot normal) */
+            vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
+            float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
+            float light_direction_dot_normal  = -(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
+            if((light_direction_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_direction_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
+              light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
+            }
+            else light_intensities[light_index] = 0.0f;
+            light_intensities[light_index] *= light_sources[light_index].intensity * depth_intensity;
           }
-          else light_intensities[light_index] = 0.0f;
-          light_intensities[light_index] *= light_sources[light_index].intensity;
           break;
-        }
 
         case LIGHT_POINT:{
           vector4_t light_position_view = matrix4_mul_vector3(&view_matrix, (vector3_t){light_sources[light_index].position.x, light_sources[light_index].position.y, light_sources[light_index].position.z});
@@ -2119,7 +2147,7 @@ void render_block_quad(block_quad_t block_quad, block_material_t *block_material
         }
 
         case LIGHT_AMBIENT:{
-          light_intensities[light_index] = light_sources[light_index].intensity;
+          light_intensities[light_index] = light_sources[light_index].intensity * depth_intensity;
           break;
         }
       }
@@ -2311,31 +2339,33 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
           }
         }
 
+        bool has_sky_visibility = block_at(y_plane, z_row, x_col).has_sky_visibility;
+
         block_orientation_t block_orientation = block_at(y_plane, z_row, x_col).orientation;
         block_quad_t block_quad;
         if(render_left_quad){
           block_quad = generate_block_quad(VOXEL_QUAD_LEFT, y_plane, z_row, x_col);
-          render_block_quad(block_quad, block_material, block_looked_at_left, block_orientation);
+          render_block_quad(block_quad, block_material, block_looked_at_left, block_orientation, has_sky_visibility);
         }
         if(render_right_quad){
           block_quad = generate_block_quad(VOXEL_QUAD_RIGHT, y_plane, z_row, x_col);
-          render_block_quad(block_quad, block_material, block_looked_at_right, block_orientation);
+          render_block_quad(block_quad, block_material, block_looked_at_right, block_orientation, has_sky_visibility);
         }
         if(render_top_quad){
           block_quad = generate_block_quad(VOXEL_QUAD_TOP, y_plane, z_row, x_col);
-          render_block_quad(block_quad, block_material, block_looked_at_top, block_orientation);
+          render_block_quad(block_quad, block_material, block_looked_at_top, block_orientation, has_sky_visibility);
         }
         if(render_bottom_quad){
           block_quad = generate_block_quad(VOXEL_QUAD_BOTTOM, y_plane, z_row, x_col);
-          render_block_quad(block_quad, block_material, block_looked_at_bottom, block_orientation);
+          render_block_quad(block_quad, block_material, block_looked_at_bottom, block_orientation, has_sky_visibility);
         }
         if(render_front_quad){
           block_quad = generate_block_quad(VOXEL_QUAD_FRONT, y_plane, z_row, x_col);
-          render_block_quad(block_quad, block_material, block_looked_at_front, block_orientation);
+          render_block_quad(block_quad, block_material, block_looked_at_front, block_orientation, has_sky_visibility);
         }
         if(render_back_quad){
           block_quad = generate_block_quad(VOXEL_QUAD_BACK, y_plane, z_row, x_col);
-          render_block_quad(block_quad, block_material, block_looked_at_back, block_orientation);
+          render_block_quad(block_quad, block_material, block_looked_at_back, block_orientation, has_sky_visibility);
         }
       }
     }
@@ -3188,6 +3218,14 @@ void process_mining(){
         if(block_at(block_y, block_z, block_x).current_mass <= 0){
           player_obtain_block(block_at(block_y, block_z, block_x).type);
           assign_block_material(block_y, block_z, block_x, BLOCK_TYPE_AIR);
+
+          // update sky visibility in column
+          bool blocked_by_solid_above = false;
+          for(int32_t test_y = MAP_NUM_BLOCKS_Y - 1; test_y >= 0; test_y--){
+            block_t *block = &block_at(test_y, block_z, block_x);
+            block->has_sky_visibility = !blocked_by_solid_above;
+            if(block_materials[block->type].solid) blocked_by_solid_above = true;
+          }
 
           // SAVE THE CHUNK THAT THE BLOCK IS INSIDE OF
           int32_t chunk_y = block_y / CHUNK_SIZE;
