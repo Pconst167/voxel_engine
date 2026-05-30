@@ -192,7 +192,7 @@ void setup(void) {
 
   create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = 0.0f,  .z = 0.0f}, (color_t){.uint32 = 0xFFFFBBBB}, 0.7f);
   create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
-  create_light_source(LIGHT_POINT, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
+  create_light_source(LIGHT_POINT, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFA0C0FF}, 1.6f);
 
   /* normalize all light direction vectors to unity */
   initialize_lights();
@@ -2102,11 +2102,16 @@ void render_block_quad(
 
     light_intensities field is initialized to zero below in declaration - so that the light_intensities field is all 0 in case object not reflects_light
   */
-  float depth_intensity;
+
   float height = block_quad.points[0].y / (float)(MAP_NUM_BLOCKS_Y * 0.4f);
+  float depth_intensity;
   if(height >= 1.0f) depth_intensity = 1.0f;
   else{
-    depth_intensity = height * height * height * height * height * height * height * height;
+    height *= height; // ^2
+    height *= height; // ^4
+    height *= height; // ^8
+    height *= height; // ^16
+    depth_intensity = height;
   }
 
   vector3_t v_face_centroid = v_a;
@@ -2460,12 +2465,17 @@ void render_object(object_t *object){
       face_material = object->mesh->materials[face.material_id];
 
     /* LIGHT CALCULATIONS */
-    float depth_intensity;
     float height = object_depth_vertex.y / (float)(MAP_NUM_BLOCKS_Y * 0.4f);
+    float depth_intensity;
     if(height >= 1.0f) depth_intensity = 1.0f;
     else{
-      depth_intensity = height * height * height * height * height * height * height * height;
+      height *= height; // ^2
+      height *= height; // ^4
+      height *= height; // ^8
+      height *= height; // ^16
+      depth_intensity = height;
     }
+
     //vector3_t v_face_centroid = {(v_a.x + v_b.x + v_c.x) / 3.0f, (v_a.y + v_b.y + v_c.y) / 3.0f, (v_a.z + v_b.z + v_c.z) / 3.0f};
     vector3_t v_face_centroid = v_a;
     float light_intensities[MAX_NUM_LIGHT_SOURCES] = {0.0f}; // keeps the total light intensity for this face
@@ -2852,7 +2862,7 @@ void update_light(void){
   }
 
   light_sources[2].position = player.position;
-  light_sources[2].position.y += player.height;
+  light_sources[2].position.y += player.height * 0.7;
 }
 
 void update_camera_from_player(){

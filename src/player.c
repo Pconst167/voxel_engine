@@ -53,14 +53,28 @@ aabb_3d_t make_player_aabb_at_position(vector3_t position){
 
 void init_player(){
   player.block_inventory[0].block_type = BLOCK_TYPE_GLASS;
-  player.block_inventory[0].number = 40;
+  player.block_inventory[0].number = 400;
   player.block_inventory[1].block_type = BLOCK_TYPE_LAMP0;
   player.block_inventory[1].number = 40;
   player.block_inventory[2].block_type = BLOCK_TYPE_OVEN0;
   player.block_inventory[2].number = 40;
   player.block_inventory[3].block_type = BLOCK_TYPE_CHEST0;
   player.block_inventory[3].number = 40;
-  player.block_inventory_size = 4;
+  player.block_inventory[4].block_type = BLOCK_TYPE_TREE_TRUNK0;
+  player.block_inventory[4].number = 400;
+  player.block_inventory[5].block_type = BLOCK_TYPE_TREE_TRUNK1;
+  player.block_inventory[5].number = 400;
+  player.block_inventory[6].block_type = BLOCK_TYPE_TREE_TRUNK2;
+  player.block_inventory[6].number = 400;
+  player.block_inventory[7].block_type = BLOCK_TYPE_TREE_TRUNK3;
+  player.block_inventory[7].number = 400;
+  player.block_inventory[8].block_type = BLOCK_TYPE_STONE0;
+  player.block_inventory[8].number = 400;
+  player.block_inventory[9].block_type = BLOCK_TYPE_STONE1;
+  player.block_inventory[9].number = 400;
+  player.block_inventory[10].block_type = BLOCK_TYPE_STONE2;
+  player.block_inventory[10].number = 400;
+  player.block_inventory_size = 11;
 }
 
 // check if player already has the block type, if so add +1 to entry
