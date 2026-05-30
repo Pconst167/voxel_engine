@@ -3278,7 +3278,7 @@ void render_player_tools(){
   if(mining){
     if(animation_direction == 1){
       animation_frame++;
-      if(animation_frame >= 0) animation_direction = -1;
+      if(animation_frame >= 1) animation_direction = -1;
     }
     else{
       animation_frame--;
@@ -3310,8 +3310,8 @@ void render_player_tools(){
 
   // ROTATION
   objects[player_active_tool_object_id].rotation.y = -camera.theta + M_PI_2 - 0.5;
-  float animation_angle = 30*(M_PI) * (float)animation_frame / 8.0f;
-  float rotation_x = -M_PI_4 - player.eta + animation_angle * delta_time;
+  float animation_angle = 20*(M_PI) * (float)animation_frame / 7.0f;
+  float rotation_x = -0.6 - player.eta + animation_angle * delta_time;
   objects[player_active_tool_object_id].rotation.x = rotation_x;
 
   // RENDER
