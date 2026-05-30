@@ -192,7 +192,7 @@ void setup(void) {
 
   create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = 0.0f,  .z = 0.0f}, (color_t){.uint32 = 0xFFFFBBBB}, 0.7f);
   create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
-  create_light_source(LIGHT_POINT, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFA0C0FF}, 1.6f);
+  create_light_source(LIGHT_POINT, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 2.0f);
 
   /* normalize all light direction vectors to unity */
   initialize_lights();
@@ -3310,7 +3310,7 @@ void render_player_tools(){
 
   // ROTATION
   objects[player_active_tool_object_id].rotation.y = -camera.theta + M_PI_2 - 0.5;
-  float animation_angle = 20*(M_PI) * (float)animation_frame / 8.0f;
+  float animation_angle = 30*(M_PI) * (float)animation_frame / 8.0f;
   float rotation_x = -M_PI_4 - player.eta + animation_angle * delta_time;
   objects[player_active_tool_object_id].rotation.x = rotation_x;
 
