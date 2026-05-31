@@ -9,6 +9,7 @@
 #include "array.h"
 #include "trees.h"
 #include "ores.h"
+#include "volcano.h"
 #include "log.h"
 
 // Y slowest changing dimension, X is fastest changing
@@ -1324,6 +1325,7 @@ void init_block_map(){
       }
     }
   }
+
 }
 
 void get_block_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, int *start_y, int *end_y, int *start_z, int *end_z){

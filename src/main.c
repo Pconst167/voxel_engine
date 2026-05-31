@@ -111,7 +111,7 @@
 #define PLAYER_SPEED_SHIFT_KEY_FACTOR 2.0f
 #define PLAYER_ETA_DIRECTION 1.0f /* +1: mouse back looks up, -1: mouse back looks down */
 #define MOUSE_SENSITIVITY 0.005f
-#define DAY_LENGTH (1.01f * 60.0f * 60.0f / 0.016f) /* hours */
+#define DAY_LENGTH (0.01f * 60.0f * 60.0f / 0.016f) /* hours */
 
 #define FOV_Y_DEG 90.0
 #define FOV_Y (FOV_Y_DEG * M_PI / 180.0)
@@ -119,7 +119,7 @@
 #define ZFAR CHUNK_RENDER_DISTANCE * (CHUNK_SIZE * 2) // 300.0f
 
 /* parameters for controlling the absolute ambient light */
-#define MIN_AMBIENT_LIGHT_INTENSITY 0.1f
+#define MIN_AMBIENT_LIGHT_INTENSITY 0.05f
 #define AMBIENT_LIGHT_MAX_FACTOR 0.5f
 #define MIN_SKYBOX_INTENSITY 0.03f
 #define SPECULAR_POWER 16.0f
@@ -166,6 +166,7 @@ vector3_t up = {.x = 0, .y = 1, .z = 0}; /* up direction vector for view matrix 
 int32_t skybox_id = -1;
 vector3_t sun_direction = {0.0f, 1.0f, 0.0f}; /* world-space sun direction vector */
 float sun_eta = (M_PI_2); /* sun's eta angle */
+color_t sky_color = (color_t){.uint32 = 0xFFFF8040};
 
 triangle_t triangles_to_render[50000];
 uint32_t total_chunk_triangles_to_render = 0;
@@ -192,7 +193,7 @@ void setup(void) {
 
   create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = 0.0f,  .z = 0.0f}, (color_t){.uint32 = 0xFFFFBBBB}, 0.7f);
   create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
-  create_light_source(LIGHT_POINT, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 2.0f);
+  //create_light_source(LIGHT_POINT, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 2.0f);
 
   /* normalize all light direction vectors to unity */
   initialize_lights();
@@ -203,8 +204,6 @@ void setup(void) {
   calculate_world_bounds();
   create_world_chunks();
   init_player();
-
-  load_skybox();
 
   // CREATE OBJECTS
   mesh_t *mesh;
@@ -2828,7 +2827,7 @@ void update_light(void){
 
   /* skybox is a special case and needs to always track camera position */
   if(skybox_id != -1){
-    object_t *skybox = &objects[skybox_id];
+    //object_t *skybox = &objects[skybox_id];
 
     sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
     sin_eta  = sinf(sun_eta);
@@ -2839,11 +2838,15 @@ void update_light(void){
 
     if(sin_eta < 0.0f) sin_eta = 0.0f;
 
-    //light_sources[1].direction = (vector3_t){sun_direction.x, -sun_direction.y, -sun_direction.z};
+    sky_color.rgb.red = 0x20 * sin_eta;
+    sky_color.rgb.green = 0x80 * sin_eta;
+    sky_color.rgb.blue = 0x30 + 0xC0 * sin_eta;
+    
+    light_sources[1].direction = (vector3_t){sun_direction.x, -sun_direction.y, -sun_direction.z};
 
-    skybox->translation.x  = camera.position.x; 
-    skybox->translation.y  = camera.position.y;
-    skybox->translation.z  = camera.position.z;
+    //skybox->translation.x  = camera.position.x; 
+    //skybox->translation.y  = camera.position.y;
+    //skybox->translation.z  = camera.position.z;
 
     //skybox->mesh->materials[0].emissive_color.rgb.red   = light_sources[1].color.rgb.red   = 200 +  55 * (1.0f - sin_eta);
     //skybox->mesh->materials[0].emissive_color.rgb.green = light_sources[1].color.rgb.green = 100 + 155 * sin_eta;
@@ -2855,10 +2858,10 @@ void update_light(void){
     //skybox->mesh->materials[0].emissive_color.rgb.green = 255.0f * (emissive_intensity); /* sky luminosity as a function of time */
     //skybox->mesh->materials[0].emissive_color.rgb.blue  = 255.0f * (emissive_intensity); /* sky luminosity as a function of time */
 
-    //light_sources[1].intensity = sin_eta;
+    light_sources[1].intensity = sin_eta;
     /* as sun sets or rises, ambient light should get bluer, and oranger towards noon */
     //light_sources[0].color = skybox->mesh->materials[0].emissive_color; 
-    //light_sources[0].intensity = MIN_AMBIENT_LIGHT_INTENSITY + AMBIENT_LIGHT_MAX_FACTOR * sin_eta;
+    light_sources[0].intensity = MIN_AMBIENT_LIGHT_INTENSITY + AMBIENT_LIGHT_MAX_FACTOR * sin_eta;
   }
 
   light_sources[2].position = player.position;
@@ -3331,7 +3334,7 @@ int main(int argc, char *argv[]){
     /* reset zbuffer */
     memset(zbuffer, 0x00, total_buffer_pixels * sizeof(uint32_t));
     for(uint32_t pixel_i = 0; pixel_i < total_buffer_pixels; pixel_i++){
-      color_buffer[pixel_i].uint32 = 0xFFFF8040;
+      color_buffer[pixel_i] = sky_color;
     }
 
     process_frame_rate();
