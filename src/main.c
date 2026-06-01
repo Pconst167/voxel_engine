@@ -26,7 +26,7 @@
       then for fully inside, we only test for clipping, but for intersecting chunks, clip all triangles directly.
 
     TODO:
-      CONVERT VOXEL COORDINATES ETC TO -X TO X, ETC. I.E CENTERED AROUND ORIGIN. THIS IS BETTER FOR FLOATING PRECISION
+      CONVERT BLOCK COORDINATES ETC TO -X TO X, ETC. I.E CENTERED AROUND ORIGIN. THIS IS BETTER FOR FLOATING PRECISION
       SO INSTEAD OF HAVING THE WORLD ORIGIN CORNER AT 0, WE PLACE THE WORLD CENTER AT 0 INSTEAD
 
       ADD MIPMAPS TO HELP WITH FAR AWAY SHIMMERING 
@@ -191,10 +191,6 @@ void setup(void) {
 
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
 
-  create_light_source(LIGHT_AMBIENT,     (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = 0.0f,  .z = 0.0f}, (color_t){.uint32 = 0xFFFFBBBB}, 0.7f);
-  create_light_source(LIGHT_DIRECTIONAL, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = -1.0f, .z = 1.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 1.0f);
-  //create_light_source(LIGHT_POINT, (vector3_t){.x = 0.0f,   .y = 0.0f,  .z = 0.0f}, (vector3_t){.x = 0.0f, .y = 0.0f, .z = 0.0f}, (color_t){.uint32 = 0xFFFFFFFF}, 2.0f);
-
   /* normalize all light direction vectors to unity */
   initialize_lights();
 
@@ -204,6 +200,9 @@ void setup(void) {
   calculate_world_bounds();
   create_world_chunks();
   init_player();
+
+  load_all_saved_chunks();
+  init_block_light();
 
   // CREATE OBJECTS
   mesh_t *mesh;
@@ -391,18 +390,16 @@ void handle_mouse_actions(input_state_t *input_state){
           set_block_orientation(block_y, block_z, block_x, player.position);
           player_use_block();
 
-          // set sky visibility of all blocks below the placed one to false
-          block_type_t placed_block_type = block_at(block_y, block_z, block_x).type;
-          for(int32_t test_y = block_y - 1; test_y >= 0; test_y--){
-            block_t *block = &block_at(test_y, block_z, block_x);
-            if(placed_block_type != BLOCK_TYPE_GLASS) block->has_sky_visibility = false;
-          }
-          // set sky visibility of all blocks above and equal to placed block
-          bool blocked_by_solid_above = false;
-          for(int32_t test_y = MAP_NUM_BLOCKS_Y - 1; test_y >= block_y; test_y--){
-            block_t *block = &block_at(test_y, block_z, block_x);
-            block->has_sky_visibility = !blocked_by_solid_above;
-            if(block_materials[block->type].solid) blocked_by_solid_above = true;
+          // UPDATE SKY LIGHT
+          // set sky light value of all blocks below the placed to one 0 (if the placed block is not transparent)
+          block_t *placed_block = &block_at(block_y, block_z, block_x);
+          if(!block_is_transparent(placed_block)){
+            placed_block->sky_light = 0;
+            for(int32_t test_y = block_y - 1; test_y >= 0; test_y--){
+              block_t *test_block = &block_at(test_y, block_z, block_x);
+              if(!block_is_transparent(test_block)) break;
+              test_block->sky_light = 0;
+            }
           }
 
           // SAVE THE CHUNK THAT THE BLOCK IS INSIDE OF
@@ -2018,22 +2015,22 @@ bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane
   return false;
 }
 
-void render_block_quad(
-  block_quad_t block_quad, 
+void render_block_face(
+  block_face_t block_face, 
   block_material_t *block_material, 
   bool looked_at, 
-  block_orientation_t block_orientation, 
-  bool has_sky_visibility
+  block_orientation_t block_orientation,
+  light_intensity_rgb_t light_intensity
 ){
 
   /* triangles list for clipped triangles */
   triangle_t triangles_after_clipping[MAX_NUM_POLYGON_VERTICES - 2]; /* for a polygon with N vertices, the number of nested triangles is always N-2 */
   vector4_t transformed_vertices[4];
 
-  transformed_vertices[0] = matrix4_mul_vector3(&view_matrix, block_quad.points[0]); /* affine transforms so can use this faster multiply */
-  transformed_vertices[1] = matrix4_mul_vector3(&view_matrix, block_quad.points[1]); 
-  transformed_vertices[2] = matrix4_mul_vector3(&view_matrix, block_quad.points[2]); 
-  transformed_vertices[3] = matrix4_mul_vector3(&view_matrix, block_quad.points[3]); 
+  transformed_vertices[0] = matrix4_mul_vector3(&view_matrix, block_face.points[0]); /* affine transforms so can use this faster multiply */
+  transformed_vertices[1] = matrix4_mul_vector3(&view_matrix, block_face.points[1]); 
+  transformed_vertices[2] = matrix4_mul_vector3(&view_matrix, block_face.points[2]); 
+  transformed_vertices[3] = matrix4_mul_vector3(&view_matrix, block_face.points[3]); 
 
   /* BACKFACE CULLING */
   /* calculate face normals for backface culling and lighting */
@@ -2072,100 +2069,22 @@ void render_block_quad(
     (vector3_t){transformed_vertices[0].x, transformed_vertices[0].y, transformed_vertices[0].z},
     (vector3_t){transformed_vertices[1].x, transformed_vertices[1].y, transformed_vertices[1].z},
     (vector3_t){transformed_vertices[2].x, transformed_vertices[2].y, transformed_vertices[2].z},
-    block_quad.uv[0],
-    block_quad.uv[1],
-    block_quad.uv[2],
+    block_face.uv[0],
+    block_face.uv[1],
+    block_face.uv[2],
     triangles_after_clipping
   );
   num_triangles_from_polygon_right = frustrum_clip_triangle_and_re_triangularize(
     (vector3_t){transformed_vertices[3].x, transformed_vertices[3].y, transformed_vertices[3].z},
     (vector3_t){transformed_vertices[2].x, transformed_vertices[2].y, transformed_vertices[2].z},
     (vector3_t){transformed_vertices[1].x, transformed_vertices[1].y, transformed_vertices[1].z},
-    block_quad.uv[3],
-    block_quad.uv[4],
-    block_quad.uv[5],
+    block_face.uv[3],
+    block_face.uv[4],
+    block_face.uv[5],
     triangles_after_clipping + num_triangles_from_polygon_left
   );
 
   total_num_triangles_from_polygon = num_triangles_from_polygon_left + num_triangles_from_polygon_right;
-
-  /* LIGHT CALCULATIONS */
-  /*
-    find light intensity to face based on dot product between face orthogonal and light direction
-    result needs minus sign because the light direction vector is written as the opposite of the actual light direction we need to see (i.e y = 1 would mean shining up, but we actually want shine from above for the case y = 1)
-    also, most importantly, because all vertices are transformed by the view_matrix, the light direction vector also needs to be transformed
-    this is because a transformation by view_matrix amounts to a rotation(plus translation) of all vertices, which changes the face normals
-    ** BUT changing normals due to camera transforms should not affect how the light behaves, and so the light direction vector must track any rotation.
-    the view_matrix translation part should be ignored, and hence why the w component of vector in the multiplication below is be 0 to nulify any translations.
-    ** BUT for point light its the opposite and w must be 1 because point light DOES have a position and that position must also be transformed by the view matrix.
-
-    light_intensities field is initialized to zero below in declaration - so that the light_intensities field is all 0 in case object not reflects_light
-  */
-
-  float height = block_quad.points[0].y / (float)(MAP_NUM_BLOCKS_Y * 0.4f);
-  float depth_intensity;
-  if(height >= 1.0f) depth_intensity = 1.0f;
-  else{
-    height *= height; // ^2
-    height *= height; // ^4
-    height *= height; // ^8
-    height *= height; // ^16
-    depth_intensity = height;
-  }
-
-  vector3_t v_face_centroid = v_a;
-  float light_intensities[MAX_NUM_LIGHT_SOURCES] = {0.0f}; // keeps the total light intensity for this face
-  if(block_material->reflects_light){
-    vector3_normalize_fast_approx(&v_face_normal); /* normalize here for use below */
-    for(uint32_t light_index = 0; light_index < num_light_sources; light_index++){
-      switch(light_sources[light_index].type){
-        case LIGHT_DIRECTIONAL:
-          if(has_sky_visibility){
-            vector4_t light_direction_view = matrix4_mul_vector4(&view_matrix, (vector4_t){light_sources[light_index].direction.x, light_sources[light_index].direction.y, light_sources[light_index].direction.z, 0});
-            /* if not translucent, then face only lights up if sgn(cam_ray dot normal) == sgn (light_direction dot normal) */
-            vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
-            float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
-            float light_direction_dot_normal  = -(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
-            if((light_direction_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_direction_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
-              light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
-            }
-            else light_intensities[light_index] = 0.0f;
-            light_intensities[light_index] *= light_sources[light_index].intensity * depth_intensity;
-          }
-          break;
-
-        case LIGHT_POINT:{
-          vector4_t light_position_view = matrix4_mul_vector3(&view_matrix, (vector3_t){light_sources[light_index].position.x, light_sources[light_index].position.y, light_sources[light_index].position.z});
-          vector3_t lightpos_to_v_face_centroid_ray = (vector3_t){light_position_view.x - v_face_centroid.x, light_position_view.y - v_face_centroid.y, light_position_view.z - v_face_centroid.z};
-          float lightpos_to_v_face_centroid_ray_length = vector3_length_fast_approx(lightpos_to_v_face_centroid_ray);
-          
-          vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
-          float light_v_face_centroid_dot_normal  = v_face_normal.x * lightpos_to_v_face_centroid_ray.x + v_face_normal.y * lightpos_to_v_face_centroid_ray.y + v_face_normal.z * lightpos_to_v_face_centroid_ray.z;
-          float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
-          if((light_v_face_centroid_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_v_face_centroid_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
-            light_intensities[light_index] = fabsf(light_v_face_centroid_dot_normal) / lightpos_to_v_face_centroid_ray_length;
-            light_intensities[light_index] /= 1.0f + lightpos_to_v_face_centroid_ray_length;
-            light_intensities[light_index] *= light_sources[light_index].intensity;
-          }
-          else
-            light_intensities[light_index] = 0.0f;
-          break;
-        }
-
-        case LIGHT_AMBIENT:{
-          light_intensities[light_index] = light_sources[light_index].intensity * depth_intensity;
-          break;
-        }
-      }
-
-      // clamp to [0.0, 1.0]
-      if(light_intensities[light_index] < 0.0f) light_intensities[light_index] = 0.0f;
-      else if(light_intensities[light_index] > 1.0f) light_intensities[light_index] = 1.0f;
-    }
-  }
-
-  // find total light intensity on this face - this is total intensity per rgb channel
-  light_intensity_rgb_t total_light_intensity = find_total_light_intensity(light_intensities);
 
   // loop all faces generated from clipped polygon
   for(int t = 0; t < total_num_triangles_from_polygon; t++){
@@ -2194,45 +2113,45 @@ void render_block_quad(
     }
     
     // select texture depending on which face this is
-    texture_t *quad_texture;
-    switch(block_quad.quad_type){
-      case VOXEL_QUAD_TOP:
-        quad_texture = block_material->top_texture;
+    texture_t *block_face_texture;
+    switch(block_face.block_face_type){
+      case BLOCK_QUAD_TOP:
+        block_face_texture = block_material->top_texture;
         break;
-      case VOXEL_QUAD_BOTTOM:
-        quad_texture = block_material->bottom_texture;
+      case BLOCK_QUAD_BOTTOM:
+        block_face_texture = block_material->bottom_texture;
         break;
-      case VOXEL_QUAD_FRONT:
+      case BLOCK_QUAD_FRONT:
         switch(block_orientation){
-          case BLOCK_ORIENTATION_FRONT: quad_texture = block_material->front_texture; break;
-          case BLOCK_ORIENTATION_BACK:  quad_texture = block_material->back_texture; break;
-          case BLOCK_ORIENTATION_LEFT:  quad_texture = block_material->left_texture; break;
-          case BLOCK_ORIENTATION_RIGHT: default: quad_texture = block_material->right_texture; break;
+          case BLOCK_ORIENTATION_FRONT: block_face_texture = block_material->front_texture; break;
+          case BLOCK_ORIENTATION_BACK:  block_face_texture = block_material->back_texture; break;
+          case BLOCK_ORIENTATION_LEFT:  block_face_texture = block_material->left_texture; break;
+          case BLOCK_ORIENTATION_RIGHT: default: block_face_texture = block_material->right_texture; break;
         }
         break;
-      case VOXEL_QUAD_BACK:
+      case BLOCK_QUAD_BACK:
         switch(block_orientation){
-          case BLOCK_ORIENTATION_FRONT: quad_texture = block_material->back_texture; break;
-          case BLOCK_ORIENTATION_BACK:  quad_texture = block_material->front_texture; break;
-          case BLOCK_ORIENTATION_LEFT:  quad_texture = block_material->left_texture; break;
-          case BLOCK_ORIENTATION_RIGHT: default: quad_texture = block_material->right_texture; break;
+          case BLOCK_ORIENTATION_FRONT: block_face_texture = block_material->back_texture; break;
+          case BLOCK_ORIENTATION_BACK:  block_face_texture = block_material->front_texture; break;
+          case BLOCK_ORIENTATION_LEFT:  block_face_texture = block_material->left_texture; break;
+          case BLOCK_ORIENTATION_RIGHT: default: block_face_texture = block_material->right_texture; break;
         }
         break;
-      case VOXEL_QUAD_LEFT:
+      case BLOCK_QUAD_LEFT:
         switch(block_orientation){
-          case BLOCK_ORIENTATION_FRONT: quad_texture = block_material->left_texture; break;
-          case BLOCK_ORIENTATION_BACK:  quad_texture = block_material->right_texture; break;
-          case BLOCK_ORIENTATION_LEFT:  quad_texture = block_material->front_texture; break;
-          case BLOCK_ORIENTATION_RIGHT: default: quad_texture = block_material->front_texture; break;
+          case BLOCK_ORIENTATION_FRONT: block_face_texture = block_material->left_texture; break;
+          case BLOCK_ORIENTATION_BACK:  block_face_texture = block_material->right_texture; break;
+          case BLOCK_ORIENTATION_LEFT:  block_face_texture = block_material->front_texture; break;
+          case BLOCK_ORIENTATION_RIGHT: default: block_face_texture = block_material->front_texture; break;
         }
         break;
-      case VOXEL_QUAD_RIGHT:
+      case BLOCK_QUAD_RIGHT:
       default:
         switch(block_orientation){
-          case BLOCK_ORIENTATION_FRONT: quad_texture = block_material->right_texture; break;
-          case BLOCK_ORIENTATION_BACK:  quad_texture = block_material->left_texture; break;
-          case BLOCK_ORIENTATION_LEFT:  quad_texture = block_material->front_texture; break;
-          case BLOCK_ORIENTATION_RIGHT: default: quad_texture = block_material->front_texture; break;
+          case BLOCK_ORIENTATION_FRONT: block_face_texture = block_material->right_texture; break;
+          case BLOCK_ORIENTATION_BACK:  block_face_texture = block_material->left_texture; break;
+          case BLOCK_ORIENTATION_LEFT:  block_face_texture = block_material->front_texture; break;
+          case BLOCK_ORIENTATION_RIGHT: default: block_face_texture = block_material->front_texture; break;
         }
         break;
     }
@@ -2244,27 +2163,13 @@ void render_block_quad(
       .alpha_cutoff       = block_material->alpha_cutoff,
       .base_color         = block_material->base_color,
       .blend_mode         = block_material->blend_mode,
-      .dither             = block_material->dither,
       .emissive_color     = block_material->emissive_color,
-      .opacity            = block_material->opacity,
       .reflects_light     = block_material->reflects_light,
       .two_sided_lighting = false,
-      .texture            = quad_texture
+      .texture            = block_face_texture
     };
-    projected_triangle.total_light_intensity = total_light_intensity;
 
-    if(looked_at){
-      int32_t red   = projected_triangle.face_material.emissive_color.rgb.red   + 100;
-      int32_t green = projected_triangle.face_material.emissive_color.rgb.green + 100;
-      int32_t blue  = projected_triangle.face_material.emissive_color.rgb.blue  + 100;
-
-      if(red   > 255) red   = 255;
-      if(green > 255) green = 255;
-      if(blue  > 255) blue  = 255;
-      projected_triangle.face_material.emissive_color.rgb.red   = red * depth_intensity;
-      projected_triangle.face_material.emissive_color.rgb.green = green * depth_intensity;
-      projected_triangle.face_material.emissive_color.rgb.blue  = blue * depth_intensity;
-    }
+    projected_triangle.total_light_intensity = light_intensity;
 
     /* TRIANGLE RASTERIZATION */
     total_pixels_rendered += rasterize_triangle(&projected_triangle);
@@ -2289,7 +2194,7 @@ void render_block_quad(
   if air, ignore
   if land, then form some or all of the block faces based on the nearest neighbours:
     if the immediate neighbour of a face is solid, then do not form that block's face etc
-    if immediate neighbour is air, then form that quad with 2 faces and render
+    if immediate neighbour is air, then form that block_face with 2 faces and render
 */
 void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
   total_chunk_triangles_to_render = 0;
@@ -2318,13 +2223,13 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
         int32_t front_neighbour_index   = z_row - 1;
         int32_t back_neighbour_index    = z_row + 1;
 
-        // a quad is rendered only if its adjescent block is AIR or if it is transparent (using alpha test)
-        bool render_left_quad    = (left_neighbour_index < 0)                  ? false : (block_at(y_plane, z_row, left_neighbour_index).type  == BLOCK_TYPE_AIR || block_materials[block_at(y_plane, z_row, left_neighbour_index).type ].blend_mode == BLEND_MODE_ALPHA_TEST );
-        bool render_right_quad   = (right_neighbour_index == MAP_NUM_BLOCKS_X) ? false : (block_at(y_plane, z_row, right_neighbour_index).type == BLOCK_TYPE_AIR || block_materials[block_at(y_plane, z_row, right_neighbour_index).type].blend_mode == BLEND_MODE_ALPHA_TEST);
-        bool render_top_quad     = (top_neighbour_index == MAP_NUM_BLOCKS_Y)   ? false : (block_at(top_neighbour_index, z_row, x_col).type     == BLOCK_TYPE_AIR || block_materials[block_at(top_neighbour_index, z_row, x_col).type    ].blend_mode == BLEND_MODE_ALPHA_TEST    );
-        bool render_bottom_quad  = (bottom_neighbour_index < 0)                ? false : (block_at(bottom_neighbour_index, z_row, x_col).type  == BLOCK_TYPE_AIR || block_materials[block_at(bottom_neighbour_index, z_row, x_col).type ].blend_mode == BLEND_MODE_ALPHA_TEST );
-        bool render_front_quad   = (front_neighbour_index < 0)                 ? false : (block_at(y_plane, front_neighbour_index, x_col).type == BLOCK_TYPE_AIR || block_materials[block_at(y_plane, front_neighbour_index, x_col).type].blend_mode == BLEND_MODE_ALPHA_TEST );
-        bool render_back_quad    = (back_neighbour_index == MAP_NUM_BLOCKS_Z)  ? false : (block_at(y_plane, back_neighbour_index, x_col).type  == BLOCK_TYPE_AIR || block_materials[block_at(y_plane, back_neighbour_index, x_col).type ].blend_mode == BLEND_MODE_ALPHA_TEST);
+        // a block_face is rendered only if its adjescent block is AIR or if it is transparent (using alpha test)
+        bool render_left_block_face    = (left_neighbour_index < 0)                  ? false : (block_at(y_plane, z_row, left_neighbour_index).type  == BLOCK_TYPE_AIR || block_materials[block_at(y_plane, z_row, left_neighbour_index).type ].blend_mode == BLEND_MODE_ALPHA_TEST );
+        bool render_right_block_face   = (right_neighbour_index == MAP_NUM_BLOCKS_X) ? false : (block_at(y_plane, z_row, right_neighbour_index).type == BLOCK_TYPE_AIR || block_materials[block_at(y_plane, z_row, right_neighbour_index).type].blend_mode == BLEND_MODE_ALPHA_TEST);
+        bool render_top_block_face     = (top_neighbour_index == MAP_NUM_BLOCKS_Y)   ? false : (block_at(top_neighbour_index, z_row, x_col).type     == BLOCK_TYPE_AIR || block_materials[block_at(top_neighbour_index, z_row, x_col).type    ].blend_mode == BLEND_MODE_ALPHA_TEST    );
+        bool render_bottom_block_face  = (bottom_neighbour_index < 0)                ? false : (block_at(bottom_neighbour_index, z_row, x_col).type  == BLOCK_TYPE_AIR || block_materials[block_at(bottom_neighbour_index, z_row, x_col).type ].blend_mode == BLEND_MODE_ALPHA_TEST );
+        bool render_front_block_face   = (front_neighbour_index < 0)                 ? false : (block_at(y_plane, front_neighbour_index, x_col).type == BLOCK_TYPE_AIR || block_materials[block_at(y_plane, front_neighbour_index, x_col).type].blend_mode == BLEND_MODE_ALPHA_TEST );
+        bool render_back_block_face    = (back_neighbour_index == MAP_NUM_BLOCKS_Z)  ? false : (block_at(y_plane, back_neighbour_index, x_col).type  == BLOCK_TYPE_AIR || block_materials[block_at(y_plane, back_neighbour_index, x_col).type ].blend_mode == BLEND_MODE_ALPHA_TEST);
 
         block_material_t *block_material = &block_materials[block_at(y_plane, z_row, x_col).type];
 
@@ -2345,35 +2250,51 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
           }
         }
 
-        bool has_sky_visibility = block_at(y_plane, z_row, x_col).has_sky_visibility;
+        uint8_t neighbour_block_sky_light;
 
         block_orientation_t block_orientation = block_at(y_plane, z_row, x_col).orientation;
-        block_quad_t block_quad;
-        if(render_left_quad){
-          block_quad = generate_block_quad(VOXEL_QUAD_LEFT, y_plane, z_row, x_col);
-          render_block_quad(block_quad, block_material, block_looked_at_left, block_orientation, has_sky_visibility);
+        block_face_t block_face;
+        if(render_left_block_face){
+          neighbour_block_sky_light = block_at(y_plane, z_row, x_col - 1).sky_light;
+          if(neighbour_block_sky_light == 0) neighbour_block_sky_light = 1;
+          light_intensity_rgb_t block_face_light_intensity = {.blue = neighbour_block_sky_light / 15.0f, .green = neighbour_block_sky_light / 15.0f, .red = neighbour_block_sky_light / 15.0f};
+          block_face = generate_block_face(BLOCK_QUAD_LEFT, y_plane, z_row, x_col);
+          render_block_face(block_face, block_material, block_looked_at_left, block_orientation, block_face_light_intensity);
         }
-        if(render_right_quad){
-          block_quad = generate_block_quad(VOXEL_QUAD_RIGHT, y_plane, z_row, x_col);
-          render_block_quad(block_quad, block_material, block_looked_at_right, block_orientation, has_sky_visibility);
+        if(render_right_block_face){
+          neighbour_block_sky_light = block_at(y_plane, z_row, x_col + 1).sky_light;
+          if(neighbour_block_sky_light == 0) neighbour_block_sky_light = 1;
+          light_intensity_rgb_t block_face_light_intensity = {.blue = neighbour_block_sky_light / 15.0f, .green = neighbour_block_sky_light / 15.0f, .red = neighbour_block_sky_light / 15.0f};
+          block_face = generate_block_face(BLOCK_QUAD_RIGHT, y_plane, z_row, x_col);
+          render_block_face(block_face, block_material, block_looked_at_right, block_orientation, block_face_light_intensity);
         }
-        if(render_top_quad){
-          block_quad = generate_block_quad(VOXEL_QUAD_TOP, y_plane, z_row, x_col);
-          render_block_quad(block_quad, block_material, block_looked_at_top, block_orientation, has_sky_visibility);
+        if(render_top_block_face){
+          neighbour_block_sky_light = block_at(y_plane + 1, z_row, x_col).sky_light;
+          if(neighbour_block_sky_light == 0) neighbour_block_sky_light = 1;
+          light_intensity_rgb_t block_face_light_intensity = {.blue = neighbour_block_sky_light / 15.0f, .green = neighbour_block_sky_light / 15.0f, .red = neighbour_block_sky_light / 15.0f};
+          block_face = generate_block_face(BLOCK_QUAD_TOP, y_plane, z_row, x_col);
+          render_block_face(block_face, block_material, block_looked_at_top, block_orientation, block_face_light_intensity);
         }
-        if(render_bottom_quad){
-          has_sky_visibility = false;
-          block_quad = generate_block_quad(VOXEL_QUAD_BOTTOM, y_plane, z_row, x_col);
-          render_block_quad(block_quad, block_material, block_looked_at_bottom, block_orientation, has_sky_visibility);
+        if(render_bottom_block_face){
+          neighbour_block_sky_light = block_at(y_plane - 1, z_row, x_col).sky_light;
+          if(neighbour_block_sky_light == 0) neighbour_block_sky_light = 1;
+          light_intensity_rgb_t block_face_light_intensity = {.blue = neighbour_block_sky_light / 15.0f, .green = neighbour_block_sky_light / 15.0f, .red = neighbour_block_sky_light / 15.0f};
+          block_face = generate_block_face(BLOCK_QUAD_BOTTOM, y_plane, z_row, x_col);
+          render_block_face(block_face, block_material, block_looked_at_bottom, block_orientation, block_face_light_intensity);
         }
-        if(render_front_quad){
-          has_sky_visibility = true;
-          block_quad = generate_block_quad(VOXEL_QUAD_FRONT, y_plane, z_row, x_col);
-          render_block_quad(block_quad, block_material, block_looked_at_front, block_orientation, has_sky_visibility);
+        if(render_front_block_face){
+          neighbour_block_sky_light = block_at(y_plane, z_row - 1, x_col).sky_light;
+          if(neighbour_block_sky_light == 0) neighbour_block_sky_light = 1;
+          light_intensity_rgb_t block_face_light_intensity = {.blue = neighbour_block_sky_light / 15.0f, .green = neighbour_block_sky_light / 15.0f, .red = neighbour_block_sky_light / 15.0f};
+          block_face = generate_block_face(BLOCK_QUAD_FRONT, y_plane, z_row, x_col);
+          render_block_face(block_face, block_material, block_looked_at_front, block_orientation, block_face_light_intensity);
         }
-        if(render_back_quad){
-          block_quad = generate_block_quad(VOXEL_QUAD_BACK, y_plane, z_row, x_col);
-          render_block_quad(block_quad, block_material, block_looked_at_back, block_orientation, has_sky_visibility);
+        if(render_back_block_face){
+          neighbour_block_sky_light = block_at(y_plane, z_row + 1, x_col).sky_light;
+          if(neighbour_block_sky_light == 0) neighbour_block_sky_light = 1;
+          light_intensity_rgb_t block_face_light_intensity = {.blue = neighbour_block_sky_light / 15.0f, .green = neighbour_block_sky_light / 15.0f, .red = neighbour_block_sky_light / 15.0f};
+          block_face = generate_block_face(BLOCK_QUAD_BACK, y_plane, z_row, x_col);
+          render_block_face(block_face, block_material, block_looked_at_back, block_orientation, block_face_light_intensity);
         }
       }
     }
@@ -2386,7 +2307,6 @@ void render_object(object_t *object){
 
   // calculate a vertex for the position of the object (before view matrix so we get actual physical position)
   matrix4_t world_matrix        = matrix4_gen_world_matrix(object);
-  vector4_t object_depth_vertex = matrix4_mul_vector3(&world_matrix, object->mesh->vertices[0]);
 
   /* loop through all faces in the face list for object */
   uint32_t num_faces = object->mesh->num_faces;
@@ -2464,74 +2384,11 @@ void render_object(object_t *object){
       face_material = object->mesh->materials[face.material_id];
 
     /* LIGHT CALCULATIONS */
-    float height = object_depth_vertex.y / (float)(MAP_NUM_BLOCKS_Y * 0.4f);
-    float depth_intensity;
-    if(height >= 1.0f) depth_intensity = 1.0f;
-    else{
-      height *= height; // ^2
-      height *= height; // ^4
-      height *= height; // ^8
-      height *= height; // ^16
-      depth_intensity = height;
-    }
-
-    //vector3_t v_face_centroid = {(v_a.x + v_b.x + v_c.x) / 3.0f, (v_a.y + v_b.y + v_c.y) / 3.0f, (v_a.z + v_b.z + v_c.z) / 3.0f};
-    vector3_t v_face_centroid = v_a;
-    float light_intensities[MAX_NUM_LIGHT_SOURCES] = {0.0f}; // keeps the total light intensity for this face
-    if(face_material.reflects_light){
-      vector3_normalize_fast_approx(&v_face_normal); /* normalize here for use below */
-      for(uint32_t light_index = 0; light_index < num_light_sources; light_index++){
-        if(light_sources[light_index].type == LIGHT_DIRECTIONAL){
-          vector4_t light_direction_view = matrix4_mul_vector4(&view_matrix, (vector4_t){light_sources[light_index].direction.x, light_sources[light_index].direction.y, light_sources[light_index].direction.z, 0});
-          if(face_material.two_sided_lighting)
-            light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
-          else{
-            /* if not translucent, then face only lights up if sgn(cam_ray dot normal) == sgn (light_direction dot normal) */
-            vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
-            float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
-            float light_direction_dot_normal  = -(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
-            if((light_direction_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_direction_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
-              light_intensities[light_index] = fabsf(v_face_normal.x * light_direction_view.x + v_face_normal.y * light_direction_view.y + v_face_normal.z * light_direction_view.z);
-            }
-            else light_intensities[light_index] = 0.0f;
-          }
-          light_intensities[light_index] *= light_sources[light_index].intensity * depth_intensity;
-        }
-        else if(light_sources[light_index].type == LIGHT_POINT){
-          vector4_t light_position_view = matrix4_mul_vector3(&view_matrix, (vector3_t){light_sources[light_index].position.x, light_sources[light_index].position.y, light_sources[light_index].position.z});
-          vector3_t lightpos_to_v_face_centroid_ray = (vector3_t){light_position_view.x - v_face_centroid.x, light_position_view.y - v_face_centroid.y, light_position_view.z - v_face_centroid.z};
-          float lightpos_to_v_face_centroid_ray_length = vector3_length_fast_approx(lightpos_to_v_face_centroid_ray);
-          
-          if(face_material.two_sided_lighting){
-            light_intensities[light_index] = fabsf(v_face_normal.x * lightpos_to_v_face_centroid_ray.x + v_face_normal.y * lightpos_to_v_face_centroid_ray.y + v_face_normal.z * lightpos_to_v_face_centroid_ray.z) / (lightpos_to_v_face_centroid_ray_length);
-            light_intensities[light_index] /= 1.0f + lightpos_to_v_face_centroid_ray_length;
-            light_intensities[light_index] *= light_sources[light_index].intensity * depth_intensity;
-          }
-          else{
-            vector3_t cam_ray = {.x = 0 - v_face_centroid.x, .y = 0 - v_face_centroid.y, .z = 0 - v_face_centroid.z}; 
-            float light_v_face_centroid_dot_normal  = v_face_normal.x * lightpos_to_v_face_centroid_ray.x + v_face_normal.y * lightpos_to_v_face_centroid_ray.y + v_face_normal.z * lightpos_to_v_face_centroid_ray.z;
-            float camera_v_face_centroid_dot_normal = v_face_normal.x * cam_ray.x + v_face_normal.y * cam_ray.y + v_face_normal.z * cam_ray.z;
-            if((light_v_face_centroid_dot_normal > 0.0f && camera_v_face_centroid_dot_normal > 0.0f) || (light_v_face_centroid_dot_normal < 0.0f && camera_v_face_centroid_dot_normal < 0.0f)){
-              light_intensities[light_index] = fabsf(light_v_face_centroid_dot_normal) / lightpos_to_v_face_centroid_ray_length;
-              light_intensities[light_index] /= 1.0f + lightpos_to_v_face_centroid_ray_length;
-              light_intensities[light_index] *= light_sources[light_index].intensity;
-            }
-            else
-              light_intensities[light_index] = 0.0f;
-          } 
-        }
-        else if(light_sources[light_index].type == LIGHT_AMBIENT){
-          light_intensities[light_index] = light_sources[light_index].intensity * depth_intensity;
-        }
-        /* clamp to [0.0, 1.0] */
-        if(light_intensities[light_index] < 0.0f) light_intensities[light_index] = 0.0f;
-        else if(light_intensities[light_index] > 1.0f) light_intensities[light_index] = 1.0f;
-      }
-    }
-
     // find total light intensity on this face - this is total intensity per rgb channel
-    light_intensity_rgb_t total_light_intensity = find_total_light_intensity(light_intensities);
-
+    block_t *block = &block_at((int32_t)player.position.y, (int32_t)player.position.z, (int32_t)player.position.x);
+    uint8_t block_light = block->sky_light;
+    if(block_light == 0) block_light = 1;
+    light_intensity_rgb_t total_light_intensity = {block_light / 15.0f, block_light / 15.0f, block_light / 15.0f};
     // loop all faces generated from clipped polygon
     for(int t = 0; t < num_triangles_from_polygon; t++){
       triangle_t *triangle_after_clipping = &triangles_after_clipping[t];
@@ -2886,7 +2743,7 @@ void update_camera_from_player(){
   looked_at_block = raycast_blocks(
     camera.position,
     camera.direction,
-    MAX_VOXEL_LOOK_AT_DISTANCE
+    MAX_BLOCK_LOOK_AT_DISTANCE
   );
 }
 
@@ -2908,8 +2765,7 @@ inline uint32_t rasterize_triangle(triangle_t *triangle){
       triangle->face_material.base_color,
       triangle->total_light_intensity,
       triangle->face_material.emissive_color,
-      triangle->face_material.reflects_light,
-      options.dither || triangle->face_material.dither
+      triangle->face_material.reflects_light
     );
   }
   else{
@@ -2922,8 +2778,7 @@ inline uint32_t rasterize_triangle(triangle_t *triangle){
           triangle->face_material.texture->texture, triangle->face_material.texture->texture_width, triangle->face_material.texture->texture_height,
           triangle->total_light_intensity,
           triangle->face_material.emissive_color,
-          triangle->face_material.reflects_light,
-          options.dither || triangle->face_material.dither
+          triangle->face_material.reflects_light
         );
 
       case BLEND_MODE_ALPHA_TEST:
@@ -2935,7 +2790,6 @@ inline uint32_t rasterize_triangle(triangle_t *triangle){
           triangle->total_light_intensity,
           triangle->face_material.emissive_color,
           triangle->face_material.reflects_light,
-          options.dither || triangle->face_material.dither,
           triangle->face_material.alpha_cutoff
         );
 
@@ -2948,7 +2802,6 @@ inline uint32_t rasterize_triangle(triangle_t *triangle){
           triangle->total_light_intensity,
           triangle->face_material.emissive_color,
           triangle->face_material.reflects_light,
-          options.dither || triangle->face_material.dither,
           triangle->face_material.opacity
         );
     }
@@ -3011,9 +2864,9 @@ void render_sun(void){
       float sun_band = sun_dot_flat * sun_dot_flat;
 
       color_t pixel = color_buffer[y * window_width + x];
-      float red_t   = (float)(pixel.rgb.red  ) / 255.0f + sun_red_shift   * (sun_core + sun_glow);
-      float green_t = (float)(pixel.rgb.green) / 255.0f + sun_green_shift * (sun_core + sun_glow); 
-      float blue_t  = (float)(pixel.rgb.blue ) / 255.0f + sun_blue_shift  * (sun_core + sun_glow); 
+      float red_t   = (float)(pixel.rgb.red  ) * 0.00392 + sun_red_shift   * (sun_core + sun_glow);
+      float green_t = (float)(pixel.rgb.green) * 0.00392 + sun_green_shift * (sun_core + sun_glow); 
+      float blue_t  = (float)(pixel.rgb.blue ) * 0.00392 + sun_blue_shift  * (sun_core + sun_glow); 
 
       if(red_t   > 1.0f) red_t   = 1.0f;
       if(green_t > 1.0f) green_t = 1.0f;
@@ -3032,9 +2885,9 @@ void render_sun(void){
 
       color_t final_color = {
         .rgb.alpha = 0xFF, 
-        .rgb.blue  = blue_t * 255.0f, 
+        .rgb.blue  = blue_t  * 255.0f, 
         .rgb.green = green_t * 255.0f, 
-        .rgb.red   = red_t * 255.0f
+        .rgb.red   = red_t   * 255.0f
       };
       
       color_buffer[y * window_width + x] = final_color;
@@ -3248,12 +3101,13 @@ void process_mining(){
           player_obtain_block(block_at(block_y, block_z, block_x).type);
           assign_block_material(block_y, block_z, block_x, BLOCK_TYPE_AIR);
 
-          // update sky visibility in column
-          bool blocked_by_solid_above = false;
-          for(int32_t test_y = MAP_NUM_BLOCKS_Y - 1; test_y >= 0; test_y--){
+          // UPDATE SKY LIGHT
+          // when a block is removed, update sky light value of all air blocks down from it(including), until an opaque block is found
+          uint8_t sky_light_value_above = block_at(block_y + 1, block_z, block_x).sky_light;
+          for(int32_t test_y = block_y; test_y >= 0; test_y--){
             block_t *block = &block_at(test_y, block_z, block_x);
-            block->has_sky_visibility = !blocked_by_solid_above;
-            if(block_materials[block->type].solid) blocked_by_solid_above = true;
+            if(block_is_transparent(block)) block->sky_light = sky_light_value_above;
+            else break;
           }
 
           // SAVE THE CHUNK THAT THE BLOCK IS INSIDE OF

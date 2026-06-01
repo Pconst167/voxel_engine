@@ -72,12 +72,12 @@ chunk_intersection_mode_t get_chunk_intersection_mode_fast(chunk_t *chunk);
 void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col);
 void render_visible_chunks(void);
 void render_visible_chunks_sorted(void);
-void render_block_quad(
-  block_quad_t block_quad, 
+void render_block_face(
+  block_face_t block_face, 
   block_material_t *block_material, 
   bool looked_at, 
-  block_orientation_t block_orientation, 
-  bool has_sky_visibility
+  block_orientation_t block_orientation,
+  light_intensity_rgb_t light_intensity
 );
 void draw_chunk_outlines(void);
 void draw_collision_aabb_outlines(void);

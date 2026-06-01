@@ -5,36 +5,6 @@
 #define FIXED_SHIFT 8
 #define FIXED_ONE   (1 << FIXED_SHIFT)
 
-__attribute__((optimize("Ofast")))
-static inline uint8_t quantize_dither_u8(uint8_t c, int x, int y){
-  static const uint8_t bayer4x4[4][4] = {
-    {  0,  8,  2, 10 },
-    { 12,  4, 14,  6 },
-    {  3, 11,  1,  9 },
-    { 15,  7, 13,  5 }
-  };
-
-  /* 0..7 */
-  int threshold = bayer4x4[(y) & 3][(x) & 3];
-
-  int q = (c * DITHER_QUANTIZATION + threshold * 8 ) >> 8;
-  if(q > DITHER_QUANTIZATION) q = DITHER_QUANTIZATION;
-
-  return (uint8_t)((q << 8) >> DITHER_QUANTIZATION_POWER);
-}
-
-__attribute__((optimize("Ofast")))
-color_t apply_dither(color_t color, int x, int y){
-  return (color_t){
-    .rgb.alpha = color.rgb.alpha,
-    .rgb.blue  = quantize_dither_u8(color.rgb.blue,  x, y),
-    .rgb.green = quantize_dither_u8(color.rgb.green, x, y),
-    .rgb.red   = quantize_dither_u8(color.rgb.red,   x, y) 
-  };
-
-  return color;
-}
-
 inline void int_swap(int *a, int *b){
   int tmp = *b;
   *b = *a;
@@ -149,8 +119,7 @@ inline uint32_t draw_filled_triangle(
   color_t color, 
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  bool reflects_light,
-  bool dither
+  bool reflects_light
 ){
   int x_min = (int)floorf(MIN(MIN(v0->x, v1->x), v2->x));
   int y_min = (int)floorf(MIN(MIN(v0->y, v1->y), v2->y));
@@ -272,10 +241,6 @@ inline uint32_t draw_filled_triangle(
             .rgb.red   = red_total
           };
 
-          if(dither){
-            final_color = apply_dither(final_color, x, y);
-          }
-
           color_buffer[y * window_width + x] = final_color;
           if(zbuffer_write) zbuffer[y * window_width + x] = interpolated_reciprocal_w;
         }
@@ -310,8 +275,7 @@ uint32_t draw_filled_triangle_float(
   color_t color,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  bool reflects_light,
-  bool dither
+  bool reflects_light
 ){
   uint32_t total_pixels_rendered = 0;
 
@@ -438,7 +402,6 @@ uint32_t draw_filled_triangle_float(
             .rgb.green = green_total,
             .rgb.red   = red_total
           };
-          if(dither) final_color = apply_dither(final_color, x, y);
 
           if((unsigned)x < (unsigned)window_width && (unsigned)y < (unsigned)window_height){
             color_buffer[y * window_width + x] = final_color;
@@ -471,8 +434,7 @@ inline uint32_t draw_textured_triangle_opaque(
   color_t *texture, int texture_width, int texture_height,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  bool reflects_light,
-  bool dither
+  bool reflects_light
 ){
   int x_min = (int)floorf(MIN(MIN(v0->x, v1->x), v2->x));
   int y_min = (int)floorf(MIN(MIN(v0->y, v1->y), v2->y));
@@ -624,10 +586,6 @@ inline uint32_t draw_textured_triangle_opaque(
             .rgb.red   = red_total
           };
 
-          if(dither){
-            final_color = apply_dither(final_color, x, y);
-          }
-
           color_buffer[y * window_width + x] = final_color;
           if(zbuffer_write) zbuffer[y * window_width + x] = interpolated_reciprocal_w;
         }
@@ -662,8 +620,7 @@ uint32_t draw_textured_triangle_opaque_float(
   color_t *texture, int texture_width, int texture_height,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  bool reflects_light,
-  bool dither
+  bool reflects_light
 ){
   uint32_t total_pixels_rendered = 0;
 
@@ -817,7 +774,6 @@ uint32_t draw_textured_triangle_opaque_float(
             .rgb.green = green_total,
             .rgb.red   = red_total
           };
-          if(dither) final_color = apply_dither(final_color, x, y);
 
           /* draw pixel */
           if((unsigned)x < (unsigned)window_width && (unsigned)y < (unsigned)window_height){
@@ -849,7 +805,6 @@ uint32_t draw_textured_triangle_alpha_test_float(
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   bool reflects_light,
-  bool dither,
   uint8_t alpha_cutoff
 ){
   uint32_t total_pixels_rendered = 0;
@@ -1005,7 +960,6 @@ uint32_t draw_textured_triangle_alpha_test_float(
               .rgb.green = green_total,
               .rgb.red   = red_total
             };
-            if(dither) final_color = apply_dither(final_color, x, y);
 
             if((unsigned)x < (unsigned)window_width && (unsigned)y < (unsigned)window_height){
               color_buffer[y * window_width + x] = final_color;
@@ -1037,7 +991,6 @@ uint32_t draw_textured_triangle_alpha_blend_float(
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   bool reflects_light,
-  bool dither,
   float opacity
 ){
   uint32_t total_pixels_rendered = 0;
@@ -1190,7 +1143,6 @@ uint32_t draw_textured_triangle_alpha_blend_float(
             .rgb.green = green_total,
             .rgb.red   = red_total
           };
-          if(dither) final_color = apply_dither(final_color, x, y);
 
           draw_pixel_alpha_blend(x, y, opacity, final_color);
         }
@@ -1216,7 +1168,6 @@ uint32_t draw_textured_triangle_affine(
   vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
   light_intensity_rgb_t total_light_intensity,
-  bool dither,
   blend_mode_t blend_mode,
   uint8_t alpha_cutoff,
   float opacity
@@ -1355,8 +1306,6 @@ uint32_t draw_textured_triangle_affine(
             .rgb.green = green_total, 
             .rgb.red   = red_total
           };
-
-          if(dither) final_color = apply_dither(final_color, x, y);
 
           draw_pixel(x, y, blend_mode, alpha_cutoff, opacity, final_color, interpolated_reciprocal_w);
         }
@@ -1616,8 +1565,7 @@ void draw_textured_triangle_opaque(
   color_t *texture, int texture_width, int texture_height,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  bool reflects_light,
-  bool dither
+  bool reflects_light
 ){
   float parallelogram_area = edge_cross(
     &(vector2_t){v0->x, v0->y},
@@ -1805,10 +1753,6 @@ void draw_textured_triangle_opaque(
           .rgb.green = green_total,
           .rgb.red   = red_total
         };
-
-        if(dither){
-          final_color = apply_dither(final_color, x, y);
-        }
 
         color_buffer[buffer_index] = final_color;
         if(zbuffer_write) zbuffer[buffer_index] = interpolated_reciprocal_w;

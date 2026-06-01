@@ -18,6 +18,12 @@ block_t *blocks;
 // block currently being looked at
 block_raycast_hit_t looked_at_block;
 
+// block light queue
+light_queue_t light_queue;
+const int32_t neighbour_y_offsets[6] = {-1,  1,  0,  0,  0,  0};
+const int32_t neighbour_z_offsets[6] = { 0,  0, -1,  1,  0,  0};
+const int32_t neighbour_x_offsets[6] = { 0,  0,  0,  0, -1,  1};
+
 block_material_t *block_materials;
 
 void init_block_materials(){
@@ -32,9 +38,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = false,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = NULL,
@@ -58,9 +62,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0xFF80FFFF},
-      .opacity            = 1.0f,
       .reflects_light     = false,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/lava0.png"),
@@ -82,9 +84,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0xFF80FFFF},
-      .opacity            = 1.0f,
       .reflects_light     = false,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/lava1.png"),
@@ -108,9 +108,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0xFF80FFFF},
-      .opacity            = 1.0f,
       .reflects_light     = false,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/volcanic0.png"),
@@ -132,9 +130,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0xFF80FFFF},
-      .opacity            = 1.0f,
       .reflects_light     = false,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/volcanic1.png"),
@@ -156,9 +152,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0xFF20FFFF},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/volcanic2.png"),
@@ -180,9 +174,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0000000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/volcanic3.png"),
@@ -206,9 +198,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/stone0.png"),
@@ -230,9 +220,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/stone1.png"),
@@ -254,9 +242,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/stone2.png"),
@@ -278,9 +264,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/stone3.png"),
@@ -302,9 +286,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/stone4.png"),
@@ -326,9 +308,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/stone5.png"),
@@ -350,9 +330,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/stone6.png"),
@@ -374,9 +352,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/stone7.png"),
@@ -398,9 +374,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/stone8.png"),
@@ -424,9 +398,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/coal_side.png"),
@@ -450,9 +422,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/iron_side.png"),
@@ -476,9 +446,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/diamond_side.png"),
@@ -502,9 +470,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/silver_side.png"),
@@ -528,9 +494,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/gold_side.png"),
@@ -554,9 +518,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF408080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/dirt.png"),
@@ -580,9 +542,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF0FF000},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/grass_side_2.png"),
@@ -590,7 +550,7 @@ void init_block_materials(){
       .left_texture       = load_texture("./assets/textures/blocks/grass_side_2.png"),
       .right_texture      = load_texture("./assets/textures/blocks/grass_side_2.png"),
       .top_texture        = load_texture("./assets/textures/blocks/grass_top.png"),
-      .bottom_texture     = load_texture("./assets/textures/blocks/grass_top.png")
+      .bottom_texture     = load_texture("./assets/textures/blocks/dirt.png")
     })
   );
   array_push(
@@ -604,9 +564,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF0FF000},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/cherry_grass_side.png"),
@@ -614,7 +572,7 @@ void init_block_materials(){
       .left_texture       = load_texture("./assets/textures/blocks/cherry_grass_side.png"),
       .right_texture      = load_texture("./assets/textures/blocks/cherry_grass_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/cherry_grass_top.png"),
-      .bottom_texture     = load_texture("./assets/textures/blocks/cherry_grass_top.png")
+      .bottom_texture     = load_texture("./assets/textures/blocks/dirt.png")
     })
   );
 
@@ -630,9 +588,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/treetrunk0_side.png"),
@@ -654,9 +610,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/treetrunk1_side.png"),
@@ -678,9 +632,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/treetrunk2_side.png"),
@@ -702,9 +654,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/treetrunk3_side.png"),
@@ -726,9 +676,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/treetrunk4_side.png"),
@@ -750,9 +698,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/treetrunk5_side.png"),
@@ -774,9 +720,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/treetrunk6_side.png"),
@@ -798,9 +742,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/treetrunk7_side.png"),
@@ -824,9 +766,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/leaves0.png"),
@@ -848,9 +788,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/leaves1.png"),
@@ -872,9 +810,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/leaves2.png"),
@@ -896,9 +832,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/leaves3.png"),
@@ -920,9 +854,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/leaves4.png"),
@@ -944,9 +876,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/leaves5.png"),
@@ -968,9 +898,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/leaves6.png"),
@@ -992,9 +920,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/leaves7.png"),
@@ -1016,9 +942,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/leaves8.png"),
@@ -1040,9 +964,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/leaves9.png"),
@@ -1066,9 +988,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/flower_leaves0.png"),
@@ -1090,9 +1010,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/flower_leaves1.png"),
@@ -1116,9 +1034,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_ALPHA_TEST,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/glass0.png"),
@@ -1142,9 +1058,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x0040FFFF},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/lamp0.png"),
@@ -1168,9 +1082,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/oven_front.png"),
@@ -1194,9 +1106,7 @@ void init_block_materials(){
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
-      .opacity            = 1.0f,
       .reflects_light     = true,
-      .dither             = false,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
       .front_texture      = load_texture("./assets/textures/blocks/chest_front.png"),
@@ -1223,6 +1133,8 @@ void init_block_map(){
         assign_block_material(y, z, x, BLOCK_TYPE_AIR);
         block_at(y, z, x).temperature = 30.0f;
         block_at(y, z, x).orientation = BLOCK_ORIENTATION_FRONT;
+        block_at(y, z, x).sky_light   = 00;
+        block_at(y, z, x).block_light = 0;
 
         if(y == (uint32_t)(0.4 * MAP_NUM_BLOCKS_Y)){
           if(xorshift32() % 5 == 0){
@@ -1310,22 +1222,98 @@ void init_block_map(){
 
   place_trees();
   place_ores();
+}
 
-  // set sky visibility of all blocks
+void init_block_light(){
+
+  // UPDATE SKY LIGHT OF ALL BLOCKS
+  // all blocks in open air get 15 light, all blocks below an opaque block get 0 light
   for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
     for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
-      bool found_solid = false;
+      bool found_opaque = false;
       for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
-        if(block_materials[block_at(y, z, x).type].solid && !found_solid){
-          found_solid = true;
-          block_at(y, z, x).has_sky_visibility = true;
-          continue;
+        if(!block_is_transparent(&block_at(y, z, x))) found_opaque = true;
+        if(found_opaque) block_at(y, z, x).sky_light = 0;    
+        else{
+          if(block_is_transparent(&block_at(y, z, x))) block_at(y, z, x).sky_light = 15; 
         }
-        if(found_solid) block_at(y, z, x).has_sky_visibility = false;        
       }
     }
   }
+  
+  // SECOND SKY LIGHT PASS FLOOD FILL CAVES/OPENINGS ETC
+  for(int32_t y = 0; y < MAP_NUM_BLOCKS_Y; y++){
+    for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+      for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+        block_t *block = &block_at(y, z, x);
 
+        if(block->sky_light != 15) continue;
+
+        for(int32_t neighbour_index = 0; neighbour_index < 6; neighbour_index++){
+          int32_t neighbour_y = y + neighbour_y_offsets[neighbour_index];
+          int32_t neighbour_z = z + neighbour_z_offsets[neighbour_index];
+          int32_t neighbour_x = x + neighbour_x_offsets[neighbour_index];
+
+          if(
+            neighbour_y < 0 || neighbour_y >= MAP_NUM_BLOCKS_Y ||
+            neighbour_z < 0 || neighbour_z >= MAP_NUM_BLOCKS_Z ||
+            neighbour_x < 0 || neighbour_x >= MAP_NUM_BLOCKS_X
+          ){
+            continue;
+          }
+
+          block_t *neighbour = &block_at(neighbour_y, neighbour_z, neighbour_x);
+
+          if(neighbour->sky_light == 0 && block_is_transparent(neighbour)){
+            neighbour->sky_light = 14;
+            queue_push(
+              &light_queue,
+              (light_node_t){
+                .y = neighbour_y,
+                .z = neighbour_z,
+                .x = neighbour_x,
+                .light = 14
+              }
+            );
+          }
+        }
+      }
+    }
+  }
+  
+  propagate_sky_light();
+}
+
+void propagate_sky_light(void){
+  while(queue_not_empty(&light_queue)){
+    light_node_t node = queue_pop(&light_queue);
+
+    if(node.light == 0) continue;
+
+    // loop all 6 neighbours of the node
+    for(int32_t neighbour_index = 0; neighbour_index < 6; neighbour_index++){
+      int32_t neighbour_y = node.y + neighbour_y_offsets[neighbour_index];
+      int32_t neighbour_z = node.z + neighbour_z_offsets[neighbour_index];
+      int32_t neighbour_x = node.x + neighbour_x_offsets[neighbour_index];
+
+      if(neighbour_y < 0 || neighbour_y >= MAP_NUM_BLOCKS_Y || neighbour_z < 0 || neighbour_z >= MAP_NUM_BLOCKS_Z || neighbour_x < 0 || neighbour_x >= MAP_NUM_BLOCKS_X) continue;
+
+      // get neighbour block
+      block_t *neighbour = &block_at(neighbour_y, neighbour_z, neighbour_x);
+
+      // if block is opaque, ignore
+      if(!block_is_transparent(neighbour)) continue;
+
+      // calculate light for neighbour
+      uint8_t new_light = node.light - 1;
+
+      // if neighbour's light is darker than calculated one, then push to queue
+      if(new_light > neighbour->sky_light){
+        neighbour->sky_light = new_light;
+        queue_push(&light_queue, (light_node_t){.y = neighbour_y, .z = neighbour_z, .x = neighbour_x, .light = new_light});
+      }
+    }
+  }
 }
 
 void get_block_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, int *start_y, int *end_y, int *start_z, int *end_z){
@@ -1339,184 +1327,184 @@ void get_block_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, 
   *end_z   = clamp_int((int)floorf(aabb->z_max), 0, MAP_NUM_BLOCKS_Z - 1);
 }
 
-inline block_quad_t generate_block_quad(block_quad_type_t quad_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col){
-  block_quad_t quad;
+inline block_face_t generate_block_face(block_face_type_t block_face_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col){
+  block_face_t block_face;
 
-  switch(quad_type){
-    case VOXEL_QUAD_TOP:
-      quad.points[0].x = x_col;
-      quad.points[0].y = y_plane + 1.0f;
-      quad.points[0].z = z_row;
-      quad.points[1].x = x_col;
-      quad.points[1].y = y_plane + 1.0f;
-      quad.points[1].z = z_row + 1.0f;
-      quad.points[2].x = x_col + 1.0f;
-      quad.points[2].y = y_plane + 1.0f;
-      quad.points[2].z = z_row;
-      quad.uv[0].u = 0.0f;
-      quad.uv[0].v = 0.0f;
-      quad.uv[1].u = 0.0f;
-      quad.uv[1].v = 1.0f;
-      quad.uv[2].u = 1.0f;
-      quad.uv[2].v = 0.0f;
+  switch(block_face_type){
+    case BLOCK_QUAD_TOP:
+      block_face.points[0].x = x_col;
+      block_face.points[0].y = y_plane + 1.0f;
+      block_face.points[0].z = z_row;
+      block_face.points[1].x = x_col;
+      block_face.points[1].y = y_plane + 1.0f;
+      block_face.points[1].z = z_row + 1.0f;
+      block_face.points[2].x = x_col + 1.0f;
+      block_face.points[2].y = y_plane + 1.0f;
+      block_face.points[2].z = z_row;
+      block_face.uv[0].u = 0.0f;
+      block_face.uv[0].v = 0.0f;
+      block_face.uv[1].u = 0.0f;
+      block_face.uv[1].v = 1.0f;
+      block_face.uv[2].u = 1.0f;
+      block_face.uv[2].v = 0.0f;
       // right side unshared vertex
-      quad.points[3].x = x_col + 1.0f;
-      quad.points[3].y = y_plane + 1.0f;
-      quad.points[3].z = z_row + 1.0f;
-      quad.uv[3].u = 1.0f;
-      quad.uv[3].v = 1.0f;
-      quad.uv[4].u = 1.0f;
-      quad.uv[4].v = 0.0f;
-      quad.uv[5].u = 0.0f;
-      quad.uv[5].v = 1.0f;
-      quad.quad_type = VOXEL_QUAD_TOP;
-      return quad;
+      block_face.points[3].x = x_col + 1.0f;
+      block_face.points[3].y = y_plane + 1.0f;
+      block_face.points[3].z = z_row + 1.0f;
+      block_face.uv[3].u = 1.0f;
+      block_face.uv[3].v = 1.0f;
+      block_face.uv[4].u = 1.0f;
+      block_face.uv[4].v = 0.0f;
+      block_face.uv[5].u = 0.0f;
+      block_face.uv[5].v = 1.0f;
+      block_face.block_face_type = BLOCK_QUAD_TOP;
+      return block_face;
       
-    case VOXEL_QUAD_BOTTOM:
-      quad.points[0].x = x_col;
-      quad.points[0].y = y_plane;
-      quad.points[0].z = z_row;
-      quad.points[1].x = x_col + 1.0f;
-      quad.points[1].y = y_plane;
-      quad.points[1].z = z_row;
-      quad.points[2].x = x_col;
-      quad.points[2].y = y_plane;
-      quad.points[2].z = z_row + 1.0f;
-      quad.uv[0].u = 0.0f;
-      quad.uv[0].v = 0.0f;
-      quad.uv[1].u = 1.0f;
-      quad.uv[1].v = 0.0f;
-      quad.uv[2].u = 0.0f;
-      quad.uv[2].v = 1.0f;
+    case BLOCK_QUAD_BOTTOM:
+      block_face.points[0].x = x_col;
+      block_face.points[0].y = y_plane;
+      block_face.points[0].z = z_row;
+      block_face.points[1].x = x_col + 1.0f;
+      block_face.points[1].y = y_plane;
+      block_face.points[1].z = z_row;
+      block_face.points[2].x = x_col;
+      block_face.points[2].y = y_plane;
+      block_face.points[2].z = z_row + 1.0f;
+      block_face.uv[0].u = 0.0f;
+      block_face.uv[0].v = 0.0f;
+      block_face.uv[1].u = 1.0f;
+      block_face.uv[1].v = 0.0f;
+      block_face.uv[2].u = 0.0f;
+      block_face.uv[2].v = 1.0f;
       // right side unshared vertex
-      quad.points[3].x = x_col + 1.0f;
-      quad.points[3].y = y_plane;
-      quad.points[3].z = z_row + 1.0f;
-      quad.uv[3].u = 1.0f;
-      quad.uv[3].v = 1.0f;
-      quad.uv[4].u = 0.0f;
-      quad.uv[4].v = 1.0f;
-      quad.uv[5].u = 1.0f;
-      quad.uv[5].v = 0.0f;
-      quad.quad_type = VOXEL_QUAD_BOTTOM;
-    return quad;
+      block_face.points[3].x = x_col + 1.0f;
+      block_face.points[3].y = y_plane;
+      block_face.points[3].z = z_row + 1.0f;
+      block_face.uv[3].u = 1.0f;
+      block_face.uv[3].v = 1.0f;
+      block_face.uv[4].u = 0.0f;
+      block_face.uv[4].v = 1.0f;
+      block_face.uv[5].u = 1.0f;
+      block_face.uv[5].v = 0.0f;
+      block_face.block_face_type = BLOCK_QUAD_BOTTOM;
+    return block_face;
     
-    case VOXEL_QUAD_LEFT:
-      quad.points[0].x = x_col;
-      quad.points[0].y = y_plane;
-      quad.points[0].z = z_row + 1.0f;
-      quad.points[1].x = x_col;
-      quad.points[1].y = y_plane + 1.0f;
-      quad.points[1].z = z_row + 1.0f;
-      quad.points[2].x = x_col;
-      quad.points[2].y = y_plane;
-      quad.points[2].z = z_row;
-      quad.uv[0].u = 0.0f;
-      quad.uv[0].v = 0.0f;
-      quad.uv[1].u = 0.0f;
-      quad.uv[1].v = 1.0f;
-      quad.uv[2].u = 1.0f;
-      quad.uv[2].v = 0.0f;
+    case BLOCK_QUAD_LEFT:
+      block_face.points[0].x = x_col;
+      block_face.points[0].y = y_plane;
+      block_face.points[0].z = z_row + 1.0f;
+      block_face.points[1].x = x_col;
+      block_face.points[1].y = y_plane + 1.0f;
+      block_face.points[1].z = z_row + 1.0f;
+      block_face.points[2].x = x_col;
+      block_face.points[2].y = y_plane;
+      block_face.points[2].z = z_row;
+      block_face.uv[0].u = 0.0f;
+      block_face.uv[0].v = 0.0f;
+      block_face.uv[1].u = 0.0f;
+      block_face.uv[1].v = 1.0f;
+      block_face.uv[2].u = 1.0f;
+      block_face.uv[2].v = 0.0f;
       // right side unshared vertex
-      quad.points[3].x = x_col;
-      quad.points[3].y = y_plane + 1.0f;
-      quad.points[3].z = z_row;
-      quad.uv[3].u = 1.0f;
-      quad.uv[3].v = 1.0f;
-      quad.uv[4].u = 1.0f;
-      quad.uv[4].v = 0.0f;
-      quad.uv[5].u = 0.0f;
-      quad.uv[5].v = 1.0f;
-      quad.quad_type = VOXEL_QUAD_LEFT;
-      return quad;
+      block_face.points[3].x = x_col;
+      block_face.points[3].y = y_plane + 1.0f;
+      block_face.points[3].z = z_row;
+      block_face.uv[3].u = 1.0f;
+      block_face.uv[3].v = 1.0f;
+      block_face.uv[4].u = 1.0f;
+      block_face.uv[4].v = 0.0f;
+      block_face.uv[5].u = 0.0f;
+      block_face.uv[5].v = 1.0f;
+      block_face.block_face_type = BLOCK_QUAD_LEFT;
+      return block_face;
       
-    case VOXEL_QUAD_RIGHT:
-      quad.points[0].x = x_col + 1.0f;
-      quad.points[0].y = y_plane;
-      quad.points[0].z = z_row;
-      quad.points[1].x = x_col + 1.0f;
-      quad.points[1].y = y_plane + 1.0f;
-      quad.points[1].z = z_row;
-      quad.points[2].x = x_col + 1.0f;
-      quad.points[2].y = y_plane;
-      quad.points[2].z = z_row + 1.0f;
-      quad.uv[0].u = 0.0f;
-      quad.uv[0].v = 0.0f;
-      quad.uv[1].u = 0.0f;
-      quad.uv[1].v = 1.0f;
-      quad.uv[2].u = 1.0f;
-      quad.uv[2].v = 0.0f;
+    case BLOCK_QUAD_RIGHT:
+      block_face.points[0].x = x_col + 1.0f;
+      block_face.points[0].y = y_plane;
+      block_face.points[0].z = z_row;
+      block_face.points[1].x = x_col + 1.0f;
+      block_face.points[1].y = y_plane + 1.0f;
+      block_face.points[1].z = z_row;
+      block_face.points[2].x = x_col + 1.0f;
+      block_face.points[2].y = y_plane;
+      block_face.points[2].z = z_row + 1.0f;
+      block_face.uv[0].u = 0.0f;
+      block_face.uv[0].v = 0.0f;
+      block_face.uv[1].u = 0.0f;
+      block_face.uv[1].v = 1.0f;
+      block_face.uv[2].u = 1.0f;
+      block_face.uv[2].v = 0.0f;
       // right side unshared vertex
-      quad.points[3].x = x_col + 1.0f;
-      quad.points[3].y = y_plane + 1.0f;
-      quad.points[3].z = z_row + 1.0f;
-      quad.uv[3].u = 1.0f;
-      quad.uv[3].v = 1.0f;
-      quad.uv[4].u = 1.0f;
-      quad.uv[4].v = 0.0f;
-      quad.uv[5].u = 0.0f;
-      quad.uv[5].v = 1.0f;
-      quad.quad_type = VOXEL_QUAD_RIGHT;
-      return quad;
+      block_face.points[3].x = x_col + 1.0f;
+      block_face.points[3].y = y_plane + 1.0f;
+      block_face.points[3].z = z_row + 1.0f;
+      block_face.uv[3].u = 1.0f;
+      block_face.uv[3].v = 1.0f;
+      block_face.uv[4].u = 1.0f;
+      block_face.uv[4].v = 0.0f;
+      block_face.uv[5].u = 0.0f;
+      block_face.uv[5].v = 1.0f;
+      block_face.block_face_type = BLOCK_QUAD_RIGHT;
+      return block_face;
       
-    case VOXEL_QUAD_BACK:
-      quad.points[0].x = x_col + 1.0f;
-      quad.points[0].y = y_plane;
-      quad.points[0].z = z_row + 1.0f;
-      quad.points[1].x = x_col + 1.0f;
-      quad.points[1].y = y_plane + 1.0f;
-      quad.points[1].z = z_row + 1.0f;
-      quad.points[2].x = x_col;
-      quad.points[2].y = y_plane;
-      quad.points[2].z = z_row + 1.0f;
-      quad.uv[0].u = 0.0f;
-      quad.uv[0].v = 0.0f;
-      quad.uv[1].u = 0.0f;
-      quad.uv[1].v = 1.0f;
-      quad.uv[2].u = 1.0f;
-      quad.uv[2].v = 0.0f;
+    case BLOCK_QUAD_BACK:
+      block_face.points[0].x = x_col + 1.0f;
+      block_face.points[0].y = y_plane;
+      block_face.points[0].z = z_row + 1.0f;
+      block_face.points[1].x = x_col + 1.0f;
+      block_face.points[1].y = y_plane + 1.0f;
+      block_face.points[1].z = z_row + 1.0f;
+      block_face.points[2].x = x_col;
+      block_face.points[2].y = y_plane;
+      block_face.points[2].z = z_row + 1.0f;
+      block_face.uv[0].u = 0.0f;
+      block_face.uv[0].v = 0.0f;
+      block_face.uv[1].u = 0.0f;
+      block_face.uv[1].v = 1.0f;
+      block_face.uv[2].u = 1.0f;
+      block_face.uv[2].v = 0.0f;
       // right side unshared vertex
-      quad.points[3].x = x_col;
-      quad.points[3].y = y_plane + 1.0f;
-      quad.points[3].z = z_row + 1.0f;
-      quad.uv[3].u = 1.0f;
-      quad.uv[3].v = 1.0f;
-      quad.uv[4].u = 1.0f;
-      quad.uv[4].v = 0.0f;
-      quad.uv[5].u = 0.0f;
-      quad.uv[5].v = 1.0f;
-      quad.quad_type = VOXEL_QUAD_BACK;
-      return quad;
+      block_face.points[3].x = x_col;
+      block_face.points[3].y = y_plane + 1.0f;
+      block_face.points[3].z = z_row + 1.0f;
+      block_face.uv[3].u = 1.0f;
+      block_face.uv[3].v = 1.0f;
+      block_face.uv[4].u = 1.0f;
+      block_face.uv[4].v = 0.0f;
+      block_face.uv[5].u = 0.0f;
+      block_face.uv[5].v = 1.0f;
+      block_face.block_face_type = BLOCK_QUAD_BACK;
+      return block_face;
       
-    case VOXEL_QUAD_FRONT:
+    case BLOCK_QUAD_FRONT:
     default:
-      quad.points[0].x = x_col;
-      quad.points[0].y = y_plane;
-      quad.points[0].z = z_row;
-      quad.points[1].x = x_col;
-      quad.points[1].y = y_plane + 1.0f;
-      quad.points[1].z = z_row;
-      quad.points[2].x = x_col + 1.0f;
-      quad.points[2].y = y_plane;
-      quad.points[2].z = z_row;
-      quad.uv[0].u = 0.0f;
-      quad.uv[0].v = 0.0f;
-      quad.uv[1].u = 0.0f;
-      quad.uv[1].v = 1.0f;
-      quad.uv[2].u = 1.0f;
-      quad.uv[2].v = 0.0f;
+      block_face.points[0].x = x_col;
+      block_face.points[0].y = y_plane;
+      block_face.points[0].z = z_row;
+      block_face.points[1].x = x_col;
+      block_face.points[1].y = y_plane + 1.0f;
+      block_face.points[1].z = z_row;
+      block_face.points[2].x = x_col + 1.0f;
+      block_face.points[2].y = y_plane;
+      block_face.points[2].z = z_row;
+      block_face.uv[0].u = 0.0f;
+      block_face.uv[0].v = 0.0f;
+      block_face.uv[1].u = 0.0f;
+      block_face.uv[1].v = 1.0f;
+      block_face.uv[2].u = 1.0f;
+      block_face.uv[2].v = 0.0f;
       // right side unshared vertex
-      quad.points[3].x = x_col + 1.0f;
-      quad.points[3].y = y_plane + 1.0f;
-      quad.points[3].z = z_row;
-      quad.uv[3].u = 1.0f;
-      quad.uv[3].v = 1.0f;
-      quad.uv[4].u = 1.0f;
-      quad.uv[4].v = 0.0f;
-      quad.uv[5].u = 0.0f;
-      quad.uv[5].v = 1.0f;
-      quad.quad_type = VOXEL_QUAD_FRONT;
-      return quad;
+      block_face.points[3].x = x_col + 1.0f;
+      block_face.points[3].y = y_plane + 1.0f;
+      block_face.points[3].z = z_row;
+      block_face.uv[3].u = 1.0f;
+      block_face.uv[3].v = 1.0f;
+      block_face.uv[4].u = 1.0f;
+      block_face.uv[4].v = 0.0f;
+      block_face.uv[5].u = 0.0f;
+      block_face.uv[5].v = 1.0f;
+      block_face.block_face_type = BLOCK_QUAD_FRONT;
+      return block_face;
   }
 }
 
@@ -1627,4 +1615,50 @@ void set_block_orientation(int32_t block_y, int32_t block_z, int32_t block_x, ve
     block_at(block_y, block_z, block_x).orientation = BLOCK_ORIENTATION_BACK;
   else if(player_dot_v1 <= 0.0f && player_dot_v2 <= 0.0f)
     block_at(block_y, block_z, block_x).orientation = BLOCK_ORIENTATION_LEFT;
+}
+
+bool block_is_transparent(block_t *block){
+  return 
+    block->type == BLOCK_TYPE_AIR ||
+    block->type == BLOCK_TYPE_GLASS;
+}
+
+bool queue_not_empty(light_queue_t *light_queue){
+  return light_queue->head != light_queue->tail;
+}
+
+void queue_push(light_queue_t *light_queue, light_node_t light_node){
+  light_queue->nodes[light_queue->tail] = light_node;
+
+  light_queue->tail++;
+
+  if(light_queue->tail >= MAX_LIGHT_QUEUE_SIZE){
+    light_queue->tail = 0;
+  }
+}
+
+light_node_t queue_pop(light_queue_t *light_queue){
+  light_node_t light_node = light_queue->nodes[light_queue->head];
+
+  light_queue->head++;
+
+  if(light_queue->head >= MAX_LIGHT_QUEUE_SIZE){
+    light_queue->head = 0;
+  }
+
+  return light_node;
+}
+
+bool block_is_tree_leaves(block_t *block){
+  return 
+    block->type == BLOCK_TYPE_LEAVES0 ||
+    block->type == BLOCK_TYPE_LEAVES1 ||
+    block->type == BLOCK_TYPE_LEAVES2 ||
+    block->type == BLOCK_TYPE_LEAVES3 ||
+    block->type == BLOCK_TYPE_LEAVES4 ||
+    block->type == BLOCK_TYPE_LEAVES5 ||
+    block->type == BLOCK_TYPE_LEAVES6 ||
+    block->type == BLOCK_TYPE_LEAVES7 ||
+    block->type == BLOCK_TYPE_LEAVES8 ||
+    block->type == BLOCK_TYPE_LEAVES9;
 }

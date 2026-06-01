@@ -51,7 +51,6 @@ void draw_rect(int x, int y, int width, int height, color_t color);
 void draw_line(float x0, float y0, float x1, float y1, color_t color);
 void draw_horizontal_line(int x, int y, int width, color_t color);
 void draw_vertical_line(int x, int y, int height, color_t color);
-color_t apply_dither(color_t color, int x, int y);
 
 void draw_texture_flat(int x, int y, int width, int height, texture_t *texture);
 
@@ -64,16 +63,14 @@ uint32_t draw_filled_triangle(
   color_t color, 
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  bool reflects_light,
-  bool dither
+  bool reflects_light
 );
 uint32_t draw_filled_triangle_float(
   vector4_t *v0, vector4_t *v1, vector4_t *v2, 
   color_t color, 
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  bool reflects_light,
-  bool dither
+  bool reflects_light
 );
 
 uint32_t draw_textured_triangle_opaque(
@@ -83,8 +80,7 @@ uint32_t draw_textured_triangle_opaque(
   color_t *texture, int texture_width, int texture_height,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  bool reflects_light,
-  bool dither
+  bool reflects_light
 );
 uint32_t draw_textured_triangle_opaque_float(
   vector4_t *v0, uv_t v0_uv,
@@ -93,8 +89,7 @@ uint32_t draw_textured_triangle_opaque_float(
   color_t *texture, int texture_width, int texture_height,
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
-  bool reflects_light,
-  bool dither
+  bool reflects_light
 );
 uint32_t draw_textured_triangle_alpha_test_float(
   vector4_t *v0, uv_t v0_uv,
@@ -104,7 +99,6 @@ uint32_t draw_textured_triangle_alpha_test_float(
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   bool reflects_light,
-  bool dither,
   uint8_t alpha_cutoff
 );
 uint32_t draw_textured_triangle_alpha_blend_float(
@@ -115,7 +109,6 @@ uint32_t draw_textured_triangle_alpha_blend_float(
   light_intensity_rgb_t total_light_intensity,
   color_t emissive_color,
   bool reflects_light,
-  bool dither,
   float opacity
 );
 
@@ -125,7 +118,6 @@ uint32_t draw_textured_triangle_affine(
   vector4_t *v2, uv_t v2_uv,
   color_t *texture, int texture_width, int texture_height,
   light_intensity_rgb_t total_light_intensity,
-  bool dither,
   blend_mode_t blend_mode,
   uint8_t alpha_cutoff,
   float opacity

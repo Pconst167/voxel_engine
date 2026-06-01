@@ -1,5 +1,5 @@
-#ifndef VOXEL_H
-#define VOXEL_H
+#ifndef BLOCK_H
+#define BLOCK_H
 
 #include "aabb.h"
 #include "material.h"
@@ -16,7 +16,7 @@
 #define NUM_CHUNK_DIVISIONS_X (MAP_NUM_BLOCKS_X / CHUNK_SIZE)
 #define CHUNK_RENDER_DISTANCE 4 // render this number of chunks around the player in XZ
 
-#define MAX_VOXEL_LOOK_AT_DISTANCE 6.0f
+#define MAX_BLOCK_LOOK_AT_DISTANCE 6.0f
 #define BLOCK_TYPE_STRING_NAME_MAX_LEN 32
 
 // macro to get block at coordiates x y z
@@ -25,6 +25,24 @@
 #define MAP_Y_STRIDE (MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Z)
 #define block_at(y, z, x) blocks[(y) * MAP_Y_STRIDE + (z) * MAP_Z_STRIDE + (x)]
 
+// BLOCK LIGHT
+#define MAX_LIGHT_QUEUE_SIZE 1048576
+
+typedef struct{
+  int32_t y;
+  int32_t z;
+  int32_t x;
+  uint8_t light;
+} light_node_t;
+
+typedef struct{
+  light_node_t nodes[MAX_LIGHT_QUEUE_SIZE];
+
+  uint32_t head;
+  uint32_t tail;
+} light_queue_t;
+
+// BLOCK TYPES
 typedef enum{
   BLOCK_TYPE_AIR        ,
   BLOCK_TYPE_LAVA0      ,
@@ -84,13 +102,13 @@ typedef enum{
 } block_orientation_t;
 
 typedef enum{
-  VOXEL_QUAD_TOP,
-  VOXEL_QUAD_BOTTOM,
-  VOXEL_QUAD_LEFT,
-  VOXEL_QUAD_RIGHT,
-  VOXEL_QUAD_FRONT,
-  VOXEL_QUAD_BACK,
-} block_quad_type_t;
+  BLOCK_QUAD_TOP,
+  BLOCK_QUAD_BOTTOM,
+  BLOCK_QUAD_LEFT,
+  BLOCK_QUAD_RIGHT,
+  BLOCK_QUAD_FRONT,
+  BLOCK_QUAD_BACK,
+} block_face_type_t;
 
 typedef struct{
   char *material_name;
@@ -105,9 +123,7 @@ typedef struct{
   // color and light
   color_t base_color;
   color_t emissive_color;   //  object's own emission color */
-  float opacity;            // used as a global alpha blending - makes object totally opaque or ghostly */
   bool reflects_light;
-  bool dither;              // individual faces can be dithered
   // alpha
   blend_mode_t blend_mode;
   uint8_t alpha_cutoff;
@@ -121,11 +137,11 @@ typedef struct{
 } block_material_t;
 
 typedef struct{
-  block_quad_type_t quad_type;
+  block_face_type_t block_face_type;
   vector3_t points[4];
   uv_t uv[6];
   light_intensity_rgb_t total_light_intensity;
-} block_quad_t;
+} block_face_t;
 
 typedef struct{
   block_type_t type;
@@ -135,7 +151,8 @@ typedef struct{
   aabb_3d_t aabb;
   float avg_w;
   bool looked_at;
-  bool has_sky_visibility;
+  uint8_t sky_light;
+  uint8_t block_light;
 } block_t;
 
 typedef struct{
@@ -160,10 +177,16 @@ extern block_t *blocks;
 // block currently being looked at
 extern block_raycast_hit_t looked_at_block;
 
+// block light queue
+extern light_queue_t light_queue;
+extern const int32_t neighbour_y_offsets[6];
+extern const int32_t neighbour_z_offsets[6];
+extern const int32_t neighbour_x_offsets[6];
+
 void init_block_materials();
 void init_block_map();
 void get_block_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, int *start_y, int *end_y, int *start_z, int *end_z);
-block_quad_t generate_block_quad(block_quad_type_t quad_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col);
+block_face_t generate_block_face(block_face_type_t block_face_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col);
 
 block_raycast_hit_t raycast_blocks(vector3_t ray_origin, vector3_t ray_direction, float max_distance);
 void assign_block_material(int32_t block_y, int32_t block_z, int32_t block_x, block_type_t block_type);
@@ -171,5 +194,15 @@ void assign_block_material(int32_t block_y, int32_t block_z, int32_t block_x, bl
 void set_block_orientation(int32_t block_y, int32_t block_z, int32_t block_x, vector3_t player_position);
 
 char *get_block_material_name(block_type_t block_type);
+
+bool block_is_transparent(block_t *block);
+bool block_is_tree_leaves(block_t *block);
+
+// BLOCK LIGHT FUNCTIONS
+void init_block_light();
+light_node_t queue_pop(light_queue_t *light_queue);
+bool queue_not_empty(light_queue_t *light_queue);
+void queue_push(light_queue_t *light_queue, light_node_t light_node);
+void propagate_sky_light(void);
 
 #endif
