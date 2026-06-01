@@ -196,6 +196,7 @@ void set_block_orientation(int32_t block_y, int32_t block_z, int32_t block_x, ve
 char *get_block_material_name(block_type_t block_type);
 
 bool block_is_transparent(block_t *block);
+bool block_is_opaque(block_t *block);
 bool block_is_tree_leaves(block_t *block);
 
 // BLOCK LIGHT FUNCTIONS

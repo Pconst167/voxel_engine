@@ -1254,27 +1254,13 @@ void init_block_light(){
           int32_t neighbour_z = z + neighbour_z_offsets[neighbour_index];
           int32_t neighbour_x = x + neighbour_x_offsets[neighbour_index];
 
-          if(
-            neighbour_y < 0 || neighbour_y >= MAP_NUM_BLOCKS_Y ||
-            neighbour_z < 0 || neighbour_z >= MAP_NUM_BLOCKS_Z ||
-            neighbour_x < 0 || neighbour_x >= MAP_NUM_BLOCKS_X
-          ){
-            continue;
-          }
+          if(neighbour_y < 0 || neighbour_y >= MAP_NUM_BLOCKS_Y || neighbour_z < 0 || neighbour_z >= MAP_NUM_BLOCKS_Z || neighbour_x < 0 || neighbour_x >= MAP_NUM_BLOCKS_X) continue;
 
           block_t *neighbour = &block_at(neighbour_y, neighbour_z, neighbour_x);
 
           if(neighbour->sky_light == 0 && block_is_transparent(neighbour)){
             neighbour->sky_light = 14;
-            queue_push(
-              &light_queue,
-              (light_node_t){
-                .y = neighbour_y,
-                .z = neighbour_z,
-                .x = neighbour_x,
-                .light = 14
-              }
-            );
+            queue_push(&light_queue, (light_node_t){.y = neighbour_y, .z = neighbour_z, .x = neighbour_x, .light = 14});
           }
         }
       }
@@ -1302,7 +1288,7 @@ void propagate_sky_light(void){
       block_t *neighbour = &block_at(neighbour_y, neighbour_z, neighbour_x);
 
       // if block is opaque, ignore
-      if(!block_is_transparent(neighbour)) continue;
+      if(block_is_opaque(neighbour)) continue;
 
       // calculate light for neighbour
       uint8_t new_light = node.light - 1;
@@ -1618,9 +1604,11 @@ void set_block_orientation(int32_t block_y, int32_t block_z, int32_t block_x, ve
 }
 
 bool block_is_transparent(block_t *block){
-  return 
-    block->type == BLOCK_TYPE_AIR ||
-    block->type == BLOCK_TYPE_GLASS;
+  return block->type == BLOCK_TYPE_AIR || block->type == BLOCK_TYPE_GLASS;
+}
+
+bool block_is_opaque(block_t *block){
+  return block->type != BLOCK_TYPE_AIR && block->type != BLOCK_TYPE_GLASS;
 }
 
 bool queue_not_empty(light_queue_t *light_queue){
