@@ -1224,14 +1224,21 @@ void init_block_map(){
   place_ores();
 }
 
-void init_block_light(){
+void reset_block_light(int32_t y_start, int32_t y_end, int32_t z_start, int32_t z_end, int32_t x_start, int32_t x_end){
+
+  if(y_start < 0) y_start = 0;
+  if(z_start < 0) z_start = 0;
+  if(x_start < 0) x_start = 0;
+  if(y_end >= MAP_NUM_BLOCKS_Y) y_end = MAP_NUM_BLOCKS_Y - 1;
+  if(z_end >= MAP_NUM_BLOCKS_Z) z_end = MAP_NUM_BLOCKS_Z - 1;
+  if(x_end >= MAP_NUM_BLOCKS_X) x_end = MAP_NUM_BLOCKS_X - 1;
 
   // UPDATE SKY LIGHT OF ALL BLOCKS
   // all blocks in open air get 15 light, all blocks below an opaque block get 0 light
-  for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
-    for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+  for(int32_t z = z_start; z <= z_end; z++){
+    for(int32_t x = x_start; x <= x_end; x++){
       bool found_opaque = false;
-      for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
+      for(int32_t y = y_end; y >= y_start; y--){
         if(!block_is_transparent(&block_at(y, z, x))) found_opaque = true;
         if(found_opaque) block_at(y, z, x).sky_light = 0;    
         else{
@@ -1240,11 +1247,16 @@ void init_block_light(){
       }
     }
   }
-  
+}
+
+void seed_initial_block_sky_light(int32_t y_start, int32_t y_end, int32_t z_start, int32_t z_end, int32_t x_start, int32_t x_end){
+  light_queue.head = 0;
+  light_queue.tail = 0;
+
   // SECOND SKY LIGHT PASS FLOOD FILL CAVES/OPENINGS ETC
-  for(int32_t y = 0; y < MAP_NUM_BLOCKS_Y; y++){
-    for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
-      for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+  for(int32_t y = y_start; y <= y_end; y++){
+    for(int32_t z = z_start; z <= z_end; z++){
+      for(int32_t x = x_start; x <= x_end; x++){
         block_t *block = &block_at(y, z, x);
 
         if(block->sky_light != 15) continue;
@@ -1260,21 +1272,20 @@ void init_block_light(){
 
           if(neighbour->sky_light == 0 && block_is_transparent(neighbour)){
             neighbour->sky_light = 14;
-            queue_push(&light_queue, (light_node_t){.y = neighbour_y, .z = neighbour_z, .x = neighbour_x, .light = 14});
+            light_queue_push((light_node_t){.y = neighbour_y, .z = neighbour_z, .x = neighbour_x, .light = 14});
           }
         }
       }
     }
   }
-  
-  propagate_sky_light();
 }
 
 void propagate_sky_light(void){
-  while(queue_not_empty(&light_queue)){
-    light_node_t node = queue_pop(&light_queue);
+  while(light_queue_not_empty()){
+    light_node_t node = light_queue_pop();
 
-    if(node.light == 0) continue;
+    // if node light is 1 then the next light value would be 0 anyhow, so skip it
+    if(node.light <= 1) continue;
 
     // loop all 6 neighbours of the node
     for(int32_t neighbour_index = 0; neighbour_index < 6; neighbour_index++){
@@ -1296,7 +1307,70 @@ void propagate_sky_light(void){
       // if neighbour's light is darker than calculated one, then push to queue
       if(new_light > neighbour->sky_light){
         neighbour->sky_light = new_light;
-        queue_push(&light_queue, (light_node_t){.y = neighbour_y, .z = neighbour_z, .x = neighbour_x, .light = new_light});
+        light_queue_push((light_node_t){.y = neighbour_y, .z = neighbour_z, .x = neighbour_x, .light = new_light});
+      }
+    }
+  }
+}
+
+void remove_sky_light_from_area(int32_t y, int32_t z, int32_t x){
+  light_queue.head = 0;
+  light_queue.tail = 0;
+
+  for(int32_t neighbour_index = 0; neighbour_index < 6; neighbour_index++){
+    int32_t neighbour_y = y + neighbour_y_offsets[neighbour_index];
+    int32_t neighbour_z = z + neighbour_z_offsets[neighbour_index];
+    int32_t neighbour_x = x + neighbour_x_offsets[neighbour_index];
+
+    if(neighbour_y < 0 || neighbour_y >= MAP_NUM_BLOCKS_Y || neighbour_z < 0 || neighbour_z >= MAP_NUM_BLOCKS_Z || neighbour_x < 0 || neighbour_x >= MAP_NUM_BLOCKS_X) continue;
+
+    block_t *neighbour = &block_at(neighbour_y, neighbour_z, neighbour_x);
+
+    if(block_is_opaque(neighbour)) continue;
+    if(neighbour->sky_light == 0) continue;
+
+    light_queue_push((light_node_t){.y = neighbour_y, .z = neighbour_z, .x = neighbour_x, .light = neighbour->sky_light});
+    neighbour->sky_light = 0;
+  }
+
+  while(light_queue_not_empty()){
+    light_node_t node = light_queue_pop();
+
+    for(int32_t neighbour_index = 0; neighbour_index < 6; neighbour_index++){
+      int32_t neighbour_y = node.y + neighbour_y_offsets[neighbour_index];
+      int32_t neighbour_z = node.z + neighbour_z_offsets[neighbour_index];
+      int32_t neighbour_x = node.x + neighbour_x_offsets[neighbour_index];
+
+      if(neighbour_y < 0 || neighbour_y >= MAP_NUM_BLOCKS_Y || neighbour_z < 0 || neighbour_z >= MAP_NUM_BLOCKS_Z || neighbour_x < 0 || neighbour_x >= MAP_NUM_BLOCKS_X) continue;
+
+      block_t *neighbour = &block_at(neighbour_y, neighbour_z, neighbour_x);
+
+      if(block_is_opaque(neighbour)) continue;
+      if(neighbour->sky_light == 0) continue;
+
+      if(neighbour->sky_light < node.light){
+        light_queue_push((light_node_t){.y = neighbour_y, .z = neighbour_z, .x = neighbour_x, .light = neighbour->sky_light});
+        neighbour->sky_light = 0;
+      }
+    }
+  }
+}
+
+void seed_sky_light_around_area(int32_t y, int32_t z, int32_t x, int32_t radius){
+  light_queue.head = 0;
+  light_queue.tail = 0;
+
+  for(int32_t test_y = y - radius; test_y <= y + radius; test_y++){
+    for(int32_t test_z = z - radius; test_z <= z + radius; test_z++){
+      for(int32_t test_x = x - radius; test_x <= x + radius; test_x++){
+        if(test_y < 0 || test_y >= MAP_NUM_BLOCKS_Y || test_z < 0 || test_z >= MAP_NUM_BLOCKS_Z || test_x < 0 || test_x >= MAP_NUM_BLOCKS_X) continue;
+
+        block_t *block = &block_at(test_y, test_z, test_x);
+
+        if(block_is_opaque(block)) continue;
+        if(block->sky_light == 0) continue;
+
+        light_queue_push((light_node_t){.y = test_y, .z = test_z, .x = test_x, .light = block->sky_light});
       }
     }
   }
@@ -1571,8 +1645,11 @@ block_raycast_hit_t raycast_blocks(
 }
 
 void assign_block_material(int32_t block_y, int32_t block_z, int32_t block_x, block_type_t block_type){
-  block_at(block_y, block_z, block_x).type = block_type;
-  block_at(block_y, block_z, block_x).current_mass = block_materials[block_type].mass;
+  block_t *block = &block_at(block_y, block_z, block_x);
+
+  block->type = block_type;
+  block->current_mass = block_materials[block_type].mass;
+  if(block_is_opaque(block)) block->sky_light = 0;
 }
 
 char *get_block_material_name(block_type_t block_type){
@@ -1611,27 +1688,27 @@ bool block_is_opaque(block_t *block){
   return block->type != BLOCK_TYPE_AIR && block->type != BLOCK_TYPE_GLASS;
 }
 
-bool queue_not_empty(light_queue_t *light_queue){
-  return light_queue->head != light_queue->tail;
+bool light_queue_not_empty(){
+  return light_queue.head != light_queue.tail;
 }
 
-void queue_push(light_queue_t *light_queue, light_node_t light_node){
-  light_queue->nodes[light_queue->tail] = light_node;
+void light_queue_push(light_node_t light_node){
+  light_queue.nodes[light_queue.tail] = light_node;
 
-  light_queue->tail++;
+  light_queue.tail++;
 
-  if(light_queue->tail >= MAX_LIGHT_QUEUE_SIZE){
-    light_queue->tail = 0;
+  if(light_queue.tail >= MAX_LIGHT_QUEUE_SIZE){
+    light_queue.tail = 0;
   }
 }
 
-light_node_t queue_pop(light_queue_t *light_queue){
-  light_node_t light_node = light_queue->nodes[light_queue->head];
+light_node_t light_queue_pop(){
+  light_node_t light_node = light_queue.nodes[light_queue.head];
 
-  light_queue->head++;
+  light_queue.head++;
 
-  if(light_queue->head >= MAX_LIGHT_QUEUE_SIZE){
-    light_queue->head = 0;
+  if(light_queue.head >= MAX_LIGHT_QUEUE_SIZE){
+    light_queue.head = 0;
   }
 
   return light_node;

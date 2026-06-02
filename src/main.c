@@ -201,8 +201,13 @@ void setup(void) {
   create_world_chunks();
   init_player();
 
+  // save state
   load_all_saved_chunks();
-  init_block_light();
+
+  // block sky light
+  reset_block_light(0, MAP_NUM_BLOCKS_Y - 1, 0, MAP_NUM_BLOCKS_Z - 1, 0, MAP_NUM_BLOCKS_X - 1);
+  seed_initial_block_sky_light(0, MAP_NUM_BLOCKS_Y - 1, 0, MAP_NUM_BLOCKS_Z - 1, 0, MAP_NUM_BLOCKS_X - 1);
+  propagate_sky_light();
 
   // CREATE OBJECTS
   mesh_t *mesh;
@@ -390,17 +395,20 @@ void handle_mouse_actions(input_state_t *input_state){
           set_block_orientation(block_y, block_z, block_x, player.position);
           player_use_block();
 
+ 
           // UPDATE SKY LIGHT
-          // set sky light value of all blocks below the placed to one 0 (if the placed block is not transparent)
-          block_t *placed_block = &block_at(block_y, block_z, block_x);
-          if(!block_is_transparent(placed_block)){
-            placed_block->sky_light = 0;
-            for(int32_t test_y = block_y - 1; test_y >= 0; test_y--){
-              block_t *test_block = &block_at(test_y, block_z, block_x);
-              if(!block_is_transparent(test_block)) break;
-              test_block->sky_light = 0;
-            }
-          }
+          // reset sky light on all blocks around a 32x32x32 area around placed block
+          // then reset light in this box of blocks
+          // then re-propagate light around all these blocks
+          int32_t block_y_start = block_y - 16;
+          int32_t block_y_end   = block_y + 16;
+          int32_t block_z_start = block_z - 16;
+          int32_t block_z_end   = block_z + 16;
+          int32_t block_x_start = block_x - 16;
+          int32_t block_x_end   = block_x + 16;
+          reset_block_light(block_y_start, block_y_end, block_z_start, block_z_end, block_x_start, block_x_end);
+          seed_sky_light_around_area(block_y, block_z, block_x, 32);
+          propagate_sky_light();
 
           // SAVE THE CHUNK THAT THE BLOCK IS INSIDE OF
           int32_t chunk_y = block_y / CHUNK_SIZE;
@@ -2250,49 +2258,49 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
           }
         }
 
-        uint8_t neighbour_block_sky_light;
+        float neighbour_block_sky_light;
 
         block_orientation_t block_orientation = block_at(y_plane, z_row, x_col).orientation;
         block_face_t block_face;
         if(render_left_block_face){
-          neighbour_block_sky_light = block_at(y_plane, z_row, x_col - 1).sky_light;
-          if(neighbour_block_sky_light == 0) neighbour_block_sky_light = 1;
-          light_intensity_rgb_t block_face_light_intensity = {.blue = neighbour_block_sky_light / 15.0f, .green = neighbour_block_sky_light / 15.0f, .red = neighbour_block_sky_light / 15.0f};
+          neighbour_block_sky_light = block_at(y_plane, z_row, x_col - 1).sky_light / 15.0f;
+          if(neighbour_block_sky_light < 0.015f) neighbour_block_sky_light = 0.015f;
+          light_intensity_rgb_t block_face_light_intensity = {.blue = neighbour_block_sky_light, .green = neighbour_block_sky_light, .red = neighbour_block_sky_light};
           block_face = generate_block_face(BLOCK_QUAD_LEFT, y_plane, z_row, x_col);
           render_block_face(block_face, block_material, block_looked_at_left, block_orientation, block_face_light_intensity);
         }
         if(render_right_block_face){
-          neighbour_block_sky_light = block_at(y_plane, z_row, x_col + 1).sky_light;
-          if(neighbour_block_sky_light == 0) neighbour_block_sky_light = 1;
-          light_intensity_rgb_t block_face_light_intensity = {.blue = neighbour_block_sky_light / 15.0f, .green = neighbour_block_sky_light / 15.0f, .red = neighbour_block_sky_light / 15.0f};
+          neighbour_block_sky_light = block_at(y_plane, z_row, x_col + 1).sky_light / 15.0f;
+          if(neighbour_block_sky_light < 0.015f) neighbour_block_sky_light = 0.015f;
+          light_intensity_rgb_t block_face_light_intensity = {.blue = neighbour_block_sky_light, .green = neighbour_block_sky_light, .red = neighbour_block_sky_light};
           block_face = generate_block_face(BLOCK_QUAD_RIGHT, y_plane, z_row, x_col);
           render_block_face(block_face, block_material, block_looked_at_right, block_orientation, block_face_light_intensity);
         }
         if(render_top_block_face){
-          neighbour_block_sky_light = block_at(y_plane + 1, z_row, x_col).sky_light;
-          if(neighbour_block_sky_light == 0) neighbour_block_sky_light = 1;
-          light_intensity_rgb_t block_face_light_intensity = {.blue = neighbour_block_sky_light / 15.0f, .green = neighbour_block_sky_light / 15.0f, .red = neighbour_block_sky_light / 15.0f};
+          neighbour_block_sky_light = block_at(y_plane + 1, z_row, x_col).sky_light / 15.0f;
+          if(neighbour_block_sky_light < 0.015f) neighbour_block_sky_light = 0.015f;
+          light_intensity_rgb_t block_face_light_intensity = {.blue = neighbour_block_sky_light, .green = neighbour_block_sky_light, .red = neighbour_block_sky_light};
           block_face = generate_block_face(BLOCK_QUAD_TOP, y_plane, z_row, x_col);
           render_block_face(block_face, block_material, block_looked_at_top, block_orientation, block_face_light_intensity);
         }
         if(render_bottom_block_face){
-          neighbour_block_sky_light = block_at(y_plane - 1, z_row, x_col).sky_light;
-          if(neighbour_block_sky_light == 0) neighbour_block_sky_light = 1;
-          light_intensity_rgb_t block_face_light_intensity = {.blue = neighbour_block_sky_light / 15.0f, .green = neighbour_block_sky_light / 15.0f, .red = neighbour_block_sky_light / 15.0f};
+          neighbour_block_sky_light = block_at(y_plane - 1, z_row, x_col).sky_light / 15.0f;
+          if(neighbour_block_sky_light < 0.015f) neighbour_block_sky_light = 0.015f;
+          light_intensity_rgb_t block_face_light_intensity = {.blue = neighbour_block_sky_light, .green = neighbour_block_sky_light, .red = neighbour_block_sky_light};
           block_face = generate_block_face(BLOCK_QUAD_BOTTOM, y_plane, z_row, x_col);
           render_block_face(block_face, block_material, block_looked_at_bottom, block_orientation, block_face_light_intensity);
         }
         if(render_front_block_face){
-          neighbour_block_sky_light = block_at(y_plane, z_row - 1, x_col).sky_light;
-          if(neighbour_block_sky_light == 0) neighbour_block_sky_light = 1;
-          light_intensity_rgb_t block_face_light_intensity = {.blue = neighbour_block_sky_light / 15.0f, .green = neighbour_block_sky_light / 15.0f, .red = neighbour_block_sky_light / 15.0f};
+          neighbour_block_sky_light = block_at(y_plane, z_row - 1, x_col).sky_light / 15.0f;
+          if(neighbour_block_sky_light < 0.015f) neighbour_block_sky_light = 0.015f;
+          light_intensity_rgb_t block_face_light_intensity = {.blue = neighbour_block_sky_light, .green = neighbour_block_sky_light, .red = neighbour_block_sky_light};
           block_face = generate_block_face(BLOCK_QUAD_FRONT, y_plane, z_row, x_col);
           render_block_face(block_face, block_material, block_looked_at_front, block_orientation, block_face_light_intensity);
         }
         if(render_back_block_face){
-          neighbour_block_sky_light = block_at(y_plane, z_row + 1, x_col).sky_light;
-          if(neighbour_block_sky_light == 0) neighbour_block_sky_light = 1;
-          light_intensity_rgb_t block_face_light_intensity = {.blue = neighbour_block_sky_light / 15.0f, .green = neighbour_block_sky_light / 15.0f, .red = neighbour_block_sky_light / 15.0f};
+          neighbour_block_sky_light = block_at(y_plane, z_row + 1, x_col).sky_light / 15.0f;
+          if(neighbour_block_sky_light < 0.015f) neighbour_block_sky_light = 0.015f;
+          light_intensity_rgb_t block_face_light_intensity = {.blue = neighbour_block_sky_light, .green = neighbour_block_sky_light, .red = neighbour_block_sky_light};
           block_face = generate_block_face(BLOCK_QUAD_BACK, y_plane, z_row, x_col);
           render_block_face(block_face, block_material, block_looked_at_back, block_orientation, block_face_light_intensity);
         }
@@ -2386,9 +2394,9 @@ void render_object(object_t *object){
     /* LIGHT CALCULATIONS */
     // find total light intensity on this face - this is total intensity per rgb channel
     block_t *block = &block_at((int32_t)player.position.y, (int32_t)player.position.z, (int32_t)player.position.x);
-    uint8_t block_light = block->sky_light;
-    if(block_light == 0) block_light = 1;
-    light_intensity_rgb_t total_light_intensity = {block_light / 15.0f, block_light / 15.0f, block_light / 15.0f};
+    float block_light = (float)block->sky_light / 15.0f;
+    if(block_light < 0.015f) block_light = 0.015;
+    light_intensity_rgb_t total_light_intensity = {block_light, block_light, block_light};
     // loop all faces generated from clipped polygon
     for(int t = 0; t < num_triangles_from_polygon; t++){
       triangle_t *triangle_after_clipping = &triangles_after_clipping[t];
@@ -3024,7 +3032,8 @@ void print_debug_data(){
         "%ut, %upx, %uc, %ufps\n"
         "block coords: %d:%d:%d, chunk coords: %d:%d:%d\n"
         "player pos: %.2f:%.2f:%.2f, look direction: %.2f:%.2f:%.2f, theta/eta: %.2f:%.2f\n"
-        "block looked at: %d:%d:%d",
+        "block looked at: %d:%d:%d\n"
+        "lf: %d, lh: %d",
         player.on_ground ? "yes" : "no",
         player.velocity.x, player.velocity.y, player.velocity.z,
         total_triangles_rendered, total_pixels_rendered, total_chunks_rendered, fps, 
@@ -3033,7 +3042,9 @@ void print_debug_data(){
         player.position.x,  player.position.y,  player.position.z,
         player.direction.x, player.direction.y, player.direction.z,
         player.theta, player.eta,
-        looked_at_block.block_x, looked_at_block.block_y, looked_at_block.block_z
+        looked_at_block.block_x, looked_at_block.block_y, looked_at_block.block_z,
+        block_at(player_block_y, player_block_z, player_block_x).sky_light,
+        block_at(player_block_y + 1, player_block_z, player_block_x).sky_light
       );
     }
     draw_text(10, 10, debug_screen_data, (color_t){.uint32 = 0xFFFFFFFF}, 1, FONT_6X8);
@@ -3102,12 +3113,26 @@ void process_mining(){
           assign_block_material(block_y, block_z, block_x, BLOCK_TYPE_AIR);
 
           // UPDATE SKY LIGHT
-          // when a block is removed, update sky light value of all air blocks down from it(including), until an opaque block is found
-          uint8_t sky_light_value_above = block_at(block_y + 1, block_z, block_x).sky_light;
-          for(int32_t test_y = block_y; test_y >= 0; test_y--){
-            block_t *block = &block_at(test_y, block_z, block_x);
-            if(block_is_transparent(block)) block->sky_light = sky_light_value_above;
-            else break;
+          // flood fill blocks from the removed one
+          light_queue.head = 0;
+          light_queue.tail = 0;
+          uint8_t best_light = 0;
+          for(int32_t neighbour_index = 0; neighbour_index < 6; neighbour_index++){
+            int32_t neighbour_y = block_y + neighbour_y_offsets[neighbour_index];
+            int32_t neighbour_z = block_z + neighbour_z_offsets[neighbour_index];
+            int32_t neighbour_x = block_x + neighbour_x_offsets[neighbour_index];
+
+            if(neighbour_y < 0 || neighbour_y >= MAP_NUM_BLOCKS_Y || neighbour_z < 0 || neighbour_z >= MAP_NUM_BLOCKS_Z || neighbour_x < 0 || neighbour_x >= MAP_NUM_BLOCKS_X) continue;
+
+            block_t *neighbour = &block_at(neighbour_y, neighbour_z, neighbour_x);
+            if(block_is_opaque(neighbour)) continue;
+            if(neighbour->sky_light > best_light) best_light = neighbour->sky_light;
+          }
+
+          if(best_light > 0){
+            block_at(block_y, block_z, block_x).sky_light = best_light - 1;
+            light_queue_push((light_node_t){.y = block_y, .z = block_z, .x = block_x, .light = best_light - 1});
+            propagate_sky_light();
           }
 
           // SAVE THE CHUNK THAT THE BLOCK IS INSIDE OF
