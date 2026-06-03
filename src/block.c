@@ -1247,6 +1247,16 @@ void reset_block_light(int32_t y_start, int32_t y_end, int32_t z_start, int32_t 
       }
     }
   }
+
+  // UPDATE BLOCK LIGHT OF ALL BLOCKS
+  for(int32_t z = z_start; z <= z_end; z++){
+    for(int32_t x = x_start; x <= x_end; x++){
+      for(int32_t y = y_end; y >= y_start; y--){
+        if(block_is_transparent(&block_at(y, z, x))) block_at(y, z, x).block_light = 0; 
+        else if(block_materials[block_at(y, z, x).type].emissive_color != 0x00000000) block_at(y, z, x).block_light = 15;
+      }
+    }
+  }
 }
 
 void seed_initial_block_sky_light(int32_t y_start, int32_t y_end, int32_t z_start, int32_t z_end, int32_t x_start, int32_t x_end){
