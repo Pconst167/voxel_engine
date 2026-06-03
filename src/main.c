@@ -407,7 +407,7 @@ void handle_mouse_actions(input_state_t *input_state){
           int32_t block_x_start = block_x - 16;
           int32_t block_x_end   = block_x + 16;
           reset_block_light(block_y_start, block_y_end, block_z_start, block_z_end, block_x_start, block_x_end);
-          seed_sky_light_around_area(block_y, block_z, block_x, 32);
+          seed_sky_light_around_area(block_y, block_z, block_x, 17);
           propagate_sky_light();
 
           // SAVE THE CHUNK THAT THE BLOCK IS INSIDE OF
@@ -3112,28 +3112,42 @@ void process_mining(){
           player_obtain_block(block_at(block_y, block_z, block_x).type);
           assign_block_material(block_y, block_z, block_x, BLOCK_TYPE_AIR);
 
+          // OLD ALGORITHM FOR REMOVING BLOCKS - REMOVED FOR NOW
           // UPDATE SKY LIGHT
           // flood fill blocks from the removed one
-          light_queue.head = 0;
-          light_queue.tail = 0;
-          uint8_t best_light = 0;
-          for(int32_t neighbour_index = 0; neighbour_index < 6; neighbour_index++){
-            int32_t neighbour_y = block_y + neighbour_y_offsets[neighbour_index];
-            int32_t neighbour_z = block_z + neighbour_z_offsets[neighbour_index];
-            int32_t neighbour_x = block_x + neighbour_x_offsets[neighbour_index];
+          //light_queue.head = 0;
+          //light_queue.tail = 0;
+          //uint8_t best_light = 0;
+          //for(int32_t neighbour_index = 0; neighbour_index < 6; neighbour_index++){
+          //  int32_t neighbour_y = block_y + neighbour_y_offsets[neighbour_index];
+          //  int32_t neighbour_z = block_z + neighbour_z_offsets[neighbour_index];
+          //  int32_t neighbour_x = block_x + neighbour_x_offsets[neighbour_index];
+          //
+          //  if(neighbour_y < 0 || neighbour_y >= MAP_NUM_BLOCKS_Y || neighbour_z < 0 || neighbour_z >= MAP_NUM_BLOCKS_Z || neighbour_x < 0 || neighbour_x >= MAP_NUM_BLOCKS_X) continue;
+          //
+          //  block_t *neighbour = &block_at(neighbour_y, neighbour_z, neighbour_x);
+          //  if(block_is_opaque(neighbour)) continue;
+          //  if(neighbour->sky_light > best_light) best_light = neighbour->sky_light;
+          //}
+          //
+          //if(best_light > 0){
+          //  block_at(block_y, block_z, block_x).sky_light = best_light - 1;
+          //  light_queue_push((light_node_t){.y = block_y, .z = block_z, .x = block_x, .light = best_light - 1});
+          //  propagate_sky_light();
+          //}
 
-            if(neighbour_y < 0 || neighbour_y >= MAP_NUM_BLOCKS_Y || neighbour_z < 0 || neighbour_z >= MAP_NUM_BLOCKS_Z || neighbour_x < 0 || neighbour_x >= MAP_NUM_BLOCKS_X) continue;
-
-            block_t *neighbour = &block_at(neighbour_y, neighbour_z, neighbour_x);
-            if(block_is_opaque(neighbour)) continue;
-            if(neighbour->sky_light > best_light) best_light = neighbour->sky_light;
-          }
-
-          if(best_light > 0){
-            block_at(block_y, block_z, block_x).sky_light = best_light - 1;
-            light_queue_push((light_node_t){.y = block_y, .z = block_z, .x = block_x, .light = best_light - 1});
-            propagate_sky_light();
-          }
+          // reset sky light on all blocks around a 32x32x32 area around placed block
+          // then reset light in this box of blocks
+          // then re-propagate light around all these blocks
+          int32_t block_y_start = block_y - 16;
+          int32_t block_y_end   = block_y + 16;
+          int32_t block_z_start = block_z - 16;
+          int32_t block_z_end   = block_z + 16;
+          int32_t block_x_start = block_x - 16;
+          int32_t block_x_end   = block_x + 16;
+          reset_block_light(block_y_start, block_y_end, block_z_start, block_z_end, block_x_start, block_x_end);
+          seed_sky_light_around_area(block_y, block_z, block_x, 17);
+          propagate_sky_light();
 
           // SAVE THE CHUNK THAT THE BLOCK IS INSIDE OF
           int32_t chunk_y = block_y / CHUNK_SIZE;
