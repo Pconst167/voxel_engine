@@ -74,7 +74,11 @@ void init_player(){
   player.block_inventory[9].number = 400;
   player.block_inventory[10].block_type = BLOCK_TYPE_STONE2;
   player.block_inventory[10].number = 400;
-  player.block_inventory_size = 11;
+  player.block_inventory[11].block_type = BLOCK_TYPE_LAVA0;
+  player.block_inventory[11].number = 400;
+  player.block_inventory[12].block_type = BLOCK_TYPE_LAVA1;
+  player.block_inventory[12].number = 400;
+  player.block_inventory_size = 13;
 }
 
 // check if player already has the block type, if so add +1 to entry

@@ -1139,11 +1139,10 @@ void init_block_map(){
         if(y == (uint32_t)(0.4 * MAP_NUM_BLOCKS_Y)){
           if(xorshift32() % 5 == 0){
             uint32_t random = xorshift32();
-            if(random % 11 == 0){
-              assign_block_material(y, z, x, BLOCK_TYPE_LAVA0);
-              block_at(y, z, x).block_light = 15;
+            if(random < (uint32_t)(0.1f * UINT32_MAX)){
+              assign_block_material(y, z, x, BLOCK_TYPE_LAMP0);
             }
-            else if(random % 3 == 1){
+            else if(random < (uint32_t)(0.3f * UINT32_MAX)){
               assign_block_material(y, z, x, BLOCK_TYPE_LEAVES0);
             }
             else{
@@ -1187,7 +1186,6 @@ void init_block_map(){
         if(y <= (uint32_t)(0.1 * MAP_NUM_BLOCKS_Y)){
           assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC3);
           block_at(y, z, x).temperature = 100.0f;
-          block_at(y, z, x).block_light = 15;
         }
         if(y <= (uint32_t)(0.06 * MAP_NUM_BLOCKS_Y)){
           if(xorshift32() % 3 == 0)
@@ -1195,22 +1193,18 @@ void init_block_map(){
           else
             assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC2);
           block_at(y, z, x).temperature = 300.0f;
-          block_at(y, z, x).block_light = 15;
         }
         if(y <= (uint32_t)(0.04 * MAP_NUM_BLOCKS_Y)){
           assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC0);
           block_at(y, z, x).temperature = 400.0f;
-          block_at(y, z, x).block_light = 15;
         }
         if(y <= (uint32_t)(0.02 * MAP_NUM_BLOCKS_Y)){
           assign_block_material(y, z, x, BLOCK_TYPE_LAVA1);
           block_at(y, z, x).temperature = 400.0f;
-          block_at(y, z, x).block_light = 15;
         }
         if(y <= (uint32_t)(0.01 * MAP_NUM_BLOCKS_Y)){
           assign_block_material(y, z, x, BLOCK_TYPE_LAVA0);
           block_at(y, z, x).temperature = 800.0f;
-          block_at(y, z, x).block_light = 15;
         }
         if(y == 0){
           block_at(y, z, x).temperature = 1800.0f;
@@ -1449,6 +1443,25 @@ void seed_sky_light_around_area(int32_t y, int32_t z, int32_t x, int32_t radius)
         if(block->sky_light == 0) continue;
 
         light_queue_push((light_node_t){.y = test_y, .z = test_z, .x = test_x, .light = block->sky_light});
+      }
+    }
+  }
+}
+
+void seed_block_light_around_area(int32_t y, int32_t z, int32_t x, int32_t radius){
+  light_queue.head = 0;
+  light_queue.tail = 0;
+
+  for(int32_t test_y = y - radius; test_y <= y + radius; test_y++){
+    for(int32_t test_z = z - radius; test_z <= z + radius; test_z++){
+      for(int32_t test_x = x - radius; test_x <= x + radius; test_x++){
+        if(test_y < 0 || test_y >= MAP_NUM_BLOCKS_Y || test_z < 0 || test_z >= MAP_NUM_BLOCKS_Z || test_x < 0 || test_x >= MAP_NUM_BLOCKS_X) continue;
+
+        block_t *block = &block_at(test_y, test_z, test_x);
+
+        if(block->block_light == 0) continue;
+
+        light_queue_push((light_node_t){.y = test_y, .z = test_z, .x = test_x, .light = block->block_light});
       }
     }
   }
@@ -1728,6 +1741,8 @@ void assign_block_material(int32_t block_y, int32_t block_z, int32_t block_x, bl
   block->type = block_type;
   block->current_mass = block_materials[block_type].mass;
   if(block_is_opaque(block)) block->sky_light = 0;
+  if(block_is_emissive(block)) block->block_light = 15;
+  else block->block_light = 0;
 }
 
 char *get_block_material_name(block_type_t block_type){
@@ -1764,6 +1779,10 @@ bool block_is_transparent(block_t *block){
 
 bool block_is_opaque(block_t *block){
   return block->type != BLOCK_TYPE_AIR && block->type != BLOCK_TYPE_GLASS;
+}
+
+bool block_is_emissive(block_t *block){
+  return block_materials[block->type].emissive_color.uint32 != 0x00000000;
 }
 
 bool light_queue_not_empty(){

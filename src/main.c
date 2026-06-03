@@ -165,8 +165,8 @@ vector3_t up = {.x = 0, .y = 1, .z = 0}; /* up direction vector for view matrix 
 /* sun/sky data */
 int32_t skybox_id = 1;
 vector3_t sun_direction = {0.0f, 1.0f, 0.0f}; /* world-space sun direction vector */
-float sun_eta = (M_PI_2); /* sun's eta angle */
-float sun_sin_eta = 1.0f;
+float sun_eta = (0); /* sun's eta angle */
+float sun_sin_eta = 0.0f;
 color_t sky_color = (color_t){.uint32 = 0xFFFF8040};
 
 triangle_t triangles_to_render[50000];
@@ -398,7 +398,6 @@ void handle_mouse_actions(input_state_t *input_state){
           set_block_orientation(block_y, block_z, block_x, player.position);
           player_use_block();
 
- 
           // UPDATE SKY LIGHT
           // reset sky light on all blocks around a 32x32x32 area around placed block
           // then reset light in this box of blocks
@@ -410,8 +409,14 @@ void handle_mouse_actions(input_state_t *input_state){
           int32_t block_x_start = block_x - 16;
           int32_t block_x_end   = block_x + 16;
           reset_light_around_area(block_y_start, block_y_end, block_z_start, block_z_end, block_x_start, block_x_end);
+
+          // SKY LIGHT
           seed_sky_light_around_area(block_y, block_z, block_x, 17);
           propagate_sky_light();
+
+          // BLOCK LIGHT
+          seed_block_light_around_area(block_y, block_z, block_x, 33);
+          propagate_block_light();
 
           // SAVE THE CHUNK THAT THE BLOCK IS INSIDE OF
           int32_t chunk_y = block_y / CHUNK_SIZE;
@@ -2714,7 +2719,7 @@ void update_light(void){
   if(skybox_id != -1){
     //object_t *skybox = &objects[skybox_id];
 
-    sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
+    //sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
     sun_sin_eta = sinf(sun_eta);
 
     sun_direction.x = 0.0f;
@@ -3157,8 +3162,15 @@ void process_mining(){
           int32_t block_x_start = block_x - 16;
           int32_t block_x_end   = block_x + 16;
           reset_light_around_area(block_y_start, block_y_end, block_z_start, block_z_end, block_x_start, block_x_end);
+
+          // SKY LIGHT
           seed_sky_light_around_area(block_y, block_z, block_x, 17);
           propagate_sky_light();
+
+          // BLOCK LIGHT
+          seed_block_light_around_area(block_y, block_z, block_x, 33);
+          propagate_block_light();
+
 
           // SAVE THE CHUNK THAT THE BLOCK IS INSIDE OF
           int32_t chunk_y = block_y / CHUNK_SIZE;

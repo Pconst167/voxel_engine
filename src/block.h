@@ -197,6 +197,7 @@ char *get_block_material_name(block_type_t block_type);
 
 bool block_is_transparent(block_t *block);
 bool block_is_opaque(block_t *block);
+bool block_is_emissive(block_t *block);
 bool block_is_tree_leaves(block_t *block);
 
 // BLOCK LIGHT FUNCTIONS
@@ -210,5 +211,6 @@ void propagate_sky_light(void);
 void propagate_block_light(void);
 void remove_sky_light_from_area(int32_t y, int32_t z, int32_t x);
 void seed_sky_light_around_area(int32_t y, int32_t z, int32_t x, int32_t radius);
+void seed_block_light_around_area(int32_t y, int32_t z, int32_t x, int32_t radius);
 
 #endif
