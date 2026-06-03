@@ -163,9 +163,10 @@ float zfar;
 vector3_t up = {.x = 0, .y = 1, .z = 0}; /* up direction vector for view matrix */
 
 /* sun/sky data */
-int32_t skybox_id = -1;
+int32_t skybox_id = 1;
 vector3_t sun_direction = {0.0f, 1.0f, 0.0f}; /* world-space sun direction vector */
 float sun_eta = (M_PI_2); /* sun's eta angle */
+float sun_sin_eta = 1.0f;
 color_t sky_color = (color_t){.uint32 = 0xFFFF8040};
 
 triangle_t triangles_to_render[50000];
@@ -2262,7 +2263,7 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
 
         block_orientation_t block_orientation = block_at(y_plane, z_row, x_col).orientation;
         if(render_left_block_face){
-          float face_sky_light = block_at(y_plane, z_row, x_col - 1).sky_light / 15.0f;
+          float face_sky_light = block_at(y_plane, z_row, x_col - 1).sky_light / 15.0f * sun_sin_eta;
           float face_block_light = block_at(y_plane, z_row, x_col - 1).block_light / 15.0f;
           float face_light = face_sky_light + face_block_light;
           if(face_light < 0.015f) face_light = 0.015f;
@@ -2272,7 +2273,7 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
           render_block_face(block_face, block_material, block_looked_at_left, block_orientation, light_intensity);
         }
         if(render_right_block_face){
-          float face_sky_light = block_at(y_plane, z_row, x_col + 1).sky_light / 15.0f;
+          float face_sky_light = block_at(y_plane, z_row, x_col + 1).sky_light / 15.0f * sun_sin_eta;
           float face_block_light = block_at(y_plane, z_row, x_col + 1).block_light / 15.0f;
           float face_light = face_sky_light + face_block_light;
           if(face_light < 0.015f) face_light = 0.015f;
@@ -2282,7 +2283,7 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
           render_block_face(block_face, block_material, block_looked_at_right, block_orientation, light_intensity);
         }
         if(render_top_block_face){
-          float face_sky_light =  block_at(y_plane + 1, z_row, x_col).sky_light / 15.0f;
+          float face_sky_light =  block_at(y_plane + 1, z_row, x_col).sky_light / 15.0f * sun_sin_eta;
           float face_block_light =  block_at(y_plane + 1, z_row, x_col).block_light / 15.0f;
           float face_light = face_sky_light + face_block_light;
           if(face_light < 0.015f) face_light = 0.015f;
@@ -2292,7 +2293,7 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
           render_block_face(block_face, block_material, block_looked_at_top, block_orientation, light_intensity);
         }
         if(render_bottom_block_face){
-          float face_sky_light =  block_at(y_plane - 1, z_row, x_col).sky_light / 15.0f;
+          float face_sky_light =  block_at(y_plane - 1, z_row, x_col).sky_light / 15.0f * sun_sin_eta;
           float face_block_light =  block_at(y_plane - 1, z_row, x_col).block_light / 15.0f;
           float face_light = face_sky_light + face_block_light;
           if(face_light < 0.015f) face_light = 0.015f;
@@ -2302,7 +2303,7 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
           render_block_face(block_face, block_material, block_looked_at_bottom, block_orientation, light_intensity);
         }
         if(render_front_block_face){
-          float face_sky_light =  block_at(y_plane, z_row - 1, x_col).sky_light / 15.0f;
+          float face_sky_light =  block_at(y_plane, z_row - 1, x_col).sky_light / 15.0f * sun_sin_eta;
           float face_block_light =  block_at(y_plane, z_row - 1, x_col).block_light / 15.0f;
           float face_light = face_sky_light + face_block_light;
           if(face_light < 0.015f) face_light = 0.015f;
@@ -2312,7 +2313,7 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
           render_block_face(block_face, block_material, block_looked_at_front, block_orientation, light_intensity);
         }
         if(render_back_block_face){
-          float face_sky_light   = block_at(y_plane, z_row + 1, x_col).sky_light / 15.0f;
+          float face_sky_light   = block_at(y_plane, z_row + 1, x_col).sky_light / 15.0f * sun_sin_eta;
           float face_block_light = block_at(y_plane, z_row + 1, x_col).block_light / 15.0f;
           float face_light = face_sky_light + face_block_light;
           if(face_light < 0.015f) face_light = 0.015f;
@@ -2411,9 +2412,13 @@ void render_object(object_t *object){
     /* LIGHT CALCULATIONS */
     // find total light intensity on this face - this is total intensity per rgb channel
     block_t *block = &block_at((int32_t)player.position.y, (int32_t)player.position.z, (int32_t)player.position.x);
-    float block_light = (float)block->sky_light / 15.0f;
-    if(block_light < 0.015f) block_light = 0.015;
-    light_intensity_rgb_t total_light_intensity = {block_light, block_light, block_light};
+    float sky_light   = (float)block->sky_light   / 15.0f * sun_sin_eta;
+    float block_light = (float)block->block_light / 15.0f;
+    float object_light = sky_light + block_light;
+    if(object_light < 0.015f) object_light = 0.015f;
+    if(object_light > 1.0f)   object_light = 1.0f;
+    light_intensity_rgb_t total_light_intensity = {object_light, object_light, object_light};
+
     // loop all faces generated from clipped polygon
     for(int t = 0; t < num_triangles_from_polygon; t++){
       triangle_t *triangle_after_clipping = &triangles_after_clipping[t];
@@ -2705,27 +2710,23 @@ void draw_collision_aabb_outlines(void){
 }
 
 void update_light(void){
-  float sin_eta;
-
   /* skybox is a special case and needs to always track camera position */
   if(skybox_id != -1){
     //object_t *skybox = &objects[skybox_id];
 
     sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
-    sin_eta  = sinf(sun_eta);
+    sun_sin_eta = sinf(sun_eta);
 
     sun_direction.x = 0.0f;
-    sun_direction.y = sin_eta;
+    sun_direction.y = sun_sin_eta;
     sun_direction.z = cosf(sun_eta);
 
-    if(sin_eta < 0.0f) sin_eta = 0.0f;
+    if(sun_sin_eta < 0.0f) sun_sin_eta = 0.0f;
 
-    sky_color.rgb.red = 0x20 * sin_eta;
-    sky_color.rgb.green = 0x80 * sin_eta;
-    sky_color.rgb.blue = 0x30 + 0xC0 * sin_eta;
+    sky_color.rgb.red   = 0x20 * sun_sin_eta;
+    sky_color.rgb.green = 0x80 * sun_sin_eta;
+    sky_color.rgb.blue  = 0x30 + 0xC0 * sun_sin_eta;
     
-    light_sources[1].direction = (vector3_t){sun_direction.x, -sun_direction.y, -sun_direction.z};
-
     //skybox->translation.x  = camera.position.x; 
     //skybox->translation.y  = camera.position.y;
     //skybox->translation.z  = camera.position.z;
@@ -2740,14 +2741,7 @@ void update_light(void){
     //skybox->mesh->materials[0].emissive_color.rgb.green = 255.0f * (emissive_intensity); /* sky luminosity as a function of time */
     //skybox->mesh->materials[0].emissive_color.rgb.blue  = 255.0f * (emissive_intensity); /* sky luminosity as a function of time */
 
-    light_sources[1].intensity = sin_eta;
-    /* as sun sets or rises, ambient light should get bluer, and oranger towards noon */
-    //light_sources[0].color = skybox->mesh->materials[0].emissive_color; 
-    light_sources[0].intensity = MIN_AMBIENT_LIGHT_INTENSITY + AMBIENT_LIGHT_MAX_FACTOR * sin_eta;
   }
-
-  light_sources[2].position = player.position;
-  light_sources[2].position.y += player.height * 0.7;
 }
 
 void update_camera_from_player(){
