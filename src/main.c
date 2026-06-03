@@ -165,8 +165,8 @@ vector3_t up = {.x = 0, .y = 1, .z = 0}; /* up direction vector for view matrix 
 /* sun/sky data */
 int32_t skybox_id = 1;
 vector3_t sun_direction = {0.0f, 1.0f, 0.0f}; /* world-space sun direction vector */
-float sun_eta = (0); /* sun's eta angle */
-float sun_sin_eta = 0.0f;
+float sun_eta = (M_PI_2); /* sun's eta angle */
+float sun_sin_eta = 1.0f;
 color_t sky_color = (color_t){.uint32 = 0xFFFF8040};
 
 triangle_t triangles_to_render[50000];
@@ -2719,7 +2719,7 @@ void update_light(void){
   if(skybox_id != -1){
     //object_t *skybox = &objects[skybox_id];
 
-    //sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
+    sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
     sun_sin_eta = sinf(sun_eta);
 
     sun_direction.x = 0.0f;
