@@ -1139,8 +1139,9 @@ void init_block_map(){
         if(y == (uint32_t)(0.4 * MAP_NUM_BLOCKS_Y)){
           if(xorshift32() % 5 == 0){
             uint32_t random = xorshift32();
-            if(random % 3 == 0){
-              assign_block_material(y, z, x, BLOCK_TYPE_CHERRY_GRASS);
+            if(random % 11 == 0){
+              assign_block_material(y, z, x, BLOCK_TYPE_LAVA0);
+              block_at(y, z, x).block_light = 15;
             }
             else if(random % 3 == 1){
               assign_block_material(y, z, x, BLOCK_TYPE_LEAVES0);
@@ -1186,6 +1187,7 @@ void init_block_map(){
         if(y <= (uint32_t)(0.1 * MAP_NUM_BLOCKS_Y)){
           assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC3);
           block_at(y, z, x).temperature = 100.0f;
+          block_at(y, z, x).block_light = 15;
         }
         if(y <= (uint32_t)(0.06 * MAP_NUM_BLOCKS_Y)){
           if(xorshift32() % 3 == 0)
@@ -1193,18 +1195,22 @@ void init_block_map(){
           else
             assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC2);
           block_at(y, z, x).temperature = 300.0f;
+          block_at(y, z, x).block_light = 15;
         }
         if(y <= (uint32_t)(0.04 * MAP_NUM_BLOCKS_Y)){
           assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC0);
           block_at(y, z, x).temperature = 400.0f;
+          block_at(y, z, x).block_light = 15;
         }
         if(y <= (uint32_t)(0.02 * MAP_NUM_BLOCKS_Y)){
           assign_block_material(y, z, x, BLOCK_TYPE_LAVA1);
           block_at(y, z, x).temperature = 400.0f;
+          block_at(y, z, x).block_light = 15;
         }
         if(y <= (uint32_t)(0.01 * MAP_NUM_BLOCKS_Y)){
           assign_block_material(y, z, x, BLOCK_TYPE_LAVA0);
           block_at(y, z, x).temperature = 800.0f;
+          block_at(y, z, x).block_light = 15;
         }
         if(y == 0){
           block_at(y, z, x).temperature = 1800.0f;
@@ -1224,7 +1230,7 @@ void init_block_map(){
   place_ores();
 }
 
-void reset_block_light(int32_t y_start, int32_t y_end, int32_t z_start, int32_t z_end, int32_t x_start, int32_t x_end){
+void reset_light_around_area(int32_t y_start, int32_t y_end, int32_t z_start, int32_t z_end, int32_t x_start, int32_t x_end){
 
   if(y_start < 0) y_start = 0;
   if(z_start < 0) z_start = 0;
@@ -1249,21 +1255,20 @@ void reset_block_light(int32_t y_start, int32_t y_end, int32_t z_start, int32_t 
   }
 
   // UPDATE BLOCK LIGHT OF ALL BLOCKS
-  for(int32_t z = z_start; z <= z_end; z++){
-    for(int32_t x = x_start; x <= x_end; x++){
-      for(int32_t y = y_end; y >= y_start; y--){
+  for(int32_t y = y_end; y >= y_start; y--){
+    for(int32_t z = z_start; z <= z_end; z++){
+      for(int32_t x = x_start; x <= x_end; x++){
         if(block_is_transparent(&block_at(y, z, x))) block_at(y, z, x).block_light = 0; 
-        else if(block_materials[block_at(y, z, x).type].emissive_color != 0x00000000) block_at(y, z, x).block_light = 15;
+        else if(block_materials[block_at(y, z, x).type].emissive_color.uint32 != 0x00000000) block_at(y, z, x).block_light = 15;
       }
     }
   }
 }
 
-void seed_initial_block_sky_light(int32_t y_start, int32_t y_end, int32_t z_start, int32_t z_end, int32_t x_start, int32_t x_end){
+void seed_initial_sky_light(int32_t y_start, int32_t y_end, int32_t z_start, int32_t z_end, int32_t x_start, int32_t x_end){
   light_queue.head = 0;
   light_queue.tail = 0;
 
-  // SECOND SKY LIGHT PASS FLOOD FILL CAVES/OPENINGS ETC
   for(int32_t y = y_start; y <= y_end; y++){
     for(int32_t z = z_start; z <= z_end; z++){
       for(int32_t x = x_start; x <= x_end; x++){
@@ -1282,6 +1287,36 @@ void seed_initial_block_sky_light(int32_t y_start, int32_t y_end, int32_t z_star
 
           if(neighbour->sky_light == 0 && block_is_transparent(neighbour)){
             neighbour->sky_light = 14;
+            light_queue_push((light_node_t){.y = neighbour_y, .z = neighbour_z, .x = neighbour_x, .light = 14});
+          }
+        }
+      }
+    }
+  }
+}
+
+void seed_initial_block_light(int32_t y_start, int32_t y_end, int32_t z_start, int32_t z_end, int32_t x_start, int32_t x_end){
+  light_queue.head = 0;
+  light_queue.tail = 0;
+
+  for(int32_t y = y_start; y <= y_end; y++){
+    for(int32_t z = z_start; z <= z_end; z++){
+      for(int32_t x = x_start; x <= x_end; x++){
+        block_t *block = &block_at(y, z, x);
+
+        if(block->block_light != 15) continue;
+
+        for(int32_t neighbour_index = 0; neighbour_index < 6; neighbour_index++){
+          int32_t neighbour_y = y + neighbour_y_offsets[neighbour_index];
+          int32_t neighbour_z = z + neighbour_z_offsets[neighbour_index];
+          int32_t neighbour_x = x + neighbour_x_offsets[neighbour_index];
+
+          if(neighbour_y < 0 || neighbour_y >= MAP_NUM_BLOCKS_Y || neighbour_z < 0 || neighbour_z >= MAP_NUM_BLOCKS_Z || neighbour_x < 0 || neighbour_x >= MAP_NUM_BLOCKS_X) continue;
+
+          block_t *neighbour = &block_at(neighbour_y, neighbour_z, neighbour_x);
+
+          if(block_is_transparent(neighbour)){
+            neighbour->block_light = 14;
             light_queue_push((light_node_t){.y = neighbour_y, .z = neighbour_z, .x = neighbour_x, .light = 14});
           }
         }
@@ -1317,6 +1352,39 @@ void propagate_sky_light(void){
       // if neighbour's light is darker than calculated one, then push to queue
       if(new_light > neighbour->sky_light){
         neighbour->sky_light = new_light;
+        light_queue_push((light_node_t){.y = neighbour_y, .z = neighbour_z, .x = neighbour_x, .light = new_light});
+      }
+    }
+  }
+}
+
+void propagate_block_light(void){
+  while(light_queue_not_empty()){
+    light_node_t node = light_queue_pop();
+
+    // if node light is 1 then the next light value would be 0 anyhow, so skip it
+    if(node.light <= 1) continue;
+
+    // loop all 6 neighbours of the node
+    for(int32_t neighbour_index = 0; neighbour_index < 6; neighbour_index++){
+      int32_t neighbour_y = node.y + neighbour_y_offsets[neighbour_index];
+      int32_t neighbour_z = node.z + neighbour_z_offsets[neighbour_index];
+      int32_t neighbour_x = node.x + neighbour_x_offsets[neighbour_index];
+
+      if(neighbour_y < 0 || neighbour_y >= MAP_NUM_BLOCKS_Y || neighbour_z < 0 || neighbour_z >= MAP_NUM_BLOCKS_Z || neighbour_x < 0 || neighbour_x >= MAP_NUM_BLOCKS_X) continue;
+
+      // get neighbour block
+      block_t *neighbour = &block_at(neighbour_y, neighbour_z, neighbour_x);
+
+      // if block is opaque, ignore
+      if(block_is_opaque(neighbour)) continue;
+
+      // calculate light for neighbour
+      uint8_t new_light = node.light - 1;
+
+      // if neighbour's light is darker than calculated one, then push to queue
+      if(new_light > neighbour->block_light){
+        neighbour->block_light = new_light;
         light_queue_push((light_node_t){.y = neighbour_y, .z = neighbour_z, .x = neighbour_x, .light = new_light});
       }
     }

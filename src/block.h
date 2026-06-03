@@ -200,12 +200,14 @@ bool block_is_opaque(block_t *block);
 bool block_is_tree_leaves(block_t *block);
 
 // BLOCK LIGHT FUNCTIONS
-void reset_block_light(int32_t y_start, int32_t y_end, int32_t z_start, int32_t z_end, int32_t x_start, int32_t x_end);
-void seed_initial_block_sky_light(int32_t y_start, int32_t y_end, int32_t z_start, int32_t z_end, int32_t x_start, int32_t x_end);
+void reset_light_around_area(int32_t y_start, int32_t y_end, int32_t z_start, int32_t z_end, int32_t x_start, int32_t x_end);
+void seed_initial_sky_light(int32_t y_start, int32_t y_end, int32_t z_start, int32_t z_end, int32_t x_start, int32_t x_end);
+void seed_initial_block_light(int32_t y_start, int32_t y_end, int32_t z_start, int32_t z_end, int32_t x_start, int32_t x_end);
 light_node_t light_queue_pop();
 bool light_queue_not_empty();
 void light_queue_push(light_node_t light_node);
 void propagate_sky_light(void);
+void propagate_block_light(void);
 void remove_sky_light_from_area(int32_t y, int32_t z, int32_t x);
 void seed_sky_light_around_area(int32_t y, int32_t z, int32_t x, int32_t radius);
 
