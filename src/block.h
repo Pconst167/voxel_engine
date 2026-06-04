@@ -88,6 +88,8 @@ typedef enum{
   BLOCK_TYPE_LEAVES9    ,
   BLOCK_TYPE_FLOWER_LEAVES0,
   BLOCK_TYPE_FLOWER_LEAVES1,
+  BLOCK_TYPE_WATER0     ,
+  BLOCK_TYPE_QUICKSAND0 ,
   BLOCK_TYPE_GLASS      ,
   BLOCK_TYPE_LAMP0      ,
   BLOCK_TYPE_OVEN0      ,
@@ -102,12 +104,12 @@ typedef enum{
 } block_orientation_t;
 
 typedef enum{
-  BLOCK_QUAD_TOP,
-  BLOCK_QUAD_BOTTOM,
-  BLOCK_QUAD_LEFT,
-  BLOCK_QUAD_RIGHT,
-  BLOCK_QUAD_FRONT,
-  BLOCK_QUAD_BACK,
+  BLOCK_FACE_TOP,
+  BLOCK_FACE_BOTTOM,
+  BLOCK_FACE_LEFT,
+  BLOCK_FACE_RIGHT,
+  BLOCK_FACE_FRONT,
+  BLOCK_FACE_BACK,
 } block_face_type_t;
 
 typedef struct{
@@ -199,6 +201,10 @@ bool block_is_transparent(block_t *block);
 bool block_is_opaque(block_t *block);
 bool block_is_emissive(block_t *block);
 bool block_is_tree_leaves(block_t *block);
+bool block_is_liquid(block_t *block);
+bool block_is_liquid_or_transparent(block_t *block);
+
+void place_pond(int32_t z_row, int32_t x_col);
 
 // BLOCK LIGHT FUNCTIONS
 void reset_light_around_area(int32_t y_start, int32_t y_end, int32_t z_start, int32_t z_end, int32_t x_start, int32_t x_end);

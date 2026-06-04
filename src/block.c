@@ -1022,6 +1022,54 @@ void init_block_materials(){
     })
   );
 
+  // WATER
+  array_push(
+    block_materials,
+    ((block_material_t){
+      .material_name        = "water0",
+      .solid                = false,
+      .mass                 = 30,
+      .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
+      .mineable             = true,
+      .backface_culling     = true,
+      .base_color           = (color_t){.uint32 = 0xFFFF8080},
+      .emissive_color       = (color_t){.uint32 = 0x00000000},
+      .reflects_light       = true,
+      .blend_mode           = BLEND_MODE_OPAQUE,
+      .alpha_cutoff         = DEFAULT_ALPHA_CUTOFF,
+      .front_texture        = load_texture("./assets/textures/blocks/water0.png"),
+      .back_texture         = load_texture("./assets/textures/blocks/water0.png"),
+      .left_texture         = load_texture("./assets/textures/blocks/water0.png"),
+      .right_texture        = load_texture("./assets/textures/blocks/water0.png"),
+      .top_texture          = load_texture("./assets/textures/blocks/water0.png"),
+      .bottom_texture       = load_texture("./assets/textures/blocks/water0.png")
+    })
+  );
+
+  // QUICKSAND
+  array_push(
+    block_materials,
+    ((block_material_t){
+      .material_name        = "quicksand0",
+      .solid                = false,
+      .mass                 = 30,
+      .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
+      .mineable             = true,
+      .backface_culling     = true,
+      .base_color           = (color_t){.uint32 = 0xFF80FFFF},
+      .emissive_color       = (color_t){.uint32 = 0x00000000},
+      .reflects_light       = true,
+      .blend_mode           = BLEND_MODE_OPAQUE,
+      .alpha_cutoff         = DEFAULT_ALPHA_CUTOFF,
+      .front_texture        = load_texture("./assets/textures/blocks/quicksand0.png"),
+      .back_texture         = load_texture("./assets/textures/blocks/quicksand0.png"),
+      .left_texture         = load_texture("./assets/textures/blocks/quicksand0.png"),
+      .right_texture        = load_texture("./assets/textures/blocks/quicksand0.png"),
+      .top_texture          = load_texture("./assets/textures/blocks/quicksand0.png"),
+      .bottom_texture       = load_texture("./assets/textures/blocks/quicksand0.png")
+    })
+  );
+
   // GLASS
   array_push(
     block_materials,
@@ -1159,7 +1207,7 @@ void init_block_map(){
               assign_block_material(y, z, x, BLOCK_TYPE_GRASS);
             }
             else{
-              assign_block_material(y, z, x, BLOCK_TYPE_CHERRY_GRASS);
+              assign_block_material(y, z, x, BLOCK_TYPE_WATER0);
             }
           }
         }
@@ -1217,6 +1265,13 @@ void init_block_map(){
         block_at(y, z, x).aabb.y_min = y;
         block_at(y, z, x).aabb.y_max = y + 1.0;
       }
+    }
+  }
+
+
+  for(uint32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+    for(uint32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+      place_pond(z, x);
     }
   }
 
@@ -1482,7 +1537,7 @@ inline block_face_t generate_block_face(block_face_type_t block_face_type, uint3
   block_face_t block_face;
 
   switch(block_face_type){
-    case BLOCK_QUAD_TOP:
+    case BLOCK_FACE_TOP:
       block_face.points[0].x = x_col;
       block_face.points[0].y = y_plane + 1.0f;
       block_face.points[0].z = z_row;
@@ -1508,10 +1563,10 @@ inline block_face_t generate_block_face(block_face_type_t block_face_type, uint3
       block_face.uv[4].v = 0.0f;
       block_face.uv[5].u = 0.0f;
       block_face.uv[5].v = 1.0f;
-      block_face.block_face_type = BLOCK_QUAD_TOP;
+      block_face.block_face_type = BLOCK_FACE_TOP;
       return block_face;
       
-    case BLOCK_QUAD_BOTTOM:
+    case BLOCK_FACE_BOTTOM:
       block_face.points[0].x = x_col;
       block_face.points[0].y = y_plane;
       block_face.points[0].z = z_row;
@@ -1537,10 +1592,10 @@ inline block_face_t generate_block_face(block_face_type_t block_face_type, uint3
       block_face.uv[4].v = 1.0f;
       block_face.uv[5].u = 1.0f;
       block_face.uv[5].v = 0.0f;
-      block_face.block_face_type = BLOCK_QUAD_BOTTOM;
+      block_face.block_face_type = BLOCK_FACE_BOTTOM;
     return block_face;
     
-    case BLOCK_QUAD_LEFT:
+    case BLOCK_FACE_LEFT:
       block_face.points[0].x = x_col;
       block_face.points[0].y = y_plane;
       block_face.points[0].z = z_row + 1.0f;
@@ -1566,10 +1621,10 @@ inline block_face_t generate_block_face(block_face_type_t block_face_type, uint3
       block_face.uv[4].v = 0.0f;
       block_face.uv[5].u = 0.0f;
       block_face.uv[5].v = 1.0f;
-      block_face.block_face_type = BLOCK_QUAD_LEFT;
+      block_face.block_face_type = BLOCK_FACE_LEFT;
       return block_face;
       
-    case BLOCK_QUAD_RIGHT:
+    case BLOCK_FACE_RIGHT:
       block_face.points[0].x = x_col + 1.0f;
       block_face.points[0].y = y_plane;
       block_face.points[0].z = z_row;
@@ -1595,10 +1650,10 @@ inline block_face_t generate_block_face(block_face_type_t block_face_type, uint3
       block_face.uv[4].v = 0.0f;
       block_face.uv[5].u = 0.0f;
       block_face.uv[5].v = 1.0f;
-      block_face.block_face_type = BLOCK_QUAD_RIGHT;
+      block_face.block_face_type = BLOCK_FACE_RIGHT;
       return block_face;
       
-    case BLOCK_QUAD_BACK:
+    case BLOCK_FACE_BACK:
       block_face.points[0].x = x_col + 1.0f;
       block_face.points[0].y = y_plane;
       block_face.points[0].z = z_row + 1.0f;
@@ -1624,10 +1679,10 @@ inline block_face_t generate_block_face(block_face_type_t block_face_type, uint3
       block_face.uv[4].v = 0.0f;
       block_face.uv[5].u = 0.0f;
       block_face.uv[5].v = 1.0f;
-      block_face.block_face_type = BLOCK_QUAD_BACK;
+      block_face.block_face_type = BLOCK_FACE_BACK;
       return block_face;
       
-    case BLOCK_QUAD_FRONT:
+    case BLOCK_FACE_FRONT:
     default:
       block_face.points[0].x = x_col;
       block_face.points[0].y = y_plane;
@@ -1654,7 +1709,7 @@ inline block_face_t generate_block_face(block_face_type_t block_face_type, uint3
       block_face.uv[4].v = 0.0f;
       block_face.uv[5].u = 0.0f;
       block_face.uv[5].v = 1.0f;
-      block_face.block_face_type = BLOCK_QUAD_FRONT;
+      block_face.block_face_type = BLOCK_FACE_FRONT;
       return block_face;
   }
 }
@@ -1693,7 +1748,7 @@ block_raycast_hit_t raycast_blocks(
        block_y >= 0 && block_y < MAP_NUM_BLOCKS_Y &&
        block_z >= 0 && block_z < MAP_NUM_BLOCKS_Z
     ){
-      if(block_materials[block_at(block_y, block_z, block_x).type].solid){
+      if(block_at(block_y, block_z, block_x).type != BLOCK_TYPE_AIR){
         hit_result.hit = 1;
         hit_result.block_x = block_x;
         hit_result.block_y = block_y;
@@ -1774,11 +1829,29 @@ void set_block_orientation(int32_t block_y, int32_t block_z, int32_t block_x, ve
 }
 
 bool block_is_transparent(block_t *block){
-  return block->type == BLOCK_TYPE_AIR || block->type == BLOCK_TYPE_GLASS;
+  return block->type == BLOCK_TYPE_AIR || block->type == BLOCK_TYPE_GLASS || block->type == BLOCK_TYPE_WATER0;
+}
+
+bool block_is_liquid_or_transparent(block_t *block){
+  return 
+    block->type == BLOCK_TYPE_AIR    || 
+    block->type == BLOCK_TYPE_GLASS  || 
+    block->type == BLOCK_TYPE_WATER0 || 
+    block->type == BLOCK_TYPE_LAVA0  || 
+    block->type == BLOCK_TYPE_LAVA1  ||
+    block->type == BLOCK_TYPE_QUICKSAND0;
+}
+
+bool block_is_liquid(block_t *block){
+  return 
+    block->type == BLOCK_TYPE_WATER0 || 
+    block->type == BLOCK_TYPE_LAVA0  || 
+    block->type == BLOCK_TYPE_LAVA1  ||
+    block->type == BLOCK_TYPE_QUICKSAND0;
 }
 
 bool block_is_opaque(block_t *block){
-  return block->type != BLOCK_TYPE_AIR && block->type != BLOCK_TYPE_GLASS;
+  return block->type != BLOCK_TYPE_AIR && block->type != BLOCK_TYPE_GLASS && block->type != BLOCK_TYPE_WATER0;
 }
 
 bool block_is_emissive(block_t *block){
@@ -1823,4 +1896,30 @@ bool block_is_tree_leaves(block_t *block){
     block->type == BLOCK_TYPE_LEAVES7 ||
     block->type == BLOCK_TYPE_LEAVES8 ||
     block->type == BLOCK_TYPE_LEAVES9;
+}
+
+void place_pond(int32_t z_row, int32_t x_col){
+  uint32_t seed = (uint32_t)(z_row * 73856093u) ^ (uint32_t)(x_col * 19349663u); // two prime numbers for hashing
+  bool will_spawn = random_spawn_from_seed(seed, 0.01f);
+
+  if(!will_spawn) return;
+
+  // find first solid block along y
+  int32_t first_solid_y = 0;
+  for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
+    if(block_materials[block_at(y, z_row, x_col).type].solid){
+      first_solid_y = y;
+      break;
+    }
+  }
+
+  uint32_t pond_size_seed = seed ^ 0xF12C77B3u;
+
+  int32_t pond_size = 5.0f + (double)(10 - 5 + 1) * (double)(rand_i(pond_size_seed) / (double)UINT32_MAX);
+
+  for(int32_t z = z_row; z < z_row + pond_size; z++){
+    for(int32_t x = x_col; x < x_col + pond_size; x++){
+      assign_block_material(first_solid_y, z, x, BLOCK_TYPE_WATER0);
+    }
+  }
 }

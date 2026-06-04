@@ -165,8 +165,8 @@ vector3_t up = {.x = 0, .y = 1, .z = 0}; /* up direction vector for view matrix 
 /* sun/sky data */
 int32_t skybox_id = 1;
 vector3_t sun_direction = {0.0f, 1.0f, 0.0f}; /* world-space sun direction vector */
-float sun_eta = (M_PI_2); /* sun's eta angle */
-float sun_sin_eta = 1.0f;
+float sun_eta = (0); /* sun's eta angle */
+float sun_sin_eta = 0.0f;
 color_t sky_color = (color_t){.uint32 = 0xFFFF8040};
 
 triangle_t triangles_to_render[50000];
@@ -2131,13 +2131,13 @@ void render_block_face(
     // select texture depending on which face this is
     texture_t *block_face_texture;
     switch(block_face.block_face_type){
-      case BLOCK_QUAD_TOP:
+      case BLOCK_FACE_TOP:
         block_face_texture = block_material->top_texture;
         break;
-      case BLOCK_QUAD_BOTTOM:
+      case BLOCK_FACE_BOTTOM:
         block_face_texture = block_material->bottom_texture;
         break;
-      case BLOCK_QUAD_FRONT:
+      case BLOCK_FACE_FRONT:
         switch(block_orientation){
           case BLOCK_ORIENTATION_FRONT: block_face_texture = block_material->front_texture; break;
           case BLOCK_ORIENTATION_BACK:  block_face_texture = block_material->back_texture; break;
@@ -2145,7 +2145,7 @@ void render_block_face(
           case BLOCK_ORIENTATION_RIGHT: default: block_face_texture = block_material->right_texture; break;
         }
         break;
-      case BLOCK_QUAD_BACK:
+      case BLOCK_FACE_BACK:
         switch(block_orientation){
           case BLOCK_ORIENTATION_FRONT: block_face_texture = block_material->back_texture; break;
           case BLOCK_ORIENTATION_BACK:  block_face_texture = block_material->front_texture; break;
@@ -2153,7 +2153,7 @@ void render_block_face(
           case BLOCK_ORIENTATION_RIGHT: default: block_face_texture = block_material->right_texture; break;
         }
         break;
-      case BLOCK_QUAD_LEFT:
+      case BLOCK_FACE_LEFT:
         switch(block_orientation){
           case BLOCK_ORIENTATION_FRONT: block_face_texture = block_material->left_texture; break;
           case BLOCK_ORIENTATION_BACK:  block_face_texture = block_material->right_texture; break;
@@ -2161,7 +2161,7 @@ void render_block_face(
           case BLOCK_ORIENTATION_RIGHT: default: block_face_texture = block_material->front_texture; break;
         }
         break;
-      case BLOCK_QUAD_RIGHT:
+      case BLOCK_FACE_RIGHT:
       default:
         switch(block_orientation){
           case BLOCK_ORIENTATION_FRONT: block_face_texture = block_material->right_texture; break;
@@ -2230,7 +2230,8 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
     for(int32_t z_row = z_row_start; z_row < z_row_end; z_row++){
       for(int32_t x_col = x_col_start; x_col < x_col_end; x_col++){
         
-        if(block_materials[block_at(y_plane, z_row, x_col).type].solid == false) continue;
+        block_t *block = &block_at(y_plane, z_row, x_col);
+        if(block->type == BLOCK_TYPE_AIR) continue;
         
         int32_t left_neighbour_index    = x_col - 1;
         int32_t right_neighbour_index   = x_col + 1;
@@ -2240,14 +2241,21 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
         int32_t back_neighbour_index    = z_row + 1;
 
         // a block_face is rendered only if its adjescent block is AIR or if it is transparent (using alpha test)
-        bool render_left_block_face    = (left_neighbour_index < 0)                  ? false : (block_at(y_plane, z_row, left_neighbour_index).type  == BLOCK_TYPE_AIR || block_materials[block_at(y_plane, z_row, left_neighbour_index).type ].blend_mode == BLEND_MODE_ALPHA_TEST );
-        bool render_right_block_face   = (right_neighbour_index == MAP_NUM_BLOCKS_X) ? false : (block_at(y_plane, z_row, right_neighbour_index).type == BLOCK_TYPE_AIR || block_materials[block_at(y_plane, z_row, right_neighbour_index).type].blend_mode == BLEND_MODE_ALPHA_TEST);
-        bool render_top_block_face     = (top_neighbour_index == MAP_NUM_BLOCKS_Y)   ? false : (block_at(top_neighbour_index, z_row, x_col).type     == BLOCK_TYPE_AIR || block_materials[block_at(top_neighbour_index, z_row, x_col).type    ].blend_mode == BLEND_MODE_ALPHA_TEST    );
-        bool render_bottom_block_face  = (bottom_neighbour_index < 0)                ? false : (block_at(bottom_neighbour_index, z_row, x_col).type  == BLOCK_TYPE_AIR || block_materials[block_at(bottom_neighbour_index, z_row, x_col).type ].blend_mode == BLEND_MODE_ALPHA_TEST );
-        bool render_front_block_face   = (front_neighbour_index < 0)                 ? false : (block_at(y_plane, front_neighbour_index, x_col).type == BLOCK_TYPE_AIR || block_materials[block_at(y_plane, front_neighbour_index, x_col).type].blend_mode == BLEND_MODE_ALPHA_TEST );
-        bool render_back_block_face    = (back_neighbour_index == MAP_NUM_BLOCKS_Z)  ? false : (block_at(y_plane, back_neighbour_index, x_col).type  == BLOCK_TYPE_AIR || block_materials[block_at(y_plane, back_neighbour_index, x_col).type ].blend_mode == BLEND_MODE_ALPHA_TEST);
+        bool render_left_block_face    = (left_neighbour_index < 0)                  ? false : block_is_liquid_or_transparent(&block_at(y_plane, z_row, left_neighbour_index) ) && block_at(y_plane, z_row, x_col).type != BLOCK_TYPE_WATER0;
+        bool render_right_block_face   = (right_neighbour_index == MAP_NUM_BLOCKS_X) ? false : block_is_liquid_or_transparent(&block_at(y_plane, z_row, right_neighbour_index)) && block_at(y_plane, z_row, x_col).type != BLOCK_TYPE_WATER0;
+        bool render_top_block_face     = (top_neighbour_index == MAP_NUM_BLOCKS_Y)   ? false : block_is_liquid_or_transparent(&block_at(top_neighbour_index, z_row, x_col)    );
+        bool render_bottom_block_face  = (bottom_neighbour_index < 0)                ? false : block_is_liquid_or_transparent(&block_at(bottom_neighbour_index, z_row, x_col) ) && block_at(y_plane, z_row, x_col).type != BLOCK_TYPE_WATER0;
+        bool render_front_block_face   = (front_neighbour_index < 0)                 ? false : block_is_liquid_or_transparent(&block_at(y_plane, front_neighbour_index, x_col)) && block_at(y_plane, z_row, x_col).type != BLOCK_TYPE_WATER0;
+        bool render_back_block_face    = (back_neighbour_index == MAP_NUM_BLOCKS_Z)  ? false : block_is_liquid_or_transparent(&block_at(y_plane, back_neighbour_index, x_col) ) && block_at(y_plane, z_row, x_col).type != BLOCK_TYPE_WATER0;
 
-        block_material_t *block_material = &block_materials[block_at(y_plane, z_row, x_col).type];
+        // TODO WRITE FUNCTION THAT DECIDES WHETHER TO RENDER EACH FACE
+        bool render_left_block_face    = should_render_face(BLOCK_FACE_LEFT);  (left_neighbour_index < 0)                  ? false : block_is_liquid_or_transparent(&block_at(y_plane, z_row, left_neighbour_index) ) && block_at(y_plane, z_row, x_col).type != BLOCK_TYPE_WATER0;
+        bool render_right_block_face   = should_render_face(BLOCK_FACE_RIGHT);  (right_neighbour_index == MAP_NUM_BLOCKS_X) ? false : block_is_liquid_or_transparent(&block_at(y_plane, z_row, right_neighbour_index)) && block_at(y_plane, z_row, x_col).type != BLOCK_TYPE_WATER0;
+        bool render_top_block_face     = should_render_face(BLOCK_FACE_TOP);  (top_neighbour_index == MAP_NUM_BLOCKS_Y)   ? false : block_is_liquid_or_transparent(&block_at(top_neighbour_index, z_row, x_col)    );
+        bool render_bottom_block_face  = should_render_face(BLOCK_FACE_BOTTOM);  (bottom_neighbour_index < 0)                ? false : block_is_liquid_or_transparent(&block_at(bottom_neighbour_index, z_row, x_col) ) && block_at(y_plane, z_row, x_col).type != BLOCK_TYPE_WATER0;
+        bool render_front_block_face   = should_render_face(BLOCK_FACE_FRONT);  (front_neighbour_index < 0)                 ? false : block_is_liquid_or_transparent(&block_at(y_plane, front_neighbour_index, x_col)) && block_at(y_plane, z_row, x_col).type != BLOCK_TYPE_WATER0;
+        bool render_back_block_face    = should_render_face(BLOCK_FACE_BACK);  (back_neighbour_index == MAP_NUM_BLOCKS_Z)  ? false : block_is_liquid_or_transparent(&block_at(y_plane, back_neighbour_index, x_col) ) && block_at(y_plane, z_row, x_col).type != BLOCK_TYPE_WATER0;
+        block_material_t *block_material = &block_materials[block->type];
 
         bool block_looked_at_left   = false;
         bool block_looked_at_right  = false;
@@ -2257,12 +2265,12 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
         bool block_looked_at_back   = false;
         if(looked_at_block.hit){
           if(y_plane == looked_at_block.block_y && z_row == looked_at_block.block_z && x_col == looked_at_block.block_x){
-            if(looked_at_block.normal_x == -1) block_looked_at_left = true;
-            else if(looked_at_block.normal_x ==  1) block_looked_at_right = true;
+            if(looked_at_block.normal_x == -1)      block_looked_at_left   = true;
+            else if(looked_at_block.normal_x ==  1) block_looked_at_right  = true;
             else if(looked_at_block.normal_y == -1) block_looked_at_bottom = true;
-            else if(looked_at_block.normal_y ==  1) block_looked_at_top = true;
-            else if(looked_at_block.normal_z == -1) block_looked_at_front = true;
-            else if(looked_at_block.normal_z ==  1) block_looked_at_back = true;
+            else if(looked_at_block.normal_y ==  1) block_looked_at_top    = true;
+            else if(looked_at_block.normal_z == -1) block_looked_at_front  = true;
+            else if(looked_at_block.normal_z ==  1) block_looked_at_back   = true;
           }
         }
 
@@ -2274,7 +2282,11 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
           if(face_light < 0.015f) face_light = 0.015f;
           if(face_light > 1.0f)   face_light = 1.0f;
           light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
-          block_face_t block_face = generate_block_face(BLOCK_QUAD_LEFT, y_plane, z_row, x_col);
+          block_face_t block_face = generate_block_face(BLOCK_FACE_LEFT, y_plane, z_row, x_col);
+          if(block->type == BLOCK_TYPE_WATER0 || block->type == BLOCK_TYPE_LAVA0 || block->type == BLOCK_TYPE_LAVA1){
+            block_face.points[1].y -= 0.1;
+            block_face.points[3].y -= 0.1;
+          }
           render_block_face(block_face, block_material, block_looked_at_left, block_orientation, light_intensity);
         }
         if(render_right_block_face){
@@ -2284,7 +2296,11 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
           if(face_light < 0.015f) face_light = 0.015f;
           if(face_light > 1.0f)   face_light = 1.0f;
           light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
-          block_face_t block_face = generate_block_face(BLOCK_QUAD_RIGHT, y_plane, z_row, x_col);
+          block_face_t block_face = generate_block_face(BLOCK_FACE_RIGHT, y_plane, z_row, x_col);
+          if(block->type == BLOCK_TYPE_WATER0 || block->type == BLOCK_TYPE_LAVA0 || block->type == BLOCK_TYPE_LAVA1){
+            block_face.points[1].y -= 0.1;
+            block_face.points[3].y -= 0.1;
+          }
           render_block_face(block_face, block_material, block_looked_at_right, block_orientation, light_intensity);
         }
         if(render_top_block_face){
@@ -2294,7 +2310,13 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
           if(face_light < 0.015f) face_light = 0.015f;
           if(face_light > 1.0f)   face_light = 1.0f;
           light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
-          block_face_t block_face = generate_block_face(BLOCK_QUAD_TOP, y_plane, z_row, x_col);
+          block_face_t block_face = generate_block_face(BLOCK_FACE_TOP, y_plane, z_row, x_col);
+          if(block->type == BLOCK_TYPE_WATER0 || block->type == BLOCK_TYPE_LAVA0 || block->type == BLOCK_TYPE_LAVA1){
+            block_face.points[0].y -= 0.1;
+            block_face.points[1].y -= 0.1;
+            block_face.points[2].y -= 0.1;
+            block_face.points[3].y -= 0.1;
+          }
           render_block_face(block_face, block_material, block_looked_at_top, block_orientation, light_intensity);
         }
         if(render_bottom_block_face){
@@ -2304,7 +2326,7 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
           if(face_light < 0.015f) face_light = 0.015f;
           if(face_light > 1.0f)   face_light = 1.0f;
           light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
-          block_face_t block_face = generate_block_face(BLOCK_QUAD_BOTTOM, y_plane, z_row, x_col);
+          block_face_t block_face = generate_block_face(BLOCK_FACE_BOTTOM, y_plane, z_row, x_col);
           render_block_face(block_face, block_material, block_looked_at_bottom, block_orientation, light_intensity);
         }
         if(render_front_block_face){
@@ -2314,7 +2336,11 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
           if(face_light < 0.015f) face_light = 0.015f;
           if(face_light > 1.0f)   face_light = 1.0f;
           light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
-          block_face_t block_face = generate_block_face(BLOCK_QUAD_FRONT, y_plane, z_row, x_col);
+          block_face_t block_face = generate_block_face(BLOCK_FACE_FRONT, y_plane, z_row, x_col);
+          if(block->type == BLOCK_TYPE_WATER0 || block->type == BLOCK_TYPE_LAVA0 || block->type == BLOCK_TYPE_LAVA1){
+            block_face.points[1].y -= 0.1;
+            block_face.points[3].y -= 0.1;
+          }
           render_block_face(block_face, block_material, block_looked_at_front, block_orientation, light_intensity);
         }
         if(render_back_block_face){
@@ -2324,7 +2350,11 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
           if(face_light < 0.015f) face_light = 0.015f;
           if(face_light > 1.0f)   face_light = 1.0f;
           light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
-          block_face_t block_face = generate_block_face(BLOCK_QUAD_BACK, y_plane, z_row, x_col);
+          block_face_t block_face = generate_block_face(BLOCK_FACE_BACK, y_plane, z_row, x_col);
+          if(block->type == BLOCK_TYPE_WATER0 || block->type == BLOCK_TYPE_LAVA0 || block->type == BLOCK_TYPE_LAVA1){
+            block_face.points[1].y -= 0.1;
+            block_face.points[3].y -= 0.1;
+          }
           render_block_face(block_face, block_material, block_looked_at_back, block_orientation, light_intensity);
         }
       }
