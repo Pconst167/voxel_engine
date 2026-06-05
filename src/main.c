@@ -493,34 +493,75 @@ void update_player_from_input(input_state_t *input_state){
     .z =  player.direction.x * up.y
   };
 
+  int32_t player_block_y = player.position.y;
+  int32_t player_block_z = player.position.z;
+  int32_t player_block_x = player.position.x;
+  if(block_at(player_block_y, player_block_z, player_block_x).type == BLOCK_TYPE_WATER0){
+    player.on_water = true;
+  }
+  else{
+    player.on_water = false;
+  }
+
   if(input_state->key_down[SDL_SCANCODE_A]){
     movement.x += player_direction_orthogonal_left_right.x * move_speed_delta_time;
     movement.z += player_direction_orthogonal_left_right.z * move_speed_delta_time;
+
+    if(player.on_water){
+      movement.x *= 0.4f;
+      movement.z *= 0.4f;
+    }
   }
 
   if(input_state->key_down[SDL_SCANCODE_D]){
     movement.x -= player_direction_orthogonal_left_right.x * move_speed_delta_time;
     movement.z -= player_direction_orthogonal_left_right.z * move_speed_delta_time;
+
+    if(player.on_water){
+      movement.x *= 0.4f;
+      movement.z *= 0.4f;
+    }
   }
 
   if(input_state->key_down[SDL_SCANCODE_W]){
     movement.x += player.direction.x * move_speed_delta_time;
     movement.z += player.direction.z * move_speed_delta_time;
+
+    if(player.on_water){
+      movement.x *= 0.4f;
+      movement.z *= 0.4f;
+    }
   }
 
   if(input_state->key_down[SDL_SCANCODE_S]){
     movement.x -= player.direction.x * move_speed_delta_time;
     movement.z -= player.direction.z * move_speed_delta_time;
+
+    if(player.on_water){
+      movement.x *= 0.4f;
+      movement.z *= 0.4f;
+    }
   }
 
-  if(input_state->key_down[SDL_SCANCODE_SPACE] && player.on_ground){
-    player.velocity.y = PLAYER_JUMP_VELOCITY;
-    player.on_ground = false;
+  if(player.on_water){
+    if(input_state->key_down[SDL_SCANCODE_SPACE]){
+      player.velocity.y = 0.25f * PLAYER_JUMP_VELOCITY;
+      player.on_ground = false;
+    }
+    // gravity
+    player.velocity.y -= 0.1f * PLAYER_GRAVITY * delta_time;
+    if(player.velocity.y < -0.1f * PLAYER_MAX_FALL_SPEED) player.velocity.y = -0.1f  * PLAYER_MAX_FALL_SPEED;
+  }
+  else{
+    if(input_state->key_down[SDL_SCANCODE_SPACE] && player.on_ground){
+      player.velocity.y = PLAYER_JUMP_VELOCITY;
+      player.on_ground = false;
+    }
+    // gravity
+    player.velocity.y -= PLAYER_GRAVITY * delta_time;
+    if(player.velocity.y < -PLAYER_MAX_FALL_SPEED) player.velocity.y = -PLAYER_MAX_FALL_SPEED;
   }
 
-  // gravity
-  player.velocity.y -= PLAYER_GRAVITY * delta_time;
-  if(player.velocity.y < -PLAYER_MAX_FALL_SPEED) player.velocity.y = -PLAYER_MAX_FALL_SPEED;
   movement.y = player.velocity.y * delta_time;
   if(player.on_ground && movement.y <= 0.0f) movement.y = -PLAYER_GROUND_PROBE_SPEED * delta_time;
 
@@ -528,16 +569,7 @@ void update_player_from_input(input_state_t *input_state){
   move_player_z(movement.z);
   move_player_y(movement.y);
 
-  int32_t player_block_y = player.position.y;
-  int32_t player_block_z = player.position.z;
-  int32_t player_block_x = player.position.x;
 
-  if(block_at(player_block_y, player_block_z, player_block_x).type == BLOCK_TYPE_WATER0){
-    player.on_water = true;
-  }
-  else{
-    player.on_water = false;
-  }
 }
 
 inline void move_player_x(float movement_x){
@@ -2198,6 +2230,7 @@ void render_block_face(
     projected_triangle.total_light_intensity = light_intensity;
 
     /* TRIANGLE RASTERIZATION */
+
     total_pixels_rendered += rasterize_triangle(&projected_triangle);
     if(options.wireframe_overlay)
       draw_triangle(

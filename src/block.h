@@ -203,9 +203,9 @@ bool block_is_opaque(block_t *block);
 bool block_is_emissive(block_t *block);
 bool block_is_tree_leaves(block_t *block);
 bool block_is_liquid(block_t *block);
-bool block_is_liquid_or_transparent(block_t *block);
 
 void place_pond(int32_t z_row, int32_t x_col);
+void place_quicksand(int32_t z_row, int32_t x_col);
 
 // BLOCK LIGHT FUNCTIONS
 void reset_light_around_area(int32_t y_start, int32_t y_end, int32_t z_start, int32_t z_end, int32_t x_start, int32_t x_end);

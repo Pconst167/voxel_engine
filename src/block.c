@@ -1273,6 +1273,11 @@ void init_block_map(){
       place_pond(z, x);
     }
   }
+  for(uint32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+    for(uint32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+      place_quicksand(z, x);
+    }
+  }
 
   place_trees();
   place_ores();
@@ -1831,16 +1836,6 @@ bool block_is_transparent(block_t *block){
   return block->type == BLOCK_TYPE_AIR || block->type == BLOCK_TYPE_GLASS || block->type == BLOCK_TYPE_WATER0;
 }
 
-bool block_is_liquid_or_transparent(block_t *block){
-  return 
-    block->type == BLOCK_TYPE_AIR    || 
-    block->type == BLOCK_TYPE_GLASS  || 
-    block->type == BLOCK_TYPE_WATER0 || 
-    block->type == BLOCK_TYPE_LAVA0  || 
-    block->type == BLOCK_TYPE_LAVA1  ||
-    block->type == BLOCK_TYPE_QUICKSAND0;
-}
-
 bool block_is_liquid(block_t *block){
   return 
     block->type == BLOCK_TYPE_WATER0 || 
@@ -1919,6 +1914,32 @@ void place_pond(int32_t z_row, int32_t x_col){
   for(int32_t z = z_row; z < z_row + pond_size; z++){
     for(int32_t x = x_col; x < x_col + pond_size; x++){
       assign_block_material(first_solid_y, z, x, BLOCK_TYPE_WATER0);
+    }
+  }
+}
+
+void place_quicksand(int32_t z_row, int32_t x_col){
+  uint32_t seed = (uint32_t)(z_row * 73856093u) ^ (uint32_t)(x_col * 19349663u); // two prime numbers for hashing
+  bool will_spawn = random_spawn_from_seed(seed, 0.01f);
+
+  if(!will_spawn) return;
+
+  // find first solid block along y
+  int32_t first_solid_y = 0;
+  for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
+    if(block_materials[block_at(y, z_row, x_col).type].solid){
+      first_solid_y = y;
+      break;
+    }
+  }
+
+  uint32_t quicksand_size_seed = seed ^ 0xF12C77B3u;
+
+  int32_t quicksand_size = 3.0f + (double)(6 - 3 + 1) * (double)(rand_i(quicksand_size_seed) / (double)UINT32_MAX);
+
+  for(int32_t z = z_row; z < z_row + quicksand_size; z++){
+    for(int32_t x = x_col; x < x_col + quicksand_size; x++){
+      assign_block_material(first_solid_y, z, x, BLOCK_TYPE_QUICKSAND0);
     }
   }
 }
