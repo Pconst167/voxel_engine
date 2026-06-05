@@ -983,6 +983,216 @@ uint32_t draw_textured_triangle_alpha_test_float(
   return total_pixels_rendered;
 }
 
+uint32_t draw_textured_triangle_with_opacity_float(
+  vector4_t *v0, uv_t v0_uv,
+  vector4_t *v1, uv_t v1_uv,
+  vector4_t *v2, uv_t v2_uv,
+  color_t *texture, int texture_width, int texture_height,
+  light_intensity_rgb_t total_light_intensity,
+  color_t emissive_color,
+  bool reflects_light,
+  float opacity
+){
+  uint32_t total_pixels_rendered = 0;
+
+  float parallelogram_area = edge_cross(
+    &(vector2_t){v0->x, v0->y},
+    &(vector2_t){v1->x, v1->y},
+    &(vector2_t){v2->x, v2->y}
+  );
+
+  /* degenerate triangle */
+  if(parallelogram_area == 0.0f) return 0;
+
+  /* backface culling */
+  //if(options.backface_culling){
+  //  if(parallelogram_area <= 0.0f) return;
+  //}
+
+  /* bounding box */
+  int x_min = (int)floorf(MIN(MIN(v0->x, v1->x), v2->x));
+  int y_min = (int)floorf(MIN(MIN(v0->y, v1->y), v2->y));
+  int x_max = (int)ceilf (MAX(MAX(v0->x, v1->x), v2->x));
+  int y_max = (int)ceilf (MAX(MAX(v0->y, v1->y), v2->y));
+
+  /* if area is < 0, this means the triangle has opposite winding,
+     hence here we swap two vertices to reverse the winding.  this is done so that the edge cross tests for points behaves normally
+     again for reverse winded triangles.  because otherwise, whenever the winding is reversed, the edge cross function will always return negative.
+     also, negate area instead of recomputing it for the corrected winding.
+  */
+  if(parallelogram_area < 0.0f){
+    vector4_t *tmp_v = v1;
+    v1 = v2;
+    v2 = tmp_v;
+
+    uv_t tmp_uv = v1_uv;
+    v1_uv = v2_uv;
+    v2_uv = tmp_uv;
+
+    parallelogram_area = -parallelogram_area;
+  }
+
+  /* top-left rule flags for each edge
+     edge0 is opposite vertices v1 and v2
+     edge1 is opposite vertices v0 and v2
+     edge2 is opposite vertices v0 and v1
+  */
+  bool edge0_top_left = is_top_left_edge(&(vector2_t){v1->x, v1->y}, &(vector2_t){v2->x, v2->y});
+  bool edge1_top_left = is_top_left_edge(&(vector2_t){v2->x, v2->y}, &(vector2_t){v0->x, v0->y});
+  bool edge2_top_left = is_top_left_edge(&(vector2_t){v0->x, v0->y}, &(vector2_t){v1->x, v1->y});
+
+  /* edge deltas */
+  float delta_w0_col = v1->y - v2->y;
+  float delta_w1_col = v2->y - v0->y;
+  float delta_w2_col = v0->y - v1->y;
+
+  float delta_w0_row = v2->x - v1->x;
+  float delta_w1_row = v0->x - v2->x;
+  float delta_w2_row = v1->x - v0->x;
+
+  /* edge function at first pixel center */
+  vector2_t p = {x_min + 0.5f, y_min + 0.5f};
+
+  float w0_row = edge_cross(
+    &(vector2_t){v1->x, v1->y},
+    &(vector2_t){v2->x, v2->y},
+    &p
+  );
+
+  float w1_row = edge_cross(
+    &(vector2_t){v2->x, v2->y},
+    &(vector2_t){v0->x, v0->y},
+    &p
+  );
+
+  float w2_row = edge_cross(
+    &(vector2_t){v0->x, v0->y},
+    &(vector2_t){v1->x, v1->y},
+    &p
+  );
+
+  /* pre-compute the barycentric interpolation cordinates here instead of inside loops */
+  float one_over_v0_w = 1.0f / v0->w;
+  float one_over_v1_w = 1.0f / v1->w;
+  float one_over_v2_w = 1.0f / v2->w;
+  float v0_u_over_v0_w = v0_uv.u * one_over_v0_w;
+  float v1_u_over_v1_w = v1_uv.u * one_over_v1_w;
+  float v2_u_over_v2_w = v2_uv.u * one_over_v2_w;
+  float v0_v_over_v0_w = v0_uv.v * one_over_v0_w;
+  float v1_v_over_v1_w = v1_uv.v * one_over_v1_w;
+  float v2_v_over_v2_w = v2_uv.v * one_over_v2_w;
+  float one_over_parallelogram_area = 1.0f / parallelogram_area;
+
+  for(int y = y_min; y <= y_max; y++){
+    float w0 = w0_row;
+    float w1 = w1_row;
+    float w2 = w2_row;
+
+    bool was_inside = false;
+    for(int x = x_min; x <= x_max; x++){
+      /* pixel is inside if w's are positive (point is inside triangle) or point is on a top/left edge(any of the 3 edges could be the top/left edge so we test all) */
+      bool inside = (w0 > 0.0f || (w0 == 0.0f && edge0_top_left)) &&
+                    (w1 > 0.0f || (w1 == 0.0f && edge1_top_left)) &&
+                    (w2 > 0.0f || (w2 == 0.0f && edge2_top_left));
+
+      if(inside){
+        was_inside = true;
+        float alpha = w0 * one_over_parallelogram_area;
+        float beta  = w1 * one_over_parallelogram_area;
+        float gamma = w2 * one_over_parallelogram_area;
+
+        float interpolated_reciprocal_w = alpha * one_over_v0_w + beta * one_over_v1_w + gamma * one_over_v2_w;
+
+        if(interpolated_reciprocal_w > zbuffer[y * window_width + x] || !zbuffer_test){
+          float interpolated_u = alpha * v0_u_over_v0_w + beta  * v1_u_over_v1_w + gamma * v2_u_over_v2_w;
+          float interpolated_v = alpha * v0_v_over_v0_w + beta  * v1_v_over_v1_w + gamma * v2_v_over_v2_w;
+
+          interpolated_u /= interpolated_reciprocal_w;
+          interpolated_v /= interpolated_reciprocal_w;
+
+          // use bit masking for UV repeating - masking also handles negative UVs
+          int texture_u = (int)(interpolated_u * texture_width)  & (texture_width - 1);
+          int texture_v = (int)(interpolated_v * texture_height) & (texture_height - 1);
+
+          color_t texel = texture[texture_v * texture_width + texture_u];
+          
+          uint32_t red_total   = 0;
+          uint32_t green_total = 0;
+          uint32_t blue_total  = 0;
+
+          if(reflects_light){
+            red_total   = (uint32_t)(texel.rgb.red   * total_light_intensity.red  );
+            green_total = (uint32_t)(texel.rgb.green * total_light_intensity.green);
+            blue_total  = (uint32_t)(texel.rgb.blue  * total_light_intensity.blue );
+          }
+
+          /* add emissive color on top */
+          if(emissive_color.uint32 > 0){
+            red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f;
+            green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f;
+            blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f;
+          }
+
+          /* clamp total amount as results over 255 do not make sense */
+          if(red_total   > 255) red_total   = 255;
+          if(green_total > 255) green_total = 255;
+          if(blue_total  > 255) blue_total  = 255;
+          color_t texel_color = {
+            .rgb.alpha = texel.rgb.alpha,
+            .rgb.blue  = blue_total,
+            .rgb.green = green_total,
+            .rgb.red   = red_total
+          };
+
+          // draw pixel
+          if((unsigned)x < (unsigned)window_width && (unsigned)y < (unsigned)window_height){
+            /* combine texture alpha with object opacity */
+            uint8_t alpha = opacity * 255.0f;
+
+            if(alpha == 255){
+              texel_color.rgb.alpha = 255;
+              color_buffer[y * window_width + x] = texel_color;
+            }
+            else if(alpha != 0){
+              uint8_t inv_alpha = 255 - alpha;
+
+              color_t dst = color_buffer[y * window_width + x];
+
+              uint8_t src_red   = texel_color.rgb.red;
+              uint8_t src_green = texel_color.rgb.green;
+              uint8_t src_blue  = texel_color.rgb.blue;
+
+              uint8_t dst_red   = dst.rgb.red;
+              uint8_t dst_green = dst.rgb.green;
+              uint8_t dst_blue  = dst.rgb.blue;
+
+              color_t final_color = {
+                .rgb.alpha = 255, 
+                .rgb.blue  = (src_blue  * alpha + dst_blue  * inv_alpha) >> 8, 
+                .rgb.green = (src_green * alpha + dst_green * inv_alpha) >> 8,
+                .rgb.red   = (src_red   * alpha + dst_red   * inv_alpha) >> 8
+              };
+
+              color_buffer[y * window_width + x] = final_color;
+            }
+          }
+        }
+      }
+      else if(was_inside) break;
+
+      w0 += delta_w0_col;
+      w1 += delta_w1_col;
+      w2 += delta_w2_col;
+    }
+
+    w0_row += delta_w0_row;
+    w1_row += delta_w1_row;
+    w2_row += delta_w2_row;
+  }
+
+  return total_pixels_rendered;
+}
+
 uint32_t draw_textured_triangle_alpha_blend_float(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,

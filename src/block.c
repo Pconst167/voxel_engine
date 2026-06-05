@@ -1031,7 +1031,7 @@ void init_block_materials(){
       .mass                 = 30,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable             = true,
-      .backface_culling     = true,
+      .backface_culling     = false,
       .base_color           = (color_t){.uint32 = 0xFFFF8080},
       .emissive_color       = (color_t){.uint32 = 0xFF080808},
       .reflects_light       = true,

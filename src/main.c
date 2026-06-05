@@ -545,11 +545,11 @@ void update_player_from_input(input_state_t *input_state){
 
   if(player.on_water){
     if(input_state->key_down[SDL_SCANCODE_SPACE]){
-      player.velocity.y = 0.25f * PLAYER_JUMP_VELOCITY;
+      player.velocity.y = 0.4f * PLAYER_JUMP_VELOCITY;
       player.on_ground = false;
     }
     // gravity
-    player.velocity.y -= 0.1f * PLAYER_GRAVITY * delta_time;
+    player.velocity.y -= 0.15f * PLAYER_GRAVITY * delta_time;
     if(player.velocity.y < -0.1f * PLAYER_MAX_FALL_SPEED) player.velocity.y = -0.1f  * PLAYER_MAX_FALL_SPEED;
   }
   else{
@@ -2214,7 +2214,7 @@ void render_block_face(
         break;
     }
 
-    //projected_triangle.avg_w = (projected_triangle.points[0].w + projected_triangle.points[1].w + projected_triangle.points[2].w) / 3.0f;
+    projected_triangle.avg_w = (projected_triangle.points[0].w + projected_triangle.points[1].w + projected_triangle.points[2].w) / 3.0f;
 
     projected_triangle.face_material = (material_t){
       .material_name      = "",
@@ -2224,12 +2224,14 @@ void render_block_face(
       .emissive_color     = block_material->emissive_color,
       .reflects_light     = block_material->reflects_light,
       .two_sided_lighting = false,
+      .opacity            = 1.0f,
       .texture            = block_face_texture
     };
 
     projected_triangle.total_light_intensity = light_intensity;
 
     /* TRIANGLE RASTERIZATION */
+    // if under water then make objects blue shaded
     int32_t player_block_x      = player.position.x;
     int32_t player_block_y_head = player.position.y + player.height;
     int32_t player_block_z      = player.position.z;
@@ -2241,6 +2243,15 @@ void render_block_face(
       projected_triangle.total_light_intensity.green *= 0.2f;
       projected_triangle.total_light_intensity.red   *= 0.1f;
     }
+
+    //float opacity;
+    //if(projected_triangle.avg_w > ZFAR / 10.0f){
+    //  projected_triangle.face_material.opacity = 1.0f;
+    //  projected_triangle.face_material.blend_mode = BLEND_MODE_OPAQUE;
+    //}
+    //else{
+    //  projected_triangle.face_material.opacity = block_material->blend_mode == BLEND_MODE_ALPHA_BLEND ? 0.7f : 1.0f;
+    //}
 
     total_pixels_rendered += rasterize_triangle(&projected_triangle);
     if(options.wireframe_overlay)
@@ -2525,6 +2536,8 @@ void render_object(object_t *object){
 
       /* TRIANGLE RASTERIZATION */
       //total_pixels_rendered += rasterize_triangle(&projected_triangle);
+
+      // if under water then make objects blue shaded
       int32_t player_block_x      = player.position.x;
       int32_t player_block_y_head = player.position.y + player.height;
       int32_t player_block_z      = player.position.z;
@@ -2536,6 +2549,7 @@ void render_object(object_t *object){
         projected_triangle.total_light_intensity.green *= 0.2f;
         projected_triangle.total_light_intensity.red   *= 0.1f;
       }
+
       total_pixels_rendered += rasterize_triangle(&projected_triangle);
       if(options.wireframe_overlay){
         draw_triangle(
@@ -2804,9 +2818,9 @@ void update_light(void){
 
     if(sun_sin_eta < 0.0f) sun_sin_eta = 0.0f;
 
-    sky_color.rgb.red   = 0x00 + 0x10 * sun_sin_eta;
+    sky_color.rgb.red   = 0x00 + 0x20 * sun_sin_eta;
     sky_color.rgb.green = 0x00 + 0x80 * sun_sin_eta;
-    sky_color.rgb.blue  = 0x08 + 0xF8 * sun_sin_eta;
+    sky_color.rgb.blue  = 0x08 + 0xE8 * sun_sin_eta;
     
     //skybox->translation.x  = camera.position.x; 
     //skybox->translation.y  = camera.position.y;
@@ -2894,7 +2908,7 @@ inline uint32_t rasterize_triangle(triangle_t *triangle){
         );
 
       case BLEND_MODE_ALPHA_BLEND:
-        return draw_textured_triangle_alpha_blend_float(
+        return draw_textured_triangle_with_opacity_float(
           &triangle->points[0], triangle->uv[0],
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],
