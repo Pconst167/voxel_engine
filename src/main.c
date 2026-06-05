@@ -2230,6 +2230,17 @@ void render_block_face(
     projected_triangle.total_light_intensity = light_intensity;
 
     /* TRIANGLE RASTERIZATION */
+    int32_t player_block_x      = player.position.x;
+    int32_t player_block_y_head = player.position.y + player.height;
+    int32_t player_block_z      = player.position.z;
+    block_t *player_block_head  = &block_at(player_block_y_head, player_block_z, player_block_x);
+    if(player_block_head->type == BLOCK_TYPE_WATER0){
+      projected_triangle.face_material.emissive_color.rgb.green *= 0.5;
+      projected_triangle.face_material.emissive_color.rgb.red *= 0.5;
+      projected_triangle.total_light_intensity.blue  *= 0.7f;
+      projected_triangle.total_light_intensity.green *= 0.2f;
+      projected_triangle.total_light_intensity.red   *= 0.1f;
+    }
 
     total_pixels_rendered += rasterize_triangle(&projected_triangle);
     if(options.wireframe_overlay)
@@ -2514,6 +2525,17 @@ void render_object(object_t *object){
 
       /* TRIANGLE RASTERIZATION */
       //total_pixels_rendered += rasterize_triangle(&projected_triangle);
+      int32_t player_block_x      = player.position.x;
+      int32_t player_block_y_head = player.position.y + player.height;
+      int32_t player_block_z      = player.position.z;
+      block_t *player_block_head  = &block_at(player_block_y_head, player_block_z, player_block_x);
+      if(player_block_head->type == BLOCK_TYPE_WATER0){
+        projected_triangle.face_material.emissive_color.rgb.green *= 0.5;
+        projected_triangle.face_material.emissive_color.rgb.red *= 0.5;
+        projected_triangle.total_light_intensity.blue  *= 0.7f;
+        projected_triangle.total_light_intensity.green *= 0.2f;
+        projected_triangle.total_light_intensity.red   *= 0.1f;
+      }
       total_pixels_rendered += rasterize_triangle(&projected_triangle);
       if(options.wireframe_overlay){
         draw_triangle(
