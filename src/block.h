@@ -110,7 +110,7 @@ typedef enum{
   BLOCK_FACE_RIGHT,
   BLOCK_FACE_FRONT,
   BLOCK_FACE_BACK,
-} block_face_type_t;
+} block_face_direction_t;
 
 typedef struct{
   char *material_name;
@@ -139,7 +139,7 @@ typedef struct{
 } block_material_t;
 
 typedef struct{
-  block_face_type_t block_face_type;
+  block_face_direction_t block_face_type;
   vector3_t points[4];
   uv_t uv[6];
   light_intensity_rgb_t total_light_intensity;
@@ -188,7 +188,8 @@ extern const int32_t neighbour_x_offsets[6];
 void init_block_materials();
 void init_block_map();
 void get_block_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, int *start_y, int *end_y, int *start_z, int *end_z);
-block_face_t generate_block_face(block_face_type_t block_face_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col);
+block_face_t generate_block_face(block_face_direction_t block_face_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col);
+bool should_render_face(block_face_direction_t face_direction, int32_t y, int32_t z, int32_t x);
 
 block_raycast_hit_t raycast_blocks(vector3_t ray_origin, vector3_t ray_direction, float max_distance);
 void assign_block_material(int32_t block_y, int32_t block_z, int32_t block_x, block_type_t block_type);

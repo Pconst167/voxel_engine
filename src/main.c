@@ -164,7 +164,6 @@ vector3_t up = {.x = 0, .y = 1, .z = 0}; /* up direction vector for view matrix 
 
 /* sun/sky data */
 int32_t skybox_id = 1;
-vector3_t sun_direction = {0.0f, 1.0f, 0.0f}; /* world-space sun direction vector */
 float sun_eta = (0); /* sun's eta angle */
 float sun_sin_eta = 0.0f;
 color_t sky_color = (color_t){.uint32 = 0xFFFF8040};
@@ -528,6 +527,17 @@ void update_player_from_input(input_state_t *input_state){
   move_player_x(movement.x);
   move_player_z(movement.z);
   move_player_y(movement.y);
+
+  int32_t player_block_y = player.position.y;
+  int32_t player_block_z = player.position.z;
+  int32_t player_block_x = player.position.x;
+
+  if(block_at(player_block_y, player_block_z, player_block_x).type == BLOCK_TYPE_WATER0){
+    player.on_water = true;
+  }
+  else{
+    player.on_water = false;
+  }
 }
 
 inline void move_player_x(float movement_x){
@@ -2233,28 +2243,13 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
         block_t *block = &block_at(y_plane, z_row, x_col);
         if(block->type == BLOCK_TYPE_AIR) continue;
         
-        int32_t left_neighbour_index    = x_col - 1;
-        int32_t right_neighbour_index   = x_col + 1;
-        int32_t top_neighbour_index     = y_plane + 1; 
-        int32_t bottom_neighbour_index  = y_plane - 1;
-        int32_t front_neighbour_index   = z_row - 1;
-        int32_t back_neighbour_index    = z_row + 1;
+        bool render_left_block_face   = should_render_face(BLOCK_FACE_LEFT  , y_plane, z_row, x_col);
+        bool render_right_block_face  = should_render_face(BLOCK_FACE_RIGHT , y_plane, z_row, x_col);
+        bool render_top_block_face    = should_render_face(BLOCK_FACE_TOP   , y_plane, z_row, x_col);
+        bool render_bottom_block_face = should_render_face(BLOCK_FACE_BOTTOM, y_plane, z_row, x_col);
+        bool render_front_block_face  = should_render_face(BLOCK_FACE_FRONT , y_plane, z_row, x_col);
+        bool render_back_block_face   = should_render_face(BLOCK_FACE_BACK  , y_plane, z_row, x_col);
 
-        // a block_face is rendered only if its adjescent block is AIR or if it is transparent (using alpha test)
-        bool render_left_block_face    = (left_neighbour_index < 0)                  ? false : block_is_liquid_or_transparent(&block_at(y_plane, z_row, left_neighbour_index) ) && block_at(y_plane, z_row, x_col).type != BLOCK_TYPE_WATER0;
-        bool render_right_block_face   = (right_neighbour_index == MAP_NUM_BLOCKS_X) ? false : block_is_liquid_or_transparent(&block_at(y_plane, z_row, right_neighbour_index)) && block_at(y_plane, z_row, x_col).type != BLOCK_TYPE_WATER0;
-        bool render_top_block_face     = (top_neighbour_index == MAP_NUM_BLOCKS_Y)   ? false : block_is_liquid_or_transparent(&block_at(top_neighbour_index, z_row, x_col)    );
-        bool render_bottom_block_face  = (bottom_neighbour_index < 0)                ? false : block_is_liquid_or_transparent(&block_at(bottom_neighbour_index, z_row, x_col) ) && block_at(y_plane, z_row, x_col).type != BLOCK_TYPE_WATER0;
-        bool render_front_block_face   = (front_neighbour_index < 0)                 ? false : block_is_liquid_or_transparent(&block_at(y_plane, front_neighbour_index, x_col)) && block_at(y_plane, z_row, x_col).type != BLOCK_TYPE_WATER0;
-        bool render_back_block_face    = (back_neighbour_index == MAP_NUM_BLOCKS_Z)  ? false : block_is_liquid_or_transparent(&block_at(y_plane, back_neighbour_index, x_col) ) && block_at(y_plane, z_row, x_col).type != BLOCK_TYPE_WATER0;
-
-        // TODO WRITE FUNCTION THAT DECIDES WHETHER TO RENDER EACH FACE
-        bool render_left_block_face    = should_render_face(BLOCK_FACE_LEFT);  (left_neighbour_index < 0)                  ? false : block_is_liquid_or_transparent(&block_at(y_plane, z_row, left_neighbour_index) ) && block_at(y_plane, z_row, x_col).type != BLOCK_TYPE_WATER0;
-        bool render_right_block_face   = should_render_face(BLOCK_FACE_RIGHT);  (right_neighbour_index == MAP_NUM_BLOCKS_X) ? false : block_is_liquid_or_transparent(&block_at(y_plane, z_row, right_neighbour_index)) && block_at(y_plane, z_row, x_col).type != BLOCK_TYPE_WATER0;
-        bool render_top_block_face     = should_render_face(BLOCK_FACE_TOP);  (top_neighbour_index == MAP_NUM_BLOCKS_Y)   ? false : block_is_liquid_or_transparent(&block_at(top_neighbour_index, z_row, x_col)    );
-        bool render_bottom_block_face  = should_render_face(BLOCK_FACE_BOTTOM);  (bottom_neighbour_index < 0)                ? false : block_is_liquid_or_transparent(&block_at(bottom_neighbour_index, z_row, x_col) ) && block_at(y_plane, z_row, x_col).type != BLOCK_TYPE_WATER0;
-        bool render_front_block_face   = should_render_face(BLOCK_FACE_FRONT);  (front_neighbour_index < 0)                 ? false : block_is_liquid_or_transparent(&block_at(y_plane, front_neighbour_index, x_col)) && block_at(y_plane, z_row, x_col).type != BLOCK_TYPE_WATER0;
-        bool render_back_block_face    = should_render_face(BLOCK_FACE_BACK);  (back_neighbour_index == MAP_NUM_BLOCKS_Z)  ? false : block_is_liquid_or_transparent(&block_at(y_plane, back_neighbour_index, x_col) ) && block_at(y_plane, z_row, x_col).type != BLOCK_TYPE_WATER0;
         block_material_t *block_material = &block_materials[block->type];
 
         bool block_looked_at_left   = false;
@@ -2752,15 +2747,11 @@ void update_light(void){
     sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
     sun_sin_eta = sinf(sun_eta);
 
-    sun_direction.x = 0.0f;
-    sun_direction.y = sun_sin_eta;
-    sun_direction.z = cosf(sun_eta);
-
     if(sun_sin_eta < 0.0f) sun_sin_eta = 0.0f;
 
-    sky_color.rgb.red   = 0x20 * sun_sin_eta;
-    sky_color.rgb.green = 0x80 * sun_sin_eta;
-    sky_color.rgb.blue  = 0x30 + 0xC0 * sun_sin_eta;
+    sky_color.rgb.red   = 0x00 + 0x10 * sun_sin_eta;
+    sky_color.rgb.green = 0x00 + 0x80 * sun_sin_eta;
+    sky_color.rgb.blue  = 0x08 + 0xF8 * sun_sin_eta;
     
     //skybox->translation.x  = camera.position.x; 
     //skybox->translation.y  = camera.position.y;
@@ -2862,91 +2853,6 @@ inline uint32_t rasterize_triangle(triangle_t *triangle){
   }
 
   return 0;
-}
-
-/* 
-  render the base colorbuffer on top of which everything else is painted
-*/
-void render_sun(void){
-  float half_w = 0.5f * (float)window_width;
-  float half_h = 0.5f * (float)window_height;
-  float projection_plane_dist = half_h / tanf(fov_y * 0.5f);
-
-  /* use actual sun elevation, mirrored above/below horizon */
-  float sun_elev_abs   = fabsf(sun_direction.y);  /* 0 at horizon, 1 at poles */
-  float horizon_factor = 1.0f - sun_elev_abs;     /* 1 at horizon, 0 at poles */
-  /* phase-like color curves, but driven by mirrored elevation */
-  float sun_red_shift   = 0.65f + 0.35f * horizon_factor;  /* red stays strongest near horizon */
-  float sun_green_shift = 0.35f + 0.65f * sun_elev_abs;    /* green rises toward white */
-  float sun_blue_shift  = 0.00f + 1.00f * sun_elev_abs;    /* blue weakest at horizon, strongest at poles */
-
-  /* world -> camera rotation only(no translation, meaning w = 0) */
-  /* NOTE: using optimized version of multiply */
-  vector4_t vec4_sun_cam = matrix4_mul_vector4(&view_matrix, (vector4_t){sun_direction.x, sun_direction.y, sun_direction.z, 0.0f});
-  vector3_t sun_cam = {vec4_sun_cam.x, vec4_sun_cam.y, vec4_sun_cam.z};
-
-  for(int y = 0; y < window_height; y++){
-    float screen_y_from_center = half_h - (float)y;
-
-    for(int x = 0; x < window_width; x++){
-      float screen_x_from_center = (float)x - half_w;
-
-      /* vector for sun dot product */
-      vector3_t dir_cam = {screen_x_from_center, screen_y_from_center, projection_plane_dist};
-      vector3_normalize_fast_approx(&dir_cam);
-      /* vector for sky band dot product only */
-
-      /* dot product for sun, as we go from pixel to pixel, dot product to check for sun direction across entire projection plane */
-      float sun_dot = dir_cam.x * sun_cam.x + dir_cam.y * sun_cam.y + dir_cam.z * sun_cam.z;
-      if(sun_dot < 0.0f) sun_dot = 0.0f;
-      /* dot product for sky band, only accounts for vertical direction in projection plane */
-      float sun_dot_flat = dir_cam.y * sun_cam.y + dir_cam.z * sun_cam.z;
-      if(sun_dot_flat < 0.0f) sun_dot_flat = 0.0f;
-      
-      /* shun shimmer */
-      sun_dot *= (frame_id & 1) ? 0.9992f : 1.0f;
-
-      float sun_glow = sun_dot * sun_dot;
-      sun_glow *= sun_glow;
-      sun_glow *= sun_glow;
-      sun_glow *= sun_glow;
-
-      float sun_core = sun_glow; /* smaller dot power for tighter core */
-      sun_core *= sun_core;
-      sun_core *= sun_core;
-
-      float sun_band = sun_dot_flat * sun_dot_flat;
-
-      color_t pixel = color_buffer[y * window_width + x];
-      float red_t   = (float)(pixel.rgb.red  ) * 0.00392 + sun_red_shift   * (sun_core + sun_glow);
-      float green_t = (float)(pixel.rgb.green) * 0.00392 + sun_green_shift * (sun_core + sun_glow); 
-      float blue_t  = (float)(pixel.rgb.blue ) * 0.00392 + sun_blue_shift  * (sun_core + sun_glow); 
-
-      if(red_t   > 1.0f) red_t   = 1.0f;
-      if(green_t > 1.0f) green_t = 1.0f;
-      if(blue_t  > 1.0f) blue_t  = 1.0f;
-
-      /* for final band blend, this works by only blending where the band is strongest 
-         so instead of using constant factors for the blend, we use the strength of the band as a factor,
-         and this is better because it doesn't washout the sky everywhere, but only where the band is strong. */
-      float band_horizon_factor = 2.0f;
-      float band_mix = 0.15f * sun_band * band_horizon_factor;
-      if(band_mix > 1.0f) band_mix = 1.0f;
-
-      red_t   = (1.0f - band_mix) * red_t   + band_mix * sun_red_shift;
-      green_t = (1.0f - band_mix) * green_t + band_mix * sun_green_shift;
-      blue_t  = (1.0f - band_mix) * blue_t  + band_mix * sun_blue_shift;
-
-      color_t final_color = {
-        .rgb.alpha = 0xFF, 
-        .rgb.blue  = blue_t  * 255.0f, 
-        .rgb.green = green_t * 255.0f, 
-        .rgb.red   = red_t   * 255.0f
-      };
-      
-      color_buffer[y * window_width + x] = final_color;
-    }
-  }
 }
 
 inline void qs_chunk(chunk_sort_key_t *array, int left, int right){
@@ -3074,13 +2980,16 @@ void print_debug_data(){
       int32_t player_chunk_y = player_block_y / CHUNK_SIZE;
       int32_t player_chunk_z = player_block_z / CHUNK_SIZE;
       snprintf(debug_screen_data, 1024, 
-        "on ground: %s, velocity: %.2f:%.2f:%.2f\n"
+        "og: %s, ow: %s, oqs: %s\n"
+        "velocity: %.2f:%.2f:%.2f\n"
         "%ut, %upx, %uc, %ufps\n"
         "block coords: %d:%d:%d, chunk coords: %d:%d:%d\n"
         "player pos: %.2f:%.2f:%.2f, look direction: %.2f:%.2f:%.2f, theta/eta: %.2f:%.2f\n"
         "block looked at: %d:%d:%d\n"
         "lf: %d, lh: %d",
-        player.on_ground ? "yes" : "no",
+        player.on_ground    ? "y" : "n",
+        player.on_water     ? "y" : "n",
+        player.on_quicksand ? "y" : "n",
         player.velocity.x, player.velocity.y, player.velocity.z,
         total_triangles_rendered, total_pixels_rendered, total_chunks_rendered, fps, 
         player_block_x, player_block_y, player_block_z,

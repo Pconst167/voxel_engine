@@ -1033,7 +1033,7 @@ void init_block_materials(){
       .mineable             = true,
       .backface_culling     = true,
       .base_color           = (color_t){.uint32 = 0xFFFF8080},
-      .emissive_color       = (color_t){.uint32 = 0x00000000},
+      .emissive_color       = (color_t){.uint32 = 0xFF080808},
       .reflects_light       = true,
       .blend_mode           = BLEND_MODE_OPAQUE,
       .alpha_cutoff         = DEFAULT_ALPHA_CUTOFF,
@@ -1187,7 +1187,7 @@ void init_block_map(){
         if(y == (uint32_t)(0.4 * MAP_NUM_BLOCKS_Y)){
           if(xorshift32() % 5 == 0){
             uint32_t random = xorshift32();
-            if(random < (uint32_t)(0.1f * UINT32_MAX)){
+            if(random < (uint32_t)(0.025f * UINT32_MAX)){
               assign_block_material(y, z, x, BLOCK_TYPE_LAMP0);
             }
             else if(random < (uint32_t)(0.3f * UINT32_MAX)){
@@ -1199,16 +1199,15 @@ void init_block_map(){
           }
         }
         if(y == (uint32_t)(0.4 * MAP_NUM_BLOCKS_Y) - 1){
-          if(xorshift32() % 5 == 0){
+          int32_t random = xorshift32();
+          if(random < 0.4 * INT32_MAX){
+            assign_block_material(y, z, x, BLOCK_TYPE_GRASS);
+          }
+          else if(random < 0.7 * INT32_MAX){
             assign_block_material(y, z, x, BLOCK_TYPE_DIRT);
           }
           else{
-            if(xorshift32() % 13 != 0){
-              assign_block_material(y, z, x, BLOCK_TYPE_GRASS);
-            }
-            else{
-              assign_block_material(y, z, x, BLOCK_TYPE_WATER0);
-            }
+            assign_block_material(y, z, x, BLOCK_TYPE_CHERRY_GRASS);
           }
         }
         if(y < (uint32_t)(0.4 * MAP_NUM_BLOCKS_Y) - 1){
@@ -1533,7 +1532,7 @@ void get_block_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, 
   *end_z   = clamp_int((int)floorf(aabb->z_max), 0, MAP_NUM_BLOCKS_Z - 1);
 }
 
-inline block_face_t generate_block_face(block_face_type_t block_face_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col){
+inline block_face_t generate_block_face(block_face_direction_t block_face_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col){
   block_face_t block_face;
 
   switch(block_face_type){
@@ -1900,7 +1899,7 @@ bool block_is_tree_leaves(block_t *block){
 
 void place_pond(int32_t z_row, int32_t x_col){
   uint32_t seed = (uint32_t)(z_row * 73856093u) ^ (uint32_t)(x_col * 19349663u); // two prime numbers for hashing
-  bool will_spawn = random_spawn_from_seed(seed, 0.01f);
+  bool will_spawn = random_spawn_from_seed(seed, 0.005f);
 
   if(!will_spawn) return;
 
@@ -1915,11 +1914,91 @@ void place_pond(int32_t z_row, int32_t x_col){
 
   uint32_t pond_size_seed = seed ^ 0xF12C77B3u;
 
-  int32_t pond_size = 5.0f + (double)(10 - 5 + 1) * (double)(rand_i(pond_size_seed) / (double)UINT32_MAX);
+  int32_t pond_size = 3.0f + (double)(6 - 3 + 1) * (double)(rand_i(pond_size_seed) / (double)UINT32_MAX);
 
   for(int32_t z = z_row; z < z_row + pond_size; z++){
     for(int32_t x = x_col; x < x_col + pond_size; x++){
       assign_block_material(first_solid_y, z, x, BLOCK_TYPE_WATER0);
     }
+  }
+}
+
+bool should_render_face(block_face_direction_t face_direction, int32_t y, int32_t z, int32_t x){
+  block_t *block = &block_at(y, z, x);
+
+  switch(face_direction){
+    case BLOCK_FACE_LEFT:
+      if(x - 1 < 0) return false;
+      block_t *block_left = &block_at(y, z, x - 1);
+      if(block->type == BLOCK_TYPE_WATER0){
+        if(block_left->type == BLOCK_TYPE_AIR || block_left->type == BLOCK_TYPE_GLASS) return true;
+        return false;
+      }
+      else{
+        if(block_left->type == BLOCK_TYPE_AIR || block_left->type == BLOCK_TYPE_GLASS || block_left->type == BLOCK_TYPE_WATER0) return true;
+        return false;
+      }
+      break;
+    case BLOCK_FACE_RIGHT:
+      if(x + 1 >= MAP_NUM_BLOCKS_X) return false;
+      block_t *block_right = &block_at(y, z, x + 1);
+      if(block->type == BLOCK_TYPE_WATER0){
+        if(block_right->type == BLOCK_TYPE_AIR || block_right->type == BLOCK_TYPE_GLASS) return true;
+        return false;
+      }
+      else{
+        if(block_right->type == BLOCK_TYPE_AIR || block_right->type == BLOCK_TYPE_GLASS || block_right->type == BLOCK_TYPE_WATER0) return true;
+        return false;
+      }
+      break;
+    case BLOCK_FACE_TOP:
+      if(y + 1 >= MAP_NUM_BLOCKS_Y) return false;
+      block_t *block_top = &block_at(y + 1, z, x);
+      if(block->type == BLOCK_TYPE_WATER0){
+        if(block_top->type != BLOCK_TYPE_WATER0) return true;
+        return false;
+      }
+      else{
+        if(block_top->type == BLOCK_TYPE_AIR || block_top->type == BLOCK_TYPE_GLASS || block_top->type == BLOCK_TYPE_WATER0) return true;
+        return false;
+      }
+      break;
+    case BLOCK_FACE_BOTTOM:
+      if(y - 1 < 0) return false;
+      block_t *block_bottom = &block_at(y - 1, z, x);
+      if(block->type == BLOCK_TYPE_WATER0){
+        if(block_bottom->type == BLOCK_TYPE_AIR || block_bottom->type == BLOCK_TYPE_GLASS) return true;
+        return false;
+      }
+      else{
+        if(block_bottom->type == BLOCK_TYPE_AIR || block_bottom->type == BLOCK_TYPE_GLASS || block_bottom->type == BLOCK_TYPE_WATER0) return true;
+        return false;
+      }
+      break;
+    case BLOCK_FACE_FRONT:
+      if(z - 1 < 0) return false;
+      block_t *block_front = &block_at(y, z - 1, x);
+      if(block->type == BLOCK_TYPE_WATER0){
+        if(block_front->type == BLOCK_TYPE_AIR || block_front->type == BLOCK_TYPE_GLASS) return true;
+        return false;
+      }
+      else{
+        if(block_front->type == BLOCK_TYPE_AIR || block_front->type == BLOCK_TYPE_GLASS || block_front->type == BLOCK_TYPE_WATER0) return true;
+        return false;
+      }
+      break;
+    case BLOCK_FACE_BACK:
+    default:
+      if(z + 1 >= MAP_NUM_BLOCKS_Z) return false;
+      block_t *block_back = &block_at(y, z + 1, x);
+      if(block->type == BLOCK_TYPE_WATER0){
+        if(block_back->type == BLOCK_TYPE_AIR || block_back->type == BLOCK_TYPE_GLASS) return true;
+        return false;
+      }
+      else{
+        if(block_back->type == BLOCK_TYPE_AIR || block_back->type == BLOCK_TYPE_GLASS || block_back->type == BLOCK_TYPE_WATER0) return true;
+        return false;
+      }
+      break;
   }
 }

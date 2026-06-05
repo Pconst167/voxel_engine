@@ -12,6 +12,9 @@ player_t player = {
   .aabb                         = {0},
 
   .on_ground                    = false,
+  .on_water                     = false,
+  .on_quicksand                 = false,
+  .on_lava                      = false,
   // blocks holding
   .block_inventory_active_index = 0,
   .block_inventory              = {{0}},
