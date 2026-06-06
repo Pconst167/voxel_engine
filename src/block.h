@@ -16,6 +16,8 @@
 #define NUM_CHUNK_DIVISIONS_X (MAP_NUM_BLOCKS_X / CHUNK_SIZE)
 #define CHUNK_RENDER_DISTANCE 4 // render this number of chunks around the player in XZ
 
+#define BLOCK_FACE_SHIFT_DOWN_AMOUNT (0.1f) // for fluid blocks
+
 #define MAX_BLOCK_LOOK_AT_DISTANCE 6.0f
 #define BLOCK_TYPE_STRING_NAME_MAX_LEN 32
 
@@ -190,6 +192,7 @@ void init_block_map();
 void get_block_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, int *start_y, int *end_y, int *start_z, int *end_z);
 block_face_t generate_block_face(block_face_direction_t block_face_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col);
 bool should_render_face(block_face_direction_t face_direction, int32_t y, int32_t z, int32_t x);
+bool should_shift_block_faces(int32_t y_plane, int32_t z_row, int32_t x_col);
 
 block_raycast_hit_t raycast_blocks(vector3_t ray_origin, vector3_t ray_direction, float max_distance);
 void assign_block_material(int32_t block_y, int32_t block_z, int32_t block_x, block_type_t block_type);

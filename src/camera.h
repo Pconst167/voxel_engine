@@ -4,6 +4,7 @@
 #include "vector.h"
 
 #define ETA_MAX (M_PI_2 - 0.001)
+#define CAMERA_PLAYER_HEIGHT_PERCENTAGE (0.92f)
 
 typedef struct{
   vector3_t position;

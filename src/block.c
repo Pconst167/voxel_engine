@@ -1035,7 +1035,7 @@ void init_block_materials(){
       .base_color           = (color_t){.uint32 = 0xFFFF8080},
       .emissive_color       = (color_t){.uint32 = 0xFF080808},
       .reflects_light       = true,
-      .blend_mode           = BLEND_MODE_OPAQUE,
+      .blend_mode           = BLEND_MODE_ALPHA_BLEND,
       .alpha_cutoff         = DEFAULT_ALPHA_CUTOFF,
       .front_texture        = load_texture("./assets/textures/blocks/water0.png"),
       .back_texture         = load_texture("./assets/textures/blocks/water0.png"),
@@ -1752,7 +1752,9 @@ block_raycast_hit_t raycast_blocks(
        block_y >= 0 && block_y < MAP_NUM_BLOCKS_Y &&
        block_z >= 0 && block_z < MAP_NUM_BLOCKS_Z
     ){
-      if(block_at(block_y, block_z, block_x).type != BLOCK_TYPE_AIR){
+      if(block_at(block_y, block_z, block_x).type != BLOCK_TYPE_AIR &&
+         block_at(block_y, block_z, block_x).type != BLOCK_TYPE_WATER0
+    ){
         hit_result.hit = 1;
         hit_result.block_x = block_x;
         hit_result.block_y = block_y;
@@ -1952,7 +1954,7 @@ bool should_render_face(block_face_direction_t face_direction, int32_t y, int32_
       if(x - 1 < 0) return false;
       block_t *block_left = &block_at(y, z, x - 1);
       if(block->type == BLOCK_TYPE_WATER0){
-        if(block_left->type == BLOCK_TYPE_AIR || block_left->type == BLOCK_TYPE_GLASS) return true;
+        if(block_left->type == BLOCK_TYPE_AIR) return true;
         return false;
       }
       else{
@@ -1964,7 +1966,7 @@ bool should_render_face(block_face_direction_t face_direction, int32_t y, int32_
       if(x + 1 >= MAP_NUM_BLOCKS_X) return false;
       block_t *block_right = &block_at(y, z, x + 1);
       if(block->type == BLOCK_TYPE_WATER0){
-        if(block_right->type == BLOCK_TYPE_AIR || block_right->type == BLOCK_TYPE_GLASS) return true;
+        if(block_right->type == BLOCK_TYPE_AIR) return true;
         return false;
       }
       else{
@@ -1974,21 +1976,27 @@ bool should_render_face(block_face_direction_t face_direction, int32_t y, int32_
       break;
     case BLOCK_FACE_TOP:
       if(y + 1 >= MAP_NUM_BLOCKS_Y) return false;
-      block_t *block_top = &block_at(y + 1, z, x);
       if(block->type == BLOCK_TYPE_WATER0){
-        if(block_top->type != BLOCK_TYPE_WATER0) return true;
+        if(block_materials[block_at(y + 1, z, x).type].solid) return false;
+        if(block_at(y + 1, z, x).type == BLOCK_TYPE_AIR) return true;
         return false;
       }
       else{
-        if(block_top->type == BLOCK_TYPE_AIR || block_top->type == BLOCK_TYPE_GLASS || block_top->type == BLOCK_TYPE_WATER0) return true;
+        if(
+          block_at(y + 1, z, x).type == BLOCK_TYPE_AIR    ||
+          block_at(y + 1, z, x).type == BLOCK_TYPE_GLASS  ||
+          block_at(y + 1, z, x).type == BLOCK_TYPE_WATER0
+        ) return true;
+
         return false;
       }
       break;
+
     case BLOCK_FACE_BOTTOM:
       if(y - 1 < 0) return false;
       block_t *block_bottom = &block_at(y - 1, z, x);
       if(block->type == BLOCK_TYPE_WATER0){
-        if(block_bottom->type == BLOCK_TYPE_AIR || block_bottom->type == BLOCK_TYPE_GLASS) return true;
+        if(block_bottom->type == BLOCK_TYPE_AIR) return true;
         return false;
       }
       else{
@@ -2000,7 +2008,7 @@ bool should_render_face(block_face_direction_t face_direction, int32_t y, int32_
       if(z - 1 < 0) return false;
       block_t *block_front = &block_at(y, z - 1, x);
       if(block->type == BLOCK_TYPE_WATER0){
-        if(block_front->type == BLOCK_TYPE_AIR || block_front->type == BLOCK_TYPE_GLASS) return true;
+        if(block_front->type == BLOCK_TYPE_AIR) return true;
         return false;
       }
       else{
@@ -2013,7 +2021,7 @@ bool should_render_face(block_face_direction_t face_direction, int32_t y, int32_
       if(z + 1 >= MAP_NUM_BLOCKS_Z) return false;
       block_t *block_back = &block_at(y, z + 1, x);
       if(block->type == BLOCK_TYPE_WATER0){
-        if(block_back->type == BLOCK_TYPE_AIR || block_back->type == BLOCK_TYPE_GLASS) return true;
+        if(block_back->type == BLOCK_TYPE_AIR) return true;
         return false;
       }
       else{
@@ -2021,5 +2029,32 @@ bool should_render_face(block_face_direction_t face_direction, int32_t y, int32_
         return false;
       }
       break;
+  }
+}
+
+bool should_shift_block_faces(int32_t y_plane, int32_t z_row, int32_t x_col){
+  block_t *block = &block_at(y_plane, z_row, x_col);
+  switch(block->type){
+    case BLOCK_TYPE_WATER0:
+      if(
+        block_at(y_plane + 1, z_row, x_col).type     == BLOCK_TYPE_WATER0 ||
+        block_at(y_plane + 1, z_row - 1, x_col).type == BLOCK_TYPE_WATER0 ||
+        block_at(y_plane + 1, z_row + 1, x_col).type == BLOCK_TYPE_WATER0 ||
+        block_at(y_plane + 1, z_row, x_col - 1).type == BLOCK_TYPE_WATER0 ||
+        block_at(y_plane + 1, z_row, x_col + 1).type == BLOCK_TYPE_WATER0
+      ) 
+        return false;
+      else 
+        return true;
+
+      break;
+
+    case BLOCK_TYPE_LAVA0:
+    case BLOCK_TYPE_LAVA1:
+      break;
+    case BLOCK_TYPE_QUICKSAND0:
+      break;
+    default:
+      return false;
   }
 }

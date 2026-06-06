@@ -545,12 +545,12 @@ void update_player_from_input(input_state_t *input_state){
 
   if(player.on_water){
     if(input_state->key_down[SDL_SCANCODE_SPACE]){
-      player.velocity.y = 0.4f * PLAYER_JUMP_VELOCITY;
+      player.velocity.y = 0.2f * PLAYER_JUMP_VELOCITY;
       player.on_ground = false;
     }
     // gravity
-    player.velocity.y -= 0.15f * PLAYER_GRAVITY * delta_time;
-    if(player.velocity.y < -0.1f * PLAYER_MAX_FALL_SPEED) player.velocity.y = -0.1f  * PLAYER_MAX_FALL_SPEED;
+    player.velocity.y -= 0.05f * PLAYER_GRAVITY * delta_time;
+    if(player.velocity.y < -0.08f * PLAYER_MAX_FALL_SPEED) player.velocity.y = -0.08f  * PLAYER_MAX_FALL_SPEED;
   }
   else{
     if(input_state->key_down[SDL_SCANCODE_SPACE] && player.on_ground){
@@ -2233,7 +2233,7 @@ void render_block_face(
     /* TRIANGLE RASTERIZATION */
     // if under water then make objects blue shaded
     int32_t player_block_x      = player.position.x;
-    int32_t player_block_y_head = player.position.y + player.height;
+    int32_t player_block_y_head = player.position.y + player.height * CAMERA_PLAYER_HEIGHT_PERCENTAGE + BLOCK_FACE_SHIFT_DOWN_AMOUNT;
     int32_t player_block_z      = player.position.z;
     block_t *player_block_head  = &block_at(player_block_y_head, player_block_z, player_block_x);
     if(player_block_head->type == BLOCK_TYPE_WATER0){
@@ -2244,14 +2244,14 @@ void render_block_face(
       projected_triangle.total_light_intensity.red   *= 0.1f;
     }
 
-    //float opacity;
-    //if(projected_triangle.avg_w > ZFAR / 10.0f){
-    //  projected_triangle.face_material.opacity = 1.0f;
-    //  projected_triangle.face_material.blend_mode = BLEND_MODE_OPAQUE;
-    //}
-    //else{
-    //  projected_triangle.face_material.opacity = block_material->blend_mode == BLEND_MODE_ALPHA_BLEND ? 0.7f : 1.0f;
-    //}
+    if(block_material->blend_mode == BLEND_MODE_ALPHA_BLEND){
+      if(projected_triangle.avg_w > ZFAR / 8.0f){
+        projected_triangle.face_material.blend_mode = BLEND_MODE_OPAQUE;
+      }
+      else{
+        projected_triangle.face_material.opacity = 0.7f;
+      }
+    }
 
     total_pixels_rendered += rasterize_triangle(&projected_triangle);
     if(options.wireframe_overlay)
@@ -2324,6 +2324,9 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
           }
         }
 
+        // decide whether the block faces should be shifted down or not (for liquid blocks)
+        bool shift_block_faces = false;//should_shift_block_faces(y_plane, z_row, x_col);
+
         block_orientation_t block_orientation = block_at(y_plane, z_row, x_col).orientation;
         if(render_left_block_face){
           float face_sky_light = block_at(y_plane, z_row, x_col - 1).sky_light / 15.0f * sun_sin_eta;
@@ -2333,7 +2336,8 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
           if(face_light > 1.0f)   face_light = 1.0f;
           light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
           block_face_t block_face = generate_block_face(BLOCK_FACE_LEFT, y_plane, z_row, x_col);
-          if(block->type == BLOCK_TYPE_WATER0 || block->type == BLOCK_TYPE_LAVA0 || block->type == BLOCK_TYPE_LAVA1){
+          
+          if(shift_block_faces){
             block_face.points[1].y -= 0.1;
             block_face.points[3].y -= 0.1;
           }
@@ -2347,7 +2351,7 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
           if(face_light > 1.0f)   face_light = 1.0f;
           light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
           block_face_t block_face = generate_block_face(BLOCK_FACE_RIGHT, y_plane, z_row, x_col);
-          if(block->type == BLOCK_TYPE_WATER0 || block->type == BLOCK_TYPE_LAVA0 || block->type == BLOCK_TYPE_LAVA1){
+          if(shift_block_faces){
             block_face.points[1].y -= 0.1;
             block_face.points[3].y -= 0.1;
           }
@@ -2361,7 +2365,7 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
           if(face_light > 1.0f)   face_light = 1.0f;
           light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
           block_face_t block_face = generate_block_face(BLOCK_FACE_TOP, y_plane, z_row, x_col);
-          if(block->type == BLOCK_TYPE_WATER0 || block->type == BLOCK_TYPE_LAVA0 || block->type == BLOCK_TYPE_LAVA1){
+          if(shift_block_faces){
             block_face.points[0].y -= 0.1;
             block_face.points[1].y -= 0.1;
             block_face.points[2].y -= 0.1;
@@ -2387,7 +2391,7 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
           if(face_light > 1.0f)   face_light = 1.0f;
           light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
           block_face_t block_face = generate_block_face(BLOCK_FACE_FRONT, y_plane, z_row, x_col);
-          if(block->type == BLOCK_TYPE_WATER0 || block->type == BLOCK_TYPE_LAVA0 || block->type == BLOCK_TYPE_LAVA1){
+          if(shift_block_faces){
             block_face.points[1].y -= 0.1;
             block_face.points[3].y -= 0.1;
           }
@@ -2401,7 +2405,7 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
           if(face_light > 1.0f)   face_light = 1.0f;
           light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
           block_face_t block_face = generate_block_face(BLOCK_FACE_BACK, y_plane, z_row, x_col);
-          if(block->type == BLOCK_TYPE_WATER0 || block->type == BLOCK_TYPE_LAVA0 || block->type == BLOCK_TYPE_LAVA1){
+          if(shift_block_faces){
             block_face.points[1].y -= 0.1;
             block_face.points[3].y -= 0.1;
           }
@@ -2539,7 +2543,7 @@ void render_object(object_t *object){
 
       // if under water then make objects blue shaded
       int32_t player_block_x      = player.position.x;
-      int32_t player_block_y_head = player.position.y + player.height;
+      int32_t player_block_y_head = player.position.y + player.height * CAMERA_PLAYER_HEIGHT_PERCENTAGE + BLOCK_FACE_SHIFT_DOWN_AMOUNT;
       int32_t player_block_z      = player.position.z;
       block_t *player_block_head  = &block_at(player_block_y_head, player_block_z, player_block_x);
       if(player_block_head->type == BLOCK_TYPE_WATER0){
@@ -2843,7 +2847,7 @@ void update_camera_from_player(){
   /* camera tracks player */
   camera.position = (vector3_t){
     .x = player.position.x,
-    .y = player.position.y + player.height * 0.92,
+    .y = player.position.y + player.height * CAMERA_PLAYER_HEIGHT_PERCENTAGE,
     .z = player.position.z
   };
   camera.direction = (vector3_t){
