@@ -122,7 +122,6 @@
 #define MIN_AMBIENT_LIGHT_INTENSITY 0.05f
 #define AMBIENT_LIGHT_MAX_FACTOR 0.5f
 #define MIN_SKYBOX_INTENSITY 0.03f
-#define SPECULAR_POWER 16.0f
 
 uint64_t frame_id = 1; /* start at 1, because all face_draw_stamp values are reset to 0 at object creation time */
 char fps_str[16];
@@ -1832,11 +1831,13 @@ inline void render_visible_chunks(void) {
     }
   }
 
+  // opaque blocks
   for(int32_t chunk_i = 0; chunk_i < num_visible_chunks; chunk_i++){
-    render_opaque_chunk_blocks(visible_chunks[chunk_i]);
+    render_chunk_blocks(visible_chunks[chunk_i], false);
   }
+  // transparent blocks
   for(int32_t chunk_i = 0; chunk_i < num_visible_chunks; chunk_i++){
-    render_transparent_chunk_blocks(visible_chunks[chunk_i]);
+    render_chunk_blocks(visible_chunks[chunk_i], true);
   }
 
   if(options.render_chunk_outlines) draw_chunk_outlines();
@@ -2197,7 +2198,7 @@ void render_block_face(
   } /* for(int t = 0; t < polygon.num_vertices - 2; t++) */
 }
 
-void render_opaque_chunk_blocks(chunk_t *chunk){
+void render_chunk_blocks(chunk_t *chunk, bool transparent_only){
   total_chunk_triangles_to_render = 0;
 
   // find the start and end block indices inside chunk
@@ -2215,7 +2216,7 @@ void render_opaque_chunk_blocks(chunk_t *chunk){
         
         block_t *block = &block_at(y_plane, z_row, x_col);
         if(block->type == BLOCK_TYPE_AIR) continue;
-        if(block_materials[block->type].blend_mode == BLEND_MODE_ALPHA_BLEND) continue;
+        if(transparent_only && block_materials[block->type].blend_mode != BLEND_MODE_ALPHA_BLEND) continue;
         
         bool render_left_block_face   = should_render_face(BLOCK_FACE_LEFT  , y_plane, z_row, x_col);
         bool render_right_block_face  = should_render_face(BLOCK_FACE_RIGHT , y_plane, z_row, x_col);
@@ -2223,6 +2224,18 @@ void render_opaque_chunk_blocks(chunk_t *chunk){
         bool render_bottom_block_face = should_render_face(BLOCK_FACE_BOTTOM, y_plane, z_row, x_col);
         bool render_front_block_face  = should_render_face(BLOCK_FACE_FRONT , y_plane, z_row, x_col);
         bool render_back_block_face   = should_render_face(BLOCK_FACE_BACK  , y_plane, z_row, x_col);
+
+        bool render_left_fluid_connector  = false;
+        bool render_right_fluid_connector = false;
+        bool render_front_fluid_connector = false;
+        bool render_back_fluid_connector  = false;
+
+        if(block_materials[block_at(y_plane, z_row, x_col).type].block_fluid_type != BLOCK_FLUID_NONE){
+          render_left_fluid_connector  = should_render_water_block_connectors(BLOCK_FACE_LEFT, y_plane, z_row, x_col);
+          render_right_fluid_connector = should_render_water_block_connectors(BLOCK_FACE_RIGHT, y_plane, z_row, x_col);
+          render_front_fluid_connector = should_render_water_block_connectors(BLOCK_FACE_FRONT, y_plane, z_row, x_col);
+          render_back_fluid_connector  = should_render_water_block_connectors(BLOCK_FACE_BACK, y_plane, z_row, x_col);
+        }
 
         block_material_t *block_material = &block_materials[block->type];
 
@@ -2247,6 +2260,11 @@ void render_opaque_chunk_blocks(chunk_t *chunk){
         bool shift_block_faces = should_shift_block_faces(y_plane, z_row, x_col);
 
         block_orientation_t block_orientation = block_at(y_plane, z_row, x_col).orientation;
+
+        // NOTE: the fluid block connector check must be separate from the face rendering check
+        // because a face may not be rendered, but the connector may be needed: i.e top fluid block with a fluid block to its side, the fluid face won't be rendered at all but the connector will
+
+        // LEFT FACE
         if(render_left_block_face){
           float face_sky_light = block_at(y_plane, z_row, x_col - 1).sky_light / 15.0f * sun_sin_eta;
           float face_block_light = block_at(y_plane, z_row, x_col - 1).block_light / 15.0f;
@@ -2257,148 +2275,25 @@ void render_opaque_chunk_blocks(chunk_t *chunk){
           block_face_t block_face = generate_block_face(BLOCK_FACE_LEFT, y_plane, z_row, x_col);
           
           if(shift_block_faces){
-            block_face.points[1].y -= 0.1;
-            block_face.points[3].y -= 0.1;
+            block_face.points[1].y -= BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+            block_face.points[3].y -= BLOCK_FACE_SHIFT_DOWN_AMOUNT;
           }
           render_block_face(block_face, block_material, block_looked_at_left, block_orientation, light_intensity);
         }
-        if(render_right_block_face){
-          float face_sky_light = block_at(y_plane, z_row, x_col + 1).sky_light / 15.0f * sun_sin_eta;
-          float face_block_light = block_at(y_plane, z_row, x_col + 1).block_light / 15.0f;
-          float face_light = face_sky_light + face_block_light;
-          if(face_light < 0.015f) face_light = 0.015f;
-          if(face_light > 1.0f)   face_light = 1.0f;
-          light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
-          block_face_t block_face = generate_block_face(BLOCK_FACE_RIGHT, y_plane, z_row, x_col);
-          if(shift_block_faces){
-            block_face.points[1].y -= 0.1;
-            block_face.points[3].y -= 0.1;
-          }
-          render_block_face(block_face, block_material, block_looked_at_right, block_orientation, light_intensity);
-        }
-        if(render_top_block_face){
-          float face_sky_light =  block_at(y_plane + 1, z_row, x_col).sky_light / 15.0f * sun_sin_eta;
-          float face_block_light =  block_at(y_plane + 1, z_row, x_col).block_light / 15.0f;
-          float face_light = face_sky_light + face_block_light;
-          if(face_light < 0.015f) face_light = 0.015f;
-          if(face_light > 1.0f)   face_light = 1.0f;
-          light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
-          block_face_t block_face = generate_block_face(BLOCK_FACE_TOP, y_plane, z_row, x_col);
-          if(shift_block_faces){
-            block_face.points[0].y -= 0.1;
-            block_face.points[1].y -= 0.1;
-            block_face.points[2].y -= 0.1;
-            block_face.points[3].y -= 0.1;
-          }
-          render_block_face(block_face, block_material, block_looked_at_top, block_orientation, light_intensity);
-        }
-        if(render_bottom_block_face){
-          float face_sky_light =  block_at(y_plane - 1, z_row, x_col).sky_light / 15.0f * sun_sin_eta;
-          float face_block_light =  block_at(y_plane - 1, z_row, x_col).block_light / 15.0f;
-          float face_light = face_sky_light + face_block_light;
-          if(face_light < 0.015f) face_light = 0.015f;
-          if(face_light > 1.0f)   face_light = 1.0f;
-          light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
-          block_face_t block_face = generate_block_face(BLOCK_FACE_BOTTOM, y_plane, z_row, x_col);
-          render_block_face(block_face, block_material, block_looked_at_bottom, block_orientation, light_intensity);
-        }
-        if(render_front_block_face){
-          float face_sky_light =  block_at(y_plane, z_row - 1, x_col).sky_light / 15.0f * sun_sin_eta;
-          float face_block_light =  block_at(y_plane, z_row - 1, x_col).block_light / 15.0f;
-          float face_light = face_sky_light + face_block_light;
-          if(face_light < 0.015f) face_light = 0.015f;
-          if(face_light > 1.0f)   face_light = 1.0f;
-          light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
-          block_face_t block_face = generate_block_face(BLOCK_FACE_FRONT, y_plane, z_row, x_col);
-          if(shift_block_faces){
-            block_face.points[1].y -= 0.1;
-            block_face.points[3].y -= 0.1;
-          }
-          render_block_face(block_face, block_material, block_looked_at_front, block_orientation, light_intensity);
-        }
-        if(render_back_block_face){
-          float face_sky_light   = block_at(y_plane, z_row + 1, x_col).sky_light / 15.0f * sun_sin_eta;
-          float face_block_light = block_at(y_plane, z_row + 1, x_col).block_light / 15.0f;
-          float face_light = face_sky_light + face_block_light;
-          if(face_light < 0.015f) face_light = 0.015f;
-          if(face_light > 1.0f)   face_light = 1.0f;
-          light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
-          block_face_t block_face = generate_block_face(BLOCK_FACE_BACK, y_plane, z_row, x_col);
-          if(shift_block_faces){
-            block_face.points[1].y -= 0.1;
-            block_face.points[3].y -= 0.1;
-          }
-          render_block_face(block_face, block_material, block_looked_at_back, block_orientation, light_intensity);
-        }
-      }
-    }
-  }
-}
-
-void render_transparent_chunk_blocks(chunk_t *chunk){
-  total_chunk_triangles_to_render = 0;
-
-  // find the start and end block indices inside chunk
-  int32_t y_plane_start = chunk->y_plane_start;
-  int32_t y_plane_end   = chunk->y_plane_start + CHUNK_SIZE;
-  int32_t z_row_start   = chunk->z_row_start;
-  int32_t z_row_end     = chunk->z_row_start + CHUNK_SIZE;
-  int32_t x_col_start   = chunk->x_col_start;
-  int32_t x_col_end     = chunk->x_col_start + CHUNK_SIZE;
-
-  // loop through all blocks in chunk
-  for(int32_t y_plane = y_plane_start; y_plane < y_plane_end; y_plane++){
-    for(int32_t z_row = z_row_start; z_row < z_row_end; z_row++){
-      for(int32_t x_col = x_col_start; x_col < x_col_end; x_col++){
-        
-        block_t *block = &block_at(y_plane, z_row, x_col);
-        if(block_materials[block->type].blend_mode != BLEND_MODE_ALPHA_BLEND) continue;
-        
-        bool render_left_block_face   = should_render_face(BLOCK_FACE_LEFT  , y_plane, z_row, x_col);
-        bool render_right_block_face  = should_render_face(BLOCK_FACE_RIGHT , y_plane, z_row, x_col);
-        bool render_top_block_face    = should_render_face(BLOCK_FACE_TOP   , y_plane, z_row, x_col);
-        bool render_bottom_block_face = should_render_face(BLOCK_FACE_BOTTOM, y_plane, z_row, x_col);
-        bool render_front_block_face  = should_render_face(BLOCK_FACE_FRONT , y_plane, z_row, x_col);
-        bool render_back_block_face   = should_render_face(BLOCK_FACE_BACK  , y_plane, z_row, x_col);
-
-        block_material_t *block_material = &block_materials[block->type];
-
-        bool block_looked_at_left   = false;
-        bool block_looked_at_right  = false;
-        bool block_looked_at_top    = false;
-        bool block_looked_at_bottom = false;
-        bool block_looked_at_front  = false;
-        bool block_looked_at_back   = false;
-        if(looked_at_block.hit){
-          if(y_plane == looked_at_block.block_y && z_row == looked_at_block.block_z && x_col == looked_at_block.block_x){
-            if(looked_at_block.normal_x == -1)      block_looked_at_left   = true;
-            else if(looked_at_block.normal_x ==  1) block_looked_at_right  = true;
-            else if(looked_at_block.normal_y == -1) block_looked_at_bottom = true;
-            else if(looked_at_block.normal_y ==  1) block_looked_at_top    = true;
-            else if(looked_at_block.normal_z == -1) block_looked_at_front  = true;
-            else if(looked_at_block.normal_z ==  1) block_looked_at_back   = true;
-          }
-        }
-
-        // decide whether the block faces should be shifted down or not (for liquid blocks)
-        bool shift_block_faces = should_shift_block_faces(y_plane, z_row, x_col);
-
-        block_orientation_t block_orientation = block_at(y_plane, z_row, x_col).orientation;
-        if(render_left_block_face){
+        if(render_left_fluid_connector){
           float face_sky_light = block_at(y_plane, z_row, x_col - 1).sky_light / 15.0f * sun_sin_eta;
           float face_block_light = block_at(y_plane, z_row, x_col - 1).block_light / 15.0f;
           float face_light = face_sky_light + face_block_light;
           if(face_light < 0.015f) face_light = 0.015f;
           if(face_light > 1.0f)   face_light = 1.0f;
           light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
-          block_face_t block_face = generate_block_face(BLOCK_FACE_LEFT, y_plane, z_row, x_col);
-          
-          if(shift_block_faces){
-            block_face.points[1].y -= 0.1;
-            block_face.points[3].y -= 0.1;
-          }
-          render_block_face(block_face, block_material, block_looked_at_left, block_orientation, light_intensity);
+          options.backface_culling = false;
+          block_face_t fluid_block_connector_face = generate_fluid_top_block_face(BLOCK_FACE_LEFT, y_plane, z_row, x_col);
+          render_block_face(fluid_block_connector_face, block_material, block_looked_at_left, block_orientation, light_intensity);
+          options.backface_culling = true;
         }
+
+        // RIGHT FACE
         if(render_right_block_face){
           float face_sky_light = block_at(y_plane, z_row, x_col + 1).sky_light / 15.0f * sun_sin_eta;
           float face_block_light = block_at(y_plane, z_row, x_col + 1).block_light / 15.0f;
@@ -2408,27 +2303,54 @@ void render_transparent_chunk_blocks(chunk_t *chunk){
           light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
           block_face_t block_face = generate_block_face(BLOCK_FACE_RIGHT, y_plane, z_row, x_col);
           if(shift_block_faces){
-            block_face.points[1].y -= 0.1;
-            block_face.points[3].y -= 0.1;
+            block_face.points[1].y -= BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+            block_face.points[3].y -= BLOCK_FACE_SHIFT_DOWN_AMOUNT;
           }
           render_block_face(block_face, block_material, block_looked_at_right, block_orientation, light_intensity);
+
         }
+        if(render_right_fluid_connector){
+        float face_sky_light = block_at(y_plane, z_row, x_col + 1).sky_light / 15.0f * sun_sin_eta;
+        float face_block_light = block_at(y_plane, z_row, x_col + 1).block_light / 15.0f;
+        float face_light = face_sky_light + face_block_light;
+        if(face_light < 0.015f) face_light = 0.015f;
+        if(face_light > 1.0f)   face_light = 1.0f;
+        light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
+        options.backface_culling = false;
+        block_face_t fluid_block_connector_face = generate_fluid_top_block_face(BLOCK_FACE_RIGHT, y_plane, z_row, x_col);
+        render_block_face(fluid_block_connector_face, block_material, block_looked_at_left, block_orientation, light_intensity);
+        options.backface_culling = true;
+        }
+
+        // TOP FACE
         if(render_top_block_face){
-          float face_sky_light =  block_at(y_plane + 1, z_row, x_col).sky_light / 15.0f * sun_sin_eta;
-          float face_block_light =  block_at(y_plane + 1, z_row, x_col).block_light / 15.0f;
+          light_sample_t light = get_fluid_surface_light(y_plane, z_row, x_col);
+          float face_sky_light;
+          float face_block_light;
+          if(block_is_surface_fluid(y_plane, z_row, x_col)){
+            face_sky_light = light.sky_light / 15.0f * sun_sin_eta;
+            face_block_light =  light.block_light / 15.0f;
+          }
+          else{
+            face_sky_light = block_at(y_plane + 1, z_row, x_col).sky_light / 15.0f * sun_sin_eta;
+            face_block_light = block_at(y_plane + 1, z_row, x_col).block_light / 15.0f;
+          }
           float face_light = face_sky_light + face_block_light;
+
           if(face_light < 0.015f) face_light = 0.015f;
           if(face_light > 1.0f)   face_light = 1.0f;
           light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
           block_face_t block_face = generate_block_face(BLOCK_FACE_TOP, y_plane, z_row, x_col);
           if(shift_block_faces){
-            block_face.points[0].y -= 0.1;
-            block_face.points[1].y -= 0.1;
-            block_face.points[2].y -= 0.1;
-            block_face.points[3].y -= 0.1;
+            block_face.points[0].y -= BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+            block_face.points[1].y -= BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+            block_face.points[2].y -= BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+            block_face.points[3].y -= BLOCK_FACE_SHIFT_DOWN_AMOUNT;
           }
           render_block_face(block_face, block_material, block_looked_at_top, block_orientation, light_intensity);
         }
+
+        // BOTTOM FACE
         if(render_bottom_block_face){
           float face_sky_light =  block_at(y_plane - 1, z_row, x_col).sky_light / 15.0f * sun_sin_eta;
           float face_block_light =  block_at(y_plane - 1, z_row, x_col).block_light / 15.0f;
@@ -2439,6 +2361,8 @@ void render_transparent_chunk_blocks(chunk_t *chunk){
           block_face_t block_face = generate_block_face(BLOCK_FACE_BOTTOM, y_plane, z_row, x_col);
           render_block_face(block_face, block_material, block_looked_at_bottom, block_orientation, light_intensity);
         }
+
+        // FRONT FACE
         if(render_front_block_face){
           float face_sky_light =  block_at(y_plane, z_row - 1, x_col).sky_light / 15.0f * sun_sin_eta;
           float face_block_light =  block_at(y_plane, z_row - 1, x_col).block_light / 15.0f;
@@ -2448,11 +2372,26 @@ void render_transparent_chunk_blocks(chunk_t *chunk){
           light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
           block_face_t block_face = generate_block_face(BLOCK_FACE_FRONT, y_plane, z_row, x_col);
           if(shift_block_faces){
-            block_face.points[1].y -= 0.1;
-            block_face.points[3].y -= 0.1;
+            block_face.points[1].y -= BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+            block_face.points[3].y -= BLOCK_FACE_SHIFT_DOWN_AMOUNT;
           }
           render_block_face(block_face, block_material, block_looked_at_front, block_orientation, light_intensity);
+
         }
+        if(render_front_fluid_connector){
+          float face_sky_light =  block_at(y_plane, z_row - 1, x_col).sky_light / 15.0f * sun_sin_eta;
+          float face_block_light =  block_at(y_plane, z_row - 1, x_col).block_light / 15.0f;
+          float face_light = face_sky_light + face_block_light;
+          if(face_light < 0.015f) face_light = 0.015f;
+          if(face_light > 1.0f)   face_light = 1.0f;
+          light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
+          options.backface_culling = false;
+          block_face_t fluid_block_connector_face = generate_fluid_top_block_face(BLOCK_FACE_FRONT, y_plane, z_row, x_col);
+          render_block_face(fluid_block_connector_face, block_material, block_looked_at_left, block_orientation, light_intensity);
+          options.backface_culling = true;
+        }
+
+        // BACK FACE
         if(render_back_block_face){
           float face_sky_light   = block_at(y_plane, z_row + 1, x_col).sky_light / 15.0f * sun_sin_eta;
           float face_block_light = block_at(y_plane, z_row + 1, x_col).block_light / 15.0f;
@@ -2462,10 +2401,22 @@ void render_transparent_chunk_blocks(chunk_t *chunk){
           light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
           block_face_t block_face = generate_block_face(BLOCK_FACE_BACK, y_plane, z_row, x_col);
           if(shift_block_faces){
-            block_face.points[1].y -= 0.1;
-            block_face.points[3].y -= 0.1;
+            block_face.points[1].y -= BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+            block_face.points[3].y -= BLOCK_FACE_SHIFT_DOWN_AMOUNT;
           }
           render_block_face(block_face, block_material, block_looked_at_back, block_orientation, light_intensity);
+        }
+        if(render_back_fluid_connector){
+          float face_sky_light   = block_at(y_plane, z_row + 1, x_col).sky_light / 15.0f * sun_sin_eta;
+          float face_block_light = block_at(y_plane, z_row + 1, x_col).block_light / 15.0f;
+          float face_light = face_sky_light + face_block_light;
+          if(face_light < 0.015f) face_light = 0.015f;
+          if(face_light > 1.0f)   face_light = 1.0f;
+          light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
+          options.backface_culling = false;
+          block_face_t fluid_block_connector_face = generate_fluid_top_block_face(BLOCK_FACE_BACK, y_plane, z_row, x_col);
+          render_block_face(fluid_block_connector_face, block_material, block_looked_at_left, block_orientation, light_intensity);
+          options.backface_culling = true;
         }
       }
     }
@@ -2873,7 +2824,7 @@ void update_light(void){
   if(skybox_id != -1){
     //object_t *skybox = &objects[skybox_id];
 
-    sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
+    //sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
     sun_sin_eta = sinf(sun_eta);
 
     if(sun_sin_eta < 0.0f) sun_sin_eta = 0.0f;

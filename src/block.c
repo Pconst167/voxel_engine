@@ -1115,29 +1115,6 @@ void init_block_materials(){
   );
 
   // QUICKSAND
-  array_push(
-    block_materials,
-    ((block_material_t){
-      .material_name        = "quicksand0",
-      .solid                = true,
-      .mass                 = 30,
-      .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
-      .mineable             = true,
-      .block_fluid_type     = BLOCK_FLUID_QUICKSAND,
-      .backface_culling     = true,
-      .base_color           = (color_t){.uint32 = 0xFF80FFFF},
-      .emissive_color       = (color_t){.uint32 = 0x00000000},
-      .reflects_light       = true,
-      .blend_mode           = BLEND_MODE_OPAQUE,
-      .alpha_cutoff         = DEFAULT_ALPHA_CUTOFF,
-      .front_texture        = load_texture("./assets/textures/blocks/quicksand0.png"),
-      .back_texture         = load_texture("./assets/textures/blocks/quicksand0.png"),
-      .left_texture         = load_texture("./assets/textures/blocks/quicksand0.png"),
-      .right_texture        = load_texture("./assets/textures/blocks/quicksand0.png"),
-      .top_texture          = load_texture("./assets/textures/blocks/quicksand0.png"),
-      .bottom_texture       = load_texture("./assets/textures/blocks/quicksand0.png")
-    })
-  );
 
   // GLASS
   array_push(
@@ -1344,11 +1321,6 @@ void init_block_map(){
   for(uint32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
     for(uint32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
       place_pond(z, x);
-    }
-  }
-  for(uint32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
-    for(uint32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
-      place_quicksand(z, x);
     }
   }
 
@@ -1791,6 +1763,133 @@ inline block_face_t generate_block_face(block_face_direction_t block_face_type, 
   }
 }
 
+inline block_face_t generate_fluid_top_block_face(block_face_direction_t block_face_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col){
+  block_face_t block_face = {0};
+
+  switch(block_face_type){
+    case BLOCK_FACE_TOP:
+    case BLOCK_FACE_BOTTOM:
+    return block_face;
+    
+    case BLOCK_FACE_LEFT:
+      block_face.points[0].x = x_col;
+      block_face.points[0].y = y_plane + 1.0f - BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+      block_face.points[0].z = z_row + 1.0f;
+      block_face.points[1].x = x_col;
+      block_face.points[1].y = y_plane + 1.0f;
+      block_face.points[1].z = z_row + 1.0f;
+      block_face.points[2].x = x_col;
+      block_face.points[2].y = y_plane + 1.0f - BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+      block_face.points[2].z = z_row;
+      block_face.uv[0].u = 0.0f;
+      block_face.uv[0].v = 1.0f - BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+      block_face.uv[1].u = 0.0f;
+      block_face.uv[1].v = 1.0f;
+      block_face.uv[2].u = 1.0f;
+      block_face.uv[2].v = 1.0f - BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+      // right side unshared vertex
+      block_face.points[3].x = x_col;
+      block_face.points[3].y = y_plane + 1.0f;
+      block_face.points[3].z = z_row;
+      block_face.uv[3].u = 1.0f;
+      block_face.uv[3].v = 1.0f;
+      block_face.uv[4].u = 1.0f;
+      block_face.uv[4].v = 1.0f - BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+      block_face.uv[5].u = 0.0f;
+      block_face.uv[5].v = 1.0f;
+      block_face.block_face_type = BLOCK_FACE_LEFT;
+      return block_face;
+      
+    case BLOCK_FACE_RIGHT:
+      block_face.points[0].x = x_col + 1.0f;
+      block_face.points[0].y = y_plane + 1.0f - BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+      block_face.points[0].z = z_row;
+      block_face.points[1].x = x_col + 1.0f;
+      block_face.points[1].y = y_plane + 1.0f;
+      block_face.points[1].z = z_row;
+      block_face.points[2].x = x_col + 1.0f;
+      block_face.points[2].y = y_plane + 1.0f - BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+      block_face.points[2].z = z_row + 1.0f;
+      block_face.uv[0].u = 0.0f;
+      block_face.uv[0].v = 1.0f - BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+      block_face.uv[1].u = 0.0f;
+      block_face.uv[1].v = 1.0f;
+      block_face.uv[2].u = 1.0f;
+      block_face.uv[2].v = 1.0f - BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+      // right side unshared vertex
+      block_face.points[3].x = x_col + 1.0f;
+      block_face.points[3].y = y_plane + 1.0f;
+      block_face.points[3].z = z_row + 1.0f;
+      block_face.uv[3].u = 1.0f;
+      block_face.uv[3].v = 1.0f;
+      block_face.uv[4].u = 1.0f;
+      block_face.uv[4].v = 1.0f - BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+      block_face.uv[5].u = 0.0f;
+      block_face.uv[5].v = 1.0f;
+      block_face.block_face_type = BLOCK_FACE_RIGHT;
+      return block_face;
+      
+    case BLOCK_FACE_BACK:
+      block_face.points[0].x = x_col + 1.0f;
+      block_face.points[0].y = y_plane + 1.0f - BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+      block_face.points[0].z = z_row + 1.0f;
+      block_face.points[1].x = x_col + 1.0f;
+      block_face.points[1].y = y_plane + 1.0f;
+      block_face.points[1].z = z_row + 1.0f;
+      block_face.points[2].x = x_col;
+      block_face.points[2].y = y_plane + 1.0f - BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+      block_face.points[2].z = z_row + 1.0f;
+      block_face.uv[0].u = 0.0f;
+      block_face.uv[0].v = 1.0f - BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+      block_face.uv[1].u = 0.0f;
+      block_face.uv[1].v = 1.0f;
+      block_face.uv[2].u = 1.0f;
+      block_face.uv[2].v = 1.0f - BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+      // right side unshared vertex
+      block_face.points[3].x = x_col;
+      block_face.points[3].y = y_plane + 1.0f;
+      block_face.points[3].z = z_row + 1.0f;
+      block_face.uv[3].u = 1.0f;
+      block_face.uv[3].v = 1.0f;
+      block_face.uv[4].u = 1.0f;
+      block_face.uv[4].v = 1.0f - BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+      block_face.uv[5].u = 0.0f;
+      block_face.uv[5].v = 1.0f;
+      block_face.block_face_type = BLOCK_FACE_BACK;
+      return block_face;
+      
+    case BLOCK_FACE_FRONT:
+    default:
+      block_face.points[0].x = x_col;
+      block_face.points[0].y = y_plane + 1.0f - BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+      block_face.points[0].z = z_row;
+      block_face.points[1].x = x_col;
+      block_face.points[1].y = y_plane + 1.0f;
+      block_face.points[1].z = z_row;
+      block_face.points[2].x = x_col + 1.0f;
+      block_face.points[2].y = y_plane + 1.0f - BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+      block_face.points[2].z = z_row;
+      block_face.uv[0].u = 0.0f;
+      block_face.uv[0].v = 1.0f - BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+      block_face.uv[1].u = 0.0f;
+      block_face.uv[1].v = 1.0f;
+      block_face.uv[2].u = 1.0f;
+      block_face.uv[2].v = 1.0f - BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+      // right side unshared vertex
+      block_face.points[3].x = x_col + 1.0f;
+      block_face.points[3].y = y_plane + 1.0f;
+      block_face.points[3].z = z_row;
+      block_face.uv[3].u = 1.0f;
+      block_face.uv[3].v = 1.0f;
+      block_face.uv[4].u = 1.0f;
+      block_face.uv[4].v = 1.0f - BLOCK_FACE_SHIFT_DOWN_AMOUNT;
+      block_face.uv[5].u = 0.0f;
+      block_face.uv[5].v = 1.0f;
+      block_face.block_face_type = BLOCK_FACE_FRONT;
+      return block_face;
+  }
+}
+
 block_raycast_hit_t raycast_blocks(
   vector3_t ray_origin,
   vector3_t ray_direction,
@@ -1992,32 +2091,6 @@ void place_pond(int32_t z_row, int32_t x_col){
   }
 }
 
-void place_quicksand(int32_t z_row, int32_t x_col){
-  uint32_t seed = (uint32_t)(z_row * 73856093u) ^ (uint32_t)(x_col * 19349663u); // two prime numbers for hashing
-  bool will_spawn = random_spawn_from_seed(seed, 0.01f);
-
-  if(!will_spawn) return;
-
-  // find first solid block along y
-  int32_t first_solid_y = 0;
-  for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
-    if(block_materials[block_at(y, z_row, x_col).type].solid){
-      first_solid_y = y;
-      break;
-    }
-  }
-
-  uint32_t quicksand_size_seed = seed ^ 0xF12C77B3u;
-
-  int32_t quicksand_size = 3.0f + (double)(6 - 3 + 1) * (double)(rand_i(quicksand_size_seed) / (double)UINT32_MAX);
-
-  for(int32_t z = z_row; z < z_row + quicksand_size; z++){
-    for(int32_t x = x_col; x < x_col + quicksand_size; x++){
-      assign_block_material(first_solid_y, z, x, BLOCK_TYPE_QUICKSAND0);
-    }
-  }
-}
-
 bool should_render_face(block_face_direction_t face_direction, int32_t y, int32_t z, int32_t x){
   block_t *block = &block_at(y, z, x);
 
@@ -2025,39 +2098,40 @@ bool should_render_face(block_face_direction_t face_direction, int32_t y, int32_
     case BLOCK_FACE_LEFT:
       if(x - 1 < 0) return false;
       block_t *block_left = &block_at(y, z, x - 1);
-      if(block->type == BLOCK_TYPE_WATER0){
+      if(block_materials[block->type].block_fluid_type != BLOCK_FLUID_NONE){
         if(block_left->type == BLOCK_TYPE_AIR) return true;
         return false;
       }
       else{
-        if(block_left->type == BLOCK_TYPE_AIR || block_left->type == BLOCK_TYPE_GLASS || block_left->type == BLOCK_TYPE_WATER0) return true;
+        if(block_left->type == BLOCK_TYPE_AIR || block_left->type == BLOCK_TYPE_GLASS) return true;
+        if(block_materials[block_left->type].block_fluid_type != BLOCK_FLUID_NONE) return true;
         return false;
       }
       break;
+
     case BLOCK_FACE_RIGHT:
       if(x + 1 >= MAP_NUM_BLOCKS_X) return false;
       block_t *block_right = &block_at(y, z, x + 1);
-      if(block->type == BLOCK_TYPE_WATER0){
+      if(block_materials[block->type].block_fluid_type != BLOCK_FLUID_NONE){
         if(block_right->type == BLOCK_TYPE_AIR) return true;
 
         return false;
       }
       else{
-        if(block_right->type == BLOCK_TYPE_AIR || block_right->type == BLOCK_TYPE_GLASS || block_right->type == BLOCK_TYPE_WATER0) return true;
+        if(block_right->type == BLOCK_TYPE_AIR || block_right->type == BLOCK_TYPE_GLASS) return true;
+        if(block_materials[block_right->type].block_fluid_type != BLOCK_FLUID_NONE) return true;
         return false;
       }
       break;
+
     case BLOCK_FACE_TOP:
       if(y + 1 >= MAP_NUM_BLOCKS_Y) return false;
-      if(block->type == BLOCK_TYPE_WATER0){
-        return top_block_is_fluid(y, z, x);
+      if(block_materials[block->type].block_fluid_type != BLOCK_FLUID_NONE){
+        return block_is_surface_fluid(y, z, x);
       }
       else{
-        if(
-          block_at(y + 1, z, x).type == BLOCK_TYPE_AIR    ||
-          block_at(y + 1, z, x).type == BLOCK_TYPE_GLASS  ||
-          block_at(y + 1, z, x).type == BLOCK_TYPE_WATER0
-        ) return true;
+        if(block_at(y + 1, z, x).type == BLOCK_TYPE_AIR || block_at(y + 1, z, x).type == BLOCK_TYPE_GLASS || block_at(y + 1, z, x).type == BLOCK_TYPE_WATER0) 
+          return true;
 
         return false;
       }
@@ -2066,86 +2140,165 @@ bool should_render_face(block_face_direction_t face_direction, int32_t y, int32_
     case BLOCK_FACE_BOTTOM:
       if(y - 1 < 0) return false;
       block_t *block_bottom = &block_at(y - 1, z, x);
-      if(block->type == BLOCK_TYPE_WATER0){
+      if(block_materials[block->type].block_fluid_type != BLOCK_FLUID_NONE){
         if(block_bottom->type == BLOCK_TYPE_AIR) return true;
         return false;
       }
       else{
-        if(block_bottom->type == BLOCK_TYPE_AIR || block_bottom->type == BLOCK_TYPE_GLASS || block_bottom->type == BLOCK_TYPE_WATER0) return true;
+        if(block_bottom->type == BLOCK_TYPE_AIR || block_bottom->type == BLOCK_TYPE_GLASS) return true;
+        if(block_materials[block_bottom->type].block_fluid_type != BLOCK_FLUID_NONE) return true;
         return false;
       }
       break;
+
     case BLOCK_FACE_FRONT:
       if(z - 1 < 0) return false;
       block_t *block_front = &block_at(y, z - 1, x);
-      if(block->type == BLOCK_TYPE_WATER0){
+      if(block_materials[block->type].block_fluid_type != BLOCK_FLUID_NONE){
         if(block_front->type == BLOCK_TYPE_AIR) return true;
         return false;
       }
       else{
-        if(block_front->type == BLOCK_TYPE_AIR || block_front->type == BLOCK_TYPE_GLASS || block_front->type == BLOCK_TYPE_WATER0) return true;
+        if(block_front->type == BLOCK_TYPE_AIR || block_front->type == BLOCK_TYPE_GLASS) return true;
+        if(block_materials[block_front->type].block_fluid_type != BLOCK_FLUID_NONE) return true;
         return false;
       }
       break;
+
     case BLOCK_FACE_BACK:
     default:
       if(z + 1 >= MAP_NUM_BLOCKS_Z) return false;
       block_t *block_back = &block_at(y, z + 1, x);
-      if(block->type == BLOCK_TYPE_WATER0){
+      if(block_materials[block->type].block_fluid_type != BLOCK_FLUID_NONE){
         if(block_back->type == BLOCK_TYPE_AIR) return true;
-
         return false;
       }
       else{
-        if(block_back->type == BLOCK_TYPE_AIR || block_back->type == BLOCK_TYPE_GLASS || block_back->type == BLOCK_TYPE_WATER0) return true;
+        if(block_back->type == BLOCK_TYPE_AIR || block_back->type == BLOCK_TYPE_GLASS) return true;
+        if(block_materials[block_back->type].block_fluid_type != BLOCK_FLUID_NONE) return true;
         return false;
       }
       break;
   }
-}
-
-bool block_is_water(int32_t y, int32_t z, int32_t x){
-  if(y >= MAP_NUM_BLOCKS_Y || x >= MAP_NUM_BLOCKS_X || z >= MAP_NUM_BLOCKS_Z || x < 0 || z < 0) return false;
-  if(block_at(y, z, x).type == BLOCK_TYPE_WATER0) return true;
-  return false;
 }
 
 // a block is a top water block if:
 //   block is water and block on top is air
 //   a block is water and at least one of its XZ neighbours is a top water block
-bool top_block_is_fluid(int32_t y, int32_t z, int32_t x){
-  if(block_at(y, z, x).type != BLOCK_TYPE_WATER0) return false;
+bool block_is_surface_fluid(int32_t y, int32_t z, int32_t x){
+  if(block_materials[block_at(y, z, x).type].block_fluid_type == BLOCK_FLUID_NONE) return false;
 
   if(y + 1 >= MAP_NUM_BLOCKS_Y || x + 1 >= MAP_NUM_BLOCKS_X || z + 1 >= MAP_NUM_BLOCKS_Z || x - 1 < 0 || z - 1 < 0) return false;
 
-  if(block_at(y + 1, z, x).type == BLOCK_TYPE_WATER0) return false;
+  // if block on top is fluid, return false
+  if(block_materials[block_at(y + 1, z, x).type].block_fluid_type != BLOCK_FLUID_NONE) return false;
+
   if(block_at(y + 1, z, x).type == BLOCK_TYPE_AIR) return true;
 
   if(
-    (block_at(y, z - 1,     x).type == BLOCK_TYPE_WATER0 && block_at(y + 1, z - 1,     x).type == BLOCK_TYPE_AIR) ||
-    (block_at(y, z + 1,     x).type == BLOCK_TYPE_WATER0 && block_at(y + 1, z + 1,     x).type == BLOCK_TYPE_AIR) ||
-    (block_at(y, z    , x - 1).type == BLOCK_TYPE_WATER0 && block_at(y + 1, z    , x - 1).type == BLOCK_TYPE_AIR) ||
-    (block_at(y, z    , x + 1).type == BLOCK_TYPE_WATER0 && block_at(y + 1, z    , x + 1).type == BLOCK_TYPE_AIR)
+    (block_materials[block_at(y, z - 1,     x).type].block_fluid_type != BLOCK_FLUID_NONE && block_at(y + 1, z - 1,     x).type == BLOCK_TYPE_AIR) ||
+    (block_materials[block_at(y, z + 1,     x).type].block_fluid_type != BLOCK_FLUID_NONE && block_at(y + 1, z + 1,     x).type == BLOCK_TYPE_AIR) ||
+    (block_materials[block_at(y, z    , x - 1).type].block_fluid_type != BLOCK_FLUID_NONE && block_at(y + 1, z    , x - 1).type == BLOCK_TYPE_AIR) ||
+    (block_materials[block_at(y, z    , x + 1).type].block_fluid_type != BLOCK_FLUID_NONE && block_at(y + 1, z    , x + 1).type == BLOCK_TYPE_AIR)
   ) return true;
 
   return false;
 }
 
-bool should_shift_block_faces(int32_t y_plane, int32_t z_row, int32_t x_col){
-  block_t *block = &block_at(y_plane, z_row, x_col);
-  switch(block->type){
-    case BLOCK_TYPE_WATER0:
-      return top_block_is_fluid(y_plane, z_row, x_col);
+bool should_render_water_block_connectors(block_face_direction_t face_direction, int32_t y, int32_t z, int32_t x){
+  
+  if(!block_is_surface_fluid(y, z, x)) return false;
 
-      break;
+  switch(face_direction){
+    case BLOCK_FACE_LEFT:
+      if(
+        block_materials[block_at(y + 1, z, x - 1).type].block_fluid_type != BLOCK_FLUID_NONE &&
+        block_materials[block_at(y, z, x - 1).type].block_fluid_type != BLOCK_FLUID_NONE
+      ) return true;
+      return false;
+      
+    case BLOCK_FACE_RIGHT:
+      if(block_materials[block_at(y + 1, z, x + 1).type].block_fluid_type != BLOCK_FLUID_NONE &&
+         block_materials[block_at(y, z, x + 1).type].block_fluid_type != BLOCK_FLUID_NONE
+    ) return true;
+      return false;
 
-    case BLOCK_TYPE_LAVA0:
-    case BLOCK_TYPE_LAVA1:
-      break;
-    case BLOCK_TYPE_QUICKSAND0:
-      break;
+    case BLOCK_FACE_BACK:
+      if(block_materials[block_at(y + 1, z + 1, x).type].block_fluid_type != BLOCK_FLUID_NONE &&
+         block_materials[block_at(y, z + 1, x).type].block_fluid_type != BLOCK_FLUID_NONE
+    ) return true;
+      return false;
+
+    case BLOCK_FACE_FRONT:
+      if(block_materials[block_at(y + 1, z - 1, x).type].block_fluid_type != BLOCK_FLUID_NONE &&
+         block_materials[block_at(y, z - 1, x).type].block_fluid_type != BLOCK_FLUID_NONE
+    ) return true;
+      return false;
+
     default:
       return false;
   }
+
   return false;
+}
+
+bool should_shift_block_faces(int32_t y_plane, int32_t z_row, int32_t x_col){
+
+  if(block_materials[block_at(y_plane, z_row, x_col).type].block_fluid_type != BLOCK_FLUID_NONE){
+    return block_is_surface_fluid(y_plane, z_row, x_col);
+  }
+
+  return false;
+}
+
+// for blocks that are a fluid top surface, we can't sample the light from the block right above the surface
+// because it could be a solid block, and solid blocks have 0 light
+// so we test the light around the surface, to find the largest light amount
+light_sample_t get_fluid_surface_light(int32_t y, int32_t z, int32_t x){
+  light_sample_t light = {
+    .sky_light = block_at(y, z, x).sky_light,
+    .block_light = block_at(y, z, x).block_light
+  };
+
+  if(y + 1 < MAP_NUM_BLOCKS_Y && !block_is_opaque(&block_at(y + 1, z, x))){
+    if(block_at(y + 1, z, x).sky_light > light.sky_light)
+      light.sky_light = block_at(y + 1, z, x).sky_light;
+
+    if(block_at(y + 1, z, x).block_light > light.block_light)
+      light.block_light = block_at(y + 1, z, x).block_light;
+  }
+
+  if(z - 1 >= 0){
+    if(block_at(y, z - 1, x).sky_light > light.sky_light)
+      light.sky_light = block_at(y, z - 1, x).sky_light;
+
+    if(block_at(y, z - 1, x).block_light > light.block_light)
+      light.block_light = block_at(y, z - 1, x).block_light;
+  }
+
+  if(z + 1 < MAP_NUM_BLOCKS_Z){
+    if(block_at(y, z + 1, x).sky_light > light.sky_light)
+      light.sky_light = block_at(y, z + 1, x).sky_light;
+
+    if(block_at(y, z + 1, x).block_light > light.block_light)
+      light.block_light = block_at(y, z + 1, x).block_light;
+  }
+
+  if(x - 1 >= 0){
+    if(block_at(y, z, x - 1).sky_light > light.sky_light)
+      light.sky_light = block_at(y, z, x - 1).sky_light;
+
+    if(block_at(y, z, x - 1).block_light > light.block_light)
+      light.block_light = block_at(y, z, x - 1).block_light;
+  }
+
+  if(x + 1 < MAP_NUM_BLOCKS_X){
+    if(block_at(y, z, x + 1).sky_light > light.sky_light)
+      light.sky_light = block_at(y, z, x + 1).sky_light;
+
+    if(block_at(y, z, x + 1).block_light > light.block_light)
+      light.block_light = block_at(y, z, x + 1).block_light;
+  }
+
+  return light;
 }

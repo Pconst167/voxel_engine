@@ -69,8 +69,7 @@ bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane
 uint32_t chunk_num_vertices_inside_plane(chunk_t *chunk, frustrum_plane_t frustrum_plane);
 int get_chunk_intersection_mode(chunk_t *chunk);
 chunk_intersection_mode_t get_chunk_intersection_mode_fast(chunk_t *chunk);
-void render_opaque_chunk_blocks(chunk_t *chunk);
-void render_transparent_chunk_blocks(chunk_t *chunk);
+void render_chunk_blocks(chunk_t *chunk, bool transparent_only);
 void render_visible_chunks(void);
 void render_block_face(
   block_face_t block_face, 

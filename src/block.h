@@ -18,7 +18,7 @@
 #define CHUNK_RENDER_DISTANCE_Z 4 // render this number of chunks around the player in XZ
 #define CHUNK_RENDER_DISTANCE_X 4 // render this number of chunks around the player in XZ
 
-#define BLOCK_FACE_SHIFT_DOWN_AMOUNT (0.0f) // for fluid blocks
+#define BLOCK_FACE_SHIFT_DOWN_AMOUNT (0.1f) // for fluid blocks
 
 #define MAX_BLOCK_LOOK_AT_DISTANCE 6.0f
 #define BLOCK_TYPE_STRING_NAME_MAX_LEN 32
@@ -45,6 +45,11 @@ typedef struct{
   uint32_t head;
   uint32_t tail;
 } light_queue_t;
+
+typedef struct{
+  uint8_t sky_light;
+  uint8_t block_light;
+} light_sample_t;
 
 // BLOCK TYPES
 typedef enum{
@@ -94,7 +99,6 @@ typedef enum{
   BLOCK_TYPE_FLOWER_LEAVES1,
   BLOCK_TYPE_WATER0     ,
   BLOCK_TYPE_BOG0       ,
-  BLOCK_TYPE_QUICKSAND0 ,
   BLOCK_TYPE_GLASS      ,
   BLOCK_TYPE_LAMP0      ,
   BLOCK_TYPE_OVEN0      ,
@@ -202,7 +206,9 @@ void init_block_materials();
 void init_block_map();
 void get_block_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, int *start_y, int *end_y, int *start_z, int *end_z);
 block_face_t generate_block_face(block_face_direction_t block_face_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col);
+block_face_t generate_fluid_top_block_face(block_face_direction_t block_face_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col);
 bool should_render_face(block_face_direction_t face_direction, int32_t y, int32_t z, int32_t x);
+bool should_render_water_block_connectors(block_face_direction_t face_direction, int32_t y, int32_t z, int32_t x);
 bool should_shift_block_faces(int32_t y_plane, int32_t z_row, int32_t x_col);
 
 block_raycast_hit_t raycast_blocks(vector3_t ray_origin, vector3_t ray_direction, float max_distance);
@@ -216,11 +222,10 @@ bool block_is_transparent(block_t *block);
 bool block_is_opaque(block_t *block);
 bool block_is_emissive(block_t *block);
 bool block_is_tree_leaves(block_t *block);
-bool top_block_is_fluid(int32_t y, int32_t z, int32_t x);
-bool block_is_water(int32_t y, int32_t z, int32_t x);
+bool block_is_surface_fluid(int32_t y, int32_t z, int32_t x);
+light_sample_t get_fluid_surface_light(int32_t y, int32_t z, int32_t x);
 
 void place_pond(int32_t z_row, int32_t x_col);
-void place_quicksand(int32_t z_row, int32_t x_col);
 
 // BLOCK LIGHT FUNCTIONS
 void reset_light_around_area(int32_t y_start, int32_t y_end, int32_t z_start, int32_t z_end, int32_t x_start, int32_t x_end);
