@@ -116,7 +116,7 @@
 #define FOV_Y_DEG 90.0
 #define FOV_Y (FOV_Y_DEG * M_PI / 180.0)
 #define ZNEAR 0.05f
-#define ZFAR CHUNK_RENDER_DISTANCE * (CHUNK_SIZE * 2) // 300.0f
+#define ZFAR (1 + CHUNK_RENDER_DISTANCE_X) * (CHUNK_SIZE)
 
 /* parameters for controlling the absolute ambient light */
 #define MIN_AMBIENT_LIGHT_INTENSITY 0.05f
@@ -164,8 +164,8 @@ vector3_t up = {.x = 0, .y = 1, .z = 0}; /* up direction vector for view matrix 
 
 /* sun/sky data */
 int32_t skybox_id = 1;
-float sun_eta = (0); /* sun's eta angle */
-float sun_sin_eta = 0.0f;
+float sun_eta = (M_PI_2); /* sun's eta angle */
+float sun_sin_eta = 1.0f;
 color_t sky_color = (color_t){.uint32 = 0xFFFF8040};
 
 triangle_t triangles_to_render[50000];
@@ -1801,18 +1801,21 @@ inline void render_visible_chunks(void) {
   int32_t player_chunk_x = player.position.x / CHUNK_SIZE;
   int32_t player_chunk_y = player.position.y / CHUNK_SIZE;
   int32_t player_chunk_z = player.position.z / CHUNK_SIZE;
-  int32_t player_chunk_start_y = player_chunk_y - CHUNK_RENDER_DISTANCE;
-  int32_t player_chunk_end_y   = player_chunk_y + CHUNK_RENDER_DISTANCE;
-  int32_t player_chunk_start_z = player_chunk_z - CHUNK_RENDER_DISTANCE;
-  int32_t player_chunk_end_z   = player_chunk_z + CHUNK_RENDER_DISTANCE;
-  int32_t player_chunk_start_x = player_chunk_x - CHUNK_RENDER_DISTANCE;
-  int32_t player_chunk_end_x   = player_chunk_x + CHUNK_RENDER_DISTANCE;
+  int32_t player_chunk_start_y = player_chunk_y - CHUNK_RENDER_DISTANCE_Y;
+  int32_t player_chunk_end_y   = player_chunk_y + CHUNK_RENDER_DISTANCE_Y;
+  int32_t player_chunk_start_z = player_chunk_z - CHUNK_RENDER_DISTANCE_Z;
+  int32_t player_chunk_end_z   = player_chunk_z + CHUNK_RENDER_DISTANCE_Z;
+  int32_t player_chunk_start_x = player_chunk_x - CHUNK_RENDER_DISTANCE_X;
+  int32_t player_chunk_end_x   = player_chunk_x + CHUNK_RENDER_DISTANCE_X;
   player_chunk_start_y = clamp_int(player_chunk_start_y, 0, NUM_CHUNK_DIVISIONS_Y - 1);
   player_chunk_end_y   = clamp_int(player_chunk_end_y, 0, NUM_CHUNK_DIVISIONS_Y - 1);
   player_chunk_start_z = clamp_int(player_chunk_start_z, 0, NUM_CHUNK_DIVISIONS_Z - 1);
   player_chunk_end_z   = clamp_int(player_chunk_end_z, 0, NUM_CHUNK_DIVISIONS_Z - 1);
   player_chunk_start_x = clamp_int(player_chunk_start_x, 0, NUM_CHUNK_DIVISIONS_X - 1);
   player_chunk_end_x   = clamp_int(player_chunk_end_x, 0, NUM_CHUNK_DIVISIONS_X - 1);
+
+  chunk_t *visible_chunks[1 + 2*CHUNK_RENDER_DISTANCE_Y + 1 + 2*CHUNK_RENDER_DISTANCE_Z + 1 + 2*CHUNK_RENDER_DISTANCE_X];
+  int32_t num_visible_chunks = 0;
 
   /* collect visible chunks */
   for(int32_t y_plane = player_chunk_start_y; y_plane <= player_chunk_end_y; y_plane++){
@@ -1823,97 +1826,21 @@ inline void render_visible_chunks(void) {
         chunk_intersection_mode_t intersection_mode = get_chunk_intersection_mode_fast(chunk);
 
         if(intersection_mode != CHUNK_INTERSECTION_MODE_INSIDE && intersection_mode != CHUNK_INTERSECTION_MODE_INTERSECTING) continue;
-        render_chunk_blocks(y_plane, z_row, x_col);
-
-        total_chunks_rendered++;
-      }
-    }
-  }
-
-  if(options.render_chunk_outlines) draw_chunk_outlines();
-  if(options.render_collision_aabb_outlines) draw_collision_aabb_outlines();
-}
-
-// sort chunks front to back and render
-inline void render_visible_chunks_sorted(void) {
-
-  total_triangles_rendered = 0;
-  total_pixels_rendered = 0;
-  total_chunks_rendered = 0;
-
-  int32_t player_chunk_x = player.position.x / CHUNK_SIZE;
-  int32_t player_chunk_y = player.position.y / CHUNK_SIZE;
-  int32_t player_chunk_z = player.position.z / CHUNK_SIZE;
-  int32_t player_chunk_start_y = player_chunk_y - CHUNK_RENDER_DISTANCE;
-  int32_t player_chunk_end_y   = player_chunk_y + CHUNK_RENDER_DISTANCE;
-  int32_t player_chunk_start_z = player_chunk_z - CHUNK_RENDER_DISTANCE;
-  int32_t player_chunk_end_z   = player_chunk_z + CHUNK_RENDER_DISTANCE;
-  int32_t player_chunk_start_x = player_chunk_x - CHUNK_RENDER_DISTANCE;
-  int32_t player_chunk_end_x   = player_chunk_x + CHUNK_RENDER_DISTANCE;
-  player_chunk_start_y = clamp_int(player_chunk_start_y, 0, NUM_CHUNK_DIVISIONS_Y - 1);
-  player_chunk_end_y   = clamp_int(player_chunk_end_y, 0, NUM_CHUNK_DIVISIONS_Y - 1);
-  player_chunk_start_z = clamp_int(player_chunk_start_z, 0, NUM_CHUNK_DIVISIONS_Z - 1);
-  player_chunk_end_z   = clamp_int(player_chunk_end_z, 0, NUM_CHUNK_DIVISIONS_Z - 1);
-  player_chunk_start_x = clamp_int(player_chunk_start_x, 0, NUM_CHUNK_DIVISIONS_X - 1);
-  player_chunk_end_x   = clamp_int(player_chunk_end_x, 0, NUM_CHUNK_DIVISIONS_X - 1);
-
-  chunk_sort_key_t chunk_sort_keys[NUM_CHUNK_DIVISIONS_Y * NUM_CHUNK_DIVISIONS_X * NUM_CHUNK_DIVISIONS_Z];
-  int num_visible_chunks = 0;
-
-  /* collect visible chunks */
-  for(int y_plane = player_chunk_start_y; y_plane <= player_chunk_end_y; y_plane++){
-    for(int z_row = player_chunk_start_z; z_row <= player_chunk_end_z; z_row++){
-      for(int x_col = player_chunk_start_x; x_col <= player_chunk_end_x; x_col++){
-        chunk_t *chunk = &chunks[y_plane][z_row][x_col];
-
-        chunk_intersection_mode_t intersection_mode = get_chunk_intersection_mode_fast(chunk);
-
-        if(intersection_mode != CHUNK_INTERSECTION_MODE_INSIDE && intersection_mode != CHUNK_INTERSECTION_MODE_INTERSECTING) continue;
-
-        /* compute chunk center */
-        float center_x = (float)((chunk->x_min + chunk->x_max) * 0.5);
-        float center_y = (float)((chunk->y_min + chunk->y_max) * 0.5);
-        float center_z = (float)((chunk->z_min + chunk->z_max) * 0.5);
-
-        vector4_t chunk_center_view = matrix4_mul_vector3(&view_matrix, (vector3_t){center_x, center_y, center_z});
-
-        chunk_sort_keys[num_visible_chunks].chunk_y_plane = y_plane;
-        chunk_sort_keys[num_visible_chunks].chunk_z_row   = z_row;
-        chunk_sort_keys[num_visible_chunks].chunk_x_col   = x_col;
-        chunk_sort_keys[num_visible_chunks].sort_z        = chunk_center_view.z;
-
+        visible_chunks[num_visible_chunks] = &chunks[y_plane][z_row][x_col];
         num_visible_chunks++;
       }
     }
   }
 
-  /* insertion sort (front-to-back = nearest first) */
-  for(int i = 1; i < num_visible_chunks; i++){
-    chunk_sort_key_t key = chunk_sort_keys[i];
-    int j = i - 1;
-
-    while(j >= 0 && chunk_sort_keys[j].sort_z > key.sort_z){
-      chunk_sort_keys[j + 1] = chunk_sort_keys[j];
-      j--;
-    }
-
-    chunk_sort_keys[j + 1] = key;
+  for(int32_t chunk_i = 0; chunk_i < num_visible_chunks; chunk_i++){
+    render_opaque_chunk_blocks(visible_chunks[chunk_i]);
   }
-
-  /* render in sorted order */
-  for(int i = 0; i < num_visible_chunks; i++){
-    int y_plane = chunk_sort_keys[i].chunk_y_plane;
-    int z_row   = chunk_sort_keys[i].chunk_z_row;
-    int x_col   = chunk_sort_keys[i].chunk_x_col;
-
-    //render_chunk_objects(&chunks[z_row][x_col]);
-    render_chunk_blocks(y_plane, z_row, x_col);
-
-    total_chunks_rendered++;
+  for(int32_t chunk_i = 0; chunk_i < num_visible_chunks; chunk_i++){
+    render_transparent_chunk_blocks(visible_chunks[chunk_i]);
   }
 
   if(options.render_chunk_outlines) draw_chunk_outlines();
-  if(options.render_collision_aabb_outlines) draw_collision_aabb_outlines();
+  //if(options.render_collision_aabb_outlines) draw_collision_aabb_outlines();
 }
 
 /*  0 : outside
@@ -2240,12 +2167,12 @@ void render_block_face(
       projected_triangle.face_material.emissive_color.rgb.green *= 0.5;
       projected_triangle.face_material.emissive_color.rgb.red *= 0.5;
       projected_triangle.total_light_intensity.blue  *= 0.7f;
-      projected_triangle.total_light_intensity.green *= 0.2f;
-      projected_triangle.total_light_intensity.red   *= 0.1f;
+      projected_triangle.total_light_intensity.green *= 0.4f;
+      projected_triangle.total_light_intensity.red   *= 0.3f;
     }
 
     if(block_material->blend_mode == BLEND_MODE_ALPHA_BLEND){
-      if(projected_triangle.avg_w > ZFAR / 8.0f){
+      if(projected_triangle.avg_w > ZFAR / 2.0f){
         projected_triangle.face_material.blend_mode = BLEND_MODE_OPAQUE;
       }
       else{
@@ -2270,18 +2197,9 @@ void render_block_face(
   } /* for(int t = 0; t < polygon.num_vertices - 2; t++) */
 }
 
-/*
-  loop through all blocks inside chunk
-  if air, ignore
-  if land, then form some or all of the block faces based on the nearest neighbours:
-    if the immediate neighbour of a face is solid, then do not form that block's face etc
-    if immediate neighbour is air, then form that block_face with 2 faces and render
-*/
-void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
+void render_opaque_chunk_blocks(chunk_t *chunk){
   total_chunk_triangles_to_render = 0;
 
-  chunk_t *chunk = &chunks[y_plane][z_row][x_col];
-  
   // find the start and end block indices inside chunk
   int32_t y_plane_start = chunk->y_plane_start;
   int32_t y_plane_end   = chunk->y_plane_start + CHUNK_SIZE;
@@ -2297,6 +2215,7 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
         
         block_t *block = &block_at(y_plane, z_row, x_col);
         if(block->type == BLOCK_TYPE_AIR) continue;
+        if(block_materials[block->type].blend_mode == BLEND_MODE_ALPHA_BLEND) continue;
         
         bool render_left_block_face   = should_render_face(BLOCK_FACE_LEFT  , y_plane, z_row, x_col);
         bool render_right_block_face  = should_render_face(BLOCK_FACE_RIGHT , y_plane, z_row, x_col);
@@ -2325,7 +2244,144 @@ void render_chunk_blocks(int32_t y_plane, int32_t z_row, int32_t x_col){
         }
 
         // decide whether the block faces should be shifted down or not (for liquid blocks)
-        bool shift_block_faces = false;//should_shift_block_faces(y_plane, z_row, x_col);
+        bool shift_block_faces = should_shift_block_faces(y_plane, z_row, x_col);
+
+        block_orientation_t block_orientation = block_at(y_plane, z_row, x_col).orientation;
+        if(render_left_block_face){
+          float face_sky_light = block_at(y_plane, z_row, x_col - 1).sky_light / 15.0f * sun_sin_eta;
+          float face_block_light = block_at(y_plane, z_row, x_col - 1).block_light / 15.0f;
+          float face_light = face_sky_light + face_block_light;
+          if(face_light < 0.015f) face_light = 0.015f;
+          if(face_light > 1.0f)   face_light = 1.0f;
+          light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
+          block_face_t block_face = generate_block_face(BLOCK_FACE_LEFT, y_plane, z_row, x_col);
+          
+          if(shift_block_faces){
+            block_face.points[1].y -= 0.1;
+            block_face.points[3].y -= 0.1;
+          }
+          render_block_face(block_face, block_material, block_looked_at_left, block_orientation, light_intensity);
+        }
+        if(render_right_block_face){
+          float face_sky_light = block_at(y_plane, z_row, x_col + 1).sky_light / 15.0f * sun_sin_eta;
+          float face_block_light = block_at(y_plane, z_row, x_col + 1).block_light / 15.0f;
+          float face_light = face_sky_light + face_block_light;
+          if(face_light < 0.015f) face_light = 0.015f;
+          if(face_light > 1.0f)   face_light = 1.0f;
+          light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
+          block_face_t block_face = generate_block_face(BLOCK_FACE_RIGHT, y_plane, z_row, x_col);
+          if(shift_block_faces){
+            block_face.points[1].y -= 0.1;
+            block_face.points[3].y -= 0.1;
+          }
+          render_block_face(block_face, block_material, block_looked_at_right, block_orientation, light_intensity);
+        }
+        if(render_top_block_face){
+          float face_sky_light =  block_at(y_plane + 1, z_row, x_col).sky_light / 15.0f * sun_sin_eta;
+          float face_block_light =  block_at(y_plane + 1, z_row, x_col).block_light / 15.0f;
+          float face_light = face_sky_light + face_block_light;
+          if(face_light < 0.015f) face_light = 0.015f;
+          if(face_light > 1.0f)   face_light = 1.0f;
+          light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
+          block_face_t block_face = generate_block_face(BLOCK_FACE_TOP, y_plane, z_row, x_col);
+          if(shift_block_faces){
+            block_face.points[0].y -= 0.1;
+            block_face.points[1].y -= 0.1;
+            block_face.points[2].y -= 0.1;
+            block_face.points[3].y -= 0.1;
+          }
+          render_block_face(block_face, block_material, block_looked_at_top, block_orientation, light_intensity);
+        }
+        if(render_bottom_block_face){
+          float face_sky_light =  block_at(y_plane - 1, z_row, x_col).sky_light / 15.0f * sun_sin_eta;
+          float face_block_light =  block_at(y_plane - 1, z_row, x_col).block_light / 15.0f;
+          float face_light = face_sky_light + face_block_light;
+          if(face_light < 0.015f) face_light = 0.015f;
+          if(face_light > 1.0f)   face_light = 1.0f;
+          light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
+          block_face_t block_face = generate_block_face(BLOCK_FACE_BOTTOM, y_plane, z_row, x_col);
+          render_block_face(block_face, block_material, block_looked_at_bottom, block_orientation, light_intensity);
+        }
+        if(render_front_block_face){
+          float face_sky_light =  block_at(y_plane, z_row - 1, x_col).sky_light / 15.0f * sun_sin_eta;
+          float face_block_light =  block_at(y_plane, z_row - 1, x_col).block_light / 15.0f;
+          float face_light = face_sky_light + face_block_light;
+          if(face_light < 0.015f) face_light = 0.015f;
+          if(face_light > 1.0f)   face_light = 1.0f;
+          light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
+          block_face_t block_face = generate_block_face(BLOCK_FACE_FRONT, y_plane, z_row, x_col);
+          if(shift_block_faces){
+            block_face.points[1].y -= 0.1;
+            block_face.points[3].y -= 0.1;
+          }
+          render_block_face(block_face, block_material, block_looked_at_front, block_orientation, light_intensity);
+        }
+        if(render_back_block_face){
+          float face_sky_light   = block_at(y_plane, z_row + 1, x_col).sky_light / 15.0f * sun_sin_eta;
+          float face_block_light = block_at(y_plane, z_row + 1, x_col).block_light / 15.0f;
+          float face_light = face_sky_light + face_block_light;
+          if(face_light < 0.015f) face_light = 0.015f;
+          if(face_light > 1.0f)   face_light = 1.0f;
+          light_intensity_rgb_t light_intensity = {.blue = face_light, .green = face_light, .red = face_light};
+          block_face_t block_face = generate_block_face(BLOCK_FACE_BACK, y_plane, z_row, x_col);
+          if(shift_block_faces){
+            block_face.points[1].y -= 0.1;
+            block_face.points[3].y -= 0.1;
+          }
+          render_block_face(block_face, block_material, block_looked_at_back, block_orientation, light_intensity);
+        }
+      }
+    }
+  }
+}
+
+void render_transparent_chunk_blocks(chunk_t *chunk){
+  total_chunk_triangles_to_render = 0;
+
+  // find the start and end block indices inside chunk
+  int32_t y_plane_start = chunk->y_plane_start;
+  int32_t y_plane_end   = chunk->y_plane_start + CHUNK_SIZE;
+  int32_t z_row_start   = chunk->z_row_start;
+  int32_t z_row_end     = chunk->z_row_start + CHUNK_SIZE;
+  int32_t x_col_start   = chunk->x_col_start;
+  int32_t x_col_end     = chunk->x_col_start + CHUNK_SIZE;
+
+  // loop through all blocks in chunk
+  for(int32_t y_plane = y_plane_start; y_plane < y_plane_end; y_plane++){
+    for(int32_t z_row = z_row_start; z_row < z_row_end; z_row++){
+      for(int32_t x_col = x_col_start; x_col < x_col_end; x_col++){
+        
+        block_t *block = &block_at(y_plane, z_row, x_col);
+        if(block_materials[block->type].blend_mode != BLEND_MODE_ALPHA_BLEND) continue;
+        
+        bool render_left_block_face   = should_render_face(BLOCK_FACE_LEFT  , y_plane, z_row, x_col);
+        bool render_right_block_face  = should_render_face(BLOCK_FACE_RIGHT , y_plane, z_row, x_col);
+        bool render_top_block_face    = should_render_face(BLOCK_FACE_TOP   , y_plane, z_row, x_col);
+        bool render_bottom_block_face = should_render_face(BLOCK_FACE_BOTTOM, y_plane, z_row, x_col);
+        bool render_front_block_face  = should_render_face(BLOCK_FACE_FRONT , y_plane, z_row, x_col);
+        bool render_back_block_face   = should_render_face(BLOCK_FACE_BACK  , y_plane, z_row, x_col);
+
+        block_material_t *block_material = &block_materials[block->type];
+
+        bool block_looked_at_left   = false;
+        bool block_looked_at_right  = false;
+        bool block_looked_at_top    = false;
+        bool block_looked_at_bottom = false;
+        bool block_looked_at_front  = false;
+        bool block_looked_at_back   = false;
+        if(looked_at_block.hit){
+          if(y_plane == looked_at_block.block_y && z_row == looked_at_block.block_z && x_col == looked_at_block.block_x){
+            if(looked_at_block.normal_x == -1)      block_looked_at_left   = true;
+            else if(looked_at_block.normal_x ==  1) block_looked_at_right  = true;
+            else if(looked_at_block.normal_y == -1) block_looked_at_bottom = true;
+            else if(looked_at_block.normal_y ==  1) block_looked_at_top    = true;
+            else if(looked_at_block.normal_z == -1) block_looked_at_front  = true;
+            else if(looked_at_block.normal_z ==  1) block_looked_at_back   = true;
+          }
+        }
+
+        // decide whether the block faces should be shifted down or not (for liquid blocks)
+        bool shift_block_faces = should_shift_block_faces(y_plane, z_row, x_col);
 
         block_orientation_t block_orientation = block_at(y_plane, z_row, x_col).orientation;
         if(render_left_block_face){
@@ -2550,8 +2606,8 @@ void render_object(object_t *object){
         projected_triangle.face_material.emissive_color.rgb.green *= 0.5;
         projected_triangle.face_material.emissive_color.rgb.red *= 0.5;
         projected_triangle.total_light_intensity.blue  *= 0.7f;
-        projected_triangle.total_light_intensity.green *= 0.2f;
-        projected_triangle.total_light_intensity.red   *= 0.1f;
+        projected_triangle.total_light_intensity.green *= 0.4f;
+        projected_triangle.total_light_intensity.red   *= 0.3f;
       }
 
       total_pixels_rendered += rasterize_triangle(&projected_triangle);
@@ -3280,8 +3336,7 @@ int main(int argc, char *argv[]){
 
     view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
 
-    if(options.chunk_sort) render_visible_chunks_sorted();
-    else render_visible_chunks();
+    render_visible_chunks();
 
     render_player_tools();
     process_mining();

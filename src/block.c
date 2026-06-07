@@ -35,6 +35,7 @@ void init_block_materials(){
       .solid              = false,
       .mass               = 0,
       .mineable           = false,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -59,6 +60,7 @@ void init_block_materials(){
       .mass               = 60,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_LAVA,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0xFF80FFFF},
@@ -81,6 +83,7 @@ void init_block_materials(){
       .mass               = 60,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_LAVA,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0xFF80FFFF},
@@ -105,6 +108,7 @@ void init_block_materials(){
       .mass               = 60,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0xFF80FFFF},
@@ -127,6 +131,7 @@ void init_block_materials(){
       .mass               = 60,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0xFF80FFFF},
@@ -149,6 +154,7 @@ void init_block_materials(){
       .mass               = 60,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0xFF20FFFF},
@@ -171,6 +177,7 @@ void init_block_materials(){
       .mass               = 60,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
       .emissive_color     = (color_t){.uint32 = 0000000000},
@@ -195,6 +202,7 @@ void init_block_materials(){
       .mass               = 60,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -217,6 +225,7 @@ void init_block_materials(){
       .mass               = 60,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -239,6 +248,7 @@ void init_block_materials(){
       .mass               = 60,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -261,6 +271,7 @@ void init_block_materials(){
       .mass               = 60,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -283,6 +294,7 @@ void init_block_materials(){
       .mass               = 60,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -305,6 +317,7 @@ void init_block_materials(){
       .mass               = 60,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -327,6 +340,7 @@ void init_block_materials(){
       .mass               = 60,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -349,6 +363,7 @@ void init_block_materials(){
       .mass        = 60,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -371,6 +386,7 @@ void init_block_materials(){
       .mass        = 60,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -395,6 +411,7 @@ void init_block_materials(){
       .mass               = 120,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -419,6 +436,7 @@ void init_block_materials(){
       .mass               = 140,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -443,6 +461,7 @@ void init_block_materials(){
       .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -467,6 +486,7 @@ void init_block_materials(){
       .mass               = 120,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -491,6 +511,7 @@ void init_block_materials(){
       .mass               = 120,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -515,6 +536,7 @@ void init_block_materials(){
       .mass               = 30,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF408080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -539,6 +561,7 @@ void init_block_materials(){
       .mass               = 30,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF0FF000},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -561,6 +584,7 @@ void init_block_materials(){
       .mass      = 30,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF0FF000},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -585,6 +609,7 @@ void init_block_materials(){
       .mass      = 50,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -607,6 +632,7 @@ void init_block_materials(){
       .mass      = 50,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -629,6 +655,7 @@ void init_block_materials(){
       .mass      = 50,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -651,6 +678,7 @@ void init_block_materials(){
       .mass      = 50,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -673,6 +701,7 @@ void init_block_materials(){
       .mass      = 50,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -695,6 +724,7 @@ void init_block_materials(){
       .mass      = 50,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -717,6 +747,7 @@ void init_block_materials(){
       .mass      = 50,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -739,6 +770,7 @@ void init_block_materials(){
       .mass      = 50,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF8080FF},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -763,6 +795,7 @@ void init_block_materials(){
       .mass      = 30,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -785,6 +818,7 @@ void init_block_materials(){
       .mass      = 30,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -807,6 +841,7 @@ void init_block_materials(){
       .mass      = 30,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -829,6 +864,7 @@ void init_block_materials(){
       .mass      = 30,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -851,6 +887,7 @@ void init_block_materials(){
       .mass      = 30,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -873,6 +910,7 @@ void init_block_materials(){
       .mass      = 30,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -895,6 +933,7 @@ void init_block_materials(){
       .mass      = 30,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -917,6 +956,7 @@ void init_block_materials(){
       .mass      = 30,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -939,6 +979,7 @@ void init_block_materials(){
       .mass      = 30,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -961,6 +1002,7 @@ void init_block_materials(){
       .mass      = 30,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -985,6 +1027,7 @@ void init_block_materials(){
       .mass      = 30,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -1007,6 +1050,7 @@ void init_block_materials(){
       .mass      = 30,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF80FF20},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -1031,9 +1075,10 @@ void init_block_materials(){
       .mass                 = 30,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable             = true,
+      .block_fluid_type     = BLOCK_FLUID_WATER,
       .backface_culling     = false,
       .base_color           = (color_t){.uint32 = 0xFFFF8080},
-      .emissive_color       = (color_t){.uint32 = 0xFF080808},
+      .emissive_color       = (color_t){.uint32 = 0xFF040404},
       .reflects_light       = true,
       .blend_mode           = BLEND_MODE_ALPHA_BLEND,
       .alpha_cutoff         = DEFAULT_ALPHA_CUTOFF,
@@ -1045,16 +1090,40 @@ void init_block_materials(){
       .bottom_texture       = load_texture("./assets/textures/blocks/water0.png")
     })
   );
+  array_push(
+    block_materials,
+    ((block_material_t){
+      .material_name        = "bog0",
+      .solid                = false,
+      .mass                 = 30,
+      .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
+      .mineable             = true,
+      .block_fluid_type     = BLOCK_FLUID_WATER,
+      .backface_culling     = false,
+      .base_color           = (color_t){.uint32 = 0xFFFF8080},
+      .emissive_color       = (color_t){.uint32 = 0xFF040404},
+      .reflects_light       = true,
+      .blend_mode           = BLEND_MODE_ALPHA_BLEND,
+      .alpha_cutoff         = DEFAULT_ALPHA_CUTOFF,
+      .front_texture        = load_texture("./assets/textures/blocks/bog0.png"),
+      .back_texture         = load_texture("./assets/textures/blocks/bog0.png"),
+      .left_texture         = load_texture("./assets/textures/blocks/bog0.png"),
+      .right_texture        = load_texture("./assets/textures/blocks/bog0.png"),
+      .top_texture          = load_texture("./assets/textures/blocks/bog0.png"),
+      .bottom_texture       = load_texture("./assets/textures/blocks/bog0.png")
+    })
+  );
 
   // QUICKSAND
   array_push(
     block_materials,
     ((block_material_t){
       .material_name        = "quicksand0",
-      .solid                = false,
+      .solid                = true,
       .mass                 = 30,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable             = true,
+      .block_fluid_type     = BLOCK_FLUID_QUICKSAND,
       .backface_culling     = true,
       .base_color           = (color_t){.uint32 = 0xFF80FFFF},
       .emissive_color       = (color_t){.uint32 = 0x00000000},
@@ -1079,6 +1148,7 @@ void init_block_materials(){
       .mass      = 50,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -1103,6 +1173,7 @@ void init_block_materials(){
       .mass      = 50,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x0040FFFF},
@@ -1127,6 +1198,7 @@ void init_block_materials(){
       .mass      = 50,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -1151,6 +1223,7 @@ void init_block_materials(){
       .mass      = 50,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0xFF808080},
       .emissive_color     = (color_t){.uint32 = 0x00000000},
@@ -1298,10 +1371,10 @@ void reset_light_around_area(int32_t y_start, int32_t y_end, int32_t z_start, in
     for(int32_t x = x_start; x <= x_end; x++){
       bool found_opaque = false;
       for(int32_t y = y_end; y >= y_start; y--){
-        if(!block_is_transparent(&block_at(y, z, x))) found_opaque = true;
+        if(block_is_opaque(&block_at(y, z, x))) found_opaque = true;
         if(found_opaque) block_at(y, z, x).sky_light = 0;    
         else{
-          if(block_is_transparent(&block_at(y, z, x))) block_at(y, z, x).sky_light = 15; 
+          block_at(y, z, x).sky_light = 15; 
         }
       }
     }
@@ -1752,8 +1825,9 @@ block_raycast_hit_t raycast_blocks(
        block_y >= 0 && block_y < MAP_NUM_BLOCKS_Y &&
        block_z >= 0 && block_z < MAP_NUM_BLOCKS_Z
     ){
+      // only hit blocks that are non AIR and non FLUID
       if(block_at(block_y, block_z, block_x).type != BLOCK_TYPE_AIR &&
-         block_at(block_y, block_z, block_x).type != BLOCK_TYPE_WATER0
+         block_materials[block_at(block_y, block_z, block_x).type].block_fluid_type != BLOCK_FLUID_WATER
     ){
         hit_result.hit = 1;
         hit_result.block_x = block_x;
@@ -1835,19 +1909,17 @@ void set_block_orientation(int32_t block_y, int32_t block_z, int32_t block_x, ve
 }
 
 bool block_is_transparent(block_t *block){
-  return block->type == BLOCK_TYPE_AIR || block->type == BLOCK_TYPE_GLASS || block->type == BLOCK_TYPE_WATER0;
-}
-
-bool block_is_liquid(block_t *block){
   return 
-    block->type == BLOCK_TYPE_WATER0 || 
-    block->type == BLOCK_TYPE_LAVA0  || 
-    block->type == BLOCK_TYPE_LAVA1  ||
-    block->type == BLOCK_TYPE_QUICKSAND0;
+    block->type == BLOCK_TYPE_AIR   || 
+    block->type == BLOCK_TYPE_GLASS || 
+    block_materials[block->type].block_fluid_type == BLOCK_FLUID_WATER;
 }
 
 bool block_is_opaque(block_t *block){
-  return block->type != BLOCK_TYPE_AIR && block->type != BLOCK_TYPE_GLASS && block->type != BLOCK_TYPE_WATER0;
+  return 
+    block->type != BLOCK_TYPE_AIR   && 
+    block->type != BLOCK_TYPE_GLASS && 
+    block_materials[block->type].block_fluid_type != BLOCK_FLUID_WATER;
 }
 
 bool block_is_emissive(block_t *block){
@@ -1967,6 +2039,7 @@ bool should_render_face(block_face_direction_t face_direction, int32_t y, int32_
       block_t *block_right = &block_at(y, z, x + 1);
       if(block->type == BLOCK_TYPE_WATER0){
         if(block_right->type == BLOCK_TYPE_AIR) return true;
+
         return false;
       }
       else{
@@ -1977,9 +2050,7 @@ bool should_render_face(block_face_direction_t face_direction, int32_t y, int32_
     case BLOCK_FACE_TOP:
       if(y + 1 >= MAP_NUM_BLOCKS_Y) return false;
       if(block->type == BLOCK_TYPE_WATER0){
-        if(block_materials[block_at(y + 1, z, x).type].solid) return false;
-        if(block_at(y + 1, z, x).type == BLOCK_TYPE_AIR) return true;
-        return false;
+        return top_block_is_fluid(y, z, x);
       }
       else{
         if(
@@ -2022,6 +2093,7 @@ bool should_render_face(block_face_direction_t face_direction, int32_t y, int32_
       block_t *block_back = &block_at(y, z + 1, x);
       if(block->type == BLOCK_TYPE_WATER0){
         if(block_back->type == BLOCK_TYPE_AIR) return true;
+
         return false;
       }
       else{
@@ -2032,20 +2104,38 @@ bool should_render_face(block_face_direction_t face_direction, int32_t y, int32_
   }
 }
 
+bool block_is_water(int32_t y, int32_t z, int32_t x){
+  if(y >= MAP_NUM_BLOCKS_Y || x >= MAP_NUM_BLOCKS_X || z >= MAP_NUM_BLOCKS_Z || x < 0 || z < 0) return false;
+  if(block_at(y, z, x).type == BLOCK_TYPE_WATER0) return true;
+  return false;
+}
+
+// a block is a top water block if:
+//   block is water and block on top is air
+//   a block is water and at least one of its XZ neighbours is a top water block
+bool top_block_is_fluid(int32_t y, int32_t z, int32_t x){
+  if(block_at(y, z, x).type != BLOCK_TYPE_WATER0) return false;
+
+  if(y + 1 >= MAP_NUM_BLOCKS_Y || x + 1 >= MAP_NUM_BLOCKS_X || z + 1 >= MAP_NUM_BLOCKS_Z || x - 1 < 0 || z - 1 < 0) return false;
+
+  if(block_at(y + 1, z, x).type == BLOCK_TYPE_WATER0) return false;
+  if(block_at(y + 1, z, x).type == BLOCK_TYPE_AIR) return true;
+
+  if(
+    (block_at(y, z - 1,     x).type == BLOCK_TYPE_WATER0 && block_at(y + 1, z - 1,     x).type == BLOCK_TYPE_AIR) ||
+    (block_at(y, z + 1,     x).type == BLOCK_TYPE_WATER0 && block_at(y + 1, z + 1,     x).type == BLOCK_TYPE_AIR) ||
+    (block_at(y, z    , x - 1).type == BLOCK_TYPE_WATER0 && block_at(y + 1, z    , x - 1).type == BLOCK_TYPE_AIR) ||
+    (block_at(y, z    , x + 1).type == BLOCK_TYPE_WATER0 && block_at(y + 1, z    , x + 1).type == BLOCK_TYPE_AIR)
+  ) return true;
+
+  return false;
+}
+
 bool should_shift_block_faces(int32_t y_plane, int32_t z_row, int32_t x_col){
   block_t *block = &block_at(y_plane, z_row, x_col);
   switch(block->type){
     case BLOCK_TYPE_WATER0:
-      if(
-        block_at(y_plane + 1, z_row, x_col).type     == BLOCK_TYPE_WATER0 ||
-        block_at(y_plane + 1, z_row - 1, x_col).type == BLOCK_TYPE_WATER0 ||
-        block_at(y_plane + 1, z_row + 1, x_col).type == BLOCK_TYPE_WATER0 ||
-        block_at(y_plane + 1, z_row, x_col - 1).type == BLOCK_TYPE_WATER0 ||
-        block_at(y_plane + 1, z_row, x_col + 1).type == BLOCK_TYPE_WATER0
-      ) 
-        return false;
-      else 
-        return true;
+      return top_block_is_fluid(y_plane, z_row, x_col);
 
       break;
 
@@ -2057,4 +2147,5 @@ bool should_shift_block_faces(int32_t y_plane, int32_t z_row, int32_t x_col){
     default:
       return false;
   }
+  return false;
 }

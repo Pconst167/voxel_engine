@@ -14,9 +14,11 @@
 #define NUM_CHUNK_DIVISIONS_Y (MAP_NUM_BLOCKS_Y / CHUNK_SIZE)
 #define NUM_CHUNK_DIVISIONS_Z (MAP_NUM_BLOCKS_Z / CHUNK_SIZE)
 #define NUM_CHUNK_DIVISIONS_X (MAP_NUM_BLOCKS_X / CHUNK_SIZE)
-#define CHUNK_RENDER_DISTANCE 4 // render this number of chunks around the player in XZ
+#define CHUNK_RENDER_DISTANCE_Y 2 // render this number of chunks around the player in XZ
+#define CHUNK_RENDER_DISTANCE_Z 4 // render this number of chunks around the player in XZ
+#define CHUNK_RENDER_DISTANCE_X 4 // render this number of chunks around the player in XZ
 
-#define BLOCK_FACE_SHIFT_DOWN_AMOUNT (0.1f) // for fluid blocks
+#define BLOCK_FACE_SHIFT_DOWN_AMOUNT (0.0f) // for fluid blocks
 
 #define MAX_BLOCK_LOOK_AT_DISTANCE 6.0f
 #define BLOCK_TYPE_STRING_NAME_MAX_LEN 32
@@ -91,12 +93,20 @@ typedef enum{
   BLOCK_TYPE_FLOWER_LEAVES0,
   BLOCK_TYPE_FLOWER_LEAVES1,
   BLOCK_TYPE_WATER0     ,
+  BLOCK_TYPE_BOG0       ,
   BLOCK_TYPE_QUICKSAND0 ,
   BLOCK_TYPE_GLASS      ,
   BLOCK_TYPE_LAMP0      ,
   BLOCK_TYPE_OVEN0      ,
   BLOCK_TYPE_CHEST0     ,
 } block_type_t;
+
+typedef enum{
+  BLOCK_FLUID_NONE,
+  BLOCK_FLUID_WATER,
+  BLOCK_FLUID_QUICKSAND,
+  BLOCK_FLUID_LAVA
+} block_fluid_type_t;
 
 typedef enum{
   BLOCK_ORIENTATION_LEFT,
@@ -122,6 +132,7 @@ typedef struct{
   player_tool_class_t preferred_tool_class;
   float wrong_tool_multiplier;
   bool mineable;
+  block_fluid_type_t block_fluid_type;
   // rendering
   bool backface_culling;
   // color and light
@@ -205,7 +216,8 @@ bool block_is_transparent(block_t *block);
 bool block_is_opaque(block_t *block);
 bool block_is_emissive(block_t *block);
 bool block_is_tree_leaves(block_t *block);
-bool block_is_liquid(block_t *block);
+bool top_block_is_fluid(int32_t y, int32_t z, int32_t x);
+bool block_is_water(int32_t y, int32_t z, int32_t x);
 
 void place_pond(int32_t z_row, int32_t x_col);
 void place_quicksand(int32_t z_row, int32_t x_col);
