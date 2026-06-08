@@ -495,7 +495,12 @@ void update_player_from_input(input_state_t *input_state){
   int32_t player_block_y = player.position.y;
   int32_t player_block_z = player.position.z;
   int32_t player_block_x = player.position.x;
-  if(block_at(player_block_y, player_block_z, player_block_x).type == BLOCK_TYPE_WATER0){
+  if(
+    block_materials[block_at(player_block_y, player_block_z, player_block_x).type].block_fluid_type != BLOCK_FLUID_NONE ||
+    (
+      player_block_y + 1 < MAP_NUM_BLOCKS_Y && block_materials[block_at(player_block_y + 1, player_block_z, player_block_x).type].block_fluid_type != BLOCK_FLUID_NONE
+    )
+  ){
     player.on_water = true;
   }
   else{

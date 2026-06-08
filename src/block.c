@@ -2205,6 +2205,10 @@ bool block_is_surface_fluid(int32_t y, int32_t z, int32_t x){
   return false;
 }
 
+// connector is rendered if:
+//   block is top fluid surface and upper neighbours are fluid too
+//   OR
+//   block is top fluid surface and same level neighbours are fluid too but not top surfaces
 bool should_render_water_block_connectors(block_face_direction_t face_direction, int32_t y, int32_t z, int32_t x){
   
   if(!block_is_surface_fluid(y, z, x)) return false;
@@ -2212,31 +2216,27 @@ bool should_render_water_block_connectors(block_face_direction_t face_direction,
   switch(face_direction){
     case BLOCK_FACE_LEFT:
       if(
-        (block_materials[block_at(y + 1, z, x - 1).type].block_fluid_type != BLOCK_FLUID_NONE &&
-         block_materials[block_at(y, z, x - 1).type].block_fluid_type != BLOCK_FLUID_NONE) ||
+        (block_materials[block_at(y + 1, z, x - 1).type].block_fluid_type != BLOCK_FLUID_NONE && block_materials[block_at(y, z, x - 1).type].block_fluid_type != BLOCK_FLUID_NONE) ||
          (block_materials[block_at(y, z, x - 1).type].block_fluid_type != BLOCK_FLUID_NONE && !block_is_surface_fluid(y, z, x - 1))
 
       ) return true;
       return false;
       
     case BLOCK_FACE_RIGHT:
-      if((block_materials[block_at(y + 1, z, x + 1).type].block_fluid_type != BLOCK_FLUID_NONE &&
-         block_materials[block_at(y, z, x + 1).type].block_fluid_type != BLOCK_FLUID_NONE) ||
+      if((block_materials[block_at(y + 1, z, x + 1).type].block_fluid_type != BLOCK_FLUID_NONE && block_materials[block_at(y, z, x + 1).type].block_fluid_type != BLOCK_FLUID_NONE) ||
 
          (block_materials[block_at(y, z, x + 1).type].block_fluid_type != BLOCK_FLUID_NONE && !block_is_surface_fluid(y, z, x + 1))
     ) return true;
       return false;
 
     case BLOCK_FACE_BACK:
-      if((block_materials[block_at(y + 1, z + 1, x).type].block_fluid_type != BLOCK_FLUID_NONE &&
-         block_materials[block_at(y, z + 1, x).type].block_fluid_type != BLOCK_FLUID_NONE) ||
+      if((block_materials[block_at(y + 1, z + 1, x).type].block_fluid_type != BLOCK_FLUID_NONE && block_materials[block_at(y, z + 1, x).type].block_fluid_type != BLOCK_FLUID_NONE) ||
          (block_materials[block_at(y, z + 1, x).type].block_fluid_type != BLOCK_FLUID_NONE && !block_is_surface_fluid(y, z + 1, x))
     ) return true;
       return false;
 
     case BLOCK_FACE_FRONT:
-      if((block_materials[block_at(y + 1, z - 1, x).type].block_fluid_type != BLOCK_FLUID_NONE &&
-         block_materials[block_at(y, z - 1, x).type].block_fluid_type != BLOCK_FLUID_NONE) ||
+      if((block_materials[block_at(y + 1, z - 1, x).type].block_fluid_type != BLOCK_FLUID_NONE && block_materials[block_at(y, z - 1, x).type].block_fluid_type != BLOCK_FLUID_NONE) ||
          (block_materials[block_at(y, z - 1, x).type].block_fluid_type != BLOCK_FLUID_NONE && !block_is_surface_fluid(y, z - 1, x))
     ) return true;
       return false;
