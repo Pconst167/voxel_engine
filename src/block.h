@@ -137,6 +137,7 @@ typedef struct{
   float wrong_tool_multiplier;
   bool mineable;
   block_fluid_type_t block_fluid_type;
+  bool transparent_to_light;
   // rendering
   bool backface_culling;
   // color and light

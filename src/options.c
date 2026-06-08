@@ -13,3 +13,12 @@ options_t options = {
   .show_debug_info                = false,
   .instant_mining                 = false
 };
+
+void set_backface_culling_override_on(bool backface_culling){
+  options.backface_culling = backface_culling;
+  options.backface_culling_override = true;
+}
+
+void set_backface_culling_override_off(){
+  options.backface_culling_override = false;
+}

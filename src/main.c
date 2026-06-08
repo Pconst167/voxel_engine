@@ -2043,7 +2043,9 @@ void render_block_face(
   /* camera - v_a ray
     after view_matrix transform, camera position is always at 0, 0, 0 */
   /* calculate dot product between camera ray and orthogonal to find alignment */
-  if(block_material->backface_culling){
+  if((block_material->backface_culling && !options.backface_culling_override) || 
+      (options.backface_culling_override && options.backface_culling)
+  ){
     float dot_face_normal_cam_ray = -(v_face_normal.x * v_a.x + v_face_normal.y * v_a.y + v_face_normal.z * v_a.z);
     if(dot_face_normal_cam_ray < 0.0f) return;
   }
@@ -2182,7 +2184,7 @@ void render_block_face(
         projected_triangle.face_material.blend_mode = BLEND_MODE_OPAQUE;
       }
       else{
-        projected_triangle.face_material.opacity = 0.7f;
+        projected_triangle.face_material.opacity = 0.65f;
       }
     }
 
@@ -2291,10 +2293,8 @@ void render_chunk_blocks(chunk_t *chunk, bool transparent_only){
           render_block_face(block_face, block_material, block_looked_at_left, block_orientation, light_intensity);
         }
         if(render_left_fluid_connector){
-          options.backface_culling = false;
           block_face_t fluid_block_connector_face = generate_fluid_top_block_face(BLOCK_FACE_LEFT, y_plane, z_row, x_col);
           render_block_face(fluid_block_connector_face, block_material, block_looked_at_left, block_orientation, light_intensity);
-          options.backface_culling = true;
         }
 
         // RIGHT FACE
@@ -2315,10 +2315,8 @@ void render_chunk_blocks(chunk_t *chunk, bool transparent_only){
           render_block_face(block_face, block_material, block_looked_at_right, block_orientation, light_intensity);
         }
         if(render_right_fluid_connector){
-        options.backface_culling = false;
-        block_face_t fluid_block_connector_face = generate_fluid_top_block_face(BLOCK_FACE_RIGHT, y_plane, z_row, x_col);
-        render_block_face(fluid_block_connector_face, block_material, block_looked_at_left, block_orientation, light_intensity);
-        options.backface_culling = true;
+          block_face_t fluid_block_connector_face = generate_fluid_top_block_face(BLOCK_FACE_RIGHT, y_plane, z_row, x_col);
+          render_block_face(fluid_block_connector_face, block_material, block_looked_at_left, block_orientation, light_intensity);
         }
 
         // TOP FACE
@@ -2377,10 +2375,8 @@ void render_chunk_blocks(chunk_t *chunk, bool transparent_only){
           render_block_face(block_face, block_material, block_looked_at_front, block_orientation, light_intensity);
         }
         if(render_front_fluid_connector){
-          options.backface_culling = false;
           block_face_t fluid_block_connector_face = generate_fluid_top_block_face(BLOCK_FACE_FRONT, y_plane, z_row, x_col);
           render_block_face(fluid_block_connector_face, block_material, block_looked_at_left, block_orientation, light_intensity);
-          options.backface_culling = true;
         }
 
         // BACK FACE
@@ -2401,10 +2397,8 @@ void render_chunk_blocks(chunk_t *chunk, bool transparent_only){
           render_block_face(block_face, block_material, block_looked_at_back, block_orientation, light_intensity);
         }
         if(render_back_fluid_connector){
-          options.backface_culling = false;
           block_face_t fluid_block_connector_face = generate_fluid_top_block_face(BLOCK_FACE_BACK, y_plane, z_row, x_col);
           render_block_face(fluid_block_connector_face, block_material, block_looked_at_left, block_orientation, light_intensity);
-          options.backface_culling = true;
         }
       }
     }
@@ -2812,7 +2806,7 @@ void update_light(void){
   if(skybox_id != -1){
     //object_t *skybox = &objects[skybox_id];
 
-    //sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
+    sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
     sun_sin_eta = sinf(sun_eta);
 
     if(sun_sin_eta < 0.0f) sun_sin_eta = 0.0f;

@@ -25,4 +25,7 @@ typedef struct{
 
 extern options_t options;
 
+void set_backface_culling_override_on(bool backface_culling);
+void set_backface_culling_override_off();
+  
 #endif
