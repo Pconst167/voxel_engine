@@ -210,6 +210,7 @@ void setup(void) {
   seed_initial_block_light(0, MAP_NUM_BLOCKS_Y - 1, 0, MAP_NUM_BLOCKS_Z - 1, 0, MAP_NUM_BLOCKS_X - 1);
   propagate_block_light();
 
+
   // CREATE OBJECTS
   mesh_t *mesh;
   uint32_t object_id;
@@ -416,7 +417,6 @@ void handle_mouse_actions(input_state_t *input_state){
           seed_block_light_around_area(block_y_start - 1, block_y_end + 1, block_z_start - 1, block_z_end + 1, block_x_start - 1, block_x_end + 1);
           propagate_block_light();
 
-          reduce_sky_light_intensity_of_vertical_blocks(block_y, block_z, block_x);
 
           // SAVE THE CHUNK THAT THE BLOCK IS INSIDE OF
           int32_t chunk_y = block_y / CHUNK_SIZE;
@@ -3150,7 +3150,6 @@ void process_mining(){
           seed_block_light_around_area(block_y_start - 1, block_y_end + 1, block_z_start - 1, block_z_end + 1, block_x_start - 1, block_x_end + 1);
           propagate_block_light();
 
-          reduce_sky_light_intensity_of_vertical_blocks(block_y, block_z, block_x);
 
           // SAVE THE CHUNK THAT THE BLOCK IS INSIDE OF
           int32_t chunk_y = block_y / CHUNK_SIZE;

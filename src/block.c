@@ -1413,18 +1413,6 @@ void reset_light_around_area(int32_t y_start, int32_t y_end, int32_t z_start, in
   }
 }
 
-void reduce_sky_light_intensity_of_vertical_blocks(int32_t y, int32_t z, int32_t x){
-  bool found_opaque = false;
-  for(int32_t test_y = y; test_y >= 0; test_y--){
-    if(block_is_opaque(&block_at(y, z, x))) found_opaque = true;
-    if(found_opaque && block_is_transparent(&block_at(test_y, z, x))){
-      int32_t sky_light = (int32_t)block_at(test_y, z, x).sky_light - 4;
-      if(sky_light < 0) sky_light = 0;    
-      if(block_at(test_y, z, x).sky_light < 0) block_at(test_y, z, x).sky_light = sky_light;    
-    }
-  }
-}
-
 void seed_initial_sky_light(int32_t y_start, int32_t y_end, int32_t z_start, int32_t z_end, int32_t x_start, int32_t x_end){
   light_queue.head = 0;
   light_queue.tail = 0;

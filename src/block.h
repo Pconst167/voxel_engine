@@ -247,6 +247,5 @@ void seed_sky_light_around_area(int32_t y_start, int32_t y_end, int32_t z_start,
 void seed_block_light_around_area(int32_t y_start, int32_t y_end, int32_t z_start, int32_t z_end, int32_t x_start, int32_t x_end);
 
 
-void reduce_sky_light_intensity_of_vertical_blocks(int32_t y, int32_t z, int32_t x);
 
 #endif
