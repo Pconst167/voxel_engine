@@ -416,6 +416,8 @@ void handle_mouse_actions(input_state_t *input_state){
           seed_block_light_around_area(block_y_start - 1, block_y_end + 1, block_z_start - 1, block_z_end + 1, block_x_start - 1, block_x_end + 1);
           propagate_block_light();
 
+          reduce_sky_light_intensity_of_vertical_blocks(block_y, block_z, block_x);
+
           // SAVE THE CHUNK THAT THE BLOCK IS INSIDE OF
           int32_t chunk_y = block_y / CHUNK_SIZE;
           int32_t chunk_z = block_z / CHUNK_SIZE;
@@ -3129,8 +3131,6 @@ void process_mining(){
           player_obtain_block(block_at(block_y, block_z, block_x).type);
           assign_block_material(block_y, block_z, block_x, BLOCK_TYPE_AIR);
 
-          // OLD ALGORITHM FOR REMOVING BLOCKS - REMOVED FOR NOW
-          // UPDATE SKY LIGHT
           // reset sky light on all blocks around an area around placed block
           // then reset light in this box of blocks
           // then re-propagate light around all these blocks
@@ -3150,6 +3150,7 @@ void process_mining(){
           seed_block_light_around_area(block_y_start - 1, block_y_end + 1, block_z_start - 1, block_z_end + 1, block_x_start - 1, block_x_end + 1);
           propagate_block_light();
 
+          reduce_sky_light_intensity_of_vertical_blocks(block_y, block_z, block_x);
 
           // SAVE THE CHUNK THAT THE BLOCK IS INSIDE OF
           int32_t chunk_y = block_y / CHUNK_SIZE;
