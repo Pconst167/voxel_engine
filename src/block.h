@@ -228,6 +228,7 @@ bool block_is_transparent(block_t *block);
 bool block_is_opaque(block_t *block);
 bool block_is_emissive(block_t *block);
 bool block_is_tree_leaves(block_t *block);
+bool block_is_tree_trunk(block_t *block);
 bool block_is_surface_fluid(int32_t y, int32_t z, int32_t x);
 light_sample_t get_fluid_surface_light(int32_t y, int32_t z, int32_t x);
 

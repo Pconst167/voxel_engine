@@ -21,7 +21,7 @@ tree_t trees[] = {
     .max_height = 25,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.2f
+    .spawn_chance = 0.4f
   },
   {
     .tree_name = "tree2",
@@ -41,7 +41,7 @@ tree_t trees[] = {
     .max_height = 28,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.15f
+    .spawn_chance = 0.35f
   },
   {
     .tree_name = "tree4",
@@ -156,9 +156,9 @@ void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
 
   // leaves
   for(int32_t y = tree_middle; y <= tree_top; y++){
-    for(int32_t z = z_row - 3; z <= z_row + 3; z++){
-      for(int32_t x = x_col - 3; x <= x_col + 3; x++){
-        if(xorshift32() % 2 == 0){
+    for(int32_t z = z_row - 6; z <= z_row + 6; z++){
+      for(int32_t x = x_col - 6; x <= x_col + 6; x++){
+        if(xorshift32() % 4 == 0){
           assign_block_material(y, z, x, tree.leaves_block_type);
         }
       }
@@ -178,18 +178,22 @@ void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
 }
 
 void place_trees(){
-  int32_t step_size_x = 8;
-  int32_t step_size_z = 8;
+  int32_t step_size_x = 9;
+  int32_t step_size_z = 9;
 
   // place trees
   for(uint32_t z = 32; z < MAP_NUM_BLOCKS_Z - 32; z += step_size_z){
     for(uint32_t x = 32; x < MAP_NUM_BLOCKS_X - 32; x += step_size_x){
       int32_t rand = xorshift32();
-      if(rand % 3 == 0)
+      if(rand % 5 == 0)
         place_tree(z, x, TREE0);
-      else if(rand % 3 == 1)
-        place_tree(z, x, FLOWER_TREE1);
-      else if(rand % 3 == 2)
+      else if(rand % 5 == 1)
+        place_tree(z, x, TREE1);
+      else if(rand % 5 == 2)
+        place_tree(z, x, TREE2);
+      else if(rand % 5 == 3)
+        place_tree(z, x, TREE3);
+      else if(rand % 5 == 4)
         place_tree(z, x, FLOWER_TREE0);
     }
   }

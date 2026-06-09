@@ -2107,6 +2107,7 @@ void render_block_face(
       projected_triangle.uv[j]     = triangle_after_clipping->uv[j];
     }
     
+    // TODO: not all materials need different textures for each face. add a condition etc.
     // select texture depending on which face this is
     texture_t *block_face_texture;
     switch(block_face.block_face_type){

@@ -1321,8 +1321,17 @@ void init_block_map(){
         }
 
         if((x <= 10 || x >= MAP_NUM_BLOCKS_X - 10 || z <= 10 || z >= MAP_NUM_BLOCKS_Z - 10) && y >= 0.4 * MAP_NUM_BLOCKS_Y && y <= 0.43 * MAP_NUM_BLOCKS_Y){
-          if(xorshift32() % 5 == 0){
+          if(xorshift32() % 8 == 0){
             assign_block_material(y, z, x, BLOCK_TYPE_LEAVES0);
+          }
+          else if(xorshift32() % 8 == 1){
+            assign_block_material(y, z, x, BLOCK_TYPE_LEAVES6);
+          }
+          else if(xorshift32() % 8 == 2){
+            assign_block_material(y, z, x, BLOCK_TYPE_LEAVES4);
+          }
+          else if(xorshift32() % 8 == 3){
+            assign_block_material(y, z, x, BLOCK_TYPE_LEAVES9);
           }
           else{
             block_at(y, z, x).type = BLOCK_TYPE_AIR;
@@ -2113,6 +2122,18 @@ bool block_is_tree_leaves(block_t *block){
     block->type == BLOCK_TYPE_LEAVES7 ||
     block->type == BLOCK_TYPE_LEAVES8 ||
     block->type == BLOCK_TYPE_LEAVES9;
+}
+
+bool block_is_tree_trunk(block_t *block){
+  return
+    block->type == BLOCK_TYPE_TREE_TRUNK0 ||
+    block->type == BLOCK_TYPE_TREE_TRUNK1 ||
+    block->type == BLOCK_TYPE_TREE_TRUNK2 ||
+    block->type == BLOCK_TYPE_TREE_TRUNK3 ||
+    block->type == BLOCK_TYPE_TREE_TRUNK4 ||
+    block->type == BLOCK_TYPE_TREE_TRUNK5 ||
+    block->type == BLOCK_TYPE_TREE_TRUNK6 ||
+    block->type == BLOCK_TYPE_TREE_TRUNK7;
 }
 
 void place_pond(int32_t z_row, int32_t x_col){
