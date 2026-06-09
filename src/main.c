@@ -400,8 +400,8 @@ void handle_mouse_actions(input_state_t *input_state){
           // reset sky light on all blocks around a 32x32x32 area around placed block
           // then reset light in this box of blocks
           // then re-propagate light around all these blocks
-          int32_t block_y_start = block_y - 16;
-          int32_t block_y_end   = block_y + 16;
+          int32_t block_y_start = block_y - MAP_NUM_BLOCKS_Y / 2;
+          int32_t block_y_end   = block_y + MAP_NUM_BLOCKS_Y / 2;
           int32_t block_z_start = block_z - 16;
           int32_t block_z_end   = block_z + 16;
           int32_t block_x_start = block_x - 16;
@@ -409,11 +409,11 @@ void handle_mouse_actions(input_state_t *input_state){
           reset_light_around_area(block_y_start, block_y_end, block_z_start, block_z_end, block_x_start, block_x_end);
 
           // SKY LIGHT
-          seed_sky_light_around_area(block_y, block_z, block_x, 17);
+          seed_sky_light_around_area(block_y_start - 1, block_y_end + 1, block_z_start - 1, block_z_end + 1, block_x_start - 1, block_x_end + 1);
           propagate_sky_light();
-
+          
           // BLOCK LIGHT
-          seed_block_light_around_area(block_y, block_z, block_x, 33);
+          seed_block_light_around_area(block_y_start - 1, block_y_end + 1, block_z_start - 1, block_z_end + 1, block_x_start - 1, block_x_end + 1);
           propagate_block_light();
 
           // SAVE THE CHUNK THAT THE BLOCK IS INSIDE OF
@@ -2277,10 +2277,10 @@ void render_chunk_blocks(chunk_t *chunk, bool transparent_only){
 
         // LEFT FACE
         if(render_left_block_face || render_left_fluid_connector){
-          face_sky_light = block_at(y_plane, z_row, x_col - 1).sky_light / 15.0f * sun_sin_eta;
-          face_block_light = block_at(y_plane, z_row, x_col - 1).block_light / 15.0f;
+          face_sky_light = block_at(y_plane, z_row, x_col - 1).sky_light / MAX_SKY_LIGHT_FLOAT * sun_sin_eta;
+          face_block_light = block_at(y_plane, z_row, x_col - 1).block_light / MAX_BLOCK_LIGHT_FLOAT;
           face_light = face_sky_light + face_block_light;
-          if(face_light < 0.015f) face_light = 0.015f;
+          if(face_light < MIN_TOTAL_LIGHT) face_light = MIN_TOTAL_LIGHT;
           if(face_light > 1.0f)   face_light = 1.0f;
           light_intensity = (light_intensity_rgb_t){.blue = face_light, .green = face_light, .red = face_light};
         }
@@ -2299,10 +2299,10 @@ void render_chunk_blocks(chunk_t *chunk, bool transparent_only){
 
         // RIGHT FACE
         if(render_right_block_face || render_right_fluid_connector){
-          face_sky_light = block_at(y_plane, z_row, x_col + 1).sky_light / 15.0f * sun_sin_eta;
-          face_block_light = block_at(y_plane, z_row, x_col + 1).block_light / 15.0f;
+          face_sky_light = block_at(y_plane, z_row, x_col + 1).sky_light / MAX_SKY_LIGHT_FLOAT * sun_sin_eta;
+          face_block_light = block_at(y_plane, z_row, x_col + 1).block_light / MAX_BLOCK_LIGHT_FLOAT;
           face_light = face_sky_light + face_block_light;
-          if(face_light < 0.015f) face_light = 0.015f;
+          if(face_light <  MIN_TOTAL_LIGHT) face_light = MIN_TOTAL_LIGHT;
           if(face_light > 1.0f)   face_light = 1.0f;
           light_intensity = (light_intensity_rgb_t){.blue = face_light, .green = face_light, .red = face_light};
         }
@@ -2323,16 +2323,16 @@ void render_chunk_blocks(chunk_t *chunk, bool transparent_only){
         if(render_top_block_face){
           if(block_is_surface_fluid(y_plane, z_row, x_col)){
             light_sample_t light = get_fluid_surface_light(y_plane, z_row, x_col);
-            face_sky_light = light.sky_light / 15.0f * sun_sin_eta;
-            face_block_light =  light.block_light / 15.0f;
+            face_sky_light = light.sky_light / MAX_SKY_LIGHT_FLOAT * sun_sin_eta;
+            face_block_light =  light.block_light / MAX_BLOCK_LIGHT_FLOAT;
           }
           else{
-            face_sky_light = block_at(y_plane + 1, z_row, x_col).sky_light / 15.0f * sun_sin_eta;
-            face_block_light = block_at(y_plane + 1, z_row, x_col).block_light / 15.0f;
+            face_sky_light = block_at(y_plane + 1, z_row, x_col).sky_light / MAX_SKY_LIGHT_FLOAT * sun_sin_eta;
+            face_block_light = block_at(y_plane + 1, z_row, x_col).block_light / MAX_BLOCK_LIGHT_FLOAT;
           }
           face_light = face_sky_light + face_block_light;
 
-          if(face_light < 0.015f) face_light = 0.015f;
+          if(face_light < MIN_TOTAL_LIGHT) face_light = MIN_TOTAL_LIGHT;
           if(face_light > 1.0f)   face_light = 1.0f;
           light_intensity = (light_intensity_rgb_t){.blue = face_light, .green = face_light, .red = face_light};
           block_face_t block_face = generate_block_face(BLOCK_FACE_TOP, y_plane, z_row, x_col);
@@ -2347,10 +2347,10 @@ void render_chunk_blocks(chunk_t *chunk, bool transparent_only){
 
         // BOTTOM FACE
         if(render_bottom_block_face){
-          face_sky_light =  block_at(y_plane - 1, z_row, x_col).sky_light / 15.0f * sun_sin_eta;
-          face_block_light =  block_at(y_plane - 1, z_row, x_col).block_light / 15.0f;
+          face_sky_light =  block_at(y_plane - 1, z_row, x_col).sky_light / MAX_SKY_LIGHT_FLOAT * sun_sin_eta;
+          face_block_light =  block_at(y_plane - 1, z_row, x_col).block_light / MAX_BLOCK_LIGHT_FLOAT;
           face_light = face_sky_light + face_block_light;
-          if(face_light < 0.015f) face_light = 0.015f;
+          if(face_light < MIN_TOTAL_LIGHT) face_light = MIN_TOTAL_LIGHT;
           if(face_light > 1.0f)   face_light = 1.0f;
           light_intensity = (light_intensity_rgb_t){.blue = face_light, .green = face_light, .red = face_light};
           block_face_t block_face = generate_block_face(BLOCK_FACE_BOTTOM, y_plane, z_row, x_col);
@@ -2359,10 +2359,10 @@ void render_chunk_blocks(chunk_t *chunk, bool transparent_only){
 
         // FRONT FACE
         if(render_front_block_face || render_front_fluid_connector){
-          face_sky_light =  block_at(y_plane, z_row - 1, x_col).sky_light / 15.0f * sun_sin_eta;
-          face_block_light =  block_at(y_plane, z_row - 1, x_col).block_light / 15.0f;
+          face_sky_light =  block_at(y_plane, z_row - 1, x_col).sky_light / MAX_SKY_LIGHT_FLOAT * sun_sin_eta;
+          face_block_light =  block_at(y_plane, z_row - 1, x_col).block_light / MAX_BLOCK_LIGHT_FLOAT;
           face_light = face_sky_light + face_block_light;
-          if(face_light < 0.015f) face_light = 0.015f;
+          if(face_light < MIN_TOTAL_LIGHT) face_light = MIN_TOTAL_LIGHT;
           if(face_light > 1.0f)   face_light = 1.0f;
           light_intensity = (light_intensity_rgb_t){.blue = face_light, .green = face_light, .red = face_light};
         }
@@ -2381,10 +2381,10 @@ void render_chunk_blocks(chunk_t *chunk, bool transparent_only){
 
         // BACK FACE
         if(render_back_block_face || render_back_fluid_connector){
-          face_sky_light   = block_at(y_plane, z_row + 1, x_col).sky_light / 15.0f * sun_sin_eta;
-          face_block_light = block_at(y_plane, z_row + 1, x_col).block_light / 15.0f;
+          face_sky_light   = block_at(y_plane, z_row + 1, x_col).sky_light / MAX_SKY_LIGHT_FLOAT * sun_sin_eta;
+          face_block_light = block_at(y_plane, z_row + 1, x_col).block_light / MAX_BLOCK_LIGHT_FLOAT;
           face_light = face_sky_light + face_block_light;
-          if(face_light < 0.015f) face_light = 0.015f;
+          if(face_light < MIN_TOTAL_LIGHT) face_light = MIN_TOTAL_LIGHT;
           if(face_light > 1.0f)   face_light = 1.0f;
           light_intensity = (light_intensity_rgb_t){.blue = face_light, .green = face_light, .red = face_light};
         }
@@ -2490,10 +2490,10 @@ void render_object(object_t *object){
     /* LIGHT CALCULATIONS */
     // find total light intensity on this face - this is total intensity per rgb channel
     block_t *block = &block_at((int32_t)player.position.y, (int32_t)player.position.z, (int32_t)player.position.x);
-    float sky_light   = (float)block->sky_light   / 15.0f * sun_sin_eta;
-    float block_light = (float)block->block_light / 15.0f;
+    float sky_light   = (float)block->sky_light   / MAX_SKY_LIGHT_FLOAT * sun_sin_eta;
+    float block_light = (float)block->block_light / MAX_BLOCK_LIGHT_FLOAT;
     float object_light = sky_light + block_light;
-    if(object_light < 0.015f) object_light = 0.015f;
+    if(object_light < MIN_TOTAL_LIGHT) object_light = MIN_TOTAL_LIGHT;
     if(object_light > 1.0f)   object_light = 1.0f;
     light_intensity_rgb_t total_light_intensity = {object_light, object_light, object_light};
 
@@ -2806,7 +2806,7 @@ void update_light(void){
   if(skybox_id != -1){
     //object_t *skybox = &objects[skybox_id];
 
-    sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
+    //sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
     sun_sin_eta = sinf(sun_eta);
 
     if(sun_sin_eta < 0.0f) sun_sin_eta = 0.0f;
@@ -3131,33 +3131,11 @@ void process_mining(){
 
           // OLD ALGORITHM FOR REMOVING BLOCKS - REMOVED FOR NOW
           // UPDATE SKY LIGHT
-          // flood fill blocks from the removed one
-          //light_queue.head = 0;
-          //light_queue.tail = 0;
-          //uint8_t best_light = 0;
-          //for(int32_t neighbour_index = 0; neighbour_index < 6; neighbour_index++){
-          //  int32_t neighbour_y = block_y + neighbour_y_offsets[neighbour_index];
-          //  int32_t neighbour_z = block_z + neighbour_z_offsets[neighbour_index];
-          //  int32_t neighbour_x = block_x + neighbour_x_offsets[neighbour_index];
-          //
-          //  if(neighbour_y < 0 || neighbour_y >= MAP_NUM_BLOCKS_Y || neighbour_z < 0 || neighbour_z >= MAP_NUM_BLOCKS_Z || neighbour_x < 0 || neighbour_x >= MAP_NUM_BLOCKS_X) continue;
-          //
-          //  block_t *neighbour = &block_at(neighbour_y, neighbour_z, neighbour_x);
-          //  if(block_is_opaque(neighbour)) continue;
-          //  if(neighbour->sky_light > best_light) best_light = neighbour->sky_light;
-          //}
-          //
-          //if(best_light > 0){
-          //  block_at(block_y, block_z, block_x).sky_light = best_light - 1;
-          //  light_queue_push((light_node_t){.y = block_y, .z = block_z, .x = block_x, .light = best_light - 1});
-          //  propagate_sky_light();
-          //}
-
-          // reset sky light on all blocks around a 32x32x32 area around placed block
+          // reset sky light on all blocks around an area around placed block
           // then reset light in this box of blocks
           // then re-propagate light around all these blocks
-          int32_t block_y_start = block_y - 16;
-          int32_t block_y_end   = block_y + 16;
+          int32_t block_y_start = block_y - MAP_NUM_BLOCKS_Y / 2;
+          int32_t block_y_end   = block_y + MAP_NUM_BLOCKS_Y / 2;
           int32_t block_z_start = block_z - 16;
           int32_t block_z_end   = block_z + 16;
           int32_t block_x_start = block_x - 16;
@@ -3165,11 +3143,11 @@ void process_mining(){
           reset_light_around_area(block_y_start, block_y_end, block_z_start, block_z_end, block_x_start, block_x_end);
 
           // SKY LIGHT
-          seed_sky_light_around_area(block_y, block_z, block_x, 17);
+          seed_sky_light_around_area(block_y_start - 1, block_y_end + 1, block_z_start - 1, block_z_end + 1, block_x_start - 1, block_x_end + 1);
           propagate_sky_light();
-
+          
           // BLOCK LIGHT
-          seed_block_light_around_area(block_y, block_z, block_x, 33);
+          seed_block_light_around_area(block_y_start - 1, block_y_end + 1, block_z_start - 1, block_z_end + 1, block_x_start - 1, block_x_end + 1);
           propagate_block_light();
 
 

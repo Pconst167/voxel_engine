@@ -31,6 +31,11 @@
 
 // BLOCK LIGHT
 #define MAX_LIGHT_QUEUE_SIZE 1048576
+#define MAX_SKY_LIGHT 15
+#define MAX_SKY_LIGHT_FLOAT 15.0f
+#define MAX_BLOCK_LIGHT 15
+#define MAX_BLOCK_LIGHT_FLOAT 15.0f
+#define MIN_TOTAL_LIGHT (1.0f / 32.0f)
 
 typedef struct{
   int32_t y;
@@ -238,7 +243,6 @@ void light_queue_push(light_node_t light_node);
 void propagate_sky_light(void);
 void propagate_block_light(void);
 void remove_sky_light_from_area(int32_t y, int32_t z, int32_t x);
-void seed_sky_light_around_area(int32_t y, int32_t z, int32_t x, int32_t radius);
-void seed_block_light_around_area(int32_t y, int32_t z, int32_t x, int32_t radius);
-
+void seed_sky_light_around_area(int32_t y_start, int32_t y_end, int32_t z_start, int32_t z_end, int32_t x_start, int32_t x_end);
+void seed_block_light_around_area(int32_t y_start, int32_t y_end, int32_t z_start, int32_t z_end, int32_t x_start, int32_t x_end);
 #endif
