@@ -40,6 +40,22 @@
 #define MAX_BLOCK_LIGHT_FLOAT 20.0f
 #define MIN_TOTAL_LIGHT (1.0f / 32.0f)
 
+// WORLD PARAMETERS
+#define WORLD_BASE_SURFACE_LEVEL (0.5f * MAP_NUM_BLOCKS_Y)
+#define WORLD_MAX_HILL_HEIGHT    28
+#define WORLD_DIRT0_DEPTH        6
+#define WORLD_STONE0_DEPTH       6
+#define WORLD_WATER_LEVEL        (WORLD_BASE_SURFACE_LEVEL - 10)
+#define WORLD_LARGE_HILL_SCALE   0.03f
+#define WORLD_SMALL_HILL_SCALE   0.05f
+#define WORLD_MOUNTAIN_SCALE     0.01f
+#define WORLD_OVERHANG_SCALE     0.04f
+
+#define WORLD_BASE_CAVE_LEVEL    WORLD_WATER_LEVEL - 10
+#define WORLD_SMALL_CAVE_SCALE   0.05f
+#define WORLD_MEDIUM_CAVE_SCALE  0.04f
+#define WORLD_LARGE_CAVE_SCALE   0.03f
+
 typedef struct{
   int32_t y;
   int32_t z;
@@ -82,9 +98,12 @@ typedef enum{
   BLOCK_TYPE_DIAMOND    ,
   BLOCK_TYPE_SILVER     ,
   BLOCK_TYPE_GOLD       ,
-  BLOCK_TYPE_DIRT       ,
+  BLOCK_TYPE_DIRT0       ,
+  BLOCK_TYPE_DIRT1       ,
   BLOCK_TYPE_GRASS      ,
   BLOCK_TYPE_CHERRY_GRASS,
+  BLOCK_TYPE_SAND0,
+  BLOCK_TYPE_CLAY0,
   BLOCK_TYPE_TREE_TRUNK0,
   BLOCK_TYPE_TREE_TRUNK1,
   BLOCK_TYPE_TREE_TRUNK2,
@@ -232,6 +251,7 @@ bool block_is_opaque(block_t *block);
 bool block_is_emissive(block_t *block);
 bool block_is_tree_leaves(block_t *block);
 bool block_is_tree_trunk(block_t *block);
+bool block_is_water(block_t *block);
 bool block_is_surface_fluid(int32_t y, int32_t z, int32_t x);
 light_sample_t get_fluid_surface_light(int32_t y, int32_t z, int32_t x);
 

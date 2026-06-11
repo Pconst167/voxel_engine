@@ -553,7 +553,7 @@ void init_block_materials(){
   array_push(
     block_materials, 
     ((block_material_t){
-      .material_name      = "dirt",
+      .material_name      = "dirt0",
       .solid              = true,
       .mass               = 30,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
@@ -566,12 +566,36 @@ void init_block_materials(){
       .reflects_light     = true,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .front_texture      = load_texture("./assets/textures/blocks/dirt.png"),
-      .back_texture       = load_texture("./assets/textures/blocks/dirt.png"),
-      .left_texture       = load_texture("./assets/textures/blocks/dirt.png"),
-      .right_texture      = load_texture("./assets/textures/blocks/dirt.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/dirt.png"),
-      .bottom_texture     = load_texture("./assets/textures/blocks/dirt.png")
+      .front_texture      = load_texture("./assets/textures/blocks/dirt0.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/dirt0.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/dirt0.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/dirt0.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/dirt0.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/dirt0.png")
+    })
+  );
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .material_name      = "dirt1",
+      .solid              = true,
+      .mass               = 30,
+      .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
+      .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
+      .transparent_to_light = false,
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF408080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .reflects_light     = true,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/dirt1.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/dirt1.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/dirt1.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/dirt1.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/dirt1.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/dirt1.png")
     })
   );
 
@@ -592,12 +616,12 @@ void init_block_materials(){
       .reflects_light     = true,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .front_texture      = load_texture("./assets/textures/blocks/grass_side_2.png"),
-      .back_texture       = load_texture("./assets/textures/blocks/grass_side_2.png"),
-      .left_texture       = load_texture("./assets/textures/blocks/grass_side_2.png"),
-      .right_texture      = load_texture("./assets/textures/blocks/grass_side_2.png"),
+      .front_texture      = load_texture("./assets/textures/blocks/grass_side1.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/grass_side1.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/grass_side1.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/grass_side1.png"),
       .top_texture        = load_texture("./assets/textures/blocks/grass_top.png"),
-      .bottom_texture     = load_texture("./assets/textures/blocks/dirt_2.png")
+      .bottom_texture     = load_texture("./assets/textures/blocks/dirt1.png")
     })
   );
   array_push(
@@ -622,6 +646,58 @@ void init_block_materials(){
       .right_texture      = load_texture("./assets/textures/blocks/cherry_grass_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/cherry_grass_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/dirt_2.png")
+    })
+  );
+
+  // SAND
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .material_name      = "sand0",
+      .solid              = true,
+      .mass               = 30,
+      .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
+      .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
+      .transparent_to_light = false,
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF408080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .reflects_light     = true,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/sand0.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/sand0.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/sand0.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/sand0.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/sand0.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/sand0.png")
+    })
+  );
+
+  // CLAY
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .material_name      = "clay0",
+      .solid              = true,
+      .mass               = 30,
+      .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
+      .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
+      .transparent_to_light = false,
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF408080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .reflects_light     = true,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/clay0.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/clay0.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/clay0.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/clay0.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/clay0.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/clay0.png")
     })
   );
 
@@ -1277,19 +1353,9 @@ void init_block_map(){
     exit(1);
   }
 
-  int32_t base_surface_level = (int32_t)(0.45f * MAP_NUM_BLOCKS_Y);
-  int32_t max_hill_height = 28;
-  int32_t water_level = base_surface_level - 6;
-
-  float large_hill_scale = 0.018f;
-  float small_hill_scale = 0.055f;
-  float mountain_scale = 0.012f;
-  float overhang_scale = 0.045f;
-  float cave_scale = 0.040f;
-
-  for(uint32_t y = 0; y < MAP_NUM_BLOCKS_Y; y++){
-    for(uint32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
-      for(uint32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+  for(int32_t y = 0; y < MAP_NUM_BLOCKS_Y; y++){
+    for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+      for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
         assign_block_material(y, z, x, BLOCK_TYPE_AIR);
 
         block_at(y, z, x).temperature = 30.0f;
@@ -1307,28 +1373,74 @@ void init_block_map(){
     }
   }
 
-  for(uint32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
-    for(uint32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+  // base world surface levels
+  for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+    for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
       
-      float large_hill_noise = perlin_noise_3d((float)x * large_hill_scale, 0.0f, (float)z * large_hill_scale);
+      float mountain_noise   = perlin_noise_3d((float)x * WORLD_MOUNTAIN_SCALE,     0.0f, (float)z * WORLD_MOUNTAIN_SCALE);
+      float large_hill_noise = perlin_noise_3d((float)x * WORLD_LARGE_HILL_SCALE, 100.0f, (float)z * WORLD_LARGE_HILL_SCALE);
+      float small_hill_noise = perlin_noise_3d((float)x * WORLD_SMALL_HILL_SCALE, 200.0f, (float)z * WORLD_SMALL_HILL_SCALE);
 
-      int32_t surface_y = base_surface_level + (int32_t)(large_hill_noise * max_hill_height);
+      float hill_noise = mountain_noise + large_hill_noise + small_hill_noise;
 
-      if(surface_y > MAP_NUM_BLOCKS_Y - 8){
-        surface_y = MAP_NUM_BLOCKS_Y - 8;
-      }
+      int32_t surface_y = WORLD_BASE_SURFACE_LEVEL + (int32_t)(hill_noise * WORLD_MAX_HILL_HEIGHT);
+
+      if(surface_y >= MAP_NUM_BLOCKS_Y) surface_y = MAP_NUM_BLOCKS_Y - 1;
+      
+      // grass
       assign_block_material(surface_y, z, x, BLOCK_TYPE_GRASS);
-
+      // dirt0
+      int32_t dirt0_top = surface_y - 1;
+      int32_t dirt0_bottom = dirt0_top - WORLD_DIRT0_DEPTH + 1;
+      for(int32_t y = dirt0_top; y >= dirt0_bottom; y--){
+        assign_block_material(y, z, x, BLOCK_TYPE_DIRT0);
+      }
+      // stone0
+      int32_t stone0_top = dirt0_bottom - 1;
+      int32_t stone0_bottom = stone0_top - WORLD_STONE0_DEPTH + 1;
+      for(int32_t y = stone0_top; y >= 0; y--){
+        assign_block_material(y, z, x, BLOCK_TYPE_STONE0);
+      }
     }
   }
 
-  for(uint32_t y = 0; y < MAP_NUM_BLOCKS_Y; y++){
-    for(uint32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
-      for(uint32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
-        
-        if(y < water_level && block_at(y, z, x).type == BLOCK_TYPE_AIR)
-          assign_block_material(y, z, x, BLOCK_TYPE_WATER0);
+  // water
+  for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+    for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+      for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
 
+        if(y > WORLD_WATER_LEVEL && block_at(y, z, x).type != BLOCK_TYPE_AIR) break;
+
+        if(y <= WORLD_WATER_LEVEL && block_at(y, z, x).type == BLOCK_TYPE_AIR)
+          assign_block_material(y, z, x, BLOCK_TYPE_WATER0);
+        else if(y <= WORLD_WATER_LEVEL && block_at(y, z, x).type != BLOCK_TYPE_AIR){
+          uint32_t random = xorshift32();
+          if(random < 0.1f * (float)UINT32_MAX)
+            assign_block_material(y, z, x, BLOCK_TYPE_CLAY0);
+          else if(random < 0.95f * (float)UINT32_MAX)
+            assign_block_material(y, z, x, BLOCK_TYPE_SAND0);
+          else
+            assign_block_material(y, z, x, BLOCK_TYPE_DIRT1);
+          break;
+        }
+      }
+    }
+  }
+
+  // CAVES
+  for(int32_t z = 1; z < MAP_NUM_BLOCKS_Z - 1; z++){
+    for(int32_t x = 1; x < MAP_NUM_BLOCKS_X - 1; x++){
+      for(int32_t y = 1; y < MAP_NUM_BLOCKS_Y - 1; y++){
+      
+        float large_cave_noise  = perlin_noise_3d((float)x * WORLD_LARGE_CAVE_SCALE,  (float)y * WORLD_LARGE_CAVE_SCALE,  (float)z * WORLD_LARGE_CAVE_SCALE);
+        float medium_cave_noise = perlin_noise_3d((float)x * WORLD_MEDIUM_CAVE_SCALE, (float)y * WORLD_MEDIUM_CAVE_SCALE, (float)z * WORLD_MEDIUM_CAVE_SCALE);
+        float small_cave_noise  = perlin_noise_3d((float)x * WORLD_SMALL_CAVE_SCALE,  (float)y * WORLD_SMALL_CAVE_SCALE,  (float)z * WORLD_SMALL_CAVE_SCALE);
+
+        float cave_noise = large_cave_noise + medium_cave_noise + small_cave_noise;
+
+        if(y < WORLD_BASE_CAVE_LEVEL && cave_noise > 0.2f){
+          assign_block_material(y, z, x, BLOCK_TYPE_AIR);
+        }
       }
     }
   }
@@ -1495,7 +1607,7 @@ void init_block_map2(){
           assign_block_material(y, z, x, BLOCK_TYPE_STONE3);
         }
         else if((int32_t)y < surface_y){
-          assign_block_material(y, z, x, BLOCK_TYPE_DIRT);
+          assign_block_material(y, z, x, BLOCK_TYPE_DIRT0);
         }
         else{
           if(mountain_amount > 0.25f && (int32_t)y > surface_y){
@@ -1510,7 +1622,7 @@ void init_block_map2(){
             uint32_t random_value = rand_i(grass_seed);
 
             if(low_land_should_have_water && surface_y < water_level - 1){
-              assign_block_material(y, z, x, BLOCK_TYPE_DIRT);
+              assign_block_material(y, z, x, BLOCK_TYPE_DIRT0);
             }
             else if(random_value % 5u == 0u){
               assign_block_material(y, z, x, BLOCK_TYPE_CHERRY_GRASS);
@@ -1630,14 +1742,14 @@ void init_block_map0(){
             assign_block_material(y, z, x, BLOCK_TYPE_GRASS);
           }
           else if(random < 0.7 * INT32_MAX){
-            assign_block_material(y, z, x, BLOCK_TYPE_DIRT);
+            assign_block_material(y, z, x, BLOCK_TYPE_DIRT0);
           }
           else{
             assign_block_material(y, z, x, BLOCK_TYPE_CHERRY_GRASS);
           }
         }
         if(y < (uint32_t)(0.4 * MAP_NUM_BLOCKS_Y) - 1){
-          assign_block_material(y, z, x, BLOCK_TYPE_DIRT);
+          assign_block_material(y, z, x, BLOCK_TYPE_DIRT0);
         }
         if(y <= (uint32_t)(0.3 * MAP_NUM_BLOCKS_Y)){
           assign_block_material(y, z, x, BLOCK_TYPE_STONE3);
@@ -1986,6 +2098,32 @@ void get_block_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, 
 
   *start_z = clamp_int((int)floorf(aabb->z_min), 0, MAP_NUM_BLOCKS_Z - 1);
   *end_z   = clamp_int((int)floorf(aabb->z_max), 0, MAP_NUM_BLOCKS_Z - 1);
+}
+
+bool light_queue_not_empty(){
+  return light_queue.head != light_queue.tail;
+}
+
+void light_queue_push(light_node_t light_node){
+  light_queue.nodes[light_queue.tail] = light_node;
+
+  light_queue.tail++;
+
+  if(light_queue.tail >= MAX_LIGHT_QUEUE_SIZE){
+    light_queue.tail = 0;
+  }
+}
+
+light_node_t light_queue_pop(){
+  light_node_t light_node = light_queue.nodes[light_queue.head];
+
+  light_queue.head++;
+
+  if(light_queue.head >= MAX_LIGHT_QUEUE_SIZE){
+    light_queue.head = 0;
+  }
+
+  return light_node;
 }
 
 inline block_face_t generate_block_face(block_face_direction_t block_face_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col){
@@ -2431,32 +2569,6 @@ bool block_is_emissive(block_t *block){
   return block_materials[block->type].emissive_color.uint32 != 0x00000000;
 }
 
-bool light_queue_not_empty(){
-  return light_queue.head != light_queue.tail;
-}
-
-void light_queue_push(light_node_t light_node){
-  light_queue.nodes[light_queue.tail] = light_node;
-
-  light_queue.tail++;
-
-  if(light_queue.tail >= MAX_LIGHT_QUEUE_SIZE){
-    light_queue.tail = 0;
-  }
-}
-
-light_node_t light_queue_pop(){
-  light_node_t light_node = light_queue.nodes[light_queue.head];
-
-  light_queue.head++;
-
-  if(light_queue.head >= MAX_LIGHT_QUEUE_SIZE){
-    light_queue.head = 0;
-  }
-
-  return light_node;
-}
-
 bool block_is_tree_leaves(block_t *block){
   return 
     block->type == BLOCK_TYPE_LEAVES0 ||
@@ -2481,6 +2593,12 @@ bool block_is_tree_trunk(block_t *block){
     block->type == BLOCK_TYPE_TREE_TRUNK5 ||
     block->type == BLOCK_TYPE_TREE_TRUNK6 ||
     block->type == BLOCK_TYPE_TREE_TRUNK7;
+}
+
+bool block_is_water(block_t *block){
+  return 
+    block->type == BLOCK_TYPE_WATER0 ||
+    block->type == BLOCK_TYPE_BOG0;
 }
 
 void place_pond(int32_t z_row, int32_t x_col){

@@ -2186,7 +2186,7 @@ void render_block_face(
     }
 
     if(block_material->blend_mode == BLEND_MODE_ALPHA_BLEND){
-      if(projected_triangle.avg_w > ZFAR / 5.0f){
+      if(projected_triangle.avg_w > ZFAR / 2.0f){
         projected_triangle.face_material.blend_mode = BLEND_MODE_OPAQUE;
       }
       else{

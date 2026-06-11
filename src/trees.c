@@ -144,6 +144,8 @@ void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
     }
   }
 
+  if(first_solid_y < 0 || first_solid_y >= MAP_NUM_BLOCKS_Y) return;
+
   uint32_t tree_width_seed  = seed ^ 0xA53A9B1Du; // generate two more seeds, one for y, and one for ore size
   uint32_t tree_height_seed = seed ^ 0xF12C77B3u;
 
@@ -166,7 +168,7 @@ void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
   }
   
   // trunk
-  for(int32_t y = tree_bottom; y <= tree_top; y++){
+  for(int32_t y = tree_bottom; y <= tree_top - 2; y++){
     float t = (float)(y - tree_bottom) / (float)(tree_top - tree_bottom);
     int32_t width = lerp(t, trunk_width, 1.0f);
     for(int32_t z = z_row - width / 2.0f; z < z_row + width / 2.0f; z++){
