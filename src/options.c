@@ -11,7 +11,8 @@ options_t options = {
   .log                            = true,
   .chunk_sort                     = false,
   .show_debug_info                = false,
-  .instant_mining                 = false
+  .instant_mining                 = false,
+  .see_through                    = false
 };
 
 void set_backface_culling_override_on(bool backface_culling){

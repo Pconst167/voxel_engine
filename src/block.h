@@ -18,6 +18,9 @@
 #define CHUNK_RENDER_DISTANCE_Z 4 // render this number of chunks around the player in XZ
 #define CHUNK_RENDER_DISTANCE_X 4 // render this number of chunks around the player in XZ
 
+// SURFACE LEVEL DATA
+#define SURFACE_LEVEL (0.4f * MAP_NUM_BLOCKS_Y)
+
 #define BLOCK_FACE_SHIFT_DOWN_AMOUNT (0.1f) // for fluid blocks
 
 #define MAX_BLOCK_LOOK_AT_DISTANCE 6.0f
@@ -31,10 +34,10 @@
 
 // BLOCK LIGHT
 #define MAX_LIGHT_QUEUE_SIZE 1048576
-#define MAX_SKY_LIGHT 15
-#define MAX_SKY_LIGHT_FLOAT 15.0f
-#define MAX_BLOCK_LIGHT 15
-#define MAX_BLOCK_LIGHT_FLOAT 15.0f
+#define MAX_SKY_LIGHT 10
+#define MAX_SKY_LIGHT_FLOAT 10.0f
+#define MAX_BLOCK_LIGHT 20
+#define MAX_BLOCK_LIGHT_FLOAT 20.0f
 #define MIN_TOTAL_LIGHT (1.0f / 32.0f)
 
 typedef struct{

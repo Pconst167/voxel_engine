@@ -313,6 +313,9 @@ void handle_game_input_actions(input_state_t *input_state){
     options.show_debug_info = !options.show_debug_info;
   }
   if(input_state->key_pressed[SDL_SCANCODE_F11]){
+    options.see_through = !options.see_through;
+  }
+  if(input_state->key_pressed[SDL_SCANCODE_F11]){
     print_log("[INFO] trying to load any saved chunks...");
     if(!load_all_saved_chunks()){
       print_log("[INFO] no saved chunks found");
@@ -2178,12 +2181,12 @@ void render_block_face(
       projected_triangle.face_material.emissive_color.rgb.green *= 0.5;
       projected_triangle.face_material.emissive_color.rgb.red *= 0.5;
       projected_triangle.total_light_intensity.blue  *= 0.7f;
-      projected_triangle.total_light_intensity.green *= 0.4f;
+      projected_triangle.total_light_intensity.green *= 0.3f;
       projected_triangle.total_light_intensity.red   *= 0.3f;
     }
 
     if(block_material->blend_mode == BLEND_MODE_ALPHA_BLEND){
-      if(projected_triangle.avg_w > ZFAR / 4.0f){
+      if(projected_triangle.avg_w > ZFAR / 5.0f){
         projected_triangle.face_material.blend_mode = BLEND_MODE_OPAQUE;
       }
       else{
@@ -2323,7 +2326,7 @@ void render_chunk_blocks(chunk_t *chunk, bool transparent_only){
         }
 
         // TOP FACE
-        if(render_top_block_face){
+        if(render_top_block_face && !options.see_through){
           if(block_is_surface_fluid(y_plane, z_row, x_col)){
             light_sample_t light = get_fluid_surface_light(y_plane, z_row, x_col);
             face_sky_light = light.sky_light / MAX_SKY_LIGHT_FLOAT * sun_sin_eta;
@@ -2349,7 +2352,7 @@ void render_chunk_blocks(chunk_t *chunk, bool transparent_only){
         }
 
         // BOTTOM FACE
-        if(render_bottom_block_face){
+        if(render_bottom_block_face && !options.see_through){
           face_sky_light =  block_at(y_plane - 1, z_row, x_col).sky_light / MAX_SKY_LIGHT_FLOAT * sun_sin_eta;
           face_block_light =  block_at(y_plane - 1, z_row, x_col).block_light / MAX_BLOCK_LIGHT_FLOAT;
           face_light = face_sky_light + face_block_light;
@@ -2542,7 +2545,7 @@ void render_object(object_t *object){
         projected_triangle.face_material.emissive_color.rgb.green *= 0.5;
         projected_triangle.face_material.emissive_color.rgb.red *= 0.5;
         projected_triangle.total_light_intensity.blue  *= 0.7f;
-        projected_triangle.total_light_intensity.green *= 0.4f;
+        projected_triangle.total_light_intensity.green *= 0.3f;
         projected_triangle.total_light_intensity.red   *= 0.3f;
       }
 

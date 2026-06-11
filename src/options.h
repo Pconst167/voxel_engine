@@ -21,6 +21,7 @@ typedef struct{
   bool chunk_sort;
   bool show_debug_info;
   bool instant_mining;
+  bool see_through;
 } options_t;
 
 extern options_t options;
