@@ -21,7 +21,7 @@ tree_t trees[] = {
     .max_height = 25,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.4f
+    .spawn_chance = 0.5f
   },
   {
     .tree_name = "tree2",
@@ -31,7 +31,7 @@ tree_t trees[] = {
     .max_height = 35,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.3f
+    .spawn_chance = 0.5f
   },
   {
     .tree_name = "tree3",
@@ -41,7 +41,7 @@ tree_t trees[] = {
     .max_height = 28,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.35f
+    .spawn_chance = 0.5f
   },
   {
     .tree_name = "tree4",
@@ -51,7 +51,7 @@ tree_t trees[] = {
     .max_height = 20,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.05f
+    .spawn_chance = 0.5f
   },
   {
     .tree_name = "tree5",
@@ -61,7 +61,7 @@ tree_t trees[] = {
     .max_height = 25,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.08f
+    .spawn_chance = 0.5f
   },
   {
     .tree_name = "tree6",
@@ -71,7 +71,7 @@ tree_t trees[] = {
     .max_height = 32,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.25f
+    .spawn_chance = 0.5f
   },
   {
     .tree_name = "tree7",
@@ -81,7 +81,7 @@ tree_t trees[] = {
     .max_height = 30,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.3f
+    .spawn_chance = 0.5f
   },
   {
     .tree_name = "tree8",
@@ -91,7 +91,7 @@ tree_t trees[] = {
     .max_height = 30,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.09f
+    .spawn_chance = 0.5f
   },
   {
     .tree_name = "tree9",
@@ -101,7 +101,7 @@ tree_t trees[] = {
     .max_height = 30,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.04f
+    .spawn_chance = 0.5f
   },
 
   // FLOWER TREES
@@ -113,7 +113,7 @@ tree_t trees[] = {
     .max_height = 30,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.2f
+    .spawn_chance = 0.5f
   },
   {
     .tree_name = "flowertree1",
@@ -123,7 +123,7 @@ tree_t trees[] = {
     .max_height = 30,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.9f
+    .spawn_chance = 0.5f
   }
 };
 
@@ -184,8 +184,8 @@ void place_trees(){
   int32_t step_size_z = 9;
 
   // place trees
-  for(uint32_t z = 32; z < MAP_NUM_BLOCKS_Z - 32; z += step_size_z){
-    for(uint32_t x = 32; x < MAP_NUM_BLOCKS_X - 32; x += step_size_x){
+  for(uint32_t z = 0; z < MAP_NUM_BLOCKS_Z; z += step_size_z){
+    for(uint32_t x = 0; x < MAP_NUM_BLOCKS_X; x += step_size_x){
       int32_t rand = xorshift32();
       if(rand % 5 == 0)
         place_tree(z, x, TREE0);

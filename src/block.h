@@ -14,9 +14,9 @@
 #define NUM_CHUNK_DIVISIONS_Y (MAP_NUM_BLOCKS_Y / CHUNK_SIZE)
 #define NUM_CHUNK_DIVISIONS_Z (MAP_NUM_BLOCKS_Z / CHUNK_SIZE)
 #define NUM_CHUNK_DIVISIONS_X (MAP_NUM_BLOCKS_X / CHUNK_SIZE)
-#define CHUNK_RENDER_DISTANCE_Y 2 // render this number of chunks around the player in XZ
-#define CHUNK_RENDER_DISTANCE_Z 4 // render this number of chunks around the player in XZ
-#define CHUNK_RENDER_DISTANCE_X 4 // render this number of chunks around the player in XZ
+#define CHUNK_RENDER_DISTANCE_Y 3 // render this number of chunks around the player in XZ
+#define CHUNK_RENDER_DISTANCE_Z 3 // render this number of chunks around the player in XZ
+#define CHUNK_RENDER_DISTANCE_X 3 // render this number of chunks around the player in XZ
 
 // SURFACE LEVEL DATA
 #define SURFACE_LEVEL (0.4f * MAP_NUM_BLOCKS_Y)
@@ -42,13 +42,14 @@
 
 // WORLD PARAMETERS
 #define WORLD_BASE_SURFACE_LEVEL (0.5f * MAP_NUM_BLOCKS_Y)
-#define WORLD_MAX_HILL_HEIGHT    28
+#define WORLD_MAX_HILL_HEIGHT    20
 #define WORLD_DIRT0_DEPTH        6
 #define WORLD_STONE0_DEPTH       6
 #define WORLD_WATER_LEVEL        (WORLD_BASE_SURFACE_LEVEL - 10)
 #define WORLD_LARGE_HILL_SCALE   0.03f
 #define WORLD_SMALL_HILL_SCALE   0.05f
 #define WORLD_MOUNTAIN_SCALE     0.01f
+
 #define WORLD_OVERHANG_SCALE     0.04f
 
 #define WORLD_BASE_CAVE_LEVEL    WORLD_WATER_LEVEL - 10
@@ -249,6 +250,7 @@ char *get_block_material_name(block_type_t block_type);
 bool block_is_transparent(block_t *block);
 bool block_is_opaque(block_t *block);
 bool block_is_emissive(block_t *block);
+bool block_is_stone(block_t *block);
 bool block_is_tree_leaves(block_t *block);
 bool block_is_tree_trunk(block_t *block);
 bool block_is_water(block_t *block);

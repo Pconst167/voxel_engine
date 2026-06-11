@@ -1378,8 +1378,8 @@ void init_block_map(){
     for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
       
       float mountain_noise   = perlin_noise_3d((float)x * WORLD_MOUNTAIN_SCALE,     0.0f, (float)z * WORLD_MOUNTAIN_SCALE);
-      float large_hill_noise = perlin_noise_3d((float)x * WORLD_LARGE_HILL_SCALE, 100.0f, (float)z * WORLD_LARGE_HILL_SCALE);
-      float small_hill_noise = perlin_noise_3d((float)x * WORLD_SMALL_HILL_SCALE, 200.0f, (float)z * WORLD_SMALL_HILL_SCALE);
+      float large_hill_noise = perlin_noise_3d((float)x * WORLD_LARGE_HILL_SCALE, 200.0f, (float)z * WORLD_LARGE_HILL_SCALE);
+      float small_hill_noise = perlin_noise_3d((float)x * WORLD_SMALL_HILL_SCALE, 400.0f, (float)z * WORLD_SMALL_HILL_SCALE);
 
       float hill_noise = mountain_noise + large_hill_noise + small_hill_noise;
 
@@ -1438,8 +1438,9 @@ void init_block_map(){
 
         float cave_noise = large_cave_noise + medium_cave_noise + small_cave_noise;
 
-        if(y < WORLD_BASE_CAVE_LEVEL && cave_noise > 0.2f){
-          assign_block_material(y, z, x, BLOCK_TYPE_AIR);
+        if(y < WORLD_BASE_CAVE_LEVEL && cave_noise > 0.25f){
+          if(block_is_stone(&block_at(y, z, x)))
+            assign_block_material(y, z, x, BLOCK_TYPE_AIR);
         }
       }
     }
@@ -2514,6 +2515,9 @@ block_raycast_hit_t raycast_blocks(
 }
 
 void assign_block_material(int32_t block_y, int32_t block_z, int32_t block_x, block_type_t block_type){
+
+  if(block_y >= MAP_NUM_BLOCKS_Y || block_z >= MAP_NUM_BLOCKS_Z || block_x >= MAP_NUM_BLOCKS_X || block_y < 0 || block_z < 0 || block_x < 0) return;
+
   block_t *block = &block_at(block_y, block_z, block_x);
 
   block->type = block_type;
@@ -2567,6 +2571,19 @@ bool block_is_opaque(block_t *block){
 
 bool block_is_emissive(block_t *block){
   return block_materials[block->type].emissive_color.uint32 != 0x00000000;
+}
+
+bool block_is_stone(block_t *block){
+  return 
+    block->type == BLOCK_TYPE_STONE0 ||
+    block->type == BLOCK_TYPE_STONE1 ||
+    block->type == BLOCK_TYPE_STONE2 ||
+    block->type == BLOCK_TYPE_STONE3 ||
+    block->type == BLOCK_TYPE_STONE4 ||
+    block->type == BLOCK_TYPE_STONE5 ||
+    block->type == BLOCK_TYPE_STONE6 ||
+    block->type == BLOCK_TYPE_STONE7 ||
+    block->type == BLOCK_TYPE_STONE8;
 }
 
 bool block_is_tree_leaves(block_t *block){
