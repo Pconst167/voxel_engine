@@ -500,11 +500,8 @@ void update_player_from_input(input_state_t *input_state){
   int32_t player_block_y = player.position.y;
   int32_t player_block_z = player.position.z;
   int32_t player_block_x = player.position.x;
-  if(
-    block_materials[block_at(player_block_y, player_block_z, player_block_x).type].block_fluid_type != BLOCK_FLUID_NONE ||
-    (
-      player_block_y + 1 < MAP_NUM_BLOCKS_Y && block_materials[block_at(player_block_y + 1, player_block_z, player_block_x).type].block_fluid_type != BLOCK_FLUID_NONE
-    )
+  if(block_materials[block_at(player_block_y, player_block_z, player_block_x).type].block_fluid_type != BLOCK_FLUID_NONE ||
+    (player_block_y + 1 < MAP_NUM_BLOCKS_Y && block_materials[block_at(player_block_y + 1, player_block_z, player_block_x).type].block_fluid_type != BLOCK_FLUID_NONE)
   ){
     player.on_water = true;
   }
@@ -2245,10 +2242,10 @@ void render_chunk_blocks(chunk_t *chunk, bool transparent_only){
         bool render_back_fluid_connector  = false;
 
         if(block_materials[block_at(y_plane, z_row, x_col).type].block_fluid_type != BLOCK_FLUID_NONE){
-          render_left_fluid_connector  = should_render_water_block_connectors(BLOCK_FACE_LEFT, y_plane, z_row, x_col);
-          render_right_fluid_connector = should_render_water_block_connectors(BLOCK_FACE_RIGHT, y_plane, z_row, x_col);
-          render_front_fluid_connector = should_render_water_block_connectors(BLOCK_FACE_FRONT, y_plane, z_row, x_col);
-          render_back_fluid_connector  = should_render_water_block_connectors(BLOCK_FACE_BACK, y_plane, z_row, x_col);
+          render_left_fluid_connector  = should_render_fluid_block_connectors(BLOCK_FACE_LEFT, y_plane, z_row, x_col);
+          render_right_fluid_connector = should_render_fluid_block_connectors(BLOCK_FACE_RIGHT, y_plane, z_row, x_col);
+          render_front_fluid_connector = should_render_fluid_block_connectors(BLOCK_FACE_FRONT, y_plane, z_row, x_col);
+          render_back_fluid_connector  = should_render_fluid_block_connectors(BLOCK_FACE_BACK, y_plane, z_row, x_col);
         }
 
         block_material_t *block_material = &block_materials[block->type];
@@ -2812,7 +2809,7 @@ void update_light(void){
   if(skybox_id != -1){
     //object_t *skybox = &objects[skybox_id];
 
-    //sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
+    sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
     sun_sin_eta = sinf(sun_eta);
 
     if(sun_sin_eta < 0.0f) sun_sin_eta = 0.0f;
@@ -2907,7 +2904,7 @@ inline uint32_t rasterize_triangle(triangle_t *triangle){
         );
 
       case BLEND_MODE_ALPHA_BLEND:
-        return draw_textured_triangle_with_opacity_float(
+        return draw_textured_triangle_with_opacity(
           &triangle->points[0], triangle->uv[0],
           &triangle->points[1], triangle->uv[1],
           &triangle->points[2], triangle->uv[2],

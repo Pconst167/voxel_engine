@@ -8,10 +8,10 @@ tree_t trees[] = {
     .trunk_block_type = BLOCK_TYPE_TREE_TRUNK0,
     .leaves_block_type = BLOCK_TYPE_LEAVES0,
     .min_height = 10,
-    .max_height = 35,
+    .max_height = 55,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.5f
+    .spawn_chance = 0.9f
   },
   {
     .tree_name = "tree1",
@@ -21,7 +21,7 @@ tree_t trees[] = {
     .max_height = 25,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.5f
+    .spawn_chance = 0.9f
   },
   {
     .tree_name = "tree2",
@@ -31,7 +31,7 @@ tree_t trees[] = {
     .max_height = 35,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.5f
+    .spawn_chance = 0.9f
   },
   {
     .tree_name = "tree3",
@@ -41,7 +41,7 @@ tree_t trees[] = {
     .max_height = 28,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.5f
+    .spawn_chance = 0.9f
   },
   {
     .tree_name = "tree4",
@@ -113,7 +113,7 @@ tree_t trees[] = {
     .max_height = 30,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.5f
+    .spawn_chance = 0.9f
   },
   {
     .tree_name = "flowertree1",
@@ -123,7 +123,7 @@ tree_t trees[] = {
     .max_height = 30,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.5f
+    .spawn_chance = 0.9f
   }
 };
 

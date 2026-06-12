@@ -122,6 +122,17 @@ uint32_t draw_textured_triangle_with_opacity_float(
   float opacity
 );
 
+uint32_t draw_textured_triangle_with_opacity(
+  vector4_t *v0, uv_t v0_uv,
+  vector4_t *v1, uv_t v1_uv,
+  vector4_t *v2, uv_t v2_uv,
+  color_t *texture, int texture_width, int texture_height,
+  light_intensity_rgb_t total_light_intensity,
+  color_t emissive_color,
+  bool reflects_light,
+  float opacity
+);
+
 uint32_t draw_textured_triangle_affine(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,

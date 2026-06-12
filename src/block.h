@@ -46,8 +46,8 @@
 #define WORLD_DIRT0_DEPTH        6
 #define WORLD_STONE0_DEPTH       6
 #define WORLD_WATER_LEVEL        (WORLD_BASE_SURFACE_LEVEL - 10)
-#define WORLD_LARGE_HILL_SCALE   0.03f
-#define WORLD_SMALL_HILL_SCALE   0.05f
+#define WORLD_LARGE_HILL_SCALE   0.02f
+#define WORLD_SMALL_HILL_SCALE   0.03f
 #define WORLD_MOUNTAIN_SCALE     0.01f
 
 #define WORLD_OVERHANG_SCALE     0.04f
@@ -85,6 +85,7 @@ typedef enum{
   BLOCK_TYPE_VOLCANIC1  ,
   BLOCK_TYPE_VOLCANIC2  ,
   BLOCK_TYPE_VOLCANIC3  ,
+  BLOCK_TYPE_BEDROCK    ,
   BLOCK_TYPE_STONE0     ,
   BLOCK_TYPE_STONE1     ,
   BLOCK_TYPE_STONE2     ,
@@ -237,7 +238,7 @@ void get_block_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, 
 block_face_t generate_block_face(block_face_direction_t block_face_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col);
 block_face_t generate_fluid_top_block_face(block_face_direction_t block_face_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col);
 bool should_render_face(block_face_direction_t face_direction, int32_t y, int32_t z, int32_t x);
-bool should_render_water_block_connectors(block_face_direction_t face_direction, int32_t y, int32_t z, int32_t x);
+bool should_render_fluid_block_connectors(block_face_direction_t face_direction, int32_t y, int32_t z, int32_t x);
 bool should_shift_block_faces(int32_t y_plane, int32_t z_row, int32_t x_col);
 
 block_raycast_hit_t raycast_blocks(vector3_t ray_origin, vector3_t ray_direction, float max_distance);

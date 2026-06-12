@@ -201,6 +201,32 @@ void init_block_materials(){
     })  
   );
 
+  // BEDROCK
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .material_name      = "bedrock",
+      .solid              = true,
+      .mass               = 60,
+      .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
+      .mineable           = false,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
+      .transparent_to_light = false,
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF808080},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .reflects_light     = true,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/bedrock.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/bedrock.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/bedrock.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/bedrock.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/bedrock.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/bedrock.png")
+    })
+  );
+
   // STONE
   array_push(
     block_materials, 
@@ -1399,7 +1425,21 @@ void init_block_map(){
       int32_t stone0_top = dirt0_bottom - 1;
       int32_t stone0_bottom = stone0_top - WORLD_STONE0_DEPTH + 1;
       for(int32_t y = stone0_top; y >= 0; y--){
-        assign_block_material(y, z, x, BLOCK_TYPE_STONE0);
+        uint32_t random = xorshift32();
+        if(random % 7 == 0)
+          assign_block_material(y, z, x, BLOCK_TYPE_STONE0);
+        else if(random % 7 == 1)
+          assign_block_material(y, z, x, BLOCK_TYPE_STONE1);
+        else if(random % 7 == 2)
+          assign_block_material(y, z, x, BLOCK_TYPE_STONE2);
+        else if(random % 7 == 3)
+          assign_block_material(y, z, x, BLOCK_TYPE_STONE3);
+        else if(random % 7 == 4)
+          assign_block_material(y, z, x, BLOCK_TYPE_STONE4);
+        else if(random % 7 == 5)
+          assign_block_material(y, z, x, BLOCK_TYPE_STONE5);
+        else if(random % 7 == 6)
+          assign_block_material(y, z, x, BLOCK_TYPE_STONE6);
       }
     }
   }
@@ -1447,6 +1487,34 @@ void init_block_map(){
   }
 
   place_trees();
+
+
+  // WORLD BORDER
+  for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+    for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+      for(int32_t y = WORLD_BASE_SURFACE_LEVEL + 50; y >= 0; y--){
+        if(y == 0){
+          assign_block_material(y, z, x, BLOCK_TYPE_BEDROCK);
+        }
+        else if((x <= 5 || x >= MAP_NUM_BLOCKS_X - 5 || z <= 5 || z >= MAP_NUM_BLOCKS_Z - 5)){
+          if(block_at(y, z, x).type == BLOCK_TYPE_AIR){
+            if(xorshift32() % 8 == 0){
+              assign_block_material(y, z, x, BLOCK_TYPE_LEAVES0);
+            }
+            else if(xorshift32() % 8 == 1){
+              assign_block_material(y, z, x, BLOCK_TYPE_LEAVES6);
+            }
+            else if(xorshift32() % 8 == 2){
+              assign_block_material(y, z, x, BLOCK_TYPE_LEAVES4);
+            }
+            else if(xorshift32() % 8 == 3){
+              assign_block_material(y, z, x, BLOCK_TYPE_LEAVES9);
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 void init_block_map2(){
@@ -2762,7 +2830,7 @@ bool block_is_surface_fluid(int32_t y, int32_t z, int32_t x){
 //   block is top fluid surface and upper neighbours are fluid too
 //   OR
 //   block is top fluid surface and same level neighbours are fluid too but not top surfaces
-bool should_render_water_block_connectors(block_face_direction_t face_direction, int32_t y, int32_t z, int32_t x){
+bool should_render_fluid_block_connectors(block_face_direction_t face_direction, int32_t y, int32_t z, int32_t x){
   
   if(!block_is_surface_fluid(y, z, x)) return false;
 

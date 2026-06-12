@@ -983,6 +983,219 @@ uint32_t draw_textured_triangle_alpha_test_float(
   return total_pixels_rendered;
 }
 
+inline uint32_t draw_textured_triangle_with_opacity(
+  vector4_t *v0, uv_t v0_uv,
+  vector4_t *v1, uv_t v1_uv,
+  vector4_t *v2, uv_t v2_uv,
+  color_t *texture, int texture_width, int texture_height,
+  light_intensity_rgb_t total_light_intensity,
+  color_t emissive_color,
+  bool reflects_light,
+  float opacity
+){
+  int x_min = (int)floorf(MIN(MIN(v0->x, v1->x), v2->x));
+  int y_min = (int)floorf(MIN(MIN(v0->y, v1->y), v2->y));
+  int x_max = (int)ceilf (MAX(MAX(v0->x, v1->x), v2->x));
+  int y_max = (int)ceilf (MAX(MAX(v0->y, v1->y), v2->y));
+
+  if(x_min < 0) x_min = 0;
+  if(y_min < 0) y_min = 0;
+  if(x_max >= window_width)  x_max = window_width  - 1;
+  if(y_max >= window_height) y_max = window_height - 1;
+
+  if(x_min > x_max || y_min > y_max) return 0;
+
+  int32_t x0 = to_fixed(v0->x);
+  int32_t y0 = to_fixed(v0->y);
+  int32_t x1 = to_fixed(v1->x);
+  int32_t y1 = to_fixed(v1->y);
+  int32_t x2 = to_fixed(v2->x);
+  int32_t y2 = to_fixed(v2->y);
+
+  int64_t area_fixed = edge_cross_fixed(x0, y0, x1, y1, x2, y2);
+  if(area_fixed == 0) return 0;
+
+  if(area_fixed < 0){
+    vector4_t *tmp_v = v1;
+    v1 = v2;
+    v2 = tmp_v;
+
+    uv_t tmp_uv = v1_uv;
+    v1_uv = v2_uv;
+    v2_uv = tmp_uv;
+
+    int32_t tmp_x = x1;
+    int32_t tmp_y = y1;
+    x1 = x2;
+    y1 = y2;
+    x2 = tmp_x;
+    y2 = tmp_y;
+
+    area_fixed = -area_fixed;
+  }
+
+  float one_over_area = 1.0f / (float)area_fixed;
+
+  /* start_x/start_y are x_min/y_min plus 0.5 in fixed point */
+  int32_t start_x = ((int32_t)x_min << FIXED_SHIFT) + (FIXED_ONE >> 1);
+  int32_t start_y = ((int32_t)y_min << FIXED_SHIFT) + (FIXED_ONE >> 1);
+
+  bool edge0_top_left = is_top_left_edge_fixed(x1, y1, x2, y2);
+  bool edge1_top_left = is_top_left_edge_fixed(x2, y2, x0, y0);
+  bool edge2_top_left = is_top_left_edge_fixed(x0, y0, x1, y1);
+
+  int64_t w0_row_unbiased = edge_cross_fixed(x1, y1, x2, y2, start_x, start_y);
+  int64_t w1_row_unbiased = edge_cross_fixed(x2, y2, x0, y0, start_x, start_y);
+  int64_t w2_row_unbiased = edge_cross_fixed(x0, y0, x1, y1, start_x, start_y);
+
+  int64_t w0_row = w0_row_unbiased - (edge0_top_left ? 0 : 1);
+  int64_t w1_row = w1_row_unbiased - (edge1_top_left ? 0 : 1);
+  int64_t w2_row = w2_row_unbiased - (edge2_top_left ? 0 : 1);
+
+  int64_t delta_w0_col = -(int64_t)(y2 - y1) * FIXED_ONE;
+  int64_t delta_w1_col = -(int64_t)(y0 - y2) * FIXED_ONE;
+  int64_t delta_w2_col = -(int64_t)(y1 - y0) * FIXED_ONE;
+
+  int64_t delta_w0_row =  (int64_t)(x2 - x1) * FIXED_ONE;
+  int64_t delta_w1_row =  (int64_t)(x0 - x2) * FIXED_ONE;
+  int64_t delta_w2_row =  (int64_t)(x1 - x0) * FIXED_ONE;
+
+  float one_over_v0_w = 1.0f / v0->w;
+  float one_over_v1_w = 1.0f / v1->w;
+  float one_over_v2_w = 1.0f / v2->w;
+
+  float v0_u_over_w = v0_uv.u * one_over_v0_w;
+  float v1_u_over_w = v1_uv.u * one_over_v1_w;
+  float v2_u_over_w = v2_uv.u * one_over_v2_w;
+
+  float v0_v_over_w = v0_uv.v * one_over_v0_w;
+  float v1_v_over_w = v1_uv.v * one_over_v1_w;
+  float v2_v_over_w = v2_uv.v * one_over_v2_w;
+
+  uint32_t total_pixels_drawn = 0;
+  for(int y = y_min; y <= y_max; y++){
+    int64_t w0 = w0_row;
+    int64_t w1 = w1_row;
+    int64_t w2 = w2_row;
+
+    int64_t w0_unbiased = w0_row_unbiased;
+    int64_t w1_unbiased = w1_row_unbiased;
+    int64_t w2_unbiased = w2_row_unbiased;
+
+    bool was_inside = false;
+
+    for(int x = x_min; x <= x_max; x++){
+      bool inside = (w0 >= 0) && (w1 >= 0) && (w2 >= 0);
+
+      if(inside){
+        was_inside = true;
+        total_pixels_drawn++;
+
+        float alpha = (float)w0_unbiased * one_over_area;
+        float beta  = (float)w1_unbiased * one_over_area;
+        float gamma = (float)w2_unbiased * one_over_area;
+
+        float interpolated_reciprocal_w = (alpha * one_over_v0_w) + (beta * one_over_v1_w) + (gamma * one_over_v2_w);
+
+
+        if(interpolated_reciprocal_w > zbuffer[y * window_width + x] || !zbuffer_test){
+          float interpolated_u = alpha * v0_u_over_w + beta  * v1_u_over_w + gamma * v2_u_over_w;
+          float interpolated_v = alpha * v0_v_over_w + beta  * v1_v_over_w + gamma * v2_v_over_w;
+
+          interpolated_u /= interpolated_reciprocal_w;
+          interpolated_v /= interpolated_reciprocal_w;
+
+          // use bit masking for UV repeating - masking also handles negative UVs
+          int texture_u = (int)(interpolated_u * texture_width)  & (texture_width - 1);
+          int texture_v = (int)(interpolated_v * texture_height) & (texture_height - 1);
+
+          color_t texel = texture[texture_v * texture_width + texture_u];
+          
+          uint32_t red_total   = 0;
+          uint32_t green_total = 0;
+          uint32_t blue_total  = 0;
+
+          if(reflects_light){
+            red_total   = (uint32_t)(texel.rgb.red   * total_light_intensity.red  );
+            green_total = (uint32_t)(texel.rgb.green * total_light_intensity.green);
+            blue_total  = (uint32_t)(texel.rgb.blue  * total_light_intensity.blue );
+          }
+
+          /* add emissive color on top */
+          if(emissive_color.uint32 > 0){
+            red_total   += texel.rgb.red   * emissive_color.rgb.red   / 255.0f;
+            green_total += texel.rgb.green * emissive_color.rgb.green / 255.0f;
+            blue_total  += texel.rgb.blue  * emissive_color.rgb.blue  / 255.0f;
+          }
+
+          /* clamp total amount as results over 255 do not make sense */
+          if(red_total   > 255) red_total   = 255;
+          if(green_total > 255) green_total = 255;
+          if(blue_total  > 255) blue_total  = 255;
+          color_t texel_color = {
+            .rgb.alpha = texel.rgb.alpha,
+            .rgb.blue  = blue_total,
+            .rgb.green = green_total,
+            .rgb.red   = red_total
+          };
+
+          // draw pixel
+          if((unsigned)x < (unsigned)window_width && (unsigned)y < (unsigned)window_height){
+            /* combine texture alpha with object opacity */
+            uint8_t alpha = opacity * 255.0f;
+
+            if(alpha == 255){
+              texel_color.rgb.alpha = 255;
+              color_buffer[y * window_width + x] = texel_color;
+            }
+            else if(alpha != 0){
+              uint8_t inv_alpha = 255 - alpha;
+
+              color_t dst = color_buffer[y * window_width + x];
+
+              uint8_t src_red   = texel_color.rgb.red;
+              uint8_t src_green = texel_color.rgb.green;
+              uint8_t src_blue  = texel_color.rgb.blue;
+
+              uint8_t dst_red   = dst.rgb.red;
+              uint8_t dst_green = dst.rgb.green;
+              uint8_t dst_blue  = dst.rgb.blue;
+
+              color_t final_color = {
+                .rgb.alpha = 255, 
+                .rgb.blue  = (src_blue  * alpha + dst_blue  * inv_alpha) >> 8, 
+                .rgb.green = (src_green * alpha + dst_green * inv_alpha) >> 8,
+                .rgb.red   = (src_red   * alpha + dst_red   * inv_alpha) >> 8
+              };
+
+              color_buffer[y * window_width + x] = final_color;
+            }
+          }
+        }
+      }
+      else if(was_inside) break;
+
+      w0 += delta_w0_col;
+      w1 += delta_w1_col;
+      w2 += delta_w2_col;
+
+      w0_unbiased += delta_w0_col;
+      w1_unbiased += delta_w1_col;
+      w2_unbiased += delta_w2_col;
+    }
+
+    w0_row += delta_w0_row;
+    w1_row += delta_w1_row;
+    w2_row += delta_w2_row;
+
+    w0_row_unbiased += delta_w0_row;
+    w1_row_unbiased += delta_w1_row;
+    w2_row_unbiased += delta_w2_row;
+  }
+
+  return total_pixels_drawn;
+}
+
 uint32_t draw_textured_triangle_with_opacity_float(
   vector4_t *v0, uv_t v0_uv,
   vector4_t *v1, uv_t v1_uv,
