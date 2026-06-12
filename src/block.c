@@ -164,7 +164,7 @@ void init_block_materials(){
       .transparent_to_light = false,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
-      .emissive_color     = (color_t){.uint32 = 0xFF20FFFF},
+      .emissive_color     = (color_t){.uint32 = 0xFF000000},
       .reflects_light     = true,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
@@ -1399,6 +1399,20 @@ void init_block_map(){
     }
   }
 
+  // LAVA LEVEL
+  for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+    for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+      
+      int32_t surface_y;
+
+      float lava_noise = fabsf(perlin_noise_3d((float)x * WORLD_UNDER_NOISE_SCALE, 150.0f, (float)z * WORLD_UNDER_NOISE_SCALE));
+      surface_y = WORLD_BASE_LAVA_LEVEL + (int32_t)(lava_noise * WORLD_UNDER_MAX_HEIGHT);
+      for(int32_t y = surface_y; y >= 0; y--){
+        assign_block_material(y, z, x, BLOCK_TYPE_LAVA0);
+      }
+    }
+  }
+
   // base world surface levels
   for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
     for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
@@ -1425,6 +1439,8 @@ void init_block_map(){
       int32_t stone0_top = dirt0_bottom - 1;
       int32_t stone0_bottom = stone0_top - WORLD_STONE0_DEPTH + 1;
       for(int32_t y = stone0_top; y >= 0; y--){
+        if(block_at(y, z, x).type == BLOCK_TYPE_LAVA0) break;
+
         uint32_t random = xorshift32();
         if(random % 7 == 0)
           assign_block_material(y, z, x, BLOCK_TYPE_STONE0);
@@ -1443,6 +1459,7 @@ void init_block_map(){
       }
     }
   }
+
 
   // water
   for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
@@ -1479,24 +1496,17 @@ void init_block_map(){
         float cave_noise = large_cave_noise + medium_cave_noise + small_cave_noise;
 
         if(y < WORLD_BASE_CAVE_LEVEL && cave_noise > 0.25f){
-          if(block_is_stone(&block_at(y, z, x)))
-            assign_block_material(y, z, x, BLOCK_TYPE_AIR);
+          assign_block_material(y, z, x, BLOCK_TYPE_AIR);
         }
       }
     }
   }
 
-  place_trees();
-
-
   // WORLD BORDER
   for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
     for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
       for(int32_t y = WORLD_BASE_SURFACE_LEVEL + 50; y >= 0; y--){
-        if(y == 0){
-          assign_block_material(y, z, x, BLOCK_TYPE_BEDROCK);
-        }
-        else if((x <= 5 || x >= MAP_NUM_BLOCKS_X - 5 || z <= 5 || z >= MAP_NUM_BLOCKS_Z - 5)){
+        if((x <= 5 || x >= MAP_NUM_BLOCKS_X - 5 || z <= 5 || z >= MAP_NUM_BLOCKS_Z - 5)){
           if(block_at(y, z, x).type == BLOCK_TYPE_AIR){
             if(xorshift32() % 8 == 0){
               assign_block_material(y, z, x, BLOCK_TYPE_LEAVES0);
@@ -1515,6 +1525,8 @@ void init_block_map(){
       }
     }
   }
+
+  place_trees();
 }
 
 void init_block_map2(){
@@ -2845,7 +2857,6 @@ bool should_render_fluid_block_connectors(block_face_direction_t face_direction,
       
     case BLOCK_FACE_RIGHT:
       if((block_materials[block_at(y + 1, z, x + 1).type].block_fluid_type != BLOCK_FLUID_NONE && block_materials[block_at(y, z, x + 1).type].block_fluid_type != BLOCK_FLUID_NONE) ||
-
          (block_materials[block_at(y, z, x + 1).type].block_fluid_type != BLOCK_FLUID_NONE && !block_is_surface_fluid(y, z, x + 1))
     ) return true;
       return false;

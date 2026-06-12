@@ -2814,7 +2814,7 @@ void update_light(void){
   if(skybox_id != -1){
     //object_t *skybox = &objects[skybox_id];
 
-    sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
+    //sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
     sun_sin_eta = sinf(sun_eta);
 
     if(sun_sin_eta < 0.0f) sun_sin_eta = 0.0f;
