@@ -210,6 +210,7 @@ void setup(void) {
   seed_initial_block_light(0, MAP_NUM_BLOCKS_Y - 1, 0, MAP_NUM_BLOCKS_Z - 1, 0, MAP_NUM_BLOCKS_X - 1);
   propagate_block_light();
 
+  load_skybox();
 
   // CREATE OBJECTS
   mesh_t *mesh;
@@ -3219,6 +3220,14 @@ void render_player_tools(){
   zbuffer_test = true;
 }
 
+void render_skybox(){
+  objects[skybox_id].translation = player.position;
+
+  zbuffer_write = false;
+  render_object(&objects[skybox_id]);
+  zbuffer_write = true;
+}
+
 int main(int argc, char *argv[]){
   (void)argc;
   (void)argv;
@@ -3248,6 +3257,8 @@ int main(int argc, char *argv[]){
 
     view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
 
+    render_skybox();
+
     render_visible_chunks();
 
     render_player_tools();
@@ -3273,7 +3284,7 @@ int main(int argc, char *argv[]){
 void load_skybox(){
   mesh_t *mesh;
 
-  mesh = load_mesh("./assets/obj/blocks/skybox/skybox_cube.obj", false);
+  mesh = load_mesh("./assets/obj/blocks/skybox/skybox_cube2.obj", false);
   skybox_id = create_object(mesh, OBJECT_TYPE_SKYBOX, false, false, false, 
                            (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
                            (vector3_t){1, 1, 1}, (vector3_t){0.1, 0.1, 0.1}, (vector3_t){0, 0, 0}, 
