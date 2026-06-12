@@ -86,6 +86,14 @@ void init_player(){
   player.block_inventory[14].block_type = BLOCK_TYPE_DIRT0;
   player.block_inventory[14].number = 400;
   player.block_inventory_size = 15;
+
+
+  for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
+    if(block_materials[block_at(y, (int32_t)player.position.z, (int32_t)player.position.x).type].solid){
+      player.position.y = y + 1.0f;
+      break;
+    }
+  }
 }
 
 // check if player already has the block type, if so add +1 to entry

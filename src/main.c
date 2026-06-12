@@ -2413,8 +2413,12 @@ void render_object(object_t *object){
   /* triangles list for clipped triangles */
   triangle_t triangles_after_clipping[MAX_NUM_POLYGON_VERTICES - 2]; /* for a polygon with N vertices, the number of nested triangles is always N-2 */
 
+  object->rotation.x += object->angular_velocity.x;
+  object->rotation.y += object->angular_velocity.y;
+  object->rotation.z += object->angular_velocity.z;
+
   // calculate a vertex for the position of the object (before view matrix so we get actual physical position)
-  matrix4_t world_matrix        = matrix4_gen_world_matrix(object);
+  matrix4_t world_matrix = matrix4_gen_world_matrix(object);
 
   /* loop through all faces in the face list for object */
   uint32_t num_faces = object->mesh->num_faces;
@@ -2498,8 +2502,8 @@ void render_object(object_t *object){
     float block_light = (float)block->block_light / MAX_BLOCK_LIGHT_FLOAT;
     float object_light = sky_light + block_light;
     if(object_light < MIN_TOTAL_LIGHT) object_light = MIN_TOTAL_LIGHT;
-    if(object_light > 1.0f)   object_light = 1.0f;
-    light_intensity_rgb_t total_light_intensity = {object_light, object_light, object_light};
+    if(object_light > 1.0f) object_light = 1.0f;
+    light_intensity_rgb_t  total_light_intensity = (light_intensity_rgb_t){object_light, object_light, object_light};
 
     // loop all faces generated from clipped polygon
     for(int t = 0; t < num_triangles_from_polygon; t++){
@@ -3165,7 +3169,6 @@ void process_mining(){
           }
         }
       }
-      else print_log("fail");
     }
     else{
       block_at(block_y, block_z, block_x).current_mass = block_materials[block_at(block_y, block_z, block_x).type].mass;
@@ -3220,14 +3223,6 @@ void render_player_tools(){
   zbuffer_test = true;
 }
 
-void render_skybox(){
-  objects[skybox_id].translation = player.position;
-
-  zbuffer_write = false;
-  render_object(&objects[skybox_id]);
-  zbuffer_write = true;
-}
-
 int main(int argc, char *argv[]){
   (void)argc;
   (void)argv;
@@ -3257,8 +3252,6 @@ int main(int argc, char *argv[]){
 
     view_matrix = matrix4_gen_view_matrix(camera.position, camera.direction, up);
 
-    render_skybox();
-
     render_visible_chunks();
 
     render_player_tools();
@@ -3287,8 +3280,8 @@ void load_skybox(){
   mesh = load_mesh("./assets/obj/blocks/skybox/skybox_cube2.obj", false);
   skybox_id = create_object(mesh, OBJECT_TYPE_SKYBOX, false, false, false, 
                            (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
-                           (vector3_t){1, 1, 1}, (vector3_t){0.1, 0.1, 0.1}, (vector3_t){0, 0, 0}, 
-                           (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
+                           (vector3_t){1, 1, 1}, (vector3_t){0.0f, 0.0f, 0.0f}, (vector3_t){0, 0, 0}, 
+                           (vector3_t){0, 0, 0}, (vector3_t){0.0001f, 0.0, 0}
   );
 }
 
