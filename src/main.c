@@ -213,7 +213,7 @@ void setup(void) {
   seed_initial_block_light(0, MAP_NUM_BLOCKS_Y - 1, 0, MAP_NUM_BLOCKS_Z - 1, 0, MAP_NUM_BLOCKS_X - 1);
   propagate_block_light();
 
-  load_skybox();
+  play_ambient_sound(AMBIENT_SOUND_TYPE_NATURE, 0);
 
   // CREATE OBJECTS
   mesh_t *mesh;
@@ -400,6 +400,11 @@ void handle_mouse_actions(input_state_t *input_state){
 
       if((block_y != player_y_feet && block_y != player_y_head) || block_z != player_z || block_x != player_x){
         if(player.block_inventory[player.block_inventory_active_index].number > 0){
+
+          // play sound
+          block_sound_type_t block_sound_type = block_materials[player.block_inventory[player.block_inventory_active_index].block_type].sound_type;
+          play_block_mining_sound(block_sound_type);
+
           assign_block_material(block_y, block_z, block_x, player.block_inventory[player.block_inventory_active_index].block_type);
           set_block_orientation(block_y, block_z, block_x, player.position);
           player_use_block();
@@ -450,6 +455,8 @@ void handle_mouse_actions(input_state_t *input_state){
     mining = false;
     animation_frame = 0;
     animation_direction = 1;
+
+    fadeout_sound_channels();
   }
 }
 
@@ -508,9 +515,11 @@ void update_player_from_input(input_state_t *input_state){
     (player_block_y + 1 < MAP_NUM_BLOCKS_Y && block_materials[block_at(player_block_y + 1, player_block_z, player_block_x).type].block_fluid_type != BLOCK_FLUID_NONE)
   ){
     player.on_water = true;
+    play_ambient_sound(AMBIENT_SOUND_TYPE_WATER, 2);
   }
   else{
     player.on_water = false;
+    fadeout_ambient_sound_channel(2, 1024);
   }
 
   if(input_state->key_down[SDL_SCANCODE_A]){
@@ -575,11 +584,18 @@ void update_player_from_input(input_state_t *input_state){
   movement.y = player.velocity.y * delta_time;
   if(player.on_ground && movement.y <= 0.0f) movement.y = -PLAYER_GROUND_PROBE_SPEED * delta_time;
 
+  if((fabsf(movement.x) > 0.01f || fabsf(movement.z) > 0.01f) && !player.on_water && player.on_ground){
+    play_ambient_sound(AMBIENT_SOUND_TYPE_WALKING, 3);
+  }
+  else{
+    if(Mix_Playing(3) && Mix_FadingChannel(3) == MIX_NO_FADING){
+      fadeout_ambient_sound_channel(3, 512);
+    }
+  }
+
   move_player_x(movement.x);
   move_player_z(movement.z);
   move_player_y(movement.y);
-
-
 }
 
 inline void move_player_x(float movement_x){
@@ -2813,12 +2829,29 @@ void draw_collision_aabb_outlines(void){
 }
 
 void update_light(void){
+  static bool night_time = false;
+
   /* skybox is a special case and needs to always track camera position */
   if(skybox_id != -1){
     //object_t *skybox = &objects[skybox_id];
 
-    //sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
+    sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
     sun_sin_eta = sinf(sun_eta);
+
+    if(!night_time){
+      if(sun_sin_eta <= 0.25f){
+        night_time = true;
+        fadeout_ambient_sound_channel(0, 5000);
+        play_ambient_sound(AMBIENT_SOUND_TYPE_NATURE_NIGHT, 1);
+      }
+    }
+    else{
+      if(sun_sin_eta > 0.5f){
+        night_time = false;
+        fadeout_ambient_sound_channel(1, 5000);
+        play_ambient_sound(AMBIENT_SOUND_TYPE_NATURE, 0);
+      }
+    }
 
     if(sun_sin_eta < 0.0f) sun_sin_eta = 0.0f;
 
@@ -3241,7 +3274,7 @@ int main(int argc, char *argv[]){
 
   quit = !initialize_window();
   setup();
-  
+
   for(; !quit; ){
     /* reset zbuffer */
     memset(zbuffer, 0x00, total_buffer_pixels * sizeof(uint32_t));
