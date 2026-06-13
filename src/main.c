@@ -3195,8 +3195,8 @@ void render_player_tools(){
       if(animation_frame <= -3){
         animation_direction = 1;
 
-        block_type_t block_type = block_at(looked_at_block.block_y, looked_at_block.block_z, looked_at_block.block_x).type;
-        play_block_mining_sound(block_type);
+        block_sound_type_t block_sound_type = block_materials[block_at(looked_at_block.block_y, looked_at_block.block_z, looked_at_block.block_x).type].sound_type;
+        play_block_mining_sound(block_sound_type);
       }
     }
   }

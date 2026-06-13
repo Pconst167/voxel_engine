@@ -5,6 +5,7 @@
 #include "material.h"
 #include "mesh.h"
 #include "light.h"
+#include "sound.h"
 #include "player_tools.h"
 
 #define MAP_NUM_BLOCKS_X 512
@@ -193,6 +194,8 @@ typedef struct{
   texture_t *right_texture;
   texture_t *top_texture;
   texture_t *bottom_texture;
+  // sound type
+  block_sound_type_t sound_type;
 } block_material_t;
 
 typedef struct{
