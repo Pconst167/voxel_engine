@@ -176,30 +176,6 @@ void init_block_materials(){
       .bottom_texture     = load_texture("./assets/textures/blocks/volcanic2.png")
     })  
   );
-  array_push(
-    block_materials, 
-    ((block_material_t){
-      .material_name      = "volcanic3",
-      .solid              = true,
-      .mass               = 60,
-      .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
-      .mineable           = true,
-      .block_fluid_type   = BLOCK_FLUID_NONE,
-      .transparent_to_light = false,
-      .backface_culling   = true,
-      .base_color         = (color_t){.uint32 = 0x00000000},
-      .emissive_color     = (color_t){.uint32 = 0000000000},
-      .reflects_light     = true,
-      .blend_mode         = BLEND_MODE_OPAQUE,
-      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .front_texture      = load_texture("./assets/textures/blocks/volcanic3.png"),
-      .back_texture       = load_texture("./assets/textures/blocks/volcanic3.png"),
-      .left_texture       = load_texture("./assets/textures/blocks/volcanic3.png"),
-      .right_texture       = load_texture("./assets/textures/blocks/volcanic3.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/volcanic3.png"),
-      .bottom_texture     = load_texture("./assets/textures/blocks/volcanic3.png")
-    })  
-  );
 
   // BEDROCK
   array_push(
@@ -581,7 +557,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "dirt0",
       .solid              = true,
-      .mass               = 30,
+      .mass               = 60,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -605,7 +581,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "dirt1",
       .solid              = true,
-      .mass               = 30,
+      .mass               = 60,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -631,7 +607,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "grass",
       .solid              = true,
-      .mass               = 30,
+      .mass               = 60,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -655,7 +631,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "cherrygrass",
       .solid              = true,
-      .mass      = 30,
+      .mass               = 60,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -671,7 +647,7 @@ void init_block_materials(){
       .left_texture       = load_texture("./assets/textures/blocks/cherry_grass_side.png"),
       .right_texture      = load_texture("./assets/textures/blocks/cherry_grass_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/cherry_grass_top.png"),
-      .bottom_texture     = load_texture("./assets/textures/blocks/dirt_2.png")
+      .bottom_texture     = load_texture("./assets/textures/blocks/dirt1.png")
     })
   );
 
@@ -681,7 +657,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "sand0",
       .solid              = true,
-      .mass               = 30,
+      .mass               = 60,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -707,7 +683,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "clay0",
       .solid              = true,
-      .mass               = 30,
+      .mass               = 60,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -1527,6 +1503,7 @@ void init_block_map(){
   }
 
   place_trees();
+  place_ores();
 }
 
 void init_block_map2(){
@@ -1791,133 +1768,6 @@ void init_block_map2(){
         }
         else if(random_value % 12u == 0u){
           assign_block_material(surface_y + 1, z, x, BLOCK_TYPE_LEAVES0);
-        }
-      }
-    }
-  }
-
-  place_trees();
-  place_ores();
-}
-
-void init_block_map0(){
-
-  blocks = malloc(sizeof(block_t) * MAP_NUM_BLOCKS_Y * MAP_NUM_BLOCKS_Z * MAP_NUM_BLOCKS_X);
-  if(blocks == NULL){
-    print_log("ERROR: unable to allocate map memory");
-    exit(1);
-  }
-
-  for(uint32_t y = 0; y < MAP_NUM_BLOCKS_Y; y++){
-    for(uint32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
-      for(uint32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
-        assign_block_material(y, z, x, BLOCK_TYPE_AIR);
-        block_at(y, z, x).temperature = 30.0f;
-        block_at(y, z, x).orientation = BLOCK_ORIENTATION_FRONT;
-        block_at(y, z, x).sky_light   = 0;
-        block_at(y, z, x).block_light = 0;
-
-        if(y == (int32_t)(SURFACE_LEVEL) - 1){
-          int32_t random = xorshift32();
-          if(random < 0.4 * INT32_MAX){
-            assign_block_material(y, z, x, BLOCK_TYPE_GRASS);
-          }
-          else if(random < 0.7 * INT32_MAX){
-            assign_block_material(y, z, x, BLOCK_TYPE_DIRT0);
-          }
-          else{
-            assign_block_material(y, z, x, BLOCK_TYPE_CHERRY_GRASS);
-          }
-        }
-        if(y < (uint32_t)(0.4 * MAP_NUM_BLOCKS_Y) - 1){
-          assign_block_material(y, z, x, BLOCK_TYPE_DIRT0);
-        }
-        if(y <= (uint32_t)(0.3 * MAP_NUM_BLOCKS_Y)){
-          assign_block_material(y, z, x, BLOCK_TYPE_STONE3);
-        }
-        if(y <= (uint32_t)(0.2 * MAP_NUM_BLOCKS_Y)){
-          assign_block_material(y, z, x, BLOCK_TYPE_STONE0);
-        }
-
-        if((x <= 10 || x >= MAP_NUM_BLOCKS_X - 10 || z <= 10 || z >= MAP_NUM_BLOCKS_Z - 10) && y >= 0.4 * MAP_NUM_BLOCKS_Y && y <= 0.43 * MAP_NUM_BLOCKS_Y){
-          if(xorshift32() % 8 == 0){
-            assign_block_material(y, z, x, BLOCK_TYPE_LEAVES0);
-          }
-          else if(xorshift32() % 8 == 1){
-            assign_block_material(y, z, x, BLOCK_TYPE_LEAVES6);
-          }
-          else if(xorshift32() % 8 == 2){
-            assign_block_material(y, z, x, BLOCK_TYPE_LEAVES4);
-          }
-          else if(xorshift32() % 8 == 3){
-            assign_block_material(y, z, x, BLOCK_TYPE_LEAVES9);
-          }
-          else{
-            block_at(y, z, x).type = BLOCK_TYPE_AIR;
-          }
-        }
-
-        // VOLCANIC
-        if(y <= (uint32_t)(0.1 * MAP_NUM_BLOCKS_Y)){
-          assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC3);
-          block_at(y, z, x).temperature = 100.0f;
-        }
-        if(y <= (uint32_t)(0.06 * MAP_NUM_BLOCKS_Y)){
-          if(xorshift32() % 3 == 0)
-            assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC1);
-          else
-            assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC2);
-          block_at(y, z, x).temperature = 300.0f;
-        }
-        if(y <= (uint32_t)(0.04 * MAP_NUM_BLOCKS_Y)){
-          assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC0);
-          block_at(y, z, x).temperature = 400.0f;
-        }
-        if(y <= (uint32_t)(0.02 * MAP_NUM_BLOCKS_Y)){
-          assign_block_material(y, z, x, BLOCK_TYPE_LAVA1);
-          block_at(y, z, x).temperature = 400.0f;
-        }
-        if(y <= (uint32_t)(0.01 * MAP_NUM_BLOCKS_Y)){
-          assign_block_material(y, z, x, BLOCK_TYPE_LAVA0);
-          block_at(y, z, x).temperature = 800.0f;
-        }
-        if(y == 0){
-          block_at(y, z, x).temperature = 1800.0f;
-        }
-
-        block_at(y, z, x).aabb.x_min = x;
-        block_at(y, z, x).aabb.x_max = x + 1.0;
-        block_at(y, z, x).aabb.z_min = z;
-        block_at(y, z, x).aabb.z_max = z + 1.0;
-        block_at(y, z, x).aabb.y_min = y;
-        block_at(y, z, x).aabb.y_max = y + 1.0;
-      }
-    }
-  }
-
-
-  for(uint32_t z = 32; z < MAP_NUM_BLOCKS_Z - 32; z++){
-    for(uint32_t x = 32; x < MAP_NUM_BLOCKS_X - 32; x++){
-      place_pond(z, x);
-    }
-  }
-
-  for(uint32_t y = 0; y < MAP_NUM_BLOCKS_Y; y++){
-    for(uint32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
-      for(uint32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
-        if(y == (int32_t)SURFACE_LEVEL){
-          if(xorshift32() % 5 == 0){
-            uint32_t random = xorshift32();
-            if(random < (uint32_t)(0.025f * UINT32_MAX)){
-              assign_block_material(y, z, x, BLOCK_TYPE_LAMP0);
-            }
-            else if(random < (uint32_t)(0.3f * UINT32_MAX)){
-              assign_block_material(y, z, x, BLOCK_TYPE_LEAVES0);
-            }
-            else{
-              assign_block_material(y, z, x, BLOCK_TYPE_GRASS);
-            }
-          }
         }
       }
     }

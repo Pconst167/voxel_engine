@@ -105,6 +105,7 @@
 #include "trees.h"
 #include "font.h"
 #include "game.h"
+#include "sound.h"
 #include "save_state.h"
 #include "debug.h"
 
@@ -187,6 +188,8 @@ void setup(void) {
 
   /* reset zbuffer */
   memset(zbuffer, 0x00, total_buffer_pixels * sizeof(uint32_t)); /* zbuffer is made of floats and 0x00000000 = 0.0 */
+
+  init_audio();
 
   initialize_view_frustrum_planes(fov_x, fov_y, znear, zfar);
 
@@ -3134,6 +3137,10 @@ void process_mining(){
 
         if(options.instant_mining) block_at(block_y, block_z, block_x).current_mass = 0;
         if(block_at(block_y, block_z, block_x).current_mass <= 0){
+
+          //block_type_t block_type = block_at(block_y, block_z, block_x).type;
+          //play_block_breaking_sound(block_type);
+
           player_obtain_block(block_at(block_y, block_z, block_x).type);
           assign_block_material(block_y, block_z, block_x, BLOCK_TYPE_AIR);
 
@@ -3178,14 +3185,19 @@ void process_mining(){
 
 void render_player_tools(){
   // PLAYER TOOLS
-  if(mining){
+  if(mining && looked_at_block.hit){
     if(animation_direction == 1){
       animation_frame++;
       if(animation_frame >= 1) animation_direction = -1;
     }
     else{
       animation_frame--;
-      if(animation_frame <= -3) animation_direction = 1;
+      if(animation_frame <= -3){
+        animation_direction = 1;
+
+        block_type_t block_type = block_at(looked_at_block.block_y, looked_at_block.block_z, looked_at_block.block_x).type;
+        play_block_mining_sound(block_type);
+      }
     }
   }
 

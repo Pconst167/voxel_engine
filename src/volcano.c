@@ -25,7 +25,7 @@ void place_volcano(
           assign_block_material(y, z, x, BLOCK_TYPE_LAVA1);
         else
           if(xorshift32() % 2 == 0)
-            assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC3);
+            assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC1);
           else
             assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC0);
       }
@@ -49,7 +49,7 @@ void place_lava_pool(int32_t z_row, int32_t x_col){
         if(xorshift32() < 1000)
           assign_block_material(first_solid_y, z, x, BLOCK_TYPE_LAVA1);
         else
-          assign_block_material(first_solid_y, z, x, BLOCK_TYPE_VOLCANIC3);
+          assign_block_material(first_solid_y, z, x, BLOCK_TYPE_VOLCANIC1);
       }
       else{
         assign_block_material(first_solid_y, z, x, BLOCK_TYPE_LAVA1);

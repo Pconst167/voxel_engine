@@ -14,9 +14,9 @@
 #define NUM_CHUNK_DIVISIONS_Y (MAP_NUM_BLOCKS_Y / CHUNK_SIZE)
 #define NUM_CHUNK_DIVISIONS_Z (MAP_NUM_BLOCKS_Z / CHUNK_SIZE)
 #define NUM_CHUNK_DIVISIONS_X (MAP_NUM_BLOCKS_X / CHUNK_SIZE)
-#define CHUNK_RENDER_DISTANCE_Y 3 // render this number of chunks around the player in XZ
-#define CHUNK_RENDER_DISTANCE_Z 3 // render this number of chunks around the player in XZ
-#define CHUNK_RENDER_DISTANCE_X 3 // render this number of chunks around the player in XZ
+#define CHUNK_RENDER_DISTANCE_Y 2 // render this number of chunks around the player in XZ
+#define CHUNK_RENDER_DISTANCE_Z 2 // render this number of chunks around the player in XZ
+#define CHUNK_RENDER_DISTANCE_X 2 // render this number of chunks around the player in XZ
 
 // SURFACE LEVEL DATA
 #define SURFACE_LEVEL (0.4f * MAP_NUM_BLOCKS_Y)
@@ -95,7 +95,6 @@ typedef enum{
   BLOCK_TYPE_VOLCANIC0  ,
   BLOCK_TYPE_VOLCANIC1  ,
   BLOCK_TYPE_VOLCANIC2  ,
-  BLOCK_TYPE_VOLCANIC3  ,
   BLOCK_TYPE_BEDROCK    ,
   BLOCK_TYPE_STONE0     ,
   BLOCK_TYPE_STONE1     ,
