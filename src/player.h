@@ -37,6 +37,7 @@ typedef struct{
   bool on_water;
   bool on_quicksand;
   bool on_lava;
+  bool lantern;
   // tools currently holding
   player_tool_t tools[MAX_PLAYER_TOOLS_HOLDING];
   uint32_t num_tools;

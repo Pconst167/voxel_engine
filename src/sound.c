@@ -8,31 +8,63 @@ ambient_sound_t ambient_sounds[] = {
     .filenames = {0},
     .num_sounds = 0
   },
-
   {
     .filenames = {
-      "./assets/sound/nature.wav",
+      "./assets/sound/nature_day.wav",
     },
     .num_sounds = 1
   },
-
   {
     .filenames = {
       "./assets/sound/nature_night.wav",
     },
     .num_sounds = 1
   },
-
+  {
+    .filenames = {
+      "./assets/sound/nature_cave.wav",
+    },
+    .num_sounds = 1
+  },
   {
     .filenames = {
       "./assets/sound/water_1.wav",
     },
     .num_sounds = 1
   },
-
   {
     .filenames = {
-      "./assets/sound/walk_grass.wav",
+      "./assets/sound/underwater.wav",
+    },
+    .num_sounds = 1
+  },
+  {
+    .filenames = {
+      "./assets/sound/lava.wav",
+    },
+    .num_sounds = 1
+  },
+  {
+    .filenames = {
+      "./assets/sound/walk_dirt.wav",
+    },
+    .num_sounds = 1
+  },
+  {
+    .filenames = {
+      "./assets/sound/walk_sand.wav",
+    },
+    .num_sounds = 1
+  },
+  {
+    .filenames = {
+      "./assets/sound/walk_wood.wav",
+    },
+    .num_sounds = 1
+  },
+  {
+    .filenames = {
+      "./assets/sound/walk_stone_0.wav",
     },
     .num_sounds = 1
   },
@@ -58,20 +90,22 @@ block_sound_t block_sounds[] = {
   {
     .filenames = {
       "./assets/sound/stone_0.wav",
+      "./assets/sound/stone_1.wav",
+      "./assets/sound/stone_2.wav",
     },
-    .num_sounds = 1
+    .num_sounds = 3
   },
 
   {
     .filenames = {
-      "./assets/sound/wood_0.wav",
-      "./assets/sound/wood_1.wav",
+      "./assets/sound/wood_0_new.wav",
+      "./assets/sound/wood_1_new.wav",
     },
     .num_sounds = 2
   }
 };
 
-int32_t num_ambient_sounds = 5;
+int32_t num_ambient_sounds = 12;
 int32_t num_block_sounds = 4;
 
 bool init_audio(void){
@@ -80,7 +114,7 @@ bool init_audio(void){
     return false;
   }
 
-  Mix_AllocateChannels(32);
+  Mix_AllocateChannels(SOUND_MAX_NUM_CHANNELS);
 
   for(int32_t sound_i = 0; sound_i < num_block_sounds; sound_i++){
     for(int32_t sound_element_i = 0; sound_element_i < block_sounds[sound_i].num_sounds; sound_element_i++){
@@ -103,7 +137,7 @@ bool init_audio(void){
   return true;
 }
 
-void play_ambient_sound(ambient_sound_type_t sound_type, int32_t channel){
+void play_ambient_sound(ambient_sound_type_t sound_type, int32_t channel, int32_t loop){
   if(sound_type == AMBIENT_SOUND_TYPE_NONE){
     return;
   }
@@ -116,15 +150,13 @@ void play_ambient_sound(ambient_sound_type_t sound_type, int32_t channel){
     return;
   }
 
-  if(Mix_FadingChannel(channel) == MIX_FADING_OUT){
-    Mix_HaltChannel(channel);
-  }
+  Mix_HaltChannel(channel);
 
   uint32_t random_sound_index = xorshift32() % ambient_sounds[sound_type].num_sounds;
 
   if(ambient_sounds[sound_type].sounds[random_sound_index] != NULL){
     Mix_Volume(channel, MIX_MAX_VOLUME);
-    Mix_PlayChannel(channel, ambient_sounds[sound_type].sounds[random_sound_index], -1);
+    Mix_PlayChannel(channel, ambient_sounds[sound_type].sounds[random_sound_index], loop);
   }
 }
 
@@ -134,14 +166,14 @@ void play_block_mining_sound(block_sound_type_t sound_type){
 
   uint32_t random_sound_index = xorshift32() % block_sounds[sound_type].num_sounds;
 
-  int32_t channel_number = Mix_PlayChannel(-1, block_sounds[sound_type].sounds[random_sound_index], 0);
-
-  if(channel_number >= 0){
-    Mix_Volume(channel_number, MIX_MAX_VOLUME);
+  if(Mix_Playing(SOUND_CHANNEL_MINING)){
+    return;
   }
 
+  Mix_Volume(SOUND_CHANNEL_MINING, MIX_MAX_VOLUME);
+
   if(block_sounds[sound_type].sounds[random_sound_index] != NULL){
-    Mix_PlayChannel(-1, block_sounds[sound_type].sounds[random_sound_index], 0);
+    Mix_PlayChannel(SOUND_CHANNEL_MINING, block_sounds[sound_type].sounds[random_sound_index], 0);
   }
 }
 
@@ -171,8 +203,8 @@ void shutdown_audio(void){
   Mix_CloseAudio();
 }
 
-void fadeout_sound_channels(){
-  for(int32_t i = 4; i < 32; i++){
+void fadeout_transient_sound_channels(){
+  for(int32_t i = SOUND_BLOCKS_CHANNEL_START; i < SOUND_MAX_NUM_CHANNELS; i++){
     Mix_FadeOutChannel(i, 500);
   }
 }

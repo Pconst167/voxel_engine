@@ -60,7 +60,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "lava0",
       .solid              = true,
-      .mass               = 60,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_LAVA,
@@ -85,7 +85,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "lava1",
       .solid              = true,
-      .mass               = 60,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_LAVA,
@@ -112,7 +112,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "volcanic0",
       .solid              = true,
-      .mass               = 60,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -137,7 +137,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "volcanic1",
       .solid              = true,
-      .mass               = 60,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -162,7 +162,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "volcanic2",
       .solid              = true,
-      .mass               = 60,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -189,7 +189,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "bedrock",
       .solid              = true,
-      .mass               = 60,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = false,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -216,7 +216,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "stone0",
       .solid              = true,
-      .mass               = 60,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -241,7 +241,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "stone1",
       .solid              = true,
-      .mass               = 60,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -266,7 +266,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "stone2",
       .solid              = true,
-      .mass               = 60,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -291,7 +291,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "stone3",
       .solid              = true,
-      .mass               = 60,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -316,7 +316,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "stone4",
       .solid              = true,
-      .mass               = 60,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -341,7 +341,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "stone5",
       .solid              = true,
-      .mass               = 60,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -366,7 +366,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "stone6",
       .solid              = true,
-      .mass               = 60,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -391,7 +391,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "stone7",
       .solid              = true,
-      .mass        = 60,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -416,7 +416,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "stone8",
       .solid              = true,
-      .mass        = 60,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -443,7 +443,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "coal",
       .solid              = true,
-      .mass               = 120,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -470,7 +470,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "iron",
       .solid              = true,
-      .mass               = 140,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -524,7 +524,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "silver",
       .solid              = true,
-      .mass               = 120,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -551,7 +551,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "gold",
       .solid              = true,
-      .mass               = 120,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -578,7 +578,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "dirt0",
       .solid              = true,
-      .mass               = 60,
+      .mass               = 100,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -603,7 +603,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "dirt1",
       .solid              = true,
-      .mass               = 60,
+      .mass               = 100,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -630,7 +630,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "grass",
       .solid              = true,
-      .mass               = 60,
+      .mass               = 100,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -655,7 +655,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "cherrygrass",
       .solid              = true,
-      .mass               = 60,
+      .mass               = 100,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -682,7 +682,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "sand0",
       .solid              = true,
-      .mass               = 60,
+      .mass               = 100,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -709,7 +709,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "clay0",
       .solid              = true,
-      .mass               = 60,
+      .mass               = 100,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -736,7 +736,7 @@ void init_block_materials(){
     (block_material_t){
       .material_name      = "treetrunk0",
       .solid              = true,
-      .mass      = 50,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -761,7 +761,7 @@ void init_block_materials(){
     (block_material_t){
       .material_name      = "treetrunk1",
       .solid              = true,
-      .mass      = 50,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -786,7 +786,7 @@ void init_block_materials(){
     (block_material_t){
       .material_name      = "treetrunk2",
       .solid              = true,
-      .mass      = 50,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -811,7 +811,7 @@ void init_block_materials(){
     (block_material_t){
       .material_name      = "treetrunk3",
       .solid              = true,
-      .mass      = 50,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -836,7 +836,7 @@ void init_block_materials(){
     (block_material_t){
       .material_name      = "treetrunk4",
       .solid              = true,
-      .mass      = 50,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -861,7 +861,7 @@ void init_block_materials(){
     (block_material_t){
       .material_name      = "treetrunk5",
       .solid              = true,
-      .mass      = 50,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -886,7 +886,7 @@ void init_block_materials(){
     (block_material_t){
       .material_name      = "treetrunk6",
       .solid              = true,
-      .mass      = 50,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -911,7 +911,7 @@ void init_block_materials(){
     (block_material_t){
       .material_name      = "treetrunk7",
       .solid              = true,
-      .mass      = 50,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -938,7 +938,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "leaves0",
       .solid              = true,
-      .mass      = 30,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -963,7 +963,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "leaves1",
       .solid              = true,
-      .mass      = 30,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -988,7 +988,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "leaves2",
       .solid              = true,
-      .mass      = 30,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -1013,7 +1013,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "leaves3",
       .solid              = true,
-      .mass      = 30,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -1038,7 +1038,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "leaves4",
       .solid              = true,
-      .mass      = 30,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -1063,7 +1063,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "leaves5",
       .solid              = true,
-      .mass      = 30,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -1088,7 +1088,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "leaves6",
       .solid              = true,
-      .mass      = 30,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -1113,7 +1113,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "leaves7",
       .solid              = true,
-      .mass      = 30,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -1138,7 +1138,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "leaves8",
       .solid              = true,
-      .mass      = 30,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -1163,7 +1163,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "leaves9",
       .solid              = true,
-      .mass      = 30,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -1190,7 +1190,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "flowerleaves0",
       .solid              = true,
-      .mass      = 30,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -1215,7 +1215,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "flowerleaves1",
       .solid              = true,
-      .mass      = 30,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -1242,7 +1242,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name        = "water0",
       .solid                = false,
-      .mass                 = 30,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable             = true,
       .block_fluid_type     = BLOCK_FLUID_WATER,
@@ -1267,7 +1267,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name        = "bog0",
       .solid                = false,
-      .mass                 = 30,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
       .mineable             = true,
       .block_fluid_type     = BLOCK_FLUID_WATER,
@@ -1296,7 +1296,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "glass",
       .solid              = true,
-      .mass      = 50,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -1323,7 +1323,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "lamp0",
       .solid              = true,
-      .mass      = 50,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -1350,7 +1350,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "oven0",
       .solid              = true,
-      .mass      = 50,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -1377,7 +1377,7 @@ void init_block_materials(){
     ((block_material_t){
       .material_name      = "chest0",
       .solid              = true,
-      .mass      = 50,
+      .mass               = 150,
       .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
       .mineable           = true,
       .block_fluid_type   = BLOCK_FLUID_NONE,
@@ -2595,10 +2595,30 @@ bool block_is_tree_trunk(block_t *block){
     block->type == BLOCK_TYPE_TREE_TRUNK7;
 }
 
+bool block_is_dirt(block_t *block){
+  return
+    block->type == BLOCK_TYPE_DIRT0 ||
+    block->type == BLOCK_TYPE_DIRT1 ||
+    block->type == BLOCK_TYPE_SAND0 ||
+    block->type == BLOCK_TYPE_GRASS ||
+    block->type == BLOCK_TYPE_CHERRY_GRASS;
+}
+
+bool block_is_sand(block_t *block){
+  return
+    block->type == BLOCK_TYPE_SAND0;
+}
+
 bool block_is_water(block_t *block){
   return 
     block->type == BLOCK_TYPE_WATER0 ||
     block->type == BLOCK_TYPE_BOG0;
+}
+
+bool block_is_lava(block_t *block){
+  return 
+    block->type == BLOCK_TYPE_LAVA0 ||
+    block->type == BLOCK_TYPE_LAVA1;
 }
 
 void place_pond(int32_t z_row, int32_t x_col){

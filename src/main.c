@@ -134,19 +134,13 @@ char debug_screen_data[1024];
 
 /* game control */
 float delta_time;
-float move_speed = 4.0f;
+float move_speed = 2.5f;
 float turn_speed = 2.0f;
 bool quit = false;
 bool is_paused = false;
 
 // debug window
 char debug_info_str[4096];
-int debug_x_collision_start_x, debug_x_collision_start_y, debug_x_collision_start_z;
-int debug_x_collision_end_x, debug_x_collision_end_y, debug_x_collision_end_z;
-int debug_y_collision_start_y, debug_y_collision_start_y, debug_y_collision_start_z;
-int debug_y_collision_end_y, debug_y_collision_end_y, debug_y_collision_end_z;
-int debug_z_collision_start_z, debug_z_collision_start_y, debug_z_collision_start_z;
-int debug_z_collision_end_z, debug_z_collision_end_y, debug_z_collision_end_z;
 
 uint8_t color_buffer_reset = 0x20; /* repeat byte for color buffer reset */
 
@@ -213,7 +207,7 @@ void setup(void) {
   seed_initial_block_light(0, MAP_NUM_BLOCKS_Y - 1, 0, MAP_NUM_BLOCKS_Z - 1, 0, MAP_NUM_BLOCKS_X - 1);
   propagate_block_light();
 
-  play_ambient_sound(AMBIENT_SOUND_TYPE_NATURE, 0);
+  play_ambient_sound(AMBIENT_SOUND_TYPE_NATURE_DAY, SOUND_CHANNEL_AMBIENCE_NATURE_DAY, -1);
 
   // CREATE OBJECTS
   mesh_t *mesh;
@@ -456,7 +450,7 @@ void handle_mouse_actions(input_state_t *input_state){
     animation_frame = 0;
     animation_direction = 1;
 
-    fadeout_sound_channels();
+    fadeout_transient_sound_channels();
   }
 }
 
@@ -515,11 +509,9 @@ void update_player_from_input(input_state_t *input_state){
     (player_block_y + 1 < MAP_NUM_BLOCKS_Y && block_materials[block_at(player_block_y + 1, player_block_z, player_block_x).type].block_fluid_type != BLOCK_FLUID_NONE)
   ){
     player.on_water = true;
-    play_ambient_sound(AMBIENT_SOUND_TYPE_WATER, 2);
   }
   else{
     player.on_water = false;
-    fadeout_ambient_sound_channel(2, 1024);
   }
 
   if(input_state->key_down[SDL_SCANCODE_A]){
@@ -585,22 +577,47 @@ void update_player_from_input(input_state_t *input_state){
   if(player.on_ground && movement.y <= 0.0f) movement.y = -PLAYER_GROUND_PROBE_SPEED * delta_time;
 
   if((fabsf(movement.x) > 0.01f || fabsf(movement.z) > 0.01f) && !player.on_water && player.on_ground){
-    play_ambient_sound(AMBIENT_SOUND_TYPE_WALKING, 3);
-  }
-  else{
-    if(Mix_Playing(3) && Mix_FadingChannel(3) == MIX_NO_FADING){
-      fadeout_ambient_sound_channel(3, 512);
+    int32_t player_x = player.position.x;
+    int32_t player_y = player.position.y - 1;
+    int32_t player_z = player.position.z;
+    if(block_is_tree_trunk(&block_at(player_y, player_z, player_x))){
+      play_ambient_sound(AMBIENT_SOUND_TYPE_WALK_WOOD, SOUND_CHANNEL_WALKING_WOOD, -1);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_DIRT, 512);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_SAND, 512);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_STONE, 512);
+    }
+    else if(block_is_stone(&block_at(player_y, player_z, player_x))){
+      play_ambient_sound(AMBIENT_SOUND_TYPE_WALK_STONE, SOUND_CHANNEL_WALKING_STONE, 1);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_DIRT, 512);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_SAND, 512);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_WOOD, 512);
+    }
+    else if(block_is_sand(&block_at(player_y, player_z, player_x))){
+      play_ambient_sound(AMBIENT_SOUND_TYPE_WALK_SAND, SOUND_CHANNEL_WALKING_SAND, -11);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_DIRT, 512);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_STONE, 512);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_WOOD, 512);
+    }
+    else{
+      play_ambient_sound(AMBIENT_SOUND_TYPE_WALK_DIRT, SOUND_CHANNEL_WALKING_DIRT, -1);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_SAND, 512);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_STONE, 512);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_WOOD, 512);
     }
   }
+  else{
+    fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_DIRT, 512);
+    fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_SAND, 512);
+    fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_STONE, 512);
+    fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_WOOD, 512);
+  }
 
-  move_player_x(movement.x);
-  move_player_z(movement.z);
-  move_player_y(movement.y);
+  if(movement.x != 0.0f) move_player_x(movement.x);
+  if(movement.z != 0.0f) move_player_z(movement.z);
+  if(movement.y != 0.0f) move_player_y(movement.y);
 }
 
 inline void move_player_x(float movement_x){
-  if(movement_x == 0.0f) return;
-
   if(player.position.x + movement_x < 0) return;
   if(player.position.x + movement_x > MAP_NUM_BLOCKS_X) return;
 
@@ -939,7 +956,6 @@ inline void move_player_x(float movement_x){
 }
 
 inline void move_player_z(float movement_z){
-  if(movement_z == 0.0f) return;
 
   if(player.position.z + movement_z < 0) return;
   if(player.position.z + movement_z > MAP_NUM_BLOCKS_Z) return;
@@ -1279,8 +1295,6 @@ inline void move_player_z(float movement_z){
 }
 
 inline void move_player_y(float movement_y){
-
-  if(movement_y == 0.0f) return;
 
   if(player.position.y + movement_y < 0.0f) return;
   if(player.position.y + movement_y > MAP_NUM_BLOCKS_Y) return;
@@ -2829,7 +2843,6 @@ void draw_collision_aabb_outlines(void){
 }
 
 void update_light(void){
-  static bool night_time = false;
 
   /* skybox is a special case and needs to always track camera position */
   if(skybox_id != -1){
@@ -2837,21 +2850,6 @@ void update_light(void){
 
     sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
     sun_sin_eta = sinf(sun_eta);
-
-    if(!night_time){
-      if(sun_sin_eta <= 0.25f){
-        night_time = true;
-        fadeout_ambient_sound_channel(0, 5000);
-        play_ambient_sound(AMBIENT_SOUND_TYPE_NATURE_NIGHT, 1);
-      }
-    }
-    else{
-      if(sun_sin_eta > 0.5f){
-        night_time = false;
-        fadeout_ambient_sound_channel(1, 5000);
-        play_ambient_sound(AMBIENT_SOUND_TYPE_NATURE, 0);
-      }
-    }
 
     if(sun_sin_eta < 0.0f) sun_sin_eta = 0.0f;
 
@@ -3221,15 +3219,17 @@ void render_player_tools(){
   if(mining && looked_at_block.hit){
     if(animation_direction == 1){
       animation_frame++;
-      if(animation_frame >= 1) animation_direction = -1;
+      if(animation_frame >= 1){
+        animation_direction = -1;
+        block_sound_type_t block_sound_type = block_materials[block_at(looked_at_block.block_y, looked_at_block.block_z, looked_at_block.block_x).type].sound_type;
+        play_block_mining_sound(block_sound_type);
+      }
     }
     else{
       animation_frame--;
-      if(animation_frame <= -3){
+      if(animation_frame <= -4){
         animation_direction = 1;
 
-        block_sound_type_t block_sound_type = block_materials[block_at(looked_at_block.block_y, looked_at_block.block_z, looked_at_block.block_x).type].sound_type;
-        play_block_mining_sound(block_sound_type);
       }
     }
   }
@@ -3268,6 +3268,105 @@ void render_player_tools(){
   zbuffer_test = true;
 }
 
+bool player_is_inside_cave(void){
+  int32_t player_x = player.position.x;
+  int32_t player_y = player.position.y;
+  int32_t player_z = player.position.z;
+
+  if(player_y > WORLD_WATER_LEVEL){
+    return false;
+  }
+
+  if(block_at(player_y, player_z, player_x).sky_light > 4){
+    return false;
+  }
+
+  int32_t air_count = 0;
+  int32_t solid_above_count = 0;
+
+  for(int32_t y = player_y - 3; y <= player_y + 3; y++){
+    for(int32_t z = player_z - 4; z <= player_z + 4; z++){
+      for(int32_t x = player_x - 4; x <= player_x + 4; x++){
+        if(y < 0 || y >= MAP_NUM_BLOCKS_Y) continue;
+        if(z < 0 || z >= MAP_NUM_BLOCKS_Z) continue;
+        if(x < 0 || x >= MAP_NUM_BLOCKS_X) continue;
+
+        if(block_at(y, z, x).type == BLOCK_TYPE_AIR){
+          air_count++;
+        }
+      }
+    }
+  }
+
+  for(int32_t y = player_y + 2; y <= WORLD_WATER_LEVEL; y++){
+    if(y >= MAP_NUM_BLOCKS_Y) break;
+
+    if(block_materials[block_at(y, player_z, player_x).type].solid){
+      solid_above_count++;
+    }
+  }
+
+  if(air_count > 250 && solid_above_count > 6){
+    return true;
+  }
+
+  return false;
+}
+
+void process_water_lava_sounds(){
+  // WATER
+  int32_t player_y = player.position.y;
+  int32_t player_z = player.position.z;
+  int32_t player_x = player.position.x;
+
+  for(int32_t y = player_y - 8; y < player_y + 8; y++){
+    for(int32_t z = player_z - 8; z < player_z + 8; z++){
+      for(int32_t x = player_x - 8; x < player_x + 8; x++){
+        if(y >= MAP_NUM_BLOCKS_Y || x >= MAP_NUM_BLOCKS_X || z >= MAP_NUM_BLOCKS_Z || x < 0 || z < 0 || y < 0) continue;
+
+        if(block_is_water(&block_at(y, z, x))){
+          play_ambient_sound(AMBIENT_SOUND_TYPE_WATER, SOUND_CHANNEL_AMBIENCE_WATER, -1);
+          return;
+        }
+        else if(block_is_lava(&block_at(y, z, x))){
+          play_ambient_sound(AMBIENT_SOUND_TYPE_LAVA, SOUND_CHANNEL_AMBIENCE_LAVA, -1);
+          return;
+        }
+      }
+    }
+  }
+
+  fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENCE_WATER, 1024);
+  fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENCE_LAVA, 1024);
+}
+
+void process_ambient_sounds(){
+  static bool night_time = false;
+
+  if(player_is_inside_cave()){
+    play_ambient_sound(AMBIENT_SOUND_TYPE_NATURE_CAVE, SOUND_CHANNEL_AMBIENCE_NATURE_CAVE, -1);
+    fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENCE_NATURE_DAY, 5000);
+    fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENCE_NATURE_NIGHT, 5000);
+  }
+  else{
+    if(!night_time){
+      if(sun_sin_eta <= 0.25f){
+        night_time = true;
+        play_ambient_sound(AMBIENT_SOUND_TYPE_NATURE_NIGHT, SOUND_CHANNEL_AMBIENCE_NATURE_NIGHT, -1);
+        fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENCE_NATURE_DAY, 5000);
+      }
+    }
+    else{
+      if(sun_sin_eta > 0.5f){
+        night_time = false;
+        play_ambient_sound(AMBIENT_SOUND_TYPE_NATURE_DAY, SOUND_CHANNEL_AMBIENCE_NATURE_DAY, -1);
+        fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENCE_NATURE_NIGHT, 5000);
+      }
+    }
+  }
+
+}
+
 int main(int argc, char *argv[]){
   (void)argc;
   (void)argv;
@@ -3283,6 +3382,9 @@ int main(int argc, char *argv[]){
     }
 
     process_frame_rate();
+
+    process_ambient_sounds();
+    process_water_lava_sounds();
 
     input_state_t input_state = {0};
     poll_input(&input_state);

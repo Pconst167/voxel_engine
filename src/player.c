@@ -19,6 +19,9 @@ player_t player = {
   .block_inventory_active_index = 0,
   .block_inventory              = {{0}},
 
+  // light
+  .lantern                      = true,
+
   .block_inventory_size         = 0,
   // tools holding
   .tools                        = {{0}},

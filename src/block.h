@@ -267,7 +267,10 @@ bool block_is_emissive(block_t *block);
 bool block_is_stone(block_t *block);
 bool block_is_tree_leaves(block_t *block);
 bool block_is_tree_trunk(block_t *block);
+bool block_is_dirt(block_t *block);
+bool block_is_sand(block_t *block);
 bool block_is_water(block_t *block);
+bool block_is_lava(block_t *block);
 bool block_is_surface_fluid(int32_t y, int32_t z, int32_t x);
 light_sample_t get_fluid_surface_light(int32_t y, int32_t z, int32_t x);
 
