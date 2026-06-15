@@ -50,7 +50,7 @@ void init_block_materials(){
       .right_texture      = NULL,
       .top_texture        = NULL,
       .bottom_texture     = NULL,
-      .sound_type         = BLOCK_SOUND_TYPE_NONE
+      .sound_type         = SOUND_TYPE_NONE
     })  
   );
 
@@ -77,7 +77,7 @@ void init_block_materials(){
       .right_texture      = load_texture("./assets/textures/blocks/lava0.png"),
       .top_texture        = load_texture("./assets/textures/blocks/lava0.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/lava0.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_NONE
+      .sound_type         = SOUND_TYPE_NONE
     })  
   );
   array_push(
@@ -102,7 +102,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/lava1.png"),
       .top_texture        = load_texture("./assets/textures/blocks/lava1.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/lava1.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_NONE
+      .sound_type         = SOUND_TYPE_NONE
     })  
   );
 
@@ -129,7 +129,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/volcanic0.png"),
       .top_texture        = load_texture("./assets/textures/blocks/volcanic0.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/volcanic0.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_NONE
+      .sound_type         = SOUND_TYPE_NONE
     })  
   );
   array_push(
@@ -154,7 +154,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/volcanic1.png"),
       .top_texture        = load_texture("./assets/textures/blocks/volcanic1.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/volcanic1.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_STONE
+      .sound_type         = SOUND_TYPE_MINING_STONE
     })  
   );
   array_push(
@@ -179,7 +179,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/volcanic2.png"),
       .top_texture        = load_texture("./assets/textures/blocks/volcanic2.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/volcanic2.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_STONE
+      .sound_type         = SOUND_TYPE_MINING_STONE
     })  
   );
 
@@ -206,7 +206,7 @@ void init_block_materials(){
       .right_texture      = load_texture("./assets/textures/blocks/bedrock.png"),
       .top_texture        = load_texture("./assets/textures/blocks/bedrock.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/bedrock.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_STONE
+      .sound_type         = SOUND_TYPE_MINING_STONE
     })
   );
 
@@ -233,7 +233,7 @@ void init_block_materials(){
       .right_texture      = load_texture("./assets/textures/blocks/stone0.png"),
       .top_texture        = load_texture("./assets/textures/blocks/stone0.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/stone0.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_STONE
+      .sound_type         = SOUND_TYPE_MINING_STONE
     })
   );
   array_push(
@@ -258,7 +258,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/stone1.png"),
       .top_texture        = load_texture("./assets/textures/blocks/stone1.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/stone1.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_STONE
+      .sound_type         = SOUND_TYPE_MINING_STONE
     })
   );
   array_push(
@@ -283,7 +283,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/stone2.png"),
       .top_texture        = load_texture("./assets/textures/blocks/stone2.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/stone2.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_STONE
+      .sound_type         = SOUND_TYPE_MINING_STONE
     })
   );
   array_push(
@@ -308,7 +308,7 @@ void init_block_materials(){
       .right_texture      = load_texture("./assets/textures/blocks/stone3.png"),
       .top_texture        = load_texture("./assets/textures/blocks/stone3.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/stone3.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_STONE
+      .sound_type         = SOUND_TYPE_MINING_STONE
     })
   );
   array_push(
@@ -333,7 +333,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/stone4.png"),
       .top_texture        = load_texture("./assets/textures/blocks/stone4.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/stone4.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_STONE
+      .sound_type         = SOUND_TYPE_MINING_STONE
     })
   );
   array_push(
@@ -358,7 +358,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/stone5.png"),
       .top_texture        = load_texture("./assets/textures/blocks/stone5.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/stone5.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_STONE
+      .sound_type         = SOUND_TYPE_MINING_STONE
     })
   );
   array_push(
@@ -383,7 +383,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/stone6.png"),
       .top_texture        = load_texture("./assets/textures/blocks/stone6.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/stone6.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_STONE
+      .sound_type         = SOUND_TYPE_MINING_STONE
     })
   );
   array_push(
@@ -408,7 +408,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/stone7.png"),
       .top_texture        = load_texture("./assets/textures/blocks/stone7.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/stone7.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_STONE
+      .sound_type         = SOUND_TYPE_MINING_STONE
     })
   );
   array_push(
@@ -433,7 +433,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/stone8.png"),
       .top_texture        = load_texture("./assets/textures/blocks/stone8.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/stone8.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_STONE
+      .sound_type         = SOUND_TYPE_MINING_STONE
     })
   );
 
@@ -460,7 +460,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/coal_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/coal_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/coal_top.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_STONE
+      .sound_type         = SOUND_TYPE_MINING_STONE
     })
   );
 
@@ -487,7 +487,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/iron_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/iron_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/iron_top.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_STONE
+      .sound_type         = SOUND_TYPE_MINING_STONE
     })
   );
 
@@ -514,7 +514,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/diamond_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/diamond_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/diamond_top.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_STONE
+      .sound_type         = SOUND_TYPE_MINING_STONE
     })
   );
 
@@ -541,7 +541,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/silver_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/silver_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/silver_top.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_STONE
+      .sound_type         = SOUND_TYPE_MINING_STONE
     })
   );
 
@@ -568,7 +568,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/gold_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/gold_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/gold_top.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_STONE
+      .sound_type         = SOUND_TYPE_MINING_STONE
     })
   );
 
@@ -595,7 +595,7 @@ void init_block_materials(){
       .right_texture      = load_texture("./assets/textures/blocks/dirt0.png"),
       .top_texture        = load_texture("./assets/textures/blocks/dirt0.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/dirt0.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_DIRT
+      .sound_type         = SOUND_TYPE_MINING_DIRT
     })
   );
   array_push(
@@ -620,7 +620,7 @@ void init_block_materials(){
       .right_texture      = load_texture("./assets/textures/blocks/dirt1.png"),
       .top_texture        = load_texture("./assets/textures/blocks/dirt1.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/dirt1.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_DIRT
+      .sound_type         = SOUND_TYPE_MINING_DIRT
     })
   );
 
@@ -647,7 +647,7 @@ void init_block_materials(){
       .right_texture      = load_texture("./assets/textures/blocks/grass_side1.png"),
       .top_texture        = load_texture("./assets/textures/blocks/grass_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/dirt1.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_DIRT
+      .sound_type         = SOUND_TYPE_MINING_DIRT
     })
   );
   array_push(
@@ -672,7 +672,7 @@ void init_block_materials(){
       .right_texture      = load_texture("./assets/textures/blocks/cherry_grass_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/cherry_grass_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/dirt1.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_DIRT
+      .sound_type         = SOUND_TYPE_MINING_DIRT
     })
   );
 
@@ -699,7 +699,7 @@ void init_block_materials(){
       .right_texture      = load_texture("./assets/textures/blocks/sand0.png"),
       .top_texture        = load_texture("./assets/textures/blocks/sand0.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/sand0.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_DIRT
+      .sound_type         = SOUND_TYPE_MINING_DIRT
     })
   );
 
@@ -726,7 +726,7 @@ void init_block_materials(){
       .right_texture      = load_texture("./assets/textures/blocks/clay0.png"),
       .top_texture        = load_texture("./assets/textures/blocks/clay0.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/clay0.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_DIRT
+      .sound_type         = SOUND_TYPE_MINING_DIRT
     })
   );
 
@@ -753,7 +753,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/treetrunk0_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/treetrunk0_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk0_top.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_WOOD
+      .sound_type         = SOUND_TYPE_MINING_WOOD
     }
   );
   array_push(
@@ -778,7 +778,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/treetrunk1_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/treetrunk1_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk1_top.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_WOOD
+      .sound_type         = SOUND_TYPE_MINING_WOOD
     }
   );
   array_push(
@@ -803,7 +803,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/treetrunk2_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/treetrunk2_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk2_top.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_WOOD
+      .sound_type         = SOUND_TYPE_MINING_WOOD
     }
   );
   array_push(
@@ -828,7 +828,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/treetrunk3_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/treetrunk3_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk3_top.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_WOOD
+      .sound_type         = SOUND_TYPE_MINING_WOOD
     }
   );
   array_push(
@@ -853,7 +853,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/treetrunk4_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/treetrunk4_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk4_top.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_WOOD
+      .sound_type         = SOUND_TYPE_MINING_WOOD
     }
   );
   array_push(
@@ -878,7 +878,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/treetrunk5_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/treetrunk5_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk5_top.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_WOOD
+      .sound_type         = SOUND_TYPE_MINING_WOOD
     }
   );
   array_push(
@@ -903,7 +903,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/treetrunk6_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/treetrunk6_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk6_top.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_WOOD
+      .sound_type         = SOUND_TYPE_MINING_WOOD
     }
   );
   array_push(
@@ -928,7 +928,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/treetrunk7_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/treetrunk7_top.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/treetrunk7_top.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_WOOD
+      .sound_type         = SOUND_TYPE_MINING_WOOD
     }
   );
 
@@ -955,7 +955,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/leaves0.png"),
       .top_texture        = load_texture("./assets/textures/blocks/leaves0.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/leaves0.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_LEAVES
+      .sound_type         = SOUND_TYPE_MINING_LEAVES
     })
   );
   array_push(
@@ -980,7 +980,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/leaves1.png"),
       .top_texture        = load_texture("./assets/textures/blocks/leaves1.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/leaves1.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_LEAVES
+      .sound_type         = SOUND_TYPE_MINING_LEAVES
     })
   );
   array_push(
@@ -1005,7 +1005,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/leaves2.png"),
       .top_texture        = load_texture("./assets/textures/blocks/leaves2.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/leaves2.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_LEAVES
+      .sound_type         = SOUND_TYPE_MINING_LEAVES
     })
   );
   array_push(
@@ -1030,7 +1030,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/leaves3.png"),
       .top_texture        = load_texture("./assets/textures/blocks/leaves3.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/leaves3.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_LEAVES
+      .sound_type         = SOUND_TYPE_MINING_LEAVES
     })
   );
   array_push(
@@ -1055,7 +1055,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/leaves4.png"),
       .top_texture        = load_texture("./assets/textures/blocks/leaves4.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/leaves4.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_LEAVES
+      .sound_type         = SOUND_TYPE_MINING_LEAVES
     })
   );
   array_push(
@@ -1080,7 +1080,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/leaves5.png"),
       .top_texture        = load_texture("./assets/textures/blocks/leaves5.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/leaves5.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_LEAVES
+      .sound_type         = SOUND_TYPE_MINING_LEAVES
     })
   );
   array_push(
@@ -1105,7 +1105,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/leaves6.png"),
       .top_texture        = load_texture("./assets/textures/blocks/leaves6.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/leaves6.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_LEAVES
+      .sound_type         = SOUND_TYPE_MINING_LEAVES
     })
   );
   array_push(
@@ -1130,7 +1130,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/leaves7.png"),
       .top_texture        = load_texture("./assets/textures/blocks/leaves7.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/leaves7.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_LEAVES
+      .sound_type         = SOUND_TYPE_MINING_LEAVES
     })
   );
   array_push(
@@ -1155,7 +1155,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/leaves8.png"),
       .top_texture        = load_texture("./assets/textures/blocks/leaves8.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/leaves8.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_LEAVES
+      .sound_type         = SOUND_TYPE_MINING_LEAVES
     })
   );
   array_push(
@@ -1180,7 +1180,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/leaves9.png"),
       .top_texture        = load_texture("./assets/textures/blocks/leaves9.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/leaves9.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_LEAVES
+      .sound_type         = SOUND_TYPE_MINING_LEAVES
     })
   );
 
@@ -1207,7 +1207,7 @@ void init_block_materials(){
       .right_texture      = load_texture("./assets/textures/blocks/flower_leaves0.png"),
       .top_texture        = load_texture("./assets/textures/blocks/flower_leaves0.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/flower_leaves0.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_LEAVES
+      .sound_type         = SOUND_TYPE_MINING_LEAVES
     })
   );
   array_push(
@@ -1232,7 +1232,7 @@ void init_block_materials(){
       .right_texture      = load_texture("./assets/textures/blocks/flower_leaves1.png"),
       .top_texture        = load_texture("./assets/textures/blocks/flower_leaves1.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/flower_leaves1.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_LEAVES
+      .sound_type         = SOUND_TYPE_MINING_LEAVES
     })
   );
 
@@ -1259,7 +1259,7 @@ void init_block_materials(){
       .right_texture        = load_texture("./assets/textures/blocks/water0.png"),
       .top_texture          = load_texture("./assets/textures/blocks/water0.png"),
       .bottom_texture       = load_texture("./assets/textures/blocks/water0.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_NONE
+      .sound_type         = SOUND_TYPE_NONE
     })
   );
   array_push(
@@ -1284,7 +1284,7 @@ void init_block_materials(){
       .right_texture        = load_texture("./assets/textures/blocks/bog0.png"),
       .top_texture          = load_texture("./assets/textures/blocks/bog0.png"),
       .bottom_texture       = load_texture("./assets/textures/blocks/bog0.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_NONE
+      .sound_type         = SOUND_TYPE_NONE
     })
   );
 
@@ -1313,7 +1313,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/glass0.png"),
       .top_texture        = load_texture("./assets/textures/blocks/glass0.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/glass0.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_GLASS
+      .sound_type         = SOUND_TYPE_MINING_GLASS
     })
   );
 
@@ -1340,7 +1340,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/lamp0.png"),
       .top_texture        = load_texture("./assets/textures/blocks/lamp0.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/lamp0.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_WOOD
+      .sound_type         = SOUND_TYPE_MINING_WOOD
     })
   );
 
@@ -1367,7 +1367,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/oven_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/oven.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/oven.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_STONE
+      .sound_type         = SOUND_TYPE_MINING_STONE
     })
   );
 
@@ -1394,7 +1394,7 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/chest_sides.png"),
       .top_texture        = load_texture("./assets/textures/blocks/chest_top_bottom.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/chest_top_bottom.png"),
-      .sound_type         = BLOCK_SOUND_TYPE_WOOD
+      .sound_type         = SOUND_TYPE_MINING_WOOD
     })
   );
 }

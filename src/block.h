@@ -195,7 +195,7 @@ typedef struct{
   texture_t *top_texture;
   texture_t *bottom_texture;
   // sound type
-  block_sound_type_t sound_type;
+  sound_type_t sound_type;
 } block_material_t;
 
 typedef struct{

@@ -207,7 +207,7 @@ void setup(void) {
   seed_initial_block_light(0, MAP_NUM_BLOCKS_Y - 1, 0, MAP_NUM_BLOCKS_Z - 1, 0, MAP_NUM_BLOCKS_X - 1);
   propagate_block_light();
 
-  play_ambient_sound(AMBIENT_SOUND_TYPE_NATURE_DAY, SOUND_CHANNEL_AMBIENCE_NATURE_DAY, -1);
+  play_ambient_sound(SOUND_TYPE_AMBIENT_NATURE_DAY, SOUND_CHANNEL_AMBIENT_NATURE_DAY, -1);
 
   // CREATE OBJECTS
   mesh_t *mesh;
@@ -396,8 +396,8 @@ void handle_mouse_actions(input_state_t *input_state){
         if(player.block_inventory[player.block_inventory_active_index].number > 0){
 
           // play sound
-          block_sound_type_t block_sound_type = block_materials[player.block_inventory[player.block_inventory_active_index].block_type].sound_type;
-          play_block_mining_sound(block_sound_type);
+          sound_type_t sound_type = block_materials[player.block_inventory[player.block_inventory_active_index].block_type].sound_type;
+          play_block_mining_sound(sound_type);
 
           assign_block_material(block_y, block_z, block_x, player.block_inventory[player.block_inventory_active_index].block_type);
           set_block_orientation(block_y, block_z, block_x, player.position);
@@ -581,25 +581,25 @@ void update_player_from_input(input_state_t *input_state){
     int32_t player_y = player.position.y - 1;
     int32_t player_z = player.position.z;
     if(block_is_tree_trunk(&block_at(player_y, player_z, player_x))){
-      play_ambient_sound(AMBIENT_SOUND_TYPE_WALK_WOOD, SOUND_CHANNEL_WALKING_WOOD, -1);
+      play_ambient_sound(SOUND_TYPE_WALKING_WOOD, SOUND_CHANNEL_WALKING_WOOD, -1);
       fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_DIRT, 512);
       fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_SAND, 512);
       fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_STONE, 512);
     }
     else if(block_is_stone(&block_at(player_y, player_z, player_x))){
-      play_ambient_sound(AMBIENT_SOUND_TYPE_WALK_STONE, SOUND_CHANNEL_WALKING_STONE, 1);
+      play_ambient_sound(SOUND_TYPE_WALKING_STONE, SOUND_CHANNEL_WALKING_STONE, 1);
       fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_DIRT, 512);
       fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_SAND, 512);
       fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_WOOD, 512);
     }
     else if(block_is_sand(&block_at(player_y, player_z, player_x))){
-      play_ambient_sound(AMBIENT_SOUND_TYPE_WALK_SAND, SOUND_CHANNEL_WALKING_SAND, -11);
+      play_ambient_sound(SOUND_TYPE_WALKING_SAND, SOUND_CHANNEL_WALKING_SAND, -11);
       fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_DIRT, 512);
       fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_STONE, 512);
       fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_WOOD, 512);
     }
     else{
-      play_ambient_sound(AMBIENT_SOUND_TYPE_WALK_DIRT, SOUND_CHANNEL_WALKING_DIRT, -1);
+      play_ambient_sound(SOUND_TYPE_WALKING_DIRT, SOUND_CHANNEL_WALKING_DIRT, -1);
       fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_SAND, 512);
       fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_STONE, 512);
       fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_WOOD, 512);
@@ -3221,8 +3221,8 @@ void render_player_tools(){
       animation_frame++;
       if(animation_frame >= 1){
         animation_direction = -1;
-        block_sound_type_t block_sound_type = block_materials[block_at(looked_at_block.block_y, looked_at_block.block_z, looked_at_block.block_x).type].sound_type;
-        play_block_mining_sound(block_sound_type);
+        sound_type_t sound_type = block_materials[block_at(looked_at_block.block_y, looked_at_block.block_z, looked_at_block.block_x).type].sound_type;
+        play_block_mining_sound(sound_type);
       }
     }
     else{
@@ -3325,42 +3325,42 @@ void process_water_lava_sounds(){
         if(y >= MAP_NUM_BLOCKS_Y || x >= MAP_NUM_BLOCKS_X || z >= MAP_NUM_BLOCKS_Z || x < 0 || z < 0 || y < 0) continue;
 
         if(block_is_water(&block_at(y, z, x))){
-          play_ambient_sound(AMBIENT_SOUND_TYPE_WATER, SOUND_CHANNEL_AMBIENCE_WATER, -1);
+          play_ambient_sound(SOUND_TYPE_AMBIENT_WATER, SOUND_CHANNEL_AMBIENT_WATER, -1);
           return;
         }
         else if(block_is_lava(&block_at(y, z, x))){
-          play_ambient_sound(AMBIENT_SOUND_TYPE_LAVA, SOUND_CHANNEL_AMBIENCE_LAVA, -1);
+          play_ambient_sound(SOUND_TYPE_AMBIENT_LAVA, SOUND_CHANNEL_AMBIENT_LAVA, -1);
           return;
         }
       }
     }
   }
 
-  fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENCE_WATER, 1024);
-  fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENCE_LAVA, 1024);
+  fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENT_WATER, 1024);
+  fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENT_LAVA, 1024);
 }
 
 void process_ambient_sounds(){
   static bool night_time = false;
 
   if(player_is_inside_cave()){
-    play_ambient_sound(AMBIENT_SOUND_TYPE_NATURE_CAVE, SOUND_CHANNEL_AMBIENCE_NATURE_CAVE, -1);
-    fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENCE_NATURE_DAY, 5000);
-    fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENCE_NATURE_NIGHT, 5000);
+    play_ambient_sound(SOUND_TYPE_AMBIENT_NATURE_CAVE, SOUND_CHANNEL_AMBIENT_NATURE_CAVE, -1);
+    fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENT_NATURE_DAY, 5000);
+    fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENT_NATURE_NIGHT, 5000);
   }
   else{
     if(!night_time){
       if(sun_sin_eta <= 0.25f){
         night_time = true;
-        play_ambient_sound(AMBIENT_SOUND_TYPE_NATURE_NIGHT, SOUND_CHANNEL_AMBIENCE_NATURE_NIGHT, -1);
-        fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENCE_NATURE_DAY, 5000);
+        play_ambient_sound(SOUND_TYPE_AMBIENT_NATURE_NIGHT, SOUND_CHANNEL_AMBIENT_NATURE_NIGHT, -1);
+        fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENT_NATURE_DAY, 5000);
       }
     }
     else{
       if(sun_sin_eta > 0.5f){
         night_time = false;
-        play_ambient_sound(AMBIENT_SOUND_TYPE_NATURE_DAY, SOUND_CHANNEL_AMBIENCE_NATURE_DAY, -1);
-        fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENCE_NATURE_NIGHT, 5000);
+        play_ambient_sound(SOUND_TYPE_AMBIENT_NATURE_DAY, SOUND_CHANNEL_AMBIENT_NATURE_DAY, -1);
+        fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENT_NATURE_NIGHT, 5000);
       }
     }
   }
