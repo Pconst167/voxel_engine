@@ -143,29 +143,9 @@ bool init_audio(void){
     sounds,
     (sound_t){
       .sounds = {
-        load_sound("./assets/sound/block_mining/dirt_0.wav"),
-        load_sound("./assets/sound/block_mining/dirt_1.wav"),
-        load_sound("./assets/sound/block_mining/dirt_2.wav"),
-      },
-      .num_sounds = 3
-    }
-  );
-  
-  array_push(
-    sounds,
-    (sound_t){
-      .sounds = {0},
-      .num_sounds = 0
-    }
-  );
-  
-  array_push(
-    sounds,
-    (sound_t){
-      .sounds = {
-        load_sound("./assets/sound/block_mining/wood_0.wav"),
-        load_sound("./assets/sound/block_mining/wood_1.wav"),
-        load_sound("./assets/sound/block_mining/wood_2.wav"),
+        load_sound("./assets/sound/mining/dirt_0.wav"),
+        load_sound("./assets/sound/mining/dirt_1.wav"),
+        load_sound("./assets/sound/mining/dirt_2.wav"),
       },
       .num_sounds = 3
     }
@@ -175,9 +155,32 @@ bool init_audio(void){
     sounds,
     (sound_t){
       .sounds = {
-        load_sound("./assets/sound/block_mining/stone_3.wav"),
-        load_sound("./assets/sound/block_mining/stone_4.wav"),
-        load_sound("./assets/sound/block_mining/stone_5.wav"),
+        load_sound("./assets/sound/mining/sand_0.wav"),
+        load_sound("./assets/sound/mining/sand_1.wav"),
+      },
+      .num_sounds = 2
+    }
+  );
+  
+  array_push(
+    sounds,
+    (sound_t){
+      .sounds = {
+        load_sound("./assets/sound/mining/wood_0.wav"),
+        load_sound("./assets/sound/mining/wood_1.wav"),
+        load_sound("./assets/sound/mining/wood_2.wav"),
+      },
+      .num_sounds = 3
+    }
+  );
+  
+  array_push(
+    sounds,
+    (sound_t){
+      .sounds = {
+        load_sound("./assets/sound/mining/stone_3.wav"),
+        load_sound("./assets/sound/mining/stone_4.wav"),
+        load_sound("./assets/sound/mining/stone_5.wav"),
       },
       .num_sounds = 3
     }
