@@ -25,7 +25,6 @@
 #define SOUND_CHANNEL_MINING                10
 
 typedef struct{
-  char *filenames[MAX_NUM_SOUNDS_PER_ENTRY];
   Mix_Chunk *sounds[MAX_NUM_SOUNDS_PER_ENTRY];
   int32_t num_sounds;
 } sound_t;
@@ -62,12 +61,12 @@ typedef enum{
 } sound_type_t;
 
 bool init_audio(void);
+Mix_Chunk* load_sound(char *filename);
 void shutdown_audio(void);
 
 void play_ambient_sound(sound_type_t sound_type, int32_t channel, int32_t loop);
 
-void play_mining_sound(sound_type_t sound_type);
-void play_falling_sound(sound_type_t sound_type);
+void play_transient_sound(int32_t channel, sound_type_t sound_type);
 
 void fadeout_transient_sound_channels();
 void fadeout_ambient_sound_channel(int32_t channel_number, int32_t ms);

@@ -397,7 +397,7 @@ void handle_mouse_actions(input_state_t *input_state){
 
           // play sound
           sound_type_t sound_type = block_materials[player.block_inventory[player.block_inventory_active_index].block_type].placing_sound_type;
-          play_mining_sound(sound_type);
+          play_transient_sound(SOUND_CHANNEL_MINING, sound_type);
 
           assign_block_material(block_y, block_z, block_x, player.block_inventory[player.block_inventory_active_index].block_type);
           set_block_orientation(block_y, block_z, block_x, player.position);
@@ -510,9 +510,9 @@ void update_player_from_input(input_state_t *input_state){
   ){
     if(player.on_water == false){
       if(player.velocity.y < -4.0f)
-        play_falling_sound(SOUND_TYPE_FALLING_WATER_STRONG);
+        play_transient_sound(SOUND_CHANNEL_FALLING, SOUND_TYPE_FALLING_WATER_STRONG);
       else
-        play_falling_sound(SOUND_TYPE_FALLING_WATER);
+        play_transient_sound(SOUND_CHANNEL_FALLING, SOUND_TYPE_FALLING_WATER);
     }
     player.on_water = true;
   }
@@ -1301,7 +1301,6 @@ inline void move_player_z(float movement_z){
 }
 
 inline void move_player_y(float movement_y){
-  float original_player_velocity_y = player.velocity.y;
 
   if(player.position.y + movement_y < 0.0f) return;
   if(player.position.y + movement_y > MAP_NUM_BLOCKS_Y) return;
@@ -1336,7 +1335,7 @@ inline void move_player_y(float movement_y){
 
     if(block_materials[block->type].solid){
       if(target_aabb.y_min < block->aabb.y_max){
-        if(player.velocity.y < -2.0f) play_falling_sound(block_materials[block->type].falling_sound_type);
+        if(player.velocity.y < -2.0f) play_transient_sound(SOUND_CHANNEL_FALLING, block_materials[block->type].falling_sound_type);
         target_position.y = block->aabb.y_max + COLLISION_EPSILON;
         target_aabb = make_player_aabb_at_position(target_position);
         player.velocity.y = 0.0f;
@@ -1356,7 +1355,7 @@ inline void move_player_y(float movement_y){
     if(block_materials[block->type].solid){
       if(target_aabb.x_min < block->aabb.x_max)
         if(target_aabb.y_min < block->aabb.y_max){
-          if(player.velocity.y < -2.0f) play_falling_sound(block_materials[block->type].falling_sound_type);
+          if(player.velocity.y < -2.0f) play_transient_sound(SOUND_CHANNEL_FALLING, block_materials[block->type].falling_sound_type);
           target_position.y = block->aabb.y_max + COLLISION_EPSILON;
           target_aabb = make_player_aabb_at_position(target_position);
           player.velocity.y = 0.0f;
@@ -1376,7 +1375,7 @@ inline void move_player_y(float movement_y){
     if(block_materials[block->type].solid){
       if(target_aabb.x_max > block->aabb.x_min)
         if(target_aabb.y_min < block->aabb.y_max){
-          if(player.velocity.y < -2.0f) play_falling_sound(block_materials[block->type].falling_sound_type);
+          if(player.velocity.y < -2.0f) play_transient_sound(SOUND_CHANNEL_FALLING, block_materials[block->type].falling_sound_type);
           target_position.y = block->aabb.y_max + COLLISION_EPSILON;
           target_aabb = make_player_aabb_at_position(target_position);
           player.velocity.y = 0.0f;
@@ -1396,7 +1395,7 @@ inline void move_player_y(float movement_y){
     if(block_materials[block->type].solid){
       if(target_aabb.z_max > block->aabb.z_min)
         if(target_aabb.y_min < block->aabb.y_max){
-          if(player.velocity.y < -2.0f) play_falling_sound(block_materials[block->type].falling_sound_type);
+          if(player.velocity.y < -2.0f) play_transient_sound(SOUND_CHANNEL_FALLING, block_materials[block->type].falling_sound_type);
           target_position.y = block->aabb.y_max + COLLISION_EPSILON;
           target_aabb = make_player_aabb_at_position(target_position);
           player.velocity.y = 0.0f;
@@ -1416,7 +1415,7 @@ inline void move_player_y(float movement_y){
     if(block_materials[block->type].solid){
       if(target_aabb.z_min < block->aabb.z_max)
         if(target_aabb.y_min < block->aabb.y_max){
-          if(player.velocity.y < -2.0f) play_falling_sound(block_materials[block->type].falling_sound_type);
+          if(player.velocity.y < -2.0f) play_transient_sound(SOUND_CHANNEL_FALLING, block_materials[block->type].falling_sound_type);
           target_position.y = block->aabb.y_max + COLLISION_EPSILON;
           target_aabb = make_player_aabb_at_position(target_position);
           player.velocity.y = 0.0f;
@@ -1437,7 +1436,7 @@ inline void move_player_y(float movement_y){
       if(target_aabb.x_min < block->aabb.x_max)
         if(target_aabb.z_max > block->aabb.z_min)
           if(target_aabb.y_min < block->aabb.y_max){
-            if(player.velocity.y < -2.0f) play_falling_sound(block_materials[block->type].falling_sound_type);
+            if(player.velocity.y < -2.0f) play_transient_sound(SOUND_CHANNEL_FALLING, block_materials[block->type].falling_sound_type);
             target_position.y = block->aabb.y_max + COLLISION_EPSILON;
             target_aabb = make_player_aabb_at_position(target_position);
             player.velocity.y = 0.0f;
@@ -1458,7 +1457,7 @@ inline void move_player_y(float movement_y){
       if(target_aabb.x_max > block->aabb.x_min)
         if(target_aabb.z_max > block->aabb.z_min)
           if(target_aabb.y_min < block->aabb.y_max){
-            if(player.velocity.y < -2.0f) play_falling_sound(block_materials[block->type].falling_sound_type);
+            if(player.velocity.y < -2.0f) play_transient_sound(SOUND_CHANNEL_FALLING, block_materials[block->type].falling_sound_type);
             target_position.y = block->aabb.y_max + COLLISION_EPSILON;
             target_aabb = make_player_aabb_at_position(target_position);
             player.velocity.y = 0.0f;
@@ -1479,7 +1478,7 @@ inline void move_player_y(float movement_y){
       if(target_aabb.x_max > block->aabb.x_min)
         if(target_aabb.z_min < block->aabb.z_max)
           if(target_aabb.y_min < block->aabb.y_max){
-            if(player.velocity.y < -2.0f) play_falling_sound(block_materials[block->type].falling_sound_type);
+            if(player.velocity.y < -2.0f) play_transient_sound(SOUND_CHANNEL_FALLING, block_materials[block->type].falling_sound_type);
             target_position.y = block->aabb.y_max + COLLISION_EPSILON;
             target_aabb = make_player_aabb_at_position(target_position);
             player.velocity.y = 0.0f;
@@ -1500,7 +1499,7 @@ inline void move_player_y(float movement_y){
       if(target_aabb.x_min < block->aabb.x_max)
         if(target_aabb.z_min < block->aabb.z_max)
           if(target_aabb.y_min < block->aabb.y_max){
-            if(player.velocity.y < -2.0f) play_falling_sound(block_materials[block->type].falling_sound_type);
+            if(player.velocity.y < -2.0f) play_transient_sound(SOUND_CHANNEL_FALLING, block_materials[block->type].falling_sound_type);
             target_position.y = block->aabb.y_max + COLLISION_EPSILON;
             target_aabb = make_player_aabb_at_position(target_position);
             player.velocity.y = 0.0f;
@@ -3238,7 +3237,7 @@ void render_player_tools(){
       if(animation_frame >= 1){
         animation_direction = -1;
         sound_type_t sound_type = block_materials[block_at(looked_at_block.block_y, looked_at_block.block_z, looked_at_block.block_x).type].mining_sound_type;
-        play_mining_sound(sound_type);
+        play_transient_sound(SOUND_CHANNEL_MINING, sound_type);
       }
     }
     else{
