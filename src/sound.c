@@ -34,7 +34,6 @@ bool init_audio(void){
       .num_sounds = 1
     }
   );
-
   array_push(
     sounds,
     (sound_t){
@@ -44,7 +43,6 @@ bool init_audio(void){
       .num_sounds = 1
     }
   );
-  
   array_push(
     sounds,
     (sound_t){
@@ -54,7 +52,6 @@ bool init_audio(void){
       .num_sounds = 1
     }
   );
-  
   array_push(
     sounds,
     (sound_t){
@@ -64,7 +61,6 @@ bool init_audio(void){
       .num_sounds = 1
     }
   );
-  
   array_push(
     sounds,
     (sound_t){
@@ -74,7 +70,6 @@ bool init_audio(void){
       .num_sounds = 1
     }
   );
-  
   array_push(
     sounds,
     (sound_t){
@@ -84,7 +79,6 @@ bool init_audio(void){
       .num_sounds = 1
     }
   );
-  
   array_push(
     sounds,
     (sound_t){
@@ -96,7 +90,6 @@ bool init_audio(void){
   );
 
   // WALKING
-  
   array_push(
     sounds,
     (sound_t){
@@ -106,7 +99,6 @@ bool init_audio(void){
       .num_sounds = 1
     }
   );
-  
   array_push(
     sounds,
     (sound_t){
@@ -116,7 +108,6 @@ bool init_audio(void){
       .num_sounds = 1
     }
   );
-  
   array_push(
     sounds,
     (sound_t){
@@ -126,7 +117,6 @@ bool init_audio(void){
       .num_sounds = 1
     }
   );
-  
   array_push(
     sounds,
     (sound_t){
@@ -138,7 +128,6 @@ bool init_audio(void){
   );
 
   // BLOCK MINING
-  
   array_push(
     sounds,
     (sound_t){
@@ -150,7 +139,6 @@ bool init_audio(void){
       .num_sounds = 3
     }
   );
-  
   array_push(
     sounds,
     (sound_t){
@@ -161,7 +149,6 @@ bool init_audio(void){
       .num_sounds = 2
     }
   );
-  
   array_push(
     sounds,
     (sound_t){
@@ -173,7 +160,6 @@ bool init_audio(void){
       .num_sounds = 3
     }
   );
-  
   array_push(
     sounds,
     (sound_t){
@@ -185,7 +171,6 @@ bool init_audio(void){
       .num_sounds = 3
     }
   );
-  
   array_push(
     sounds,
     (sound_t){
@@ -193,8 +178,6 @@ bool init_audio(void){
       .num_sounds = 0
     }
   );
-
-  
   array_push(
     sounds,
     (sound_t){
@@ -202,7 +185,6 @@ bool init_audio(void){
       .num_sounds = 0
     }
   );
-
 
   // FALLING
   array_push(
@@ -214,7 +196,6 @@ bool init_audio(void){
       .num_sounds = 1
     }
   );
-  
   array_push(
     sounds,
     (sound_t){
@@ -224,7 +205,6 @@ bool init_audio(void){
       .num_sounds = 1
     }
   );
-  
   array_push(
     sounds,
     (sound_t){
@@ -234,7 +214,6 @@ bool init_audio(void){
       .num_sounds = 1
     }
   );
-  
   array_push(
     sounds,
     (sound_t){
@@ -244,7 +223,6 @@ bool init_audio(void){
       .num_sounds = 1
     }
   );
-  
   array_push(
     sounds,
     (sound_t){
@@ -254,7 +232,6 @@ bool init_audio(void){
       .num_sounds = 1
     }
   );
-  
   array_push(
     sounds,
     (sound_t){
@@ -284,9 +261,7 @@ Mix_Chunk* load_sound(char *filename){
 }
 
 void play_ambient_sound(sound_type_t sound_type, int32_t channel, int32_t loop){
-  if(sound_type == SOUND_TYPE_NONE ||
-     sounds[sound_type].num_sounds <= 0 ||
-     Mix_Playing(channel)){
+  if(sound_type == SOUND_TYPE_NONE || sounds[sound_type].num_sounds <= 0 || Mix_Playing(channel)){
     return;
   }
 
@@ -298,28 +273,13 @@ void play_ambient_sound(sound_type_t sound_type, int32_t channel, int32_t loop){
   }
 }
 
-void play_mining_sound(sound_type_t sound_type){
-
-  if(sound_type == SOUND_TYPE_NONE) return;
-  if(Mix_Playing(SOUND_CHANNEL_MINING)) return;
-
-  uint32_t random_sound_index = xorshift32() % sounds[sound_type].num_sounds;
-
-  Mix_Volume(SOUND_CHANNEL_MINING, MIX_MAX_VOLUME);
-
-  if(sounds[sound_type].sounds[random_sound_index] != NULL){
-    Mix_PlayChannel(SOUND_CHANNEL_MINING, sounds[sound_type].sounds[random_sound_index], 0);
-  }
-}
-
 void play_transient_sound(int32_t channel, sound_type_t sound_type){
 
-  if(sound_type == SOUND_TYPE_NONE) return;
-  if(Mix_Playing(channel)) return;
-
-  uint32_t random_sound_index = xorshift32() % sounds[sound_type].num_sounds;
+  if(sound_type == SOUND_TYPE_NONE || Mix_Playing(channel)) return;
 
   Mix_Volume(channel, MIX_MAX_VOLUME);
+
+  uint32_t random_sound_index = xorshift32() % sounds[sound_type].num_sounds;
 
   if(sounds[sound_type].sounds[random_sound_index] != NULL){
     Mix_PlayChannel(channel, sounds[sound_type].sounds[random_sound_index], 0);
