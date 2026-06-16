@@ -54,6 +54,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_NONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_NONE,
+      .falling_sound_type = SOUND_TYPE_NONE,
     })  
   );
 
@@ -84,6 +85,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_NONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_NONE,
+      .falling_sound_type = SOUND_TYPE_NONE,
     })  
   );
   array_push(
@@ -113,6 +115,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_NONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_NONE,
+      .falling_sound_type = SOUND_TYPE_NONE,
     })  
   );
 
@@ -144,6 +147,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_STONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_STONE,
+      .falling_sound_type = SOUND_TYPE_FALLING_STONE,
     })  
   );
   array_push(
@@ -173,6 +177,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_STONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_STONE,
+      .falling_sound_type = SOUND_TYPE_FALLING_STONE,
     })  
   );
   array_push(
@@ -202,6 +207,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_STONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_STONE,
+      .falling_sound_type = SOUND_TYPE_FALLING_STONE,
     })  
   );
 
@@ -233,6 +239,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_NONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_NONE,
+      .falling_sound_type = SOUND_TYPE_NONE,
     })
   );
 
@@ -264,6 +271,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_STONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_STONE,
+      .falling_sound_type = SOUND_TYPE_FALLING_STONE,
     })
   );
   array_push(
@@ -293,6 +301,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_STONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_STONE,
+      .falling_sound_type = SOUND_TYPE_FALLING_STONE,
     })
   );
   array_push(
@@ -322,6 +331,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_STONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_STONE,
+      .falling_sound_type = SOUND_TYPE_FALLING_STONE,
     })
   );
   array_push(
@@ -351,6 +361,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_STONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_STONE,
+      .falling_sound_type = SOUND_TYPE_FALLING_STONE,
     })
   );
   array_push(
@@ -380,6 +391,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_STONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_STONE,
+      .falling_sound_type = SOUND_TYPE_FALLING_STONE,
     })
   );
   array_push(
@@ -409,6 +421,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_STONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_STONE,
+      .falling_sound_type = SOUND_TYPE_FALLING_STONE,
     })
   );
   array_push(
@@ -438,6 +451,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_STONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_STONE,
+      .falling_sound_type = SOUND_TYPE_FALLING_STONE,
     })
   );
   array_push(
@@ -467,6 +481,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_STONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_STONE,
+      .falling_sound_type = SOUND_TYPE_FALLING_STONE,
     })
   );
   array_push(
@@ -496,6 +511,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_STONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_STONE,
+      .falling_sound_type = SOUND_TYPE_FALLING_STONE,
     })
   );
 
@@ -527,6 +543,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_STONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_STONE,
+      .falling_sound_type = SOUND_TYPE_FALLING_STONE,
     })
   );
 
@@ -558,6 +575,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_STONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_STONE,
+      .falling_sound_type = SOUND_TYPE_FALLING_STONE,
     })
   );
 
@@ -589,6 +607,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_STONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_STONE,
+      .falling_sound_type = SOUND_TYPE_FALLING_STONE,
     })
   );
 
@@ -620,6 +639,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_STONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_STONE,
+      .falling_sound_type = SOUND_TYPE_FALLING_STONE,
     })
   );
 
@@ -651,6 +671,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_STONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_STONE,
+      .falling_sound_type = SOUND_TYPE_FALLING_STONE,
     })
   );
 
@@ -682,6 +703,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_DIRT,
       .breaking_sound_type= SOUND_TYPE_MINING_DIRT,
       .walking_sound_type = SOUND_TYPE_WALKING_DIRT,
+      .falling_sound_type = SOUND_TYPE_FALLING_DIRT,
     })
   );
   array_push(
@@ -711,6 +733,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_DIRT,
       .breaking_sound_type= SOUND_TYPE_MINING_DIRT,
       .walking_sound_type = SOUND_TYPE_WALKING_DIRT,
+      .falling_sound_type = SOUND_TYPE_FALLING_DIRT,
     })
   );
 
@@ -742,6 +765,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_DIRT,
       .breaking_sound_type= SOUND_TYPE_MINING_DIRT,
       .walking_sound_type = SOUND_TYPE_WALKING_DIRT,
+      .falling_sound_type = SOUND_TYPE_FALLING_DIRT,
     })
   );
   array_push(
@@ -771,6 +795,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_DIRT,
       .breaking_sound_type= SOUND_TYPE_MINING_DIRT,
       .walking_sound_type = SOUND_TYPE_WALKING_DIRT,
+      .falling_sound_type = SOUND_TYPE_FALLING_DIRT,
     })
   );
 
@@ -798,10 +823,11 @@ void init_block_materials(){
       .top_texture        = load_texture("./assets/textures/blocks/sand0.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/sand0.png"),
       
-      .mining_sound_type  = SOUND_TYPE_MINING_DIRT,
-      .placing_sound_type = SOUND_TYPE_MINING_DIRT,
+      .mining_sound_type  = SOUND_TYPE_MINING_SAND,
+      .placing_sound_type = SOUND_TYPE_MINING_SAND,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_SAND,
+      .falling_sound_type = SOUND_TYPE_FALLING_SAND,
     })
   );
 
@@ -829,10 +855,11 @@ void init_block_materials(){
       .top_texture        = load_texture("./assets/textures/blocks/clay0.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/clay0.png"),
       
-      .mining_sound_type  = SOUND_TYPE_MINING_DIRT,
-      .placing_sound_type = SOUND_TYPE_MINING_DIRT,
+      .mining_sound_type  = SOUND_TYPE_MINING_SAND,
+      .placing_sound_type = SOUND_TYPE_MINING_SAND,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_SAND,
+      .falling_sound_type = SOUND_TYPE_FALLING_SAND,
     })
   );
 
@@ -864,6 +891,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_WOOD,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_WOOD,
+      .falling_sound_type = SOUND_TYPE_FALLING_WOOD,
     }
   );
   array_push(
@@ -893,6 +921,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_WOOD,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_WOOD,
+      .falling_sound_type = SOUND_TYPE_FALLING_WOOD,
     }
   );
   array_push(
@@ -922,6 +951,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_WOOD,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_WOOD,
+      .falling_sound_type = SOUND_TYPE_FALLING_WOOD,
     }
   );
   array_push(
@@ -951,6 +981,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_WOOD,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_WOOD,
+      .falling_sound_type = SOUND_TYPE_FALLING_WOOD,
     }
   );
   array_push(
@@ -980,6 +1011,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_WOOD,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_WOOD,
+      .falling_sound_type = SOUND_TYPE_FALLING_WOOD,
     }
   );
   array_push(
@@ -1009,6 +1041,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_WOOD,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_WOOD,
+      .falling_sound_type = SOUND_TYPE_FALLING_WOOD,
     }
   );
   array_push(
@@ -1038,6 +1071,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_WOOD,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_WOOD,
+      .falling_sound_type = SOUND_TYPE_FALLING_WOOD,
     }
   );
   array_push(
@@ -1067,6 +1101,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_WOOD,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_WOOD,
+      .falling_sound_type = SOUND_TYPE_FALLING_WOOD,
     }
   );
 
@@ -1098,6 +1133,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_NONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_DIRT,
+      .falling_sound_type = SOUND_TYPE_FALLING_DIRT,
     })
   );
   array_push(
@@ -1127,6 +1163,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_NONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_DIRT,
+      .falling_sound_type = SOUND_TYPE_FALLING_DIRT,
     })
   );
   array_push(
@@ -1156,6 +1193,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_NONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_DIRT,
+      .falling_sound_type = SOUND_TYPE_FALLING_DIRT,
     })
   );
   array_push(
@@ -1185,6 +1223,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_NONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_DIRT,
+      .falling_sound_type = SOUND_TYPE_FALLING_DIRT,
     })
   );
   array_push(
@@ -1214,6 +1253,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_NONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_DIRT,
+      .falling_sound_type = SOUND_TYPE_FALLING_DIRT,
     })
   );
   array_push(
@@ -1243,6 +1283,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_NONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_DIRT,
+      .falling_sound_type = SOUND_TYPE_FALLING_DIRT,
     })
   );
   array_push(
@@ -1272,6 +1313,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_NONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_DIRT,
+      .falling_sound_type = SOUND_TYPE_FALLING_DIRT,
     })
   );
   array_push(
@@ -1301,6 +1343,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_NONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_DIRT,
+      .falling_sound_type = SOUND_TYPE_FALLING_DIRT,
     })
   );
   array_push(
@@ -1330,6 +1373,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_NONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_DIRT,
+      .falling_sound_type = SOUND_TYPE_FALLING_DIRT,
     })
   );
   array_push(
@@ -1359,6 +1403,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_NONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_DIRT,
+      .falling_sound_type = SOUND_TYPE_FALLING_DIRT,
     })
   );
 
@@ -1390,6 +1435,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_NONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_DIRT,
+      .falling_sound_type = SOUND_TYPE_FALLING_DIRT,
     })
   );
   array_push(
@@ -1419,6 +1465,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_NONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_DIRT,
+      .falling_sound_type = SOUND_TYPE_FALLING_DIRT,
     })
   );
 
@@ -1450,6 +1497,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_NONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_NONE,
+      .falling_sound_type = SOUND_TYPE_NONE,
     })
   );
   array_push(
@@ -1479,6 +1527,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_NONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_NONE,
+      .falling_sound_type = SOUND_TYPE_NONE,
     })
   );
 
@@ -1512,6 +1561,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_STONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_STONE,
+      .falling_sound_type = SOUND_TYPE_FALLING_STONE,
     })
   );
 
@@ -1543,6 +1593,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_WOOD,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_WOOD,
+      .falling_sound_type = SOUND_TYPE_FALLING_WOOD,
     })
   );
 
@@ -1574,6 +1625,7 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_STONE,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_STONE,
+      .falling_sound_type = SOUND_TYPE_FALLING_STONE,
     })
   );
 
@@ -1605,8 +1657,10 @@ void init_block_materials(){
       .placing_sound_type = SOUND_TYPE_MINING_WOOD,
       .breaking_sound_type= SOUND_TYPE_NONE,
       .walking_sound_type = SOUND_TYPE_WALKING_WOOD,
+      .falling_sound_type = SOUND_TYPE_FALLING_WOOD,
     })
   );
+
 }
 
 

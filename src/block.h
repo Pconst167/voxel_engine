@@ -143,6 +143,7 @@ typedef enum{
   BLOCK_TYPE_LAMP0      ,
   BLOCK_TYPE_OVEN0      ,
   BLOCK_TYPE_CHEST0     ,
+
 } block_type_t;
 
 typedef enum{
@@ -199,6 +200,7 @@ typedef struct{
   sound_type_t walking_sound_type;
   sound_type_t placing_sound_type;
   sound_type_t breaking_sound_type;
+  sound_type_t falling_sound_type;
 } block_material_t;
 
 typedef struct{

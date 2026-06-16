@@ -20,7 +20,9 @@
 #define SOUND_CHANNEL_WALKING_WOOD          7
 #define SOUND_CHANNEL_WALKING_STONE         8
 
-#define SOUND_CHANNEL_MINING                9
+#define SOUND_CHANNEL_FALLING               9
+
+#define SOUND_CHANNEL_MINING                10
 
 typedef struct{
   char *filenames[MAX_NUM_SOUNDS_PER_ENTRY];
@@ -45,10 +47,18 @@ typedef enum{
   SOUND_TYPE_WALKING_STONE,
 
   SOUND_TYPE_MINING_DIRT,
-  SOUND_TYPE_MINING_STONE,
+  SOUND_TYPE_MINING_SAND,
   SOUND_TYPE_MINING_WOOD,
+  SOUND_TYPE_MINING_STONE,
   SOUND_TYPE_MINING_LEAVES,
   SOUND_TYPE_MINING_GLASS,
+
+  SOUND_TYPE_FALLING_DIRT,
+  SOUND_TYPE_FALLING_SAND,
+  SOUND_TYPE_FALLING_WOOD,
+  SOUND_TYPE_FALLING_STONE,
+  SOUND_TYPE_FALLING_WATER,
+  SOUND_TYPE_FALLING_WATER_STRONG,
 } sound_type_t;
 
 bool init_audio(void);
@@ -56,7 +66,8 @@ void shutdown_audio(void);
 
 void play_ambient_sound(sound_type_t sound_type, int32_t channel, int32_t loop);
 
-void play_block_mining_sound(sound_type_t sound_type);
+void play_mining_sound(sound_type_t sound_type);
+void play_falling_sound(sound_type_t sound_type);
 
 void fadeout_transient_sound_channels();
 void fadeout_ambient_sound_channel(int32_t channel_number, int32_t ms);

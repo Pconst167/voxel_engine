@@ -112,7 +112,7 @@
 #define PLAYER_SPEED_SHIFT_KEY_FACTOR 2.0f
 #define PLAYER_ETA_DIRECTION 1.0f /* +1: mouse back looks up, -1: mouse back looks down */
 #define MOUSE_SENSITIVITY 0.005f
-#define DAY_LENGTH (0.01f * 60.0f * 60.0f / 0.016f) /* hours */
+#define DAY_LENGTH (0.1f * 60.0f * 60.0f / 0.016f) /* hours */
 
 #define FOV_Y_DEG 90.0
 #define FOV_Y (FOV_Y_DEG * M_PI / 180.0)
@@ -397,7 +397,7 @@ void handle_mouse_actions(input_state_t *input_state){
 
           // play sound
           sound_type_t sound_type = block_materials[player.block_inventory[player.block_inventory_active_index].block_type].placing_sound_type;
-          play_block_mining_sound(sound_type);
+          play_mining_sound(sound_type);
 
           assign_block_material(block_y, block_z, block_x, player.block_inventory[player.block_inventory_active_index].block_type);
           set_block_orientation(block_y, block_z, block_x, player.position);
@@ -505,9 +505,15 @@ void update_player_from_input(input_state_t *input_state){
   int32_t player_block_y = player.position.y;
   int32_t player_block_z = player.position.z;
   int32_t player_block_x = player.position.x;
-  if(block_materials[block_at(player_block_y, player_block_z, player_block_x).type].block_fluid_type != BLOCK_FLUID_NONE ||
-    (player_block_y + 1 < MAP_NUM_BLOCKS_Y && block_materials[block_at(player_block_y + 1, player_block_z, player_block_x).type].block_fluid_type != BLOCK_FLUID_NONE)
+  if(block_materials[block_at(player_block_y, player_block_z, player_block_x).type].block_fluid_type == BLOCK_FLUID_WATER ||
+    (player_block_y + 1 < MAP_NUM_BLOCKS_Y && block_materials[block_at(player_block_y + 1, player_block_z, player_block_x).type].block_fluid_type == BLOCK_FLUID_WATER)
   ){
+    if(player.on_water == false){
+      if(player.velocity.y < -4.0f)
+        play_falling_sound(SOUND_TYPE_FALLING_WATER_STRONG);
+      else
+        play_falling_sound(SOUND_TYPE_FALLING_WATER);
+    }
     player.on_water = true;
   }
   else{
@@ -1295,6 +1301,7 @@ inline void move_player_z(float movement_z){
 }
 
 inline void move_player_y(float movement_y){
+  float original_player_velocity_y = player.velocity.y;
 
   if(player.position.y + movement_y < 0.0f) return;
   if(player.position.y + movement_y > MAP_NUM_BLOCKS_Y) return;
@@ -1329,6 +1336,7 @@ inline void move_player_y(float movement_y){
 
     if(block_materials[block->type].solid){
       if(target_aabb.y_min < block->aabb.y_max){
+        if(player.velocity.y < -2.0f) play_falling_sound(block_materials[block->type].falling_sound_type);
         target_position.y = block->aabb.y_max + COLLISION_EPSILON;
         target_aabb = make_player_aabb_at_position(target_position);
         player.velocity.y = 0.0f;
@@ -1348,6 +1356,7 @@ inline void move_player_y(float movement_y){
     if(block_materials[block->type].solid){
       if(target_aabb.x_min < block->aabb.x_max)
         if(target_aabb.y_min < block->aabb.y_max){
+          if(player.velocity.y < -2.0f) play_falling_sound(block_materials[block->type].falling_sound_type);
           target_position.y = block->aabb.y_max + COLLISION_EPSILON;
           target_aabb = make_player_aabb_at_position(target_position);
           player.velocity.y = 0.0f;
@@ -1367,6 +1376,7 @@ inline void move_player_y(float movement_y){
     if(block_materials[block->type].solid){
       if(target_aabb.x_max > block->aabb.x_min)
         if(target_aabb.y_min < block->aabb.y_max){
+          if(player.velocity.y < -2.0f) play_falling_sound(block_materials[block->type].falling_sound_type);
           target_position.y = block->aabb.y_max + COLLISION_EPSILON;
           target_aabb = make_player_aabb_at_position(target_position);
           player.velocity.y = 0.0f;
@@ -1386,6 +1396,7 @@ inline void move_player_y(float movement_y){
     if(block_materials[block->type].solid){
       if(target_aabb.z_max > block->aabb.z_min)
         if(target_aabb.y_min < block->aabb.y_max){
+          if(player.velocity.y < -2.0f) play_falling_sound(block_materials[block->type].falling_sound_type);
           target_position.y = block->aabb.y_max + COLLISION_EPSILON;
           target_aabb = make_player_aabb_at_position(target_position);
           player.velocity.y = 0.0f;
@@ -1405,6 +1416,7 @@ inline void move_player_y(float movement_y){
     if(block_materials[block->type].solid){
       if(target_aabb.z_min < block->aabb.z_max)
         if(target_aabb.y_min < block->aabb.y_max){
+          if(player.velocity.y < -2.0f) play_falling_sound(block_materials[block->type].falling_sound_type);
           target_position.y = block->aabb.y_max + COLLISION_EPSILON;
           target_aabb = make_player_aabb_at_position(target_position);
           player.velocity.y = 0.0f;
@@ -1425,6 +1437,7 @@ inline void move_player_y(float movement_y){
       if(target_aabb.x_min < block->aabb.x_max)
         if(target_aabb.z_max > block->aabb.z_min)
           if(target_aabb.y_min < block->aabb.y_max){
+            if(player.velocity.y < -2.0f) play_falling_sound(block_materials[block->type].falling_sound_type);
             target_position.y = block->aabb.y_max + COLLISION_EPSILON;
             target_aabb = make_player_aabb_at_position(target_position);
             player.velocity.y = 0.0f;
@@ -1445,6 +1458,7 @@ inline void move_player_y(float movement_y){
       if(target_aabb.x_max > block->aabb.x_min)
         if(target_aabb.z_max > block->aabb.z_min)
           if(target_aabb.y_min < block->aabb.y_max){
+            if(player.velocity.y < -2.0f) play_falling_sound(block_materials[block->type].falling_sound_type);
             target_position.y = block->aabb.y_max + COLLISION_EPSILON;
             target_aabb = make_player_aabb_at_position(target_position);
             player.velocity.y = 0.0f;
@@ -1465,6 +1479,7 @@ inline void move_player_y(float movement_y){
       if(target_aabb.x_max > block->aabb.x_min)
         if(target_aabb.z_min < block->aabb.z_max)
           if(target_aabb.y_min < block->aabb.y_max){
+            if(player.velocity.y < -2.0f) play_falling_sound(block_materials[block->type].falling_sound_type);
             target_position.y = block->aabb.y_max + COLLISION_EPSILON;
             target_aabb = make_player_aabb_at_position(target_position);
             player.velocity.y = 0.0f;
@@ -1485,12 +1500,15 @@ inline void move_player_y(float movement_y){
       if(target_aabb.x_min < block->aabb.x_max)
         if(target_aabb.z_min < block->aabb.z_max)
           if(target_aabb.y_min < block->aabb.y_max){
+            if(player.velocity.y < -2.0f) play_falling_sound(block_materials[block->type].falling_sound_type);
             target_position.y = block->aabb.y_max + COLLISION_EPSILON;
             target_aabb = make_player_aabb_at_position(target_position);
             player.velocity.y = 0.0f;
             player.on_ground = true;
           }
     }
+
+
   }
   else{
     // y position at player's feet + 2
@@ -1663,6 +1681,7 @@ inline void move_player_y(float movement_y){
 
   player.position.y = target_position.y;
   update_player_aabb();
+
 }
 
 void move_player_z_old(float movement_z){
@@ -2266,9 +2285,15 @@ void render_chunk_blocks(chunk_t *chunk, bool transparent_only){
         
         block_t *block = &block_at(y_plane, z_row, x_col);
         if(block->type == BLOCK_TYPE_AIR) continue;
-        if(transparent_only && block_materials[block->type].blend_mode != BLEND_MODE_ALPHA_BLEND) continue;
-        if(!transparent_only && block_materials[block->type].blend_mode == BLEND_MODE_ALPHA_BLEND) continue;
+        if(
+          ( transparent_only && block_materials[block->type].blend_mode != BLEND_MODE_ALPHA_BLEND) || 
+          (!transparent_only && block_materials[block->type].blend_mode == BLEND_MODE_ALPHA_BLEND)
+        ) continue;
         
+        //if(block->type == BLOCK_TYPE_SURFACE_GRASS){
+        //
+        //}
+
         bool render_left_block_face   = should_render_face(BLOCK_FACE_LEFT  , y_plane, z_row, x_col);
         bool render_right_block_face  = should_render_face(BLOCK_FACE_RIGHT , y_plane, z_row, x_col);
         bool render_top_block_face    = should_render_face(BLOCK_FACE_TOP   , y_plane, z_row, x_col);
@@ -2452,9 +2477,9 @@ void render_object(object_t *object){
   /* triangles list for clipped triangles */
   triangle_t triangles_after_clipping[MAX_NUM_POLYGON_VERTICES - 2]; /* for a polygon with N vertices, the number of nested triangles is always N-2 */
 
-  object->rotation.x += object->angular_velocity.x;
-  object->rotation.y += object->angular_velocity.y;
-  object->rotation.z += object->angular_velocity.z;
+  //object->rotation.x += object->angular_velocity.x;
+  //object->rotation.y += object->angular_velocity.y;
+  //object->rotation.z += object->angular_velocity.z;
 
   // calculate a vertex for the position of the object (before view matrix so we get actual physical position)
   matrix4_t world_matrix = matrix4_gen_world_matrix(object);
@@ -2850,34 +2875,19 @@ void draw_collision_aabb_outlines(void){
 
 void update_light(void){
 
-  /* skybox is a special case and needs to always track camera position */
-  if(skybox_id != -1){
-    //object_t *skybox = &objects[skybox_id];
+  //object_t *skybox = &objects[skybox_id];
 
-    sun_eta += M_2_PI * 1.0f / DAY_LENGTH;
-    sun_sin_eta = sinf(sun_eta);
+  sun_eta    += M_2_PI * 1.0f / DAY_LENGTH;
+  sun_sin_eta = sinf(sun_eta);
 
-    if(sun_sin_eta < 0.0f) sun_sin_eta = 0.0f;
+  if(sun_sin_eta < 0.0f) sun_sin_eta = 0.0f;
 
-    sky_color.rgb.red   = 0x00 + 0x20 * sun_sin_eta;
-    sky_color.rgb.green = 0x00 + 0x80 * sun_sin_eta;
-    sky_color.rgb.blue  = 0x08 + 0xE8 * sun_sin_eta;
-    
-    //skybox->translation.x  = camera.position.x; 
-    //skybox->translation.y  = camera.position.y;
-    //skybox->translation.z  = camera.position.z;
+  sky_color.rgb.red   = 0x00 + 0x20 * sun_sin_eta;
+  sky_color.rgb.green = 0x00 + 0x80 * sun_sin_eta;
+  sky_color.rgb.blue  = 0x08 + 0xE8 * sun_sin_eta;
+  
+  //float emissive_intensity = (sin_eta < MIN_SKYBOX_INTENSITY) ? MIN_SKYBOX_INTENSITY : sin_eta;
 
-    //skybox->mesh->materials[0].emissive_color.rgb.red   = light_sources[1].color.rgb.red   = 200 +  55 * (1.0f - sin_eta);
-    //skybox->mesh->materials[0].emissive_color.rgb.green = light_sources[1].color.rgb.green = 100 + 155 * sin_eta;
-    //skybox->mesh->materials[0].emissive_color.rgb.blue  = light_sources[1].color.rgb.blue  = 255       * sin_eta;
-
-    //* obj 0 is skybox */
-    //float emissive_intensity = (sin_eta < MIN_SKYBOX_INTENSITY) ? MIN_SKYBOX_INTENSITY : sin_eta;
-    //skybox->mesh->materials[0].emissive_color.rgb.red   = 255.0f * (emissive_intensity); /* sky luminosity as a function of time */
-    //skybox->mesh->materials[0].emissive_color.rgb.green = 255.0f * (emissive_intensity); /* sky luminosity as a function of time */
-    //skybox->mesh->materials[0].emissive_color.rgb.blue  = 255.0f * (emissive_intensity); /* sky luminosity as a function of time */
-
-  }
 }
 
 void update_camera_from_player(){
@@ -3228,7 +3238,7 @@ void render_player_tools(){
       if(animation_frame >= 1){
         animation_direction = -1;
         sound_type_t sound_type = block_materials[block_at(looked_at_block.block_y, looked_at_block.block_z, looked_at_block.block_x).type].mining_sound_type;
-        play_block_mining_sound(sound_type);
+        play_mining_sound(sound_type);
       }
     }
     else{

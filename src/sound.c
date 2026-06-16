@@ -88,19 +88,23 @@ sound_t sounds[] = {
     },
     .num_sounds = 3
   },
-  [SOUND_TYPE_MINING_STONE] = {
-    .filenames = {
-      "./assets/sound/block_mining/stone_3.wav",
-      "./assets/sound/block_mining/stone_4.wav",
-      "./assets/sound/block_mining/stone_5.wav",
-    },
-    .num_sounds = 3
+  [SOUND_TYPE_MINING_SAND] = {
+    .filenames = {0},
+    .num_sounds = 0
   },
   [SOUND_TYPE_MINING_WOOD] = {
     .filenames = {
       "./assets/sound/block_mining/wood_0.wav",
       "./assets/sound/block_mining/wood_1.wav",
       "./assets/sound/block_mining/wood_2.wav",
+    },
+    .num_sounds = 3
+  },
+  [SOUND_TYPE_MINING_STONE] = {
+    .filenames = {
+      "./assets/sound/block_mining/stone_3.wav",
+      "./assets/sound/block_mining/stone_4.wav",
+      "./assets/sound/block_mining/stone_5.wav",
     },
     .num_sounds = 3
   },
@@ -111,10 +115,49 @@ sound_t sounds[] = {
   [SOUND_TYPE_MINING_GLASS] = {
     .filenames = {0},
     .num_sounds = 0
-  }
+  },
+
+
+  // FALLING
+  [SOUND_TYPE_FALLING_DIRT] = {
+    .filenames = {
+      "./assets/sound/falling/dirt_0.wav",
+    },
+    .num_sounds = 1
+  },
+  [SOUND_TYPE_FALLING_SAND] = {
+    .filenames = {
+      "./assets/sound/falling/sand_0.wav",
+    },
+    .num_sounds = 1
+  },
+  [SOUND_TYPE_FALLING_WOOD] = {
+    .filenames = {
+      "./assets/sound/falling/wood_0.wav",
+    },
+    .num_sounds = 1
+  },
+  [SOUND_TYPE_FALLING_STONE] = {
+    .filenames = {
+      "./assets/sound/falling/stone_0.wav",
+    },
+    .num_sounds = 1
+  },
+  [SOUND_TYPE_FALLING_WATER] = {
+    .filenames = {
+      "./assets/sound/falling/water_soft.wav",
+    },
+    .num_sounds = 1
+  },
+  [SOUND_TYPE_FALLING_WATER_STRONG] = {
+    .filenames = {
+      "./assets/sound/falling/water_strong.wav",
+    },
+    .num_sounds = 1
+  },
 };
 
-int32_t num_sounds = 17;
+int32_t num_sounds = 24;
 
 bool init_audio(void){
   if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0){
@@ -154,7 +197,7 @@ void play_ambient_sound(sound_type_t sound_type, int32_t channel, int32_t loop){
   }
 }
 
-void play_block_mining_sound(sound_type_t sound_type){
+void play_mining_sound(sound_type_t sound_type){
 
   if(sound_type == SOUND_TYPE_NONE) return;
   if(Mix_Playing(SOUND_CHANNEL_MINING)) return;
@@ -165,6 +208,20 @@ void play_block_mining_sound(sound_type_t sound_type){
 
   if(sounds[sound_type].sounds[random_sound_index] != NULL){
     Mix_PlayChannel(SOUND_CHANNEL_MINING, sounds[sound_type].sounds[random_sound_index], 0);
+  }
+}
+
+void play_falling_sound(sound_type_t sound_type){
+
+  if(sound_type == SOUND_TYPE_NONE) return;
+  if(Mix_Playing(SOUND_CHANNEL_FALLING)) return;
+
+  uint32_t random_sound_index = xorshift32() % sounds[sound_type].num_sounds;
+
+  Mix_Volume(SOUND_CHANNEL_FALLING, MIX_MAX_VOLUME);
+
+  if(sounds[sound_type].sounds[random_sound_index] != NULL){
+    Mix_PlayChannel(SOUND_CHANNEL_FALLING, sounds[sound_type].sounds[random_sound_index], 0);
   }
 }
 
