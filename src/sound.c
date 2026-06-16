@@ -3,8 +3,6 @@
 #include "misc.h"
 #include "log.h"
 
-
-
 sound_t sounds[] = {
   [SOUND_TYPE_NONE] = {
     .filenames = {0},
@@ -87,15 +85,14 @@ sound_t sounds[] = {
       "./assets/sound/block_mining/dirt_0.wav",
       "./assets/sound/block_mining/dirt_1.wav",
       "./assets/sound/block_mining/dirt_2.wav",
-      "./assets/sound/block_mining/dirt_3.wav",
     },
-    .num_sounds = 4
+    .num_sounds = 3
   },
   [SOUND_TYPE_MINING_STONE] = {
     .filenames = {
-      "./assets/sound/block_mining/stone_0.wav",
-      "./assets/sound/block_mining/stone_1.wav",
-      "./assets/sound/block_mining/stone_2.wav",
+      "./assets/sound/block_mining/stone_3.wav",
+      "./assets/sound/block_mining/stone_4.wav",
+      "./assets/sound/block_mining/stone_5.wav",
     },
     .num_sounds = 3
   },
@@ -143,10 +140,11 @@ bool init_audio(void){
 }
 
 void play_ambient_sound(sound_type_t sound_type, int32_t channel, int32_t loop){
-  if(sound_type == SOUND_TYPE_NONE || 
+  if(sound_type == SOUND_TYPE_NONE ||
      sounds[sound_type].num_sounds <= 0 ||
-     (Mix_Playing(channel) && Mix_FadingChannel(channel) != MIX_FADING_OUT)
-  ) return;
+     Mix_Playing(channel)){
+    return;
+  }
 
   uint32_t random_sound_index = xorshift32() % sounds[sound_type].num_sounds;
 
@@ -180,8 +178,8 @@ void fadeout_transient_sound_channels(){
   }
 }
 
-void fadeout_ambient_sound_channel(int32_t channel_number, int32_t ms){
-  if(Mix_Playing(channel_number)){
-    Mix_FadeOutChannel(channel_number, ms);
+void fadeout_ambient_sound_channel(int32_t channel, int32_t milliseconds){
+  if(Mix_Playing(channel) && Mix_FadingChannel(channel) != MIX_FADING_OUT){
+    Mix_FadeOutChannel(channel, milliseconds);
   }
 }

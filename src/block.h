@@ -195,7 +195,10 @@ typedef struct{
   texture_t *top_texture;
   texture_t *bottom_texture;
   // sound type
-  sound_type_t sound_type;
+  sound_type_t mining_sound_type;
+  sound_type_t walking_sound_type;
+  sound_type_t placing_sound_type;
+  sound_type_t breaking_sound_type;
 } block_material_t;
 
 typedef struct{

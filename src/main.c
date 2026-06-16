@@ -396,7 +396,7 @@ void handle_mouse_actions(input_state_t *input_state){
         if(player.block_inventory[player.block_inventory_active_index].number > 0){
 
           // play sound
-          sound_type_t sound_type = block_materials[player.block_inventory[player.block_inventory_active_index].block_type].sound_type;
+          sound_type_t sound_type = block_materials[player.block_inventory[player.block_inventory_active_index].block_type].placing_sound_type;
           play_block_mining_sound(sound_type);
 
           assign_block_material(block_y, block_z, block_x, player.block_inventory[player.block_inventory_active_index].block_type);
@@ -581,28 +581,28 @@ void update_player_from_input(input_state_t *input_state){
     int32_t player_y = player.position.y - 1;
     int32_t player_z = player.position.z;
     if(block_is_tree_trunk(&block_at(player_y, player_z, player_x))){
-      play_ambient_sound(SOUND_TYPE_WALKING_WOOD, SOUND_CHANNEL_WALKING_WOOD, -1);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_DIRT, 512);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_SAND, 512);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_STONE, 512);
+      play_ambient_sound(SOUND_TYPE_WALKING_WOOD, SOUND_CHANNEL_WALKING_WOOD, 0);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_DIRT, 128);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_SAND, 128);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_STONE, 128);
     }
     else if(block_is_stone(&block_at(player_y, player_z, player_x))){
-      play_ambient_sound(SOUND_TYPE_WALKING_STONE, SOUND_CHANNEL_WALKING_STONE, 1);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_DIRT, 512);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_SAND, 512);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_WOOD, 512);
+      play_ambient_sound(SOUND_TYPE_WALKING_STONE, SOUND_CHANNEL_WALKING_STONE, 0);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_DIRT, 128);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_SAND, 128);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_WOOD, 128);
     }
     else if(block_is_sand(&block_at(player_y, player_z, player_x))){
-      play_ambient_sound(SOUND_TYPE_WALKING_SAND, SOUND_CHANNEL_WALKING_SAND, -11);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_DIRT, 512);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_STONE, 512);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_WOOD, 512);
+      play_ambient_sound(SOUND_TYPE_WALKING_SAND, SOUND_CHANNEL_WALKING_SAND, 0);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_DIRT, 128);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_STONE, 128);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_WOOD, 128);
     }
-    else{
-      play_ambient_sound(SOUND_TYPE_WALKING_DIRT, SOUND_CHANNEL_WALKING_DIRT, -1);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_SAND, 512);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_STONE, 512);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_WOOD, 512);
+    else if(block_at(player_y, player_z, player_x).type != BLOCK_TYPE_AIR){
+      play_ambient_sound(SOUND_TYPE_WALKING_DIRT, SOUND_CHANNEL_WALKING_DIRT, 0);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_SAND, 128);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_STONE, 128);
+      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_WOOD, 128);
     }
   }
   else{
@@ -2225,6 +2225,12 @@ void render_block_face(
       }
     }
 
+    if(looked_at){
+      projected_triangle.total_light_intensity.blue  *= 1.3f + 0.1f;
+      projected_triangle.total_light_intensity.green *= 1.3f + 0.1f;
+      projected_triangle.total_light_intensity.red   *= 1.3f + 0.1f;
+    }
+
     total_pixels_rendered += rasterize_triangle(&projected_triangle);
     if(options.wireframe_overlay)
       draw_triangle(
@@ -3221,7 +3227,7 @@ void render_player_tools(){
       animation_frame++;
       if(animation_frame >= 1){
         animation_direction = -1;
-        sound_type_t sound_type = block_materials[block_at(looked_at_block.block_y, looked_at_block.block_z, looked_at_block.block_x).type].sound_type;
+        sound_type_t sound_type = block_materials[block_at(looked_at_block.block_y, looked_at_block.block_z, looked_at_block.block_x).type].mining_sound_type;
         play_block_mining_sound(sound_type);
       }
     }
@@ -3287,9 +3293,7 @@ bool player_is_inside_cave(void){
   for(int32_t y = player_y - 3; y <= player_y + 3; y++){
     for(int32_t z = player_z - 4; z <= player_z + 4; z++){
       for(int32_t x = player_x - 4; x <= player_x + 4; x++){
-        if(y < 0 || y >= MAP_NUM_BLOCKS_Y) continue;
-        if(z < 0 || z >= MAP_NUM_BLOCKS_Z) continue;
-        if(x < 0 || x >= MAP_NUM_BLOCKS_X) continue;
+        if(y < 0 || y >= MAP_NUM_BLOCKS_Y || z < 0 || z >= MAP_NUM_BLOCKS_Z || x < 0 || x >= MAP_NUM_BLOCKS_X) continue;
 
         if(block_at(y, z, x).type == BLOCK_TYPE_AIR){
           air_count++;
@@ -3298,15 +3302,22 @@ bool player_is_inside_cave(void){
     }
   }
 
+  // check for blocks above player (y and x). for the x/z tests, we check world boundaries. we check y first because at a world boundary x/z may be outside world, but y is still valid 
+  // because y is always below WORLD_WATER_LEVEL
   for(int32_t y = player_y + 2; y <= WORLD_WATER_LEVEL; y++){
-    if(y >= MAP_NUM_BLOCKS_Y) break;
-
-    if(block_materials[block_at(y, player_z, player_x).type].solid){
+    if(block_materials[block_at(y, player_z, player_x).type].solid) solid_above_count++;
+    
+    if(player_x + 1 >= MAP_NUM_BLOCKS_X || player_z + 1 >= MAP_NUM_BLOCKS_Z) continue;
+    if(block_materials[block_at(y, player_z + 1, player_x).type].solid ||
+       block_materials[block_at(y, player_z, player_x + 1).type].solid
+    ){
       solid_above_count++;
     }
+
+    if(solid_above_count > 6) break;
   }
 
-  if(air_count > 250 && solid_above_count > 6){
+  if(air_count > 60 && solid_above_count > 6){
     return true;
   }
 
@@ -3345,22 +3356,23 @@ void process_ambient_sounds(){
 
   if(player_is_inside_cave()){
     play_ambient_sound(SOUND_TYPE_AMBIENT_NATURE_CAVE, SOUND_CHANNEL_AMBIENT_NATURE_CAVE, -1);
-    fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENT_NATURE_DAY, 5000);
-    fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENT_NATURE_NIGHT, 5000);
+    fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENT_NATURE_DAY, 1000);
+    fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENT_NATURE_NIGHT, 1000);
   }
   else{
+    fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENT_NATURE_CAVE, 1000);
     if(!night_time){
       if(sun_sin_eta <= 0.25f){
         night_time = true;
         play_ambient_sound(SOUND_TYPE_AMBIENT_NATURE_NIGHT, SOUND_CHANNEL_AMBIENT_NATURE_NIGHT, -1);
-        fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENT_NATURE_DAY, 5000);
+        fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENT_NATURE_DAY, 1000);
       }
     }
     else{
       if(sun_sin_eta > 0.5f){
         night_time = false;
         play_ambient_sound(SOUND_TYPE_AMBIENT_NATURE_DAY, SOUND_CHANNEL_AMBIENT_NATURE_DAY, -1);
-        fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENT_NATURE_NIGHT, 5000);
+        fadeout_ambient_sound_channel(SOUND_CHANNEL_AMBIENT_NATURE_NIGHT, 1000);
       }
     }
   }
