@@ -5,6 +5,7 @@
 #include "material.h"
 #include "mesh.h"
 #include "light.h"
+#include "biome.h"
 #include "sound.h"
 #include "player_tools.h"
 
@@ -212,6 +213,7 @@ typedef struct{
 
 typedef struct{
   block_type_t type;
+  biome_type_t biome_type;
   block_orientation_t orientation;
   int32_t current_mass;
   float temperature;
@@ -250,7 +252,9 @@ extern const int32_t neighbour_y_offsets[6];
 extern const int32_t neighbour_z_offsets[6];
 extern const int32_t neighbour_x_offsets[6];
 
+void allocate_block_memory();
 void init_block_materials();
+void assign_biomes();
 void init_block_map();
 void get_block_range_from_aabb(const aabb_3d_t *aabb, int *start_x, int *end_x, int *start_y, int *end_y, int *start_z, int *end_z);
 block_face_t generate_block_face(block_face_direction_t block_face_type, uint32_t y_plane, uint32_t z_row, uint32_t x_col);

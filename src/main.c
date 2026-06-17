@@ -26,6 +26,14 @@
       then for fully inside, we only test for clipping, but for intersecting chunks, clip all triangles directly.
 
     TODO:
+      biomes
+      lava/volcano
+      stalactites
+      floating isles
+      fix player position when inside water and jumping upwards into air
+      * maybe world can be infinite but in another way: with portals.
+      could we make rivers of water and lava and have the textures scroll?
+
       CONVERT BLOCK COORDINATES ETC TO -X TO X, ETC. I.E CENTERED AROUND ORIGIN. THIS IS BETTER FOR FLOATING PRECISION
       SO INSTEAD OF HAVING THE WORLD ORIGIN CORNER AT 0, WE PLACE THE WORLD CENTER AT 0 INSTEAD
 
@@ -170,6 +178,8 @@ bool mining = false;
 int8_t animation_frame;
 int8_t animation_direction = 1;
 
+texture_t biome_map;
+
 void setup(void) {
   
   aspect_ratio_x = (float)window_width  / (float)window_height;
@@ -191,7 +201,9 @@ void setup(void) {
   initialize_lights();
 
   /* calculate world chunks */
+  allocate_block_memory();
   init_block_materials();
+  assign_biomes();
   init_block_map();
   calculate_world_bounds();
   create_world_chunks();
@@ -243,6 +255,40 @@ void setup(void) {
                            (vector3_t){0, 0, 0}, (vector3_t){0, 0, 0}
   );
   player_obtain_tool(PLAYER_TOOL_STONE_SHOVEL, object_id);
+
+
+  biome_map.texture_width = MAP_NUM_BLOCKS_X;
+  biome_map.texture_height = MAP_NUM_BLOCKS_Y;
+  biome_map.texture = malloc(sizeof(color_t) * MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y);
+
+  for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+    for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+      switch(block_at(0, z, x).biome_type){
+        case BIOME_TYPE_DESERT:
+          biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFF40BB99; // sandy
+          break;
+        case BIOME_TYPE_FOREST:
+          biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFF508020; // blueish green
+          break;
+        case BIOME_TYPE_GRASSLANDS:
+          biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFF20A040; // light green
+          break;
+        case BIOME_TYPE_RAIN_FOREST:
+          biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFF206020; // dark green
+          break;
+        case BIOME_TYPE_SAVANNAH:
+          biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFF20A070; // yellowish green
+          break;
+        case BIOME_TYPE_SNOW:
+          biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFFFFFFFF; // white
+          break;
+        case BIOME_TYPE_VOLCANIC:
+          biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFF2020FF; // red
+          break;
+      }
+    }
+
+  }
 }
 
 // poll input and save in input_state struct
@@ -586,36 +632,18 @@ void update_player_from_input(input_state_t *input_state){
     int32_t player_x = player.position.x;
     int32_t player_y = player.position.y - 1;
     int32_t player_z = player.position.z;
-    if(block_is_tree_trunk(&block_at(player_y, player_z, player_x))){
-      play_ambient_sound(SOUND_TYPE_WALKING_WOOD, SOUND_CHANNEL_WALKING_WOOD, 0);
+    block_t *block = &block_at(player_y, player_z, player_x);
+    sound_type_t walking_sound_type = block_materials[block->type].walking_sound_type;
+    static sound_type_t previous_sound_type = SOUND_TYPE_NONE;
+
+    if(previous_sound_type != walking_sound_type){
       fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_DIRT, 128);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_SAND, 128);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_STONE, 128);
+      previous_sound_type = walking_sound_type;
     }
-    else if(block_is_stone(&block_at(player_y, player_z, player_x))){
-      play_ambient_sound(SOUND_TYPE_WALKING_STONE, SOUND_CHANNEL_WALKING_STONE, 0);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_DIRT, 128);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_SAND, 128);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_WOOD, 128);
-    }
-    else if(block_is_sand(&block_at(player_y, player_z, player_x))){
-      play_ambient_sound(SOUND_TYPE_WALKING_SAND, SOUND_CHANNEL_WALKING_SAND, 0);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_DIRT, 128);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_STONE, 128);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_WOOD, 128);
-    }
-    else if(block_at(player_y, player_z, player_x).type != BLOCK_TYPE_AIR){
-      play_ambient_sound(SOUND_TYPE_WALKING_DIRT, SOUND_CHANNEL_WALKING_DIRT, 0);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_SAND, 128);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_STONE, 128);
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_WOOD, 128);
-    }
+    play_ambient_sound(walking_sound_type, SOUND_CHANNEL_WALKING_DIRT, 0);
   }
   else{
     fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_DIRT, 512);
-    fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_SAND, 512);
-    fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_STONE, 512);
-    fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_WOOD, 512);
   }
 
   if(movement.x != 0.0f) move_player_x(movement.x);
@@ -3388,6 +3416,11 @@ void process_ambient_sounds(){
 
 }
 
+void render_biome_map(){
+
+  draw_texture_flat(window_width - 200, 0, 200, 200, &biome_map);
+}
+
 int main(int argc, char *argv[]){
   (void)argc;
   (void)argv;
@@ -3427,6 +3460,7 @@ int main(int argc, char *argv[]){
 
     print_debug_data();
     render_ui();
+    render_biome_map();
       
     sdl_render();
     frame_id++; /* one count per frame */

@@ -90,7 +90,7 @@ float perlin_noise_3d(float x, float y, float z){
   float result = lerp_float(w, y0_mix, y1_mix);
 
   // Scale into approximate -1.0f to +1.0f range.
-  result *= 0.7f;
+  result *= 1.1666f;
 
   if(result < -1.0f) result = -1.0f;
   if(result >  1.0f) result =  1.0f;

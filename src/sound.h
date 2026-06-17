@@ -71,4 +71,6 @@ void play_transient_sound(int32_t channel, sound_type_t sound_type);
 void fadeout_transient_sound_channels();
 void fadeout_ambient_sound_channel(int32_t channel_number, int32_t ms);
 
+void halt_channel(int32_t channel);
+
 #endif

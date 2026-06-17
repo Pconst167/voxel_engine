@@ -1663,14 +1663,61 @@ void init_block_materials(){
 
 }
 
-
-void init_block_map(){
-
+void allocate_block_memory(){
   blocks = malloc(sizeof(block_t) * MAP_NUM_BLOCKS_Y * MAP_NUM_BLOCKS_Z * MAP_NUM_BLOCKS_X);
   if(blocks == NULL){
     print_log("ERROR: unable to allocate map memory");
     exit(1);
   }
+}
+
+void assign_biomes(){
+  biome_type_t current_biome;
+
+  for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+    for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+      
+      float temperature_noise = fabsf(perlin_noise_3d((float)x * WORLD_TEMPERATURE_HUMIDITY_SCALE, 0.0f,   (float)z * WORLD_TEMPERATURE_HUMIDITY_SCALE));
+      float humidity_noise    = fabsf(perlin_noise_3d((float)x * WORLD_TEMPERATURE_HUMIDITY_SCALE, 900.0f, (float)z * WORLD_TEMPERATURE_HUMIDITY_SCALE));
+
+      if(temperature_noise >= 0.6){
+        current_biome = BIOME_TYPE_VOLCANIC;
+      }
+      else if(temperature_noise >= 0.4 && temperature_noise < 0.6){
+        if(humidity_noise <= 0.2){
+          current_biome = BIOME_TYPE_DESERT;
+        }
+        else if(humidity_noise > 0.2 && humidity_noise < 0.4){
+          current_biome = BIOME_TYPE_SAVANNAH;
+        }
+      //else if(humidity_noise >= 0.4){
+        else{
+          current_biome = BIOME_TYPE_RAIN_FOREST;
+        }
+      }
+    //else if(temperature_noise < 0.5){
+      else{
+        if(humidity_noise <= 0.2){
+          current_biome = BIOME_TYPE_GRASSLANDS;
+        }
+        else if(humidity_noise > 0.2 && humidity_noise < 0.6){
+          current_biome = BIOME_TYPE_FOREST;
+        }
+      //else if(humidity_noise >= 0.6){
+        else{
+          current_biome = BIOME_TYPE_SNOW;
+        }
+      }
+
+      for(int32_t y = 0; y < MAP_NUM_BLOCKS_Y; y++){
+        block_at(y, z, x).biome_type = current_biome;
+      }
+
+    }
+  }
+}
+
+void init_block_map(){
 
   for(int32_t y = 0; y < MAP_NUM_BLOCKS_Y; y++){
     for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){

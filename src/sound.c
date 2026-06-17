@@ -301,3 +301,7 @@ void fadeout_ambient_sound_channel(int32_t channel, int32_t milliseconds){
     Mix_FadeOutChannel(channel, milliseconds);
   }
 }
+
+void halt_channel(int32_t channel){
+  Mix_HaltChannel(channel);
+}
