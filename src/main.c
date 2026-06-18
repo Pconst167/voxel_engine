@@ -516,7 +516,6 @@ void update_walking_sound(vector3_t movement){
       fade_channel_volume_to(SOUND_CHANNEL_WALKING0, 0, 250);
       walking_volume_is_up = false;
     }
-
     return;
   }
 
@@ -524,9 +523,7 @@ void update_walking_sound(vector3_t movement){
 
   if(need_start_sound){
     halt_channel(SOUND_CHANNEL_WALKING0);
-
     play_ambient_sound(walking_sound_type, SOUND_CHANNEL_WALKING0, -1);
-
     set_channel_volume(SOUND_CHANNEL_WALKING0, 0, false);
     previous_sound_type = walking_sound_type;
     walking_volume_is_up = false;
