@@ -1690,7 +1690,6 @@ void assign_biomes(){
         else if(humidity_noise > 0.2 && humidity_noise < 0.4){
           current_biome = BIOME_TYPE_SAVANNAH;
         }
-      //else if(humidity_noise >= 0.4){
         else{
           current_biome = BIOME_TYPE_RAIN_FOREST;
         }
@@ -1703,7 +1702,6 @@ void assign_biomes(){
         else if(humidity_noise > 0.2 && humidity_noise < 0.6){
           current_biome = BIOME_TYPE_FOREST;
         }
-      //else if(humidity_noise >= 0.6){
         else{
           current_biome = BIOME_TYPE_SNOW;
         }
@@ -1866,278 +1864,7 @@ void init_block_map(){
     }
   }
 
-  place_trees();
-  place_ores();
-}
-
-void init_block_map2(){
-
-  blocks = malloc(sizeof(block_t) * MAP_NUM_BLOCKS_Y * MAP_NUM_BLOCKS_Z * MAP_NUM_BLOCKS_X);
-  if(blocks == NULL){
-    print_log("ERROR: unable to allocate map memory");
-    exit(1);
-  }
-
-  int32_t base_surface_level = (int32_t)(0.45f * MAP_NUM_BLOCKS_Y);
-  int32_t max_hill_height = 28;
-  int32_t water_level = base_surface_level - 4;
-
-  float large_hill_scale = 0.018f;
-  float small_hill_scale = 0.055f;
-  float mountain_scale = 0.012f;
-  float overhang_scale = 0.045f;
-  float cave_scale = 0.040f;
-
-  for(uint32_t y = 0; y < MAP_NUM_BLOCKS_Y; y++){
-    for(uint32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
-      for(uint32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
-        assign_block_material(y, z, x, BLOCK_TYPE_AIR);
-
-        block_at(y, z, x).temperature = 30.0f;
-        block_at(y, z, x).orientation = BLOCK_ORIENTATION_FRONT;
-        block_at(y, z, x).sky_light   = 0;
-        block_at(y, z, x).block_light = 0;
-
-        block_at(y, z, x).aabb.x_min = x;
-        block_at(y, z, x).aabb.x_max = x + 1.0f;
-        block_at(y, z, x).aabb.z_min = z;
-        block_at(y, z, x).aabb.z_max = z + 1.0f;
-        block_at(y, z, x).aabb.y_min = y;
-        block_at(y, z, x).aabb.y_max = y + 1.0f;
-      }
-    }
-  }
-
-  for(uint32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
-    for(uint32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
-
-      float large_hill_noise = perlin_noise_3d(
-        (float)x * large_hill_scale,
-        0.0f,
-        (float)z * large_hill_scale
-      );
-
-      float small_hill_noise = perlin_noise_3d(
-        (float)x * small_hill_scale,
-        100.0f,
-        (float)z * small_hill_scale
-      );
-
-      float mountain_noise = perlin_noise_3d(
-        (float)x * mountain_scale,
-        300.0f,
-        (float)z * mountain_scale
-      );
-
-      float mountain_amount = 0.0f;
-
-      if(mountain_noise > 0.25f){
-        mountain_amount = (mountain_noise - 0.25f) / 0.75f;
-      }
-
-      if(mountain_amount < 0.0f){
-        mountain_amount = 0.0f;
-      }
-
-      if(mountain_amount > 1.0f){
-        mountain_amount = 1.0f;
-      }
-
-      float hill_noise = large_hill_noise * 0.70f + small_hill_noise * 0.20f + mountain_amount * 1.10f;
-
-      int32_t surface_y = base_surface_level + (int32_t)(hill_noise * max_hill_height);
-
-      if(surface_y < 8){
-        surface_y = 8;
-      }
-
-      if(surface_y > MAP_NUM_BLOCKS_Y - 8){
-        surface_y = MAP_NUM_BLOCKS_Y - 8;
-      }
-
-      bool low_land_should_have_water = false;
-
-      if(surface_y < water_level){
-        low_land_should_have_water = true;
-      }
-
-      for(uint32_t y = 0; y < MAP_NUM_BLOCKS_Y; y++){
-
-        bool solid_terrain = false;
-
-        if((int32_t)y <= surface_y){
-          solid_terrain = true;
-        }
-
-        /*
-          Small mountains with overhangs.
-
-          This can add stone slightly above the normal surface, but only in
-          mountain areas. Because it uses 3D noise, some parts stick out and
-          some parts are missing, giving overhangs.
-        */
-        if((int32_t)y > surface_y && (int32_t)y < surface_y + 12 && mountain_amount > 0.18f){
-
-          float overhang_noise = perlin_noise_3d(
-            (float)x * overhang_scale,
-            (float)y * overhang_scale,
-            (float)z * overhang_scale
-          );
-
-          float overhang_limit = 0.40f - mountain_amount * 0.25f;
-
-          if(overhang_noise > overhang_limit){
-            solid_terrain = true;
-          }
-        }
-
-        if(!solid_terrain){
-          if(low_land_should_have_water && (int32_t)y <= water_level){
-            assign_block_material(y, z, x, BLOCK_TYPE_WATER0);
-          }
-          else{
-            assign_block_material(y, z, x, BLOCK_TYPE_AIR);
-          }
-
-          continue;
-        }
-
-        if(y <= (uint32_t)(0.01f * MAP_NUM_BLOCKS_Y)){
-          assign_block_material(y, z, x, BLOCK_TYPE_LAVA0);
-          block_at(y, z, x).temperature = 800.0f;
-        }
-        else if(y <= (uint32_t)(0.02f * MAP_NUM_BLOCKS_Y)){
-          assign_block_material(y, z, x, BLOCK_TYPE_LAVA1);
-          block_at(y, z, x).temperature = 500.0f;
-        }
-        else if(y <= (uint32_t)(0.04f * MAP_NUM_BLOCKS_Y)){
-          assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC0);
-          block_at(y, z, x).temperature = 400.0f;
-        }
-        else if(y <= (uint32_t)(0.08f * MAP_NUM_BLOCKS_Y)){
-          assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC1);
-          block_at(y, z, x).temperature = 300.0f;
-        }
-        else if(y <= (uint32_t)(0.14f * MAP_NUM_BLOCKS_Y)){
-          assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC2);
-          block_at(y, z, x).temperature = 160.0f;
-        }
-        else if((int32_t)y < surface_y - 8){
-          assign_block_material(y, z, x, BLOCK_TYPE_STONE0);
-        }
-        else if((int32_t)y < surface_y - 3){
-          assign_block_material(y, z, x, BLOCK_TYPE_STONE3);
-        }
-        else if((int32_t)y < surface_y){
-          assign_block_material(y, z, x, BLOCK_TYPE_DIRT0);
-        }
-        else{
-          if(mountain_amount > 0.25f && (int32_t)y > surface_y){
-            assign_block_material(y, z, x, BLOCK_TYPE_STONE3);
-          }
-          else{
-            uint32_t grass_seed =
-              (uint32_t)(x * 73856093u) ^
-              (uint32_t)(z * 19349663u) ^
-              0x7231AC91u;
-
-            uint32_t random_value = rand_i(grass_seed);
-
-            if(low_land_should_have_water && surface_y < water_level - 1){
-              assign_block_material(y, z, x, BLOCK_TYPE_DIRT0);
-            }
-            else if(random_value % 5u == 0u){
-              assign_block_material(y, z, x, BLOCK_TYPE_CHERRY_GRASS);
-            }
-            else{
-              assign_block_material(y, z, x, BLOCK_TYPE_GRASS);
-            }
-          }
-        }
-
-        /*
-          More common caves.
-
-          These are allowed much deeper underground now, so when you dig down
-          you should find caves much more often.
-        */
-        if((int32_t)y < surface_y - 5 &&
-           (int32_t)y > 8){
-
-          float cave_noise = perlin_noise_3d(
-            (float)x * cave_scale,
-            (float)y * cave_scale,
-            (float)z * cave_scale
-          );
-
-          float cave_shape_noise = perlin_noise_3d(
-            (float)x * 0.020f,
-            (float)y * 0.020f,
-            (float)z * 0.020f
-          );
-
-          if(cave_noise > 0.38f && cave_shape_noise > -0.35f){
-            assign_block_material(y, z, x, BLOCK_TYPE_AIR);
-          }
-        }
-      }
-    }
-  }
-
-  /*
-    Surface decoration.
-  */
-  for(uint32_t z = 16; z < MAP_NUM_BLOCKS_Z - 16; z++){
-    for(uint32_t x = 16; x < MAP_NUM_BLOCKS_X - 16; x++){
-
-      int32_t surface_y = -1;
-
-      for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
-        block_t *block = &block_at(y, z, x);
-
-        if(block->type == BLOCK_TYPE_WATER0){
-          continue;
-        }
-
-        if(block_materials[block->type].solid){
-          surface_y = y;
-          break;
-        }
-      }
-
-      if(surface_y < 0){
-        continue;
-      }
-
-      if(surface_y + 1 >= MAP_NUM_BLOCKS_Y){
-        continue;
-      }
-
-      if(surface_y + 1 <= water_level){
-        continue;
-      }
-
-      if(block_at(surface_y, z, x).type == BLOCK_TYPE_GRASS ||
-         block_at(surface_y, z, x).type == BLOCK_TYPE_CHERRY_GRASS){
-
-        uint32_t decoration_seed =
-          (uint32_t)(x * 1597334677u) ^
-          (uint32_t)(z * 3812015801u) ^
-          0xBEEF1234u;
-
-        uint32_t random_value = rand_i(decoration_seed);
-
-        if(random_value % 90u == 0u){
-          assign_block_material(surface_y + 1, z, x, BLOCK_TYPE_LAMP0);
-        }
-        else if(random_value % 12u == 0u){
-          assign_block_material(surface_y + 1, z, x, BLOCK_TYPE_LEAVES0);
-        }
-      }
-    }
-  }
-
-  place_trees();
+  place_trees(BIOME_TYPE_FOREST);
   place_ores();
 }
 
@@ -2913,6 +2640,11 @@ bool block_is_dirt(block_t *block){
     block->type == BLOCK_TYPE_SAND0 ||
     block->type == BLOCK_TYPE_GRASS ||
     block->type == BLOCK_TYPE_CHERRY_GRASS;
+}
+
+bool block_is_soil(block_t *block){
+  return
+    block_is_dirt(block) || block_is_sand(block);
 }
 
 bool block_is_sand(block_t *block){

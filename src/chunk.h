@@ -55,7 +55,6 @@ extern double world_y_max;
 
 /* go through all static/chunkable objects in the world, for each object, get the face vertices
    and keep track of minimum and maximum x, and z.  use those as the world bounds */
-void calculate_world_bounds(void);
 void create_world_chunks(void);
 
 #endif

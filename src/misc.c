@@ -80,7 +80,7 @@ float square_wave(float f){
   return (f - floorf(f)) < 0.5f;
 }
 
-int clamp_int(int value, int minimum_value, int maximum_value){
+int32_t clamp_int(int32_t value, int32_t minimum_value, int32_t maximum_value){
   if(value < minimum_value) return minimum_value;
   if(value > maximum_value) return maximum_value;
   return value;

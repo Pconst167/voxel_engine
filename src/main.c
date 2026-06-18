@@ -205,7 +205,6 @@ void setup(void) {
   init_block_materials();
   assign_biomes();
   init_block_map();
-  calculate_world_bounds();
   create_world_chunks();
   init_player();
 
@@ -220,6 +219,8 @@ void setup(void) {
   propagate_block_light();
 
   play_ambient_sound(SOUND_TYPE_AMBIENT_NATURE_DAY, SOUND_CHANNEL_AMBIENT_NATURE_DAY, -1);
+  play_ambient_sound(SOUND_TYPE_WALKING_DIRT, SOUND_CHANNEL_WALKING0, -1);
+  set_channel_volume(SOUND_CHANNEL_WALKING0, 0, false);
 
   // CREATE OBJECTS
   mesh_t *mesh;
@@ -258,9 +259,12 @@ void setup(void) {
 
 
   biome_map.texture_width = MAP_NUM_BLOCKS_X;
-  biome_map.texture_height = MAP_NUM_BLOCKS_Y;
-  biome_map.texture = malloc(sizeof(color_t) * MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Y);
-
+  biome_map.texture_height = MAP_NUM_BLOCKS_Z;
+  biome_map.texture = malloc(sizeof(color_t) * MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Z);
+  if(biome_map.texture == NULL){
+    print_log("[ERROR] failed to allocate biome map texture");
+    exit(1);
+  }
   for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
     for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
       switch(block_at(0, z, x).biome_type){
@@ -358,12 +362,6 @@ void handle_game_input_actions(input_state_t *input_state){
   }
   if(input_state->key_pressed[SDL_SCANCODE_F11]){
     options.see_through = !options.see_through;
-  }
-  if(input_state->key_pressed[SDL_SCANCODE_F11]){
-    print_log("[INFO] trying to load any saved chunks...");
-    if(!load_all_saved_chunks()){
-      print_log("[INFO] no saved chunks found");
-    }
   }
 }
 
@@ -500,6 +498,46 @@ void handle_mouse_actions(input_state_t *input_state){
   }
 }
 
+void update_walking_sound(vector3_t movement){
+  static bool walking_volume_is_up = false;
+  static sound_type_t previous_sound_type = SOUND_TYPE_NONE;
+
+  bool is_walking = (fabsf(movement.x) > 0.01f || fabsf(movement.z) > 0.01f) && !player.on_water && player.on_ground;
+
+  int32_t player_x = (int32_t)player.position.x;
+  int32_t player_y = (int32_t)player.position.y - 1;
+  int32_t player_z = (int32_t)player.position.z;
+
+  block_t *block = &block_at(player_y, player_z, player_x);
+  sound_type_t walking_sound_type = block_materials[block->type].walking_sound_type;
+
+  if(!is_walking || walking_sound_type == SOUND_TYPE_NONE){
+    if(walking_volume_is_up){
+      fade_channel_volume_to(SOUND_CHANNEL_WALKING0, 0, 250);
+      walking_volume_is_up = false;
+    }
+
+    return;
+  }
+
+  bool need_start_sound = previous_sound_type != walking_sound_type || !Mix_Playing(SOUND_CHANNEL_WALKING0);
+
+  if(need_start_sound){
+    halt_channel(SOUND_CHANNEL_WALKING0);
+
+    play_ambient_sound(walking_sound_type, SOUND_CHANNEL_WALKING0, -1);
+
+    set_channel_volume(SOUND_CHANNEL_WALKING0, 0, false);
+    previous_sound_type = walking_sound_type;
+    walking_volume_is_up = false;
+  }
+
+  if(!walking_volume_is_up){
+    fade_channel_volume_to(SOUND_CHANNEL_WALKING0, MIX_MAX_VOLUME, 250);
+    walking_volume_is_up = true;
+  }
+}
+
 void update_player_from_input(input_state_t *input_state){
 
   float move_speed_delta_time = ((input_state->shift_pressed) ? PLAYER_SPEED_SHIFT_KEY_FACTOR * move_speed : move_speed) * delta_time;
@@ -628,27 +666,11 @@ void update_player_from_input(input_state_t *input_state){
   movement.y = player.velocity.y * delta_time;
   if(player.on_ground && movement.y <= 0.0f) movement.y = -PLAYER_GROUND_PROBE_SPEED * delta_time;
 
-  if((fabsf(movement.x) > 0.01f || fabsf(movement.z) > 0.01f) && !player.on_water && player.on_ground){
-    int32_t player_x = player.position.x;
-    int32_t player_y = player.position.y - 1;
-    int32_t player_z = player.position.z;
-    block_t *block = &block_at(player_y, player_z, player_x);
-    sound_type_t walking_sound_type = block_materials[block->type].walking_sound_type;
-    static sound_type_t previous_sound_type = SOUND_TYPE_NONE;
-
-    if(previous_sound_type != walking_sound_type){
-      fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_DIRT, 128);
-      previous_sound_type = walking_sound_type;
-    }
-    play_ambient_sound(walking_sound_type, SOUND_CHANNEL_WALKING_DIRT, 0);
-  }
-  else{
-    fadeout_ambient_sound_channel(SOUND_CHANNEL_WALKING_DIRT, 512);
-  }
-
   if(movement.x != 0.0f) move_player_x(movement.x);
   if(movement.z != 0.0f) move_player_z(movement.z);
   if(movement.y != 0.0f) move_player_y(movement.y);
+
+  update_walking_sound(movement);
 }
 
 inline void move_player_x(float movement_x){
@@ -3228,7 +3250,7 @@ void process_mining(){
           int32_t block_x_start = block_x - 16;
           int32_t block_x_end   = block_x + 16;
           reset_light_around_area(block_y_start, block_y_end, block_z_start, block_z_end, block_x_start, block_x_end);
-
+          
           // SKY LIGHT
           seed_sky_light_around_area(block_y_start - 1, block_y_end + 1, block_z_start - 1, block_z_end + 1, block_x_start - 1, block_x_end + 1);
           propagate_sky_light();
@@ -3237,11 +3259,11 @@ void process_mining(){
           seed_block_light_around_area(block_y_start - 1, block_y_end + 1, block_z_start - 1, block_z_end + 1, block_x_start - 1, block_x_end + 1);
           propagate_block_light();
 
-
           // SAVE THE CHUNK THAT THE BLOCK IS INSIDE OF
           int32_t chunk_y = block_y / CHUNK_SIZE;
           int32_t chunk_z = block_z / CHUNK_SIZE;
           int32_t chunk_x = block_x / CHUNK_SIZE;
+
           if(save_chunk(chunk_y, chunk_z, chunk_x)){
             print_log("saved chunk %d:%d:%d", chunk_y, chunk_z, chunk_x);
           }
@@ -3417,7 +3439,6 @@ void process_ambient_sounds(){
 }
 
 void render_biome_map(){
-
   draw_texture_flat(window_width - 200, 0, 200, 200, &biome_map);
 }
 
@@ -3431,14 +3452,20 @@ int main(int argc, char *argv[]){
   for(; !quit; ){
     /* reset zbuffer */
     memset(zbuffer, 0x00, total_buffer_pixels * sizeof(uint32_t));
-    for(uint32_t pixel_i = 0; pixel_i < total_buffer_pixels; pixel_i++){
-      color_buffer[pixel_i] = sky_color;
+    if(player.position.y < (float)WORLD_BASE_CAVE_LEVEL - 15){
+      for(uint32_t pixel_i = 0; pixel_i < total_buffer_pixels; pixel_i++)
+        color_buffer[pixel_i].uint32 = 0xFF040404;
+    }
+    else{
+      for(uint32_t pixel_i = 0; pixel_i < total_buffer_pixels; pixel_i++)
+        color_buffer[pixel_i] = sky_color;
     }
 
     process_frame_rate();
 
     process_ambient_sounds();
     process_water_lava_sounds();
+    update_channel_volume_fades();
 
     input_state_t input_state = {0};
     poll_input(&input_state);

@@ -14,15 +14,13 @@
 #define SOUND_CHANNEL_AMBIENT_WATER        3
 #define SOUND_CHANNEL_AMBIENT_LAVA         4
 
-#define SOUND_BLOCKS_CHANNEL_START          5
-#define SOUND_CHANNEL_WALKING_DIRT          5
-#define SOUND_CHANNEL_WALKING_SAND          6
-#define SOUND_CHANNEL_WALKING_WOOD          7
-#define SOUND_CHANNEL_WALKING_STONE         8
+#define SOUND_CHANNEL_WALKING0             5
+#define SOUND_CHANNEL_WALKING1             6
+#define SOUND_CHANNEL_FALLING              7
 
-#define SOUND_CHANNEL_FALLING               9
+#define SOUND_CHANNEL_MINING               8
 
-#define SOUND_CHANNEL_MINING                10
+#define SOUND_TRANSIENT_CHANNELS_START     9
 
 typedef struct{
   Mix_Chunk *sounds[MAX_NUM_SOUNDS_PER_ENTRY];
@@ -60,6 +58,15 @@ typedef enum{
   SOUND_TYPE_FALLING_WATER_STRONG,
 } sound_type_t;
 
+typedef struct{
+  bool active;
+  int32_t channel;
+  int32_t start_volume;
+  int32_t target_volume;
+  uint32_t start_ticks;
+  uint32_t duration_ms;
+} channel_volume_fade_t;
+
 bool init_audio(void);
 Mix_Chunk* load_sound(char *filename);
 void shutdown_audio(void);
@@ -71,6 +78,10 @@ void play_transient_sound(int32_t channel, sound_type_t sound_type);
 void fadeout_transient_sound_channels();
 void fadeout_ambient_sound_channel(int32_t channel_number, int32_t ms);
 
+void set_channel_volume(int32_t channel, int32_t volume, bool max);
 void halt_channel(int32_t channel);
+
+void fade_channel_volume_to(int32_t channel, int32_t target_volume, uint32_t duration_ms);
+void update_channel_volume_fades(void);
 
 #endif

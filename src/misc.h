@@ -32,7 +32,7 @@ uint32_t xorshift32(void);
 
 float square_wave(float f);
 
-int clamp_int(int value, int minimum_value, int maximum_value);
+int32_t clamp_int(int32_t value, int32_t minimum_value, int32_t maximum_value);
 
 bool mod_range(int x, int min, int max);
 

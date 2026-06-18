@@ -1,8 +1,9 @@
 #ifndef BIOME_H
 #define BIOME_H
 
-#define WORLD_BIOME_SCALE 0.05
-#define WORLD_TEMPERATURE_HUMIDITY_SCALE 0.02
+#include <stdint.h>
+
+#define WORLD_TEMPERATURE_HUMIDITY_SCALE 0.015
 
 typedef enum{
   BIOME_TYPE_GRASSLANDS,
@@ -13,5 +14,12 @@ typedef enum{
   BIOME_TYPE_VOLCANIC,
   BIOME_TYPE_SAVANNAH
 } biome_type_t;
+
+typedef struct{
+  float trees_density_threshold;
+  float trees_frequency;
+} biome_t;
+
+extern biome_t biomes[];
 
 #endif

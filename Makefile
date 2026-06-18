@@ -1,9 +1,16 @@
 SRC = ./src/*.c
 FLAGS = -Wall -Wextra -Wformat=2 -O3 -march=native -std=c99
+SANITIZER_FLAGS = -Wall -Wextra -Wformat=2 -g -O0 -std=c99 -fsanitize=address -fno-omit-frame-pointer
 
 build-linux:
 	gcc $(SRC) \
-	 $(FLAGS) \
+	$(FLAGS) \
+	-lSDL2 -lSDL2_mixer -lm \
+	-o blocks
+
+build-linux-asan:
+	gcc $(SRC) \
+	$(SANITIZER_FLAGS) \
 	-lSDL2 -lSDL2_mixer -lm \
 	-o blocks
 
@@ -31,7 +38,7 @@ run-linux:
 run-windows:
 	wine ./blocks.exe
 
-clean:	
-	rm blocks
+clean:
+	rm -f blocks blocks.exe
 
-.PHONY: build run clean
+.PHONY: build-linux build-linux-asan build-windows run-linux run-windows clean

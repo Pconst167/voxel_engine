@@ -36,11 +36,11 @@
 
 // BLOCK LIGHT
 #define MAX_LIGHT_QUEUE_SIZE 1048576
-#define MAX_SKY_LIGHT 10
-#define MAX_SKY_LIGHT_FLOAT 10.0f
-#define MAX_BLOCK_LIGHT 20
-#define MAX_BLOCK_LIGHT_FLOAT 20.0f
-#define MIN_TOTAL_LIGHT (1.0f / 21.0f)
+#define MAX_SKY_LIGHT 12
+#define MAX_SKY_LIGHT_FLOAT (float)MAX_SKY_LIGHT
+#define MAX_BLOCK_LIGHT 18
+#define MAX_BLOCK_LIGHT_FLOAT (float)MAX_BLOCK_LIGHT
+#define MIN_TOTAL_LIGHT (1.0f / 20.0f)
 
 // WORLD PARAMETERS
 #define WORLD_BASE_SURFACE_LEVEL (0.5f * MAP_NUM_BLOCKS_Y)
@@ -273,6 +273,8 @@ char *get_block_material_name(block_type_t block_type);
 bool block_is_transparent(block_t *block);
 bool block_is_opaque(block_t *block);
 bool block_is_emissive(block_t *block);
+
+bool block_is_soil(block_t *block);
 bool block_is_stone(block_t *block);
 bool block_is_tree_leaves(block_t *block);
 bool block_is_tree_trunk(block_t *block);

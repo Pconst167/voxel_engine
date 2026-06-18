@@ -12,7 +12,9 @@ double world_z_max;
 double world_y_min;
 double world_y_max;
 
-void calculate_world_bounds(void){
+/* split the world into chunks */
+void create_world_chunks(void){
+
   /* set world boundaries */
   world_x_min = 0;
   world_x_max = MAP_NUM_BLOCKS_X;
@@ -20,10 +22,6 @@ void calculate_world_bounds(void){
   world_z_max = MAP_NUM_BLOCKS_Z;
   world_y_min = 0;
   world_y_max = MAP_NUM_BLOCKS_Y;
-}
-
-/* split the world into chunks */
-void create_world_chunks(void){
 
   /* set the boundary of each chunk */
   for(uint32_t y_plane = 0; y_plane < NUM_CHUNK_DIVISIONS_Y; y_plane++){

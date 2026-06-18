@@ -4,8 +4,11 @@
 #include "array.h"
 #include "log.h"
 
+
 sound_t *sounds;
 int32_t num_sounds;
+
+static channel_volume_fade_t channel_volume_fades[SOUND_MAX_NUM_CHANNELS];
 
 bool init_audio(void){
   if(Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0){
@@ -290,8 +293,15 @@ void shutdown_audio(void){
   Mix_CloseAudio();
 }
 
+void set_channel_volume(int32_t channel, int32_t volume, bool max){
+  if(max)
+    Mix_Volume(channel, MIX_MAX_VOLUME);
+  else
+    Mix_Volume(channel, volume);
+}
+
 void fadeout_transient_sound_channels(){
-  for(int32_t i = SOUND_BLOCKS_CHANNEL_START; i < SOUND_MAX_NUM_CHANNELS; i++){
+  for(int32_t i = SOUND_TRANSIENT_CHANNELS_START; i < SOUND_MAX_NUM_CHANNELS; i++){
     Mix_FadeOutChannel(i, 500);
   }
 }
@@ -304,4 +314,61 @@ void fadeout_ambient_sound_channel(int32_t channel, int32_t milliseconds){
 
 void halt_channel(int32_t channel){
   Mix_HaltChannel(channel);
+}
+
+void fade_channel_volume_to(int32_t channel, int32_t target_volume, uint32_t duration_ms){
+  target_volume = clamp_int(target_volume, 0, MIX_MAX_VOLUME);
+
+  int32_t current_volume = Mix_Volume(channel, -1);
+
+  for(int32_t fade_index = 0; fade_index < SOUND_MAX_NUM_CHANNELS; fade_index++){
+    if(channel_volume_fades[fade_index].active && channel_volume_fades[fade_index].channel == channel){
+      channel_volume_fades[fade_index].active = false;
+    }
+  }
+
+  if(duration_ms == 0){
+    Mix_Volume(channel, target_volume);
+    return;
+  }
+
+  for(int32_t fade_index = 0; fade_index < SOUND_MAX_NUM_CHANNELS; fade_index++){
+    if(!channel_volume_fades[fade_index].active){
+      channel_volume_fades[fade_index].active = true;
+      channel_volume_fades[fade_index].channel = channel;
+      channel_volume_fades[fade_index].start_volume = current_volume;
+      channel_volume_fades[fade_index].target_volume = target_volume;
+      channel_volume_fades[fade_index].start_ticks = SDL_GetTicks();
+      channel_volume_fades[fade_index].duration_ms = duration_ms;
+      return;
+    }
+  }
+
+  Mix_Volume(channel, target_volume);
+}
+
+void update_channel_volume_fades(void){
+  uint32_t current_ticks = SDL_GetTicks();
+
+  for(int32_t fade_index = 0; fade_index < SOUND_MAX_NUM_CHANNELS; fade_index++){
+    channel_volume_fade_t *fade = &channel_volume_fades[fade_index];
+
+    if(!fade->active) continue;
+
+    uint32_t elapsed_ms = current_ticks - fade->start_ticks;
+
+    if(elapsed_ms >= fade->duration_ms){
+      Mix_Volume(fade->channel, fade->target_volume);
+      fade->active = false;
+      continue;
+    }
+
+    float t = (float)elapsed_ms / (float)fade->duration_ms;
+
+    int32_t new_volume = fade->start_volume + (int32_t)((float)(fade->target_volume - fade->start_volume) * t);
+
+    new_volume = clamp_int(new_volume, 0, MIX_MAX_VOLUME);
+
+    Mix_Volume(fade->channel, new_volume);
+  }
 }

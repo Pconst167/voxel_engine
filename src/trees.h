@@ -2,6 +2,7 @@
 #define TREES_H
 
 #include "block.h"
+#include "biome.h"
 
 typedef enum{
   TREE0,
@@ -27,11 +28,12 @@ typedef struct{
   int32_t min_width;
   int32_t max_width;
   float spawn_chance;
+  uint32_t biome_mask;
 } tree_t;
 
 extern tree_t trees[];
 
 void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type);
-void place_trees();
+void place_trees(biome_type_t biome_type);
 
 #endif
