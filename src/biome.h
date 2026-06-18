@@ -18,6 +18,17 @@ typedef enum{
 typedef struct{
   float trees_density_threshold;
   float trees_frequency;
+
+  float medium_caves_noise_frequency;
+  float small_caves_noise_frequency;
+  float large_caves_noise_frequency;
+
+  float small_hills_noise_frequency;
+  float large_hills_noise_frequency;
+  float medium_hills_noise_frequency;
+  float max_surface_height;
+
+  float bed_lava_noise_frequency;
 } biome_t;
 
 extern biome_t biomes[];
