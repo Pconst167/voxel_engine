@@ -219,8 +219,8 @@ void setup(void) {
   propagate_block_light();
 
   play_ambient_sound(SOUND_TYPE_AMBIENT_NATURE_DAY, SOUND_CHANNEL_AMBIENT_NATURE_DAY, -1);
-  play_ambient_sound(SOUND_TYPE_WALKING_DIRT, SOUND_CHANNEL_WALKING0, -1);
-  set_channel_volume(SOUND_CHANNEL_WALKING0, 0, false);
+  play_ambient_sound(SOUND_TYPE_WALKING_DIRT, SOUND_CHANNEL_WALKING, -1);
+  set_channel_volume(SOUND_CHANNEL_WALKING, 0, false);
 
   // CREATE OBJECTS
   mesh_t *mesh;
@@ -513,24 +513,25 @@ void update_walking_sound(vector3_t movement){
 
   if(!is_walking || walking_sound_type == SOUND_TYPE_NONE){
     if(walking_volume_is_up){
-      fade_channel_volume_to(SOUND_CHANNEL_WALKING0, 0, 250);
+      fade_channel_volume_to(SOUND_CHANNEL_WALKING, 0, 250);
       walking_volume_is_up = false;
     }
     return;
   }
 
-  bool need_start_sound = previous_sound_type != walking_sound_type || !Mix_Playing(SOUND_CHANNEL_WALKING0);
+  bool need_start_sound = previous_sound_type != walking_sound_type || !Mix_Playing(SOUND_CHANNEL_WALKING);
 
   if(need_start_sound){
-    halt_channel(SOUND_CHANNEL_WALKING0);
-    play_ambient_sound(walking_sound_type, SOUND_CHANNEL_WALKING0, -1);
-    set_channel_volume(SOUND_CHANNEL_WALKING0, 0, false);
+    halt_channel(SOUND_CHANNEL_WALKING);
+    play_ambient_sound(walking_sound_type, SOUND_CHANNEL_WALKING, -1);
+    set_channel_volume(SOUND_CHANNEL_WALKING, 0, false);
     previous_sound_type = walking_sound_type;
     walking_volume_is_up = false;
   }
 
+  // this is needed for when we stop walking and then start again - because when walking stops volume is faded
   if(!walking_volume_is_up){
-    fade_channel_volume_to(SOUND_CHANNEL_WALKING0, MIX_MAX_VOLUME, 250);
+    fade_channel_volume_to(SOUND_CHANNEL_WALKING, MIX_MAX_VOLUME, 250);
     walking_volume_is_up = true;
   }
 }

@@ -14,13 +14,12 @@
 #define SOUND_CHANNEL_AMBIENT_WATER        3
 #define SOUND_CHANNEL_AMBIENT_LAVA         4
 
-#define SOUND_CHANNEL_WALKING0             5
-#define SOUND_CHANNEL_WALKING1             6
-#define SOUND_CHANNEL_FALLING              7
+#define SOUND_CHANNEL_WALKING              5
+#define SOUND_CHANNEL_FALLING              6
 
-#define SOUND_CHANNEL_MINING               8
+#define SOUND_CHANNEL_MINING               7
 
-#define SOUND_TRANSIENT_CHANNELS_START     9
+#define SOUND_TRANSIENT_CHANNELS_START     8
 
 typedef struct{
   Mix_Chunk *sounds[MAX_NUM_SOUNDS_PER_ENTRY];
