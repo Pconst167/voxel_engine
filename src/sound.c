@@ -195,8 +195,9 @@ bool init_audio(void){
     (sound_t){
       .sounds = {
         load_sound("./assets/sound/falling/dirt_0.wav"),
+        load_sound("./assets/sound/falling/dirt_1.wav"),
       },
-      .num_sounds = 1
+      .num_sounds = 2
     }
   );
   array_push(

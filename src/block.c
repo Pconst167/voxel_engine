@@ -192,7 +192,7 @@ void init_block_materials(){
       .transparent_to_light = false,
       .backface_culling   = true,
       .base_color         = (color_t){.uint32 = 0x00000000},
-      .emissive_color     = (color_t){.uint32 = 0xFF000000},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
       .reflects_light     = true,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
@@ -202,6 +202,36 @@ void init_block_materials(){
       .right_texture       = load_texture("./assets/textures/blocks/volcanic2.png"),
       .top_texture        = load_texture("./assets/textures/blocks/volcanic2.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/volcanic2.png"),
+      
+      .mining_sound_type  = SOUND_TYPE_MINING_STONE,
+      .placing_sound_type = SOUND_TYPE_MINING_STONE,
+      .breaking_sound_type= SOUND_TYPE_NONE,
+      .walking_sound_type = SOUND_TYPE_WALKING_STONE,
+      .falling_sound_type = SOUND_TYPE_FALLING_STONE,
+    })  
+  );
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .material_name      = "volcanic3",
+      .solid              = true,
+      .mass               = 150,
+      .preferred_tool_class = PLAYER_TOOL_CLASS_PICKAXE,
+      .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
+      .transparent_to_light = false,
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0x00000000},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .reflects_light     = true,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/volcanic3.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/volcanic3.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/volcanic3.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/volcanic3.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/volcanic3.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/volcanic3.png"),
       
       .mining_sound_type  = SOUND_TYPE_MINING_STONE,
       .placing_sound_type = SOUND_TYPE_MINING_STONE,
@@ -679,7 +709,7 @@ void init_block_materials(){
   array_push(
     block_materials, 
     ((block_material_t){
-      .material_name      = "dirt0",
+      .material_name      = "grasslandsdirt",
       .solid              = true,
       .mass               = 100,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
@@ -692,12 +722,12 @@ void init_block_materials(){
       .reflects_light     = true,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .front_texture      = load_texture("./assets/textures/blocks/dirt0.png"),
-      .back_texture       = load_texture("./assets/textures/blocks/dirt0.png"),
-      .left_texture       = load_texture("./assets/textures/blocks/dirt0.png"),
-      .right_texture      = load_texture("./assets/textures/blocks/dirt0.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/dirt0.png"),
-      .bottom_texture     = load_texture("./assets/textures/blocks/dirt0.png"),
+      .front_texture      = load_texture("./assets/textures/blocks/grasslands_dirt.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/grasslands_dirt.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/grasslands_dirt.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/grasslands_dirt.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/grasslands_dirt.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/grasslands_dirt.png"),
       
       .mining_sound_type  = SOUND_TYPE_MINING_DIRT,
       .placing_sound_type = SOUND_TYPE_MINING_DIRT,
@@ -709,7 +739,7 @@ void init_block_materials(){
   array_push(
     block_materials, 
     ((block_material_t){
-      .material_name      = "dirt1",
+      .material_name      = "forestdirt",
       .solid              = true,
       .mass               = 100,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
@@ -722,12 +752,12 @@ void init_block_materials(){
       .reflects_light     = true,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .front_texture      = load_texture("./assets/textures/blocks/dirt1.png"),
-      .back_texture       = load_texture("./assets/textures/blocks/dirt1.png"),
-      .left_texture       = load_texture("./assets/textures/blocks/dirt1.png"),
-      .right_texture      = load_texture("./assets/textures/blocks/dirt1.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/dirt1.png"),
-      .bottom_texture     = load_texture("./assets/textures/blocks/dirt1.png"),
+      .front_texture      = load_texture("./assets/textures/blocks/forest_dirt.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/forest_dirt.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/forest_dirt.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/forest_dirt.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/forest_dirt.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/forest_dirt.png"),
       
       .mining_sound_type  = SOUND_TYPE_MINING_DIRT,
       .placing_sound_type = SOUND_TYPE_MINING_DIRT,
@@ -737,7 +767,7 @@ void init_block_materials(){
     })
   );
 
-  // GRASS
+  // GRASSLANDS GRASS
   array_push(
     block_materials,
     ((block_material_t){
@@ -754,12 +784,12 @@ void init_block_materials(){
       .reflects_light     = true,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .front_texture      = load_texture("./assets/textures/blocks/grass_side1.png"),
-      .back_texture       = load_texture("./assets/textures/blocks/grass_side1.png"),
-      .left_texture       = load_texture("./assets/textures/blocks/grass_side1.png"),
-      .right_texture      = load_texture("./assets/textures/blocks/grass_side1.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/grass_top.png"),
-      .bottom_texture     = load_texture("./assets/textures/blocks/dirt1.png"),
+      .front_texture      = load_texture("./assets/textures/blocks/grasslands_grass_side.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/grasslands_grass_side.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/grasslands_grass_side.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/grasslands_grass_side.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/grasslands_grass_top.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/grasslands_dirt.png"),
       
       .mining_sound_type  = SOUND_TYPE_MINING_DIRT,
       .placing_sound_type = SOUND_TYPE_MINING_DIRT,
@@ -784,12 +814,104 @@ void init_block_materials(){
       .reflects_light     = true,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .front_texture      = load_texture("./assets/textures/blocks/cherry_grass_side.png"),
-      .back_texture       = load_texture("./assets/textures/blocks/cherry_grass_side.png"),
-      .left_texture       = load_texture("./assets/textures/blocks/cherry_grass_side.png"),
-      .right_texture      = load_texture("./assets/textures/blocks/cherry_grass_side.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/cherry_grass_top.png"),
-      .bottom_texture     = load_texture("./assets/textures/blocks/dirt1.png"),
+      .front_texture      = load_texture("./assets/textures/blocks/grasslands_cherry_grass_side.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/grasslands_cherry_grass_side.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/grasslands_cherry_grass_side.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/grasslands_cherry_grass_side.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/grasslands_cherry_grass_top.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/grasslands_dirt.png"),
+      
+      .mining_sound_type  = SOUND_TYPE_MINING_DIRT,
+      .placing_sound_type = SOUND_TYPE_MINING_DIRT,
+      .breaking_sound_type= SOUND_TYPE_MINING_DIRT,
+      .walking_sound_type = SOUND_TYPE_WALKING_DIRT,
+      .falling_sound_type = SOUND_TYPE_FALLING_DIRT,
+    })
+  );
+  array_push(
+    block_materials,
+    ((block_material_t){
+      .material_name      = "forestgrass",
+      .solid              = true,
+      .mass               = 100,
+      .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
+      .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
+      .transparent_to_light = false,
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF0FF000},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .reflects_light     = true,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/forest_grass_side.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/forest_grass_side.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/forest_grass_side.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/forest_grass_side.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/forest_grass_top.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/forest_dirt.png"),
+      
+      .mining_sound_type  = SOUND_TYPE_MINING_DIRT,
+      .placing_sound_type = SOUND_TYPE_MINING_DIRT,
+      .breaking_sound_type= SOUND_TYPE_MINING_DIRT,
+      .walking_sound_type = SOUND_TYPE_WALKING_DIRT,
+      .falling_sound_type = SOUND_TYPE_FALLING_DIRT,
+    })
+  );
+  array_push(
+    block_materials,
+    ((block_material_t){
+      .material_name      = "savannahgrass",
+      .solid              = true,
+      .mass               = 100,
+      .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
+      .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
+      .transparent_to_light = false,
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF0FF000},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .reflects_light     = true,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/savannah_grass_side.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/savannah_grass_side.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/savannah_grass_side.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/savannah_grass_side.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/savannah_grass_top.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/savannah_dirt.png"),
+      
+      .mining_sound_type  = SOUND_TYPE_MINING_DIRT,
+      .placing_sound_type = SOUND_TYPE_MINING_DIRT,
+      .breaking_sound_type= SOUND_TYPE_MINING_DIRT,
+      .walking_sound_type = SOUND_TYPE_WALKING_DIRT,
+      .falling_sound_type = SOUND_TYPE_FALLING_DIRT,
+    })
+  );
+
+  // MOSS
+  array_push(
+    block_materials,
+    ((block_material_t){
+      .material_name      = "moss",
+      .solid              = true,
+      .mass               = 30,
+      .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
+      .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
+      .transparent_to_light = false,
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF0FF000},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .reflects_light     = true,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/moss0.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/moss0.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/moss0.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/moss0.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/moss0.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/moss0.png"),
       
       .mining_sound_type  = SOUND_TYPE_MINING_DIRT,
       .placing_sound_type = SOUND_TYPE_MINING_DIRT,
@@ -854,6 +976,68 @@ void init_block_materials(){
       .right_texture      = load_texture("./assets/textures/blocks/clay0.png"),
       .top_texture        = load_texture("./assets/textures/blocks/clay0.png"),
       .bottom_texture     = load_texture("./assets/textures/blocks/clay0.png"),
+      
+      .mining_sound_type  = SOUND_TYPE_MINING_SAND,
+      .placing_sound_type = SOUND_TYPE_MINING_SAND,
+      .breaking_sound_type= SOUND_TYPE_NONE,
+      .walking_sound_type = SOUND_TYPE_WALKING_SAND,
+      .falling_sound_type = SOUND_TYPE_FALLING_SAND,
+    })
+  );
+
+  // SNOW
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .material_name      = "snow0",
+      .solid              = true,
+      .mass               = 30,
+      .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
+      .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
+      .transparent_to_light = false,
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFFFFFFFF},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .reflects_light     = true,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/snow_0.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/snow_0.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/snow_0.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/snow_0.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/snow_0.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/snow_0.png"),
+      
+      .mining_sound_type  = SOUND_TYPE_MINING_SAND,
+      .placing_sound_type = SOUND_TYPE_MINING_SAND,
+      .breaking_sound_type= SOUND_TYPE_NONE,
+      .walking_sound_type = SOUND_TYPE_WALKING_SAND,
+      .falling_sound_type = SOUND_TYPE_FALLING_SAND,
+    })
+  );
+  array_push(
+    block_materials, 
+    ((block_material_t){
+      .material_name      = "snow1",
+      .solid              = true,
+      .mass               = 30,
+      .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
+      .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
+      .transparent_to_light = false,
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFFFFFFFF},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .reflects_light     = true,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/snow_1.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/snow_1.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/snow_1.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/snow_1.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/snow_1.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/snow_1.png"),
       
       .mining_sound_type  = SOUND_TYPE_MINING_SAND,
       .placing_sound_type = SOUND_TYPE_MINING_SAND,
@@ -1680,14 +1864,14 @@ void assign_biomes(){
       float temperature_noise = fabsf(perlin_noise_3d((float)x * WORLD_TEMPERATURE_HUMIDITY_SCALE, 0.0f,   (float)z * WORLD_TEMPERATURE_HUMIDITY_SCALE));
       float humidity_noise    = fabsf(perlin_noise_3d((float)x * WORLD_TEMPERATURE_HUMIDITY_SCALE, 900.0f, (float)z * WORLD_TEMPERATURE_HUMIDITY_SCALE));
 
-      if(temperature_noise >= 0.6){
+      if(temperature_noise >= 0.45){
         current_biome = BIOME_TYPE_VOLCANIC;
       }
-      else if(temperature_noise >= 0.4 && temperature_noise < 0.6){
-        if(humidity_noise <= 0.2){
+      else if(temperature_noise >= 0.45 && temperature_noise < 0.6){
+        if(humidity_noise <= 0.5){
           current_biome = BIOME_TYPE_DESERT;
         }
-        else if(humidity_noise > 0.2 && humidity_noise < 0.4){
+        else if(humidity_noise > 0.5 && humidity_noise < 0.7){
           current_biome = BIOME_TYPE_SAVANNAH;
         }
         else{
@@ -1696,10 +1880,10 @@ void assign_biomes(){
       }
     //else if(temperature_noise < 0.5){
       else{
-        if(humidity_noise <= 0.2){
+        if(humidity_noise <= 0.1){
           current_biome = BIOME_TYPE_GRASSLANDS;
         }
-        else if(humidity_noise > 0.2 && humidity_noise < 0.6){
+        else if(humidity_noise > 0.1 && humidity_noise < 0.4){
           current_biome = BIOME_TYPE_FOREST;
         }
         else{
@@ -1711,6 +1895,16 @@ void assign_biomes(){
         block_at(y, z, x).biome_type = current_biome;
       }
 
+    }
+  }
+}
+
+void process_window_messages(void){
+  SDL_Event event;
+
+  while(SDL_PollEvent(&event)){
+    if(event.type == SDL_QUIT){
+      exit(1);
     }
   }
 }
@@ -1740,9 +1934,7 @@ void init_block_map(){
   // LAVA LEVEL
   for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
     for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
-      
       int32_t surface_y;
-
       float lava_noise = fabsf(perlin_noise_3d((float)x * WORLD_UNDER_NOISE_SCALE, 150.0f, (float)z * WORLD_UNDER_NOISE_SCALE));
       surface_y = WORLD_BASE_LAVA_LEVEL + (int32_t)(lava_noise * WORLD_UNDER_MAX_HEIGHT);
       for(int32_t y = surface_y; y >= 0; y--){
@@ -1753,25 +1945,36 @@ void init_block_map(){
 
   // base world surface levels
   for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+    process_window_messages(); // avoids OS hanging
     for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
-      
-      float mountain_noise   = perlin_noise_3d((float)x * WORLD_MOUNTAIN_SCALE,     0.0f, (float)z * WORLD_MOUNTAIN_SCALE);
-      float large_hill_noise = perlin_noise_3d((float)x * WORLD_LARGE_HILL_SCALE, 200.0f, (float)z * WORLD_LARGE_HILL_SCALE);
-      float small_hill_noise = perlin_noise_3d((float)x * WORLD_SMALL_HILL_SCALE, 400.0f, (float)z * WORLD_SMALL_HILL_SCALE);
 
-      float hill_noise = mountain_noise + large_hill_noise + small_hill_noise;
+      biome_type_t biome_type = block_at(0, z, x).biome_type;
+      biome_t biome = biomes[biome_type];
 
-      int32_t surface_y = WORLD_BASE_SURFACE_LEVEL + (int32_t)(hill_noise * WORLD_MAX_HILL_HEIGHT);
+      float large_hills_noise  = perlin_noise_3d((float)x * biome.large_hills_noise_frequency,    0.0f, (float)z * biome.large_hills_noise_frequency);
+      float medium_hills_noise = perlin_noise_3d((float)x * biome.medium_hills_noise_frequency, 200.0f, (float)z * biome.medium_hills_noise_frequency);
+      float small_hills_noise  = perlin_noise_3d((float)x * biome.small_hills_noise_frequency,  400.0f, (float)z * biome.small_hills_noise_frequency);
+
+      float large_hills_amplitude  = biome.large_hills_noise_amplitude;
+      float medium_hills_amplitude = biome.medium_hills_noise_amplitude;
+      float small_hills_amplitude  = biome.small_hills_noise_amplitude;
+
+      float hill_noise = large_hills_amplitude * large_hills_noise + medium_hills_amplitude * medium_hills_noise + small_hills_amplitude * small_hills_noise;
+
+      int32_t surface_y = (float)WORLD_BASE_SURFACE_LEVEL + hill_noise;
 
       if(surface_y >= MAP_NUM_BLOCKS_Y) surface_y = MAP_NUM_BLOCKS_Y - 1;
       
+      block_type_t top_surface_block, under_surface_block, stone_surface_block;
+      get_biome_top_surface_block(biome_type, &top_surface_block, &under_surface_block, &stone_surface_block);
+
       // grass
-      assign_block_material(surface_y, z, x, BLOCK_TYPE_GRASS);
+      assign_block_material(surface_y, z, x, top_surface_block);
       // dirt0
       int32_t dirt0_top = surface_y - 1;
       int32_t dirt0_bottom = dirt0_top - WORLD_DIRT0_DEPTH + 1;
       for(int32_t y = dirt0_top; y >= dirt0_bottom; y--){
-        assign_block_material(y, z, x, BLOCK_TYPE_DIRT0);
+        assign_block_material(y, z, x, under_surface_block);
       }
       // stone0
       int32_t stone0_top = dirt0_bottom - 1;
@@ -1780,32 +1983,81 @@ void init_block_map(){
         if(block_at(y, z, x).type == BLOCK_TYPE_LAVA0) break;
 
         uint32_t random = xorshift32();
-        if(random % 7 == 0)
-          assign_block_material(y, z, x, BLOCK_TYPE_STONE0);
-        else if(random % 7 == 1)
-          assign_block_material(y, z, x, BLOCK_TYPE_STONE1);
-        else if(random % 7 == 2)
-          assign_block_material(y, z, x, BLOCK_TYPE_STONE2);
-        else if(random % 7 == 3)
-          assign_block_material(y, z, x, BLOCK_TYPE_STONE3);
-        else if(random % 7 == 4)
-          assign_block_material(y, z, x, BLOCK_TYPE_STONE4);
-        else if(random % 7 == 5)
-          assign_block_material(y, z, x, BLOCK_TYPE_STONE5);
-        else if(random % 7 == 6)
-          assign_block_material(y, z, x, BLOCK_TYPE_STONE6);
+        if(biome_type == BIOME_TYPE_VOLCANIC){
+          assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC3);
+        }
+        else{
+          if(random % 7 == 0)
+            assign_block_material(y, z, x, BLOCK_TYPE_STONE0);
+          else if(random % 7 == 1)
+            assign_block_material(y, z, x, BLOCK_TYPE_STONE1);
+          else if(random % 7 == 2)
+            assign_block_material(y, z, x, BLOCK_TYPE_STONE2);
+          else if(random % 7 == 3)
+            assign_block_material(y, z, x, BLOCK_TYPE_STONE3);
+          else if(random % 7 == 4)
+            assign_block_material(y, z, x, BLOCK_TYPE_STONE4);
+          else if(random % 7 == 5)
+            assign_block_material(y, z, x, BLOCK_TYPE_STONE5);
+          else if(random % 7 == 6)
+            assign_block_material(y, z, x, BLOCK_TYPE_STONE6);
+        }
       }
     }
   }
 
+  // EROSION
+  for(int32_t z = 1; z < MAP_NUM_BLOCKS_Z - 1; z++){
+    process_window_messages(); // avoids OS hanging
+    for(int32_t x = 1; x < MAP_NUM_BLOCKS_X - 1; x++){
+      for(int32_t y = WORLD_BASE_SURFACE_LEVEL; y < MAP_NUM_BLOCKS_Y - 1; y++){
+      
+        float large_erosion_noise  = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
+        float medium_erosion_noise = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
+        float small_erosion_noise  = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
+  
+        float erosion_noise = large_erosion_noise + medium_erosion_noise + small_erosion_noise;
+  
+        if(erosion_noise > 0.4f){
+          assign_block_material(y, z, x, BLOCK_TYPE_AIR);
+        }
+      }
+    }
+  }
+
+  // VOLCANIC BIOME LAVA POOLS
+  for(int32_t z = 1; z < MAP_NUM_BLOCKS_Z - 1; z++){
+    process_window_messages(); // avoids OS hanging
+    for(int32_t x = 1; x < MAP_NUM_BLOCKS_X - 1; x++){
+      for(int32_t y = WORLD_BASE_SURFACE_LEVEL - 10; y < MAP_NUM_BLOCKS_Y - 1; y++){
+      
+        float large_lava_noise  = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
+        float medium_lava_noise = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
+        float small_lava_noise  = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
+  
+        float lava_noise = large_lava_noise + medium_lava_noise + small_lava_noise;
+  
+        biome_type_t biome_type = block_at(0, z, x).biome_type;
+        if(lava_noise > 0.4f){
+          if(biome_type == BIOME_TYPE_VOLCANIC && y <= WORLD_VOLCANIC_BIOME_SURFACE_LAVA_LEVEL && block_at(y, z, x).type != BLOCK_TYPE_AIR)
+            assign_block_material(y, z, x, BLOCK_TYPE_LAVA0);
+        }
+      }
+    }
+  }
 
   // water
   for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+    process_window_messages(); // avoids OS hanging
     for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
       for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
-
+  
         if(y > WORLD_WATER_LEVEL && block_at(y, z, x).type != BLOCK_TYPE_AIR) break;
 
+        biome_type_t biome_type = block_at(0, z, x).biome_type;
+        block_type_t top_surface_block, under_surface_block, stone_surface_block;
+        get_biome_top_surface_block(biome_type, &top_surface_block, &under_surface_block, &stone_surface_block);
+  
         if(y <= WORLD_WATER_LEVEL && block_at(y, z, x).type == BLOCK_TYPE_AIR)
           assign_block_material(y, z, x, BLOCK_TYPE_WATER0);
         else if(y <= WORLD_WATER_LEVEL && block_at(y, z, x).type != BLOCK_TYPE_AIR){
@@ -1815,25 +2067,27 @@ void init_block_map(){
           else if(random < 0.95f * (float)UINT32_MAX)
             assign_block_material(y, z, x, BLOCK_TYPE_SAND0);
           else
-            assign_block_material(y, z, x, BLOCK_TYPE_DIRT1);
+            assign_block_material(y, z, x, top_surface_block);
           break;
         }
       }
     }
   }
 
+
   // CAVES
   for(int32_t z = 1; z < MAP_NUM_BLOCKS_Z - 1; z++){
+    process_window_messages(); // avoids OS hanging
     for(int32_t x = 1; x < MAP_NUM_BLOCKS_X - 1; x++){
-      for(int32_t y = 1; y < MAP_NUM_BLOCKS_Y - 1; y++){
+      for(int32_t y = WORLD_BASE_CAVE_LEVEL; y >= 1; y--){
       
-        float large_cave_noise  = perlin_noise_3d((float)x * WORLD_LARGE_CAVE_SCALE,  (float)y * WORLD_LARGE_CAVE_SCALE,  (float)z * WORLD_LARGE_CAVE_SCALE);
-        float medium_cave_noise = perlin_noise_3d((float)x * WORLD_MEDIUM_CAVE_SCALE, (float)y * WORLD_MEDIUM_CAVE_SCALE, (float)z * WORLD_MEDIUM_CAVE_SCALE);
-        float small_cave_noise  = perlin_noise_3d((float)x * WORLD_SMALL_CAVE_SCALE,  (float)y * WORLD_SMALL_CAVE_SCALE,  (float)z * WORLD_SMALL_CAVE_SCALE);
-
+        float large_cave_noise  = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
+        float medium_cave_noise = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
+        float small_cave_noise  = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
+  
         float cave_noise = large_cave_noise + medium_cave_noise + small_cave_noise;
-
-        if(y < WORLD_BASE_CAVE_LEVEL && cave_noise > 0.25f){
+  
+        if(cave_noise > 0.25f){
           assign_block_material(y, z, x, BLOCK_TYPE_AIR);
         }
       }
@@ -1841,31 +2095,84 @@ void init_block_map(){
   }
 
   // WORLD BORDER
-  for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
-    for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
-      for(int32_t y = WORLD_BASE_SURFACE_LEVEL + 50; y >= 0; y--){
-        if((x <= 5 || x >= MAP_NUM_BLOCKS_X - 5 || z <= 5 || z >= MAP_NUM_BLOCKS_Z - 5)){
-          if(block_at(y, z, x).type == BLOCK_TYPE_AIR){
-            if(xorshift32() % 8 == 0){
-              assign_block_material(y, z, x, BLOCK_TYPE_LEAVES0);
-            }
-            else if(xorshift32() % 8 == 1){
-              assign_block_material(y, z, x, BLOCK_TYPE_LEAVES6);
-            }
-            else if(xorshift32() % 8 == 2){
-              assign_block_material(y, z, x, BLOCK_TYPE_LEAVES4);
-            }
-            else if(xorshift32() % 8 == 3){
-              assign_block_material(y, z, x, BLOCK_TYPE_LEAVES9);
-            }
-          }
-        }
-      }
-    }
-  }
+  //for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+  //  for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+  //    for(int32_t y = WORLD_BASE_SURFACE_LEVEL + 50; y >= 0; y--){
+  //      if((x <= 5 || x >= MAP_NUM_BLOCKS_X - 5 || z <= 5 || z >= MAP_NUM_BLOCKS_Z - 5)){
+  //        if(block_at(y, z, x).type == BLOCK_TYPE_AIR){
+  //          if(xorshift32() % 8 == 0){
+  //            assign_block_material(y, z, x, BLOCK_TYPE_LEAVES0);
+  //          }
+  //          else if(xorshift32() % 8 == 1){
+  //            assign_block_material(y, z, x, BLOCK_TYPE_LEAVES6);
+  //          }
+  //          else if(xorshift32() % 8 == 2){
+  //            assign_block_material(y, z, x, BLOCK_TYPE_LEAVES4);
+  //          }
+  //          else if(xorshift32() % 8 == 3){
+  //            assign_block_material(y, z, x, BLOCK_TYPE_LEAVES9);
+  //          }
+  //        }
+  //      }
+  //    }
+  //  }
+  //}
 
-  place_trees(BIOME_TYPE_FOREST);
-  place_ores();
+  place_trees();
+  //place_ores();
+}
+
+void get_biome_top_surface_block(
+  biome_type_t biome_type, 
+  block_type_t *top_surface_block,
+  block_type_t *under_surface_block,
+  block_type_t *stone_surface_block
+){
+
+  switch(biome_type){
+    case BIOME_TYPE_GRASSLANDS:
+      *top_surface_block = BLOCK_TYPE_GRASSLANDS_GRASS;
+      *under_surface_block = BLOCK_TYPE_GRASSLANDS_DIRT;
+      *stone_surface_block = BLOCK_TYPE_STONE0;
+      return;
+      
+    case BIOME_TYPE_FOREST:
+      *top_surface_block = BLOCK_TYPE_FOREST_GRASS;
+      *under_surface_block = BLOCK_TYPE_FOREST_DIRT;
+      *stone_surface_block = BLOCK_TYPE_STONE0;
+      return;
+      
+    case BIOME_TYPE_RAIN_FOREST:
+      *top_surface_block = BLOCK_TYPE_FOREST_GRASS;
+      *under_surface_block = BLOCK_TYPE_FOREST_DIRT;
+      *stone_surface_block = BLOCK_TYPE_STONE0;
+      return;
+      
+    case BIOME_TYPE_DESERT:
+      *top_surface_block = BLOCK_TYPE_SAND0;
+      *under_surface_block= BLOCK_TYPE_SAND0;
+      *stone_surface_block = BLOCK_TYPE_STONE0;
+      return;
+      
+    case BIOME_TYPE_SNOW:
+      *top_surface_block = BLOCK_TYPE_SNOW_0;
+      *under_surface_block= BLOCK_TYPE_SNOW_1;
+      *stone_surface_block = BLOCK_TYPE_STONE0;
+      return;
+
+    case BIOME_TYPE_VOLCANIC:
+      *top_surface_block = BLOCK_TYPE_VOLCANIC3;
+      *under_surface_block = BLOCK_TYPE_VOLCANIC3;
+      *stone_surface_block = BLOCK_TYPE_VOLCANIC2;
+      return;
+
+    case BIOME_TYPE_SAVANNAH:
+    default:
+      *top_surface_block = BLOCK_TYPE_SAVANNAH_GRASS;
+      *under_surface_block = BLOCK_TYPE_GRASSLANDS_DIRT;
+      *stone_surface_block = BLOCK_TYPE_STONE0;
+      return;
+  }
 }
 
 void reset_light_around_area(int32_t y_start, int32_t y_end, int32_t z_start, int32_t z_end, int32_t x_start, int32_t x_end){
@@ -2596,6 +2903,8 @@ bool block_is_emissive(block_t *block){
 
 bool block_is_stone(block_t *block){
   return 
+    block->type == BLOCK_TYPE_VOLCANIC2 ||
+    block->type == BLOCK_TYPE_VOLCANIC3 ||
     block->type == BLOCK_TYPE_STONE0 ||
     block->type == BLOCK_TYPE_STONE1 ||
     block->type == BLOCK_TYPE_STONE2 ||
@@ -2635,11 +2944,13 @@ bool block_is_tree_trunk(block_t *block){
 
 bool block_is_dirt(block_t *block){
   return
-    block->type == BLOCK_TYPE_DIRT0 ||
-    block->type == BLOCK_TYPE_DIRT1 ||
+    block->type == BLOCK_TYPE_GRASSLANDS_DIRT ||
+    block->type == BLOCK_TYPE_FOREST_DIRT ||
     block->type == BLOCK_TYPE_SAND0 ||
-    block->type == BLOCK_TYPE_GRASS ||
-    block->type == BLOCK_TYPE_CHERRY_GRASS;
+    block->type == BLOCK_TYPE_GRASSLANDS_GRASS ||
+    block->type == BLOCK_TYPE_GRASSLANDS_CHERRY_GRASS ||
+    block->type == BLOCK_TYPE_FOREST_GRASS ||
+    block->type == BLOCK_TYPE_MOSS;
 }
 
 bool block_is_soil(block_t *block){

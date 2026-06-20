@@ -18,7 +18,7 @@ tree_t trees[] = {
     .min_width = 1,
     .max_width = 2,
     .spawn_chance = 0.5f,
-    .biome_mask = 1u << BIOME_TYPE_FOREST | 1u << BIOME_TYPE_GRASSLANDS | 1u << BIOME_TYPE_RAIN_FOREST
+    .biome_mask = 1u << BIOME_TYPE_VOLCANIC
   },
   {
     .tree_name = "tree1",
@@ -28,8 +28,8 @@ tree_t trees[] = {
     .max_height = 25,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.5f,
-    .biome_mask = 1u << BIOME_TYPE_FOREST | 1u << BIOME_TYPE_GRASSLANDS | 1u << BIOME_TYPE_RAIN_FOREST
+    .spawn_chance = 0.6f,
+    .biome_mask = 1u << BIOME_TYPE_FOREST
   },
   {
     .tree_name = "tree2",
@@ -40,7 +40,7 @@ tree_t trees[] = {
     .min_width = 1,
     .max_width = 2,
     .spawn_chance = 0.5f,
-    .biome_mask = 1u << BIOME_TYPE_FOREST | 1u << BIOME_TYPE_GRASSLANDS | 1u << BIOME_TYPE_RAIN_FOREST
+    .biome_mask = 1u << BIOME_TYPE_FOREST | 1u << BIOME_TYPE_RAIN_FOREST
   },
   {
     .tree_name = "tree3",
@@ -51,7 +51,7 @@ tree_t trees[] = {
     .min_width = 1,
     .max_width = 2,
     .spawn_chance = 0.5f,
-    .biome_mask = 1u << BIOME_TYPE_FOREST | 1u << BIOME_TYPE_GRASSLANDS | 1u << BIOME_TYPE_RAIN_FOREST
+    .biome_mask = 1u << BIOME_TYPE_SAVANNAH
   },
   {
     .tree_name = "tree4",
@@ -62,7 +62,7 @@ tree_t trees[] = {
     .min_width = 1,
     .max_width = 2,
     .spawn_chance = 0.5f,
-    .biome_mask = 1u << BIOME_TYPE_FOREST | 1u << BIOME_TYPE_GRASSLANDS | 1u << BIOME_TYPE_RAIN_FOREST
+    .biome_mask = 1u << BIOME_TYPE_FOREST | 1u << BIOME_TYPE_RAIN_FOREST
   },
   {
     .tree_name = "tree5",
@@ -73,7 +73,7 @@ tree_t trees[] = {
     .min_width = 1,
     .max_width = 2,
     .spawn_chance = 0.5f,
-    .biome_mask = 1u << BIOME_TYPE_FOREST | 1u << BIOME_TYPE_GRASSLANDS | 1u << BIOME_TYPE_RAIN_FOREST
+    .biome_mask = 1u << BIOME_TYPE_GRASSLANDS
   },
   {
     .tree_name = "tree6",
@@ -84,7 +84,7 @@ tree_t trees[] = {
     .min_width = 1,
     .max_width = 2,
     .spawn_chance = 0.5f,
-    .biome_mask = 1u << BIOME_TYPE_FOREST | 1u << BIOME_TYPE_GRASSLANDS | 1u << BIOME_TYPE_RAIN_FOREST
+    .biome_mask = 1u << BIOME_TYPE_RAIN_FOREST
   },
   {
     .tree_name = "tree7",
@@ -95,7 +95,7 @@ tree_t trees[] = {
     .min_width = 1,
     .max_width = 2,
     .spawn_chance = 0.2f,
-    .biome_mask = 1u << BIOME_TYPE_FOREST | 1u << BIOME_TYPE_GRASSLANDS | 1u << BIOME_TYPE_RAIN_FOREST
+    .biome_mask = 1u << BIOME_TYPE_VOLCANIC
   },
   {
     .tree_name = "tree8",
@@ -106,7 +106,7 @@ tree_t trees[] = {
     .min_width = 1,
     .max_width = 2,
     .spawn_chance = 0.1f,
-    .biome_mask = 1u << BIOME_TYPE_FOREST | 1u << BIOME_TYPE_GRASSLANDS | 1u << BIOME_TYPE_RAIN_FOREST
+    .biome_mask = 1u << BIOME_TYPE_RAIN_FOREST
   },
   {
     .tree_name = "tree9",
@@ -117,7 +117,7 @@ tree_t trees[] = {
     .min_width = 1,
     .max_width = 2,
     .spawn_chance = 0.3f,
-    .biome_mask = 1u << BIOME_TYPE_FOREST | 1u << BIOME_TYPE_GRASSLANDS | 1u << BIOME_TYPE_RAIN_FOREST
+    .biome_mask = 1u << BIOME_TYPE_VOLCANIC
   },
 
   // FLOWER TREES
@@ -130,18 +130,18 @@ tree_t trees[] = {
     .min_width = 1,
     .max_width = 2,
     .spawn_chance = 0.8f,
-    .biome_mask = 1u << BIOME_TYPE_FOREST | 1u << BIOME_TYPE_GRASSLANDS | 1u << BIOME_TYPE_RAIN_FOREST
+    .biome_mask = 1u << BIOME_TYPE_GRASSLANDS
   },
   {
     .tree_name = "flowertree1",
     .trunk_block_type = BLOCK_TYPE_TREE_TRUNK0,
-    .leaves_block_type = BLOCK_TYPE_FLOWER_LEAVES0,
+    .leaves_block_type = BLOCK_TYPE_FLOWER_LEAVES1,
     .min_height = 10,
     .max_height = 30,
     .min_width = 1,
     .max_width = 2,
     .spawn_chance = 0.8f,
-    .biome_mask = 1u << BIOME_TYPE_FOREST | 1u << BIOME_TYPE_GRASSLANDS | 1u << BIOME_TYPE_RAIN_FOREST
+    .biome_mask = 1u << BIOME_TYPE_GRASSLANDS
   }
 };
 
@@ -198,9 +198,9 @@ void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
   int32_t first_solid_y = 0;
   for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
     block_t *block = &block_at(y, z_row, x_col);
-    if(block_is_water(block)) return;
+    if(block_is_water(block) || block_is_lava(block)) return;
     if(block_is_tree_trunk(block)) return;
-    if(block_is_soil(block)){
+    if(block_is_soil(block) || block_is_stone(block)){
       first_solid_y = y;
       break;
     }
@@ -244,15 +244,16 @@ void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
 // place trees in a biome:
 //   go through all trees that would exist in this biome
 //   if tree density > biome tree density, then a tree may be placed, based on spawn chance
-void place_trees(biome_type_t biome_type){
-  biome_t biome = biomes[biome_type];
-  float trees_density_threshold = biome.trees_density_threshold;
-  float trees_noise_frequency   = biome.trees_frequency;
+void place_trees(){
 
   int8_t trees_plane[MAP_NUM_BLOCKS_Z][MAP_NUM_BLOCKS_X] = {0};
 
-  for(int32_t z = 10; z < MAP_NUM_BLOCKS_Z - 10; z += 4){
-    for(int32_t x = 10; x < MAP_NUM_BLOCKS_X - 10; x += 4){
+  for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z += 4){
+    for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x += 4){
+      biome_t biome = biomes[block_at(0, z, x).type];
+      float trees_density_threshold = biome.trees_density_threshold;
+      float trees_noise_frequency   = biome.trees_frequency;
+
       float trees_density = fabsf(perlin_noise_3d((float)x * trees_noise_frequency, 420.0f, (float)z * trees_noise_frequency));
  
       // mark spot with tree
@@ -260,30 +261,27 @@ void place_trees(biome_type_t biome_type){
     }
   }
 
-  // allocate memory for a small list containing only trees that exist in this biome
-  int32_t num_trees_in_this_biome = get_num_trees_in_biome(biome_type);
-  trees_sort_key_t *biome_trees_sort_array = malloc(sizeof(trees_sort_key_t) * num_trees_in_this_biome); // list of trees in this biome
-  if(biome_trees_sort_array == NULL){
-    print_log("[ERROR] unable to allocate memory for biome trees sorting array.");
-    exit(1);
-  }
-  // copy the keys from the trees array into the biome trees sorting array
-  uint32_t biome_mask = 1u << biome_type;
-  int32_t main_trees_array_size = sizeof(trees) / sizeof(tree_t); // main trees array size
-  int32_t biome_trees_sort_array_index = 0; // index into local list of biome trees
-  for(int32_t tree_i = 0; tree_i < main_trees_array_size; tree_i++){ // loop main trees list
-    // if tree belongs to this biome, copy into sorting list
-    if(trees[tree_i].biome_mask & biome_mask){
-      biome_trees_sort_array[biome_trees_sort_array_index].tree_type = (tree_type_t)tree_i;
-      biome_trees_sort_array[biome_trees_sort_array_index].spawn_chance = trees[tree_i].spawn_chance;
-      biome_trees_sort_array_index++;
-    }
-  }
-  // sort the biome trees list by spawn_chance (lower values earlier)
-  biome_trees_quicksort(biome_trees_sort_array, num_trees_in_this_biome); 
+  for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+    for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+      biome_type_t biome_type = block_at(0, z, x).biome_type;
 
-  for(int32_t z = 10; z < MAP_NUM_BLOCKS_Z - 10; z++){
-    for(int32_t x = 10; x < MAP_NUM_BLOCKS_X - 10; x++){
+      int32_t num_trees_in_this_biome = get_num_trees_in_biome(biome_type);
+      trees_sort_key_t biome_trees_sort_array[num_trees_in_this_biome]; // list of trees in this biome
+
+      // copy the keys from the trees array into the biome trees sorting array
+      uint32_t biome_mask = 1u << biome_type;
+      int32_t main_trees_array_size = sizeof(trees) / sizeof(tree_t); // main trees array size
+      int32_t biome_trees_sort_array_index = 0; // index into local list of biome trees
+      for(int32_t tree_i = 0; tree_i < main_trees_array_size; tree_i++){ // loop main trees list
+        // if tree belongs to this biome, copy into sorting list
+        if(trees[tree_i].biome_mask & biome_mask){
+          biome_trees_sort_array[biome_trees_sort_array_index].tree_type = (tree_type_t)tree_i;
+          biome_trees_sort_array[biome_trees_sort_array_index].spawn_chance = trees[tree_i].spawn_chance;
+          biome_trees_sort_array_index++;
+        }
+      }
+      // sort the biome trees list by spawn_chance (lower values earlier)
+      biome_trees_quicksort(biome_trees_sort_array, num_trees_in_this_biome); 
  
       // if this spot has a tree, then try planting each of the trees that belong to this biome
       // from rarest first, to most common last, according to the list sorted by spawn_chance
@@ -291,7 +289,6 @@ void place_trees(biome_type_t biome_type){
         for(int32_t biome_tree_i = 0; biome_tree_i < num_trees_in_this_biome; biome_tree_i++){ 
           place_tree(z, x, biome_trees_sort_array[biome_tree_i].tree_type);
         }
-
     }
   }
   

@@ -44,12 +44,12 @@
 
 // WORLD PARAMETERS
 #define WORLD_BASE_SURFACE_LEVEL (0.5f * MAP_NUM_BLOCKS_Y)
-#define WORLD_MAX_HILL_HEIGHT    20
 #define WORLD_UNDER_MAX_HEIGHT    8
+#define WORLD_VOLCANIC_BIOME_SURFACE_LAVA_LEVEL (WORLD_BASE_SURFACE_LEVEL - 1)
 
 #define WORLD_DIRT0_DEPTH        6
 #define WORLD_STONE0_DEPTH       6
-#define WORLD_WATER_LEVEL        (WORLD_BASE_SURFACE_LEVEL - 10)
+#define WORLD_WATER_LEVEL        (WORLD_BASE_SURFACE_LEVEL - 4)
 #define WORLD_LARGE_HILL_SCALE   0.02f
 #define WORLD_SMALL_HILL_SCALE   0.03f
 #define WORLD_MOUNTAIN_SCALE     0.01f
@@ -58,9 +58,6 @@
 #define WORLD_OVERHANG_SCALE     0.04f
 
 #define WORLD_BASE_CAVE_LEVEL    WORLD_WATER_LEVEL - 10
-#define WORLD_SMALL_CAVE_SCALE   0.05f
-#define WORLD_MEDIUM_CAVE_SCALE  0.04f
-#define WORLD_LARGE_CAVE_SCALE   0.03f
 #define WORLD_UNDER_NOISE_SCALE   0.3f
 
 // WORLD LAYERS
@@ -97,6 +94,7 @@ typedef enum{
   BLOCK_TYPE_VOLCANIC0  ,
   BLOCK_TYPE_VOLCANIC1  ,
   BLOCK_TYPE_VOLCANIC2  ,
+  BLOCK_TYPE_VOLCANIC3  ,
   BLOCK_TYPE_BEDROCK    ,
   BLOCK_TYPE_STONE0     ,
   BLOCK_TYPE_STONE1     ,
@@ -112,12 +110,17 @@ typedef enum{
   BLOCK_TYPE_DIAMOND    ,
   BLOCK_TYPE_SILVER     ,
   BLOCK_TYPE_GOLD       ,
-  BLOCK_TYPE_DIRT0       ,
-  BLOCK_TYPE_DIRT1       ,
-  BLOCK_TYPE_GRASS      ,
-  BLOCK_TYPE_CHERRY_GRASS,
+  BLOCK_TYPE_GRASSLANDS_DIRT,
+  BLOCK_TYPE_FOREST_DIRT    ,
+  BLOCK_TYPE_GRASSLANDS_GRASS,
+  BLOCK_TYPE_GRASSLANDS_CHERRY_GRASS,
+  BLOCK_TYPE_FOREST_GRASS,
+  BLOCK_TYPE_SAVANNAH_GRASS,
+  BLOCK_TYPE_MOSS,
   BLOCK_TYPE_SAND0,
   BLOCK_TYPE_CLAY0,
+  BLOCK_TYPE_SNOW_0,
+  BLOCK_TYPE_SNOW_1,
   BLOCK_TYPE_TREE_TRUNK0,
   BLOCK_TYPE_TREE_TRUNK1,
   BLOCK_TYPE_TREE_TRUNK2,
@@ -301,5 +304,11 @@ void seed_sky_light_around_area(int32_t y_start, int32_t y_end, int32_t z_start,
 void seed_block_light_around_area(int32_t y_start, int32_t y_end, int32_t z_start, int32_t z_end, int32_t x_start, int32_t x_end);
 
 
+void get_biome_top_surface_block(
+  biome_type_t biome_type, 
+  block_type_t *top_surface_block,
+  block_type_t *under_surface_block,
+  block_type_t *stone_surface_block
+);
 
 #endif

@@ -34,6 +34,9 @@
       * maybe world can be infinite but in another way: with portals.
       could we make rivers of water and lava and have the textures scroll?
 
+      change walking sound engine to small footstep sounds etc.
+      add timers. 
+
       CONVERT BLOCK COORDINATES ETC TO -X TO X, ETC. I.E CENTERED AROUND ORIGIN. THIS IS BETTER FOR FLOATING PRECISION
       SO INSTEAD OF HAVING THE WORLD ORIGIN CORNER AT 0, WE PLACE THE WORLD CENTER AT 0 INSTEAD
 
@@ -127,11 +130,6 @@
 #define ZNEAR 0.05f
 #define ZFAR (CHUNK_RENDER_DISTANCE_X + CHUNK_RENDER_DISTANCE_Z) * (CHUNK_SIZE) // approximation to sqrt(CHUNK_RENDER_DISTANCE_X^2 + CHUNK_RENDER_DISTANCE_Z^2)
 
-/* parameters for controlling the absolute ambient light */
-#define MIN_AMBIENT_LIGHT_INTENSITY 0.05f
-#define AMBIENT_LIGHT_MAX_FACTOR 0.5f
-#define MIN_SKYBOX_INTENSITY 0.03f
-
 uint64_t frame_id = 1; /* start at 1, because all face_draw_stamp values are reset to 0 at object creation time */
 char fps_str[16];
 uint32_t total_triangles_rendered;
@@ -170,7 +168,6 @@ float sun_eta = (M_PI_2); /* sun's eta angle */
 float sun_sin_eta = 1.0f;
 color_t sky_color = (color_t){.uint32 = 0xFFFF8040};
 
-triangle_t triangles_to_render[50000];
 uint32_t total_chunk_triangles_to_render = 0;
 
 // mining and tools
@@ -267,29 +264,39 @@ void setup(void) {
   }
   for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
     for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
-      switch(block_at(0, z, x).biome_type){
-        case BIOME_TYPE_DESERT:
-          biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFF40BB99; // sandy
+      bool is_water = false;
+      for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
+        if(block_is_water(&block_at(y, z, x))){
+          is_water = true;
           break;
-        case BIOME_TYPE_FOREST:
-          biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFF508020; // blueish green
-          break;
-        case BIOME_TYPE_GRASSLANDS:
-          biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFF20A040; // light green
-          break;
-        case BIOME_TYPE_RAIN_FOREST:
-          biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFF206020; // dark green
-          break;
-        case BIOME_TYPE_SAVANNAH:
-          biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFF20A070; // yellowish green
-          break;
-        case BIOME_TYPE_SNOW:
-          biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFFFFFFFF; // white
-          break;
-        case BIOME_TYPE_VOLCANIC:
-          biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFF2020FF; // red
-          break;
+        }
       }
+      if(is_water)
+        biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFFFF2020; // blue
+      else
+        switch(block_at(0, z, x).biome_type){
+          case BIOME_TYPE_DESERT:
+            biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFF40DDFF; // sandy
+            break;
+          case BIOME_TYPE_FOREST:
+            biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFF508020; // blueish green
+            break;
+          case BIOME_TYPE_GRASSLANDS:
+            biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFF20A040; // light green
+            break;
+          case BIOME_TYPE_RAIN_FOREST:
+            biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFF206020; // dark green
+            break;
+          case BIOME_TYPE_SAVANNAH:
+            biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFF20A070; // yellowish green
+            break;
+          case BIOME_TYPE_SNOW:
+            biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFFFFFFFF; // white
+            break;
+          case BIOME_TYPE_VOLCANIC:
+            biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFF2020FF; // red
+            break;
+        }
     }
 
   }
@@ -2924,7 +2931,7 @@ void update_light(void){
 
   //object_t *skybox = &objects[skybox_id];
 
-  sun_eta    += M_2_PI * 1.0f / DAY_LENGTH;
+  //sun_eta    += M_2_PI * 1.0f / DAY_LENGTH;
   sun_sin_eta = sinf(sun_eta);
 
   if(sun_sin_eta < 0.0f) sun_sin_eta = 0.0f;
@@ -2933,8 +2940,6 @@ void update_light(void){
   sky_color.rgb.green = 0x00 + 0x80 * sun_sin_eta;
   sky_color.rgb.blue  = 0x08 + 0xE8 * sun_sin_eta;
   
-  //float emissive_intensity = (sin_eta < MIN_SKYBOX_INTENSITY) ? MIN_SKYBOX_INTENSITY : sin_eta;
-
 }
 
 void update_camera_from_player(){
@@ -3153,7 +3158,8 @@ void print_debug_data(){
         "block coords: %d:%d:%d, chunk coords: %d:%d:%d\n"
         "player pos: %.2f:%.2f:%.2f, look direction: %.2f:%.2f:%.2f, theta/eta: %.2f:%.2f\n"
         "block looked at: %d:%d:%d\n"
-        "lf: %d, lh: %d",
+        "sl: %d, bl: %d\n"
+        "%s",
         player.on_ground    ? "y" : "n",
         player.on_water     ? "y" : "n",
         player.on_quicksand ? "y" : "n",
@@ -3166,7 +3172,8 @@ void print_debug_data(){
         player.theta, player.eta,
         looked_at_block.block_x, looked_at_block.block_y, looked_at_block.block_z,
         block_at(player_block_y, player_block_z, player_block_x).sky_light,
-        block_at(player_block_y + 1, player_block_z, player_block_x).sky_light
+        block_at(player_block_y, player_block_z, player_block_x).block_light,
+        biomes[block_at((int32_t)player.position.y, (int32_t)player.position.z, (int32_t)player.position.x).biome_type].name
       );
     }
     draw_text(10, 10, debug_screen_data, (color_t){.uint32 = 0xFFFFFFFF}, 1, FONT_6X8);
@@ -3437,6 +3444,11 @@ void process_ambient_sounds(){
 }
 
 void render_biome_map(){
+  int32_t player_z = player.position.z;
+  int32_t player_x = player.position.x;
+
+  biome_map.texture[player_z * biome_map.texture_width + player_x].uint32 = 0xFFFFFFFF;
+
   draw_texture_flat(window_width - 200, 0, 200, 200, &biome_map);
 }
 

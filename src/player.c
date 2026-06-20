@@ -2,7 +2,7 @@
 #include "block.h"
 
 player_t player = {
-  .position                     = {.x = 100.0f, .y = 150.0f, .z = 100.0f},
+  .position                     = {.x = 256.0f, .y = 150.0f, .z = 256.0f},
   .velocity                     = {.x = 0.0f, .y = 0.0f, .z = 0.0f},
   .direction                    = {.x = 0.0f, .y = 0.0f, .z = 1.0f},
   .theta                        = M_PI_2,
@@ -86,7 +86,7 @@ void init_player(){
   player.block_inventory[12].number = 400;
   player.block_inventory[13].block_type = BLOCK_TYPE_WATER0;
   player.block_inventory[13].number = 400;
-  player.block_inventory[14].block_type = BLOCK_TYPE_DIRT0;
+  player.block_inventory[14].block_type = BLOCK_TYPE_GRASSLANDS_DIRT;
   player.block_inventory[14].number = 400;
   player.block_inventory_size = 15;
 

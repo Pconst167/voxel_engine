@@ -34,6 +34,6 @@ typedef struct{
 extern tree_t trees[];
 
 void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type);
-void place_trees(biome_type_t biome_type);
+void place_trees();
 
 #endif
