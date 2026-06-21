@@ -879,7 +879,7 @@ void init_block_materials(){
       .left_texture       = load_texture("./assets/textures/blocks/savannah_grass_side.png"),
       .right_texture      = load_texture("./assets/textures/blocks/savannah_grass_side.png"),
       .top_texture        = load_texture("./assets/textures/blocks/savannah_grass_top.png"),
-      .bottom_texture     = load_texture("./assets/textures/blocks/savannah_dirt.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/grasslands_dirt.png"),
       
       .mining_sound_type  = SOUND_TYPE_MINING_DIRT,
       .placing_sound_type = SOUND_TYPE_MINING_DIRT,
