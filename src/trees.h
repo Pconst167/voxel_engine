@@ -17,9 +17,17 @@ typedef enum{
   TREE9,
   FLOWER_TREE0,
   FLOWER_TREE1,
+
+  CACTUS0
 } tree_type_t;
 
+typedef enum{
+  PLANT_SPECIES_TREE,
+  PLANT_SPECIES_CACTUS
+} plant_species_t;
+
 typedef struct{
+  plant_species_t plant_species;
   char *tree_name;
   block_type_t trunk_block_type;
   block_type_t leaves_block_type;

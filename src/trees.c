@@ -10,6 +10,7 @@ typedef struct{
 
 tree_t trees[] = {
   {
+    .plant_species = PLANT_SPECIES_TREE,
     .tree_name = "tree0",
     .trunk_block_type = BLOCK_TYPE_TREE_TRUNK0,
     .leaves_block_type = BLOCK_TYPE_LEAVES0,
@@ -21,6 +22,7 @@ tree_t trees[] = {
     .biome_mask = 1u << BIOME_TYPE_VOLCANIC
   },
   {
+    .plant_species = PLANT_SPECIES_TREE,
     .tree_name = "tree1",
     .trunk_block_type = BLOCK_TYPE_TREE_TRUNK1,
     .leaves_block_type = BLOCK_TYPE_LEAVES1,
@@ -32,6 +34,7 @@ tree_t trees[] = {
     .biome_mask = 1u << BIOME_TYPE_FOREST
   },
   {
+    .plant_species = PLANT_SPECIES_TREE,
     .tree_name = "tree2",
     .trunk_block_type = BLOCK_TYPE_TREE_TRUNK2,
     .leaves_block_type = BLOCK_TYPE_LEAVES2,
@@ -43,6 +46,7 @@ tree_t trees[] = {
     .biome_mask = 1u << BIOME_TYPE_FOREST | 1u << BIOME_TYPE_RAIN_FOREST
   },
   {
+    .plant_species = PLANT_SPECIES_TREE,
     .tree_name = "tree3",
     .trunk_block_type = BLOCK_TYPE_TREE_TRUNK3,
     .leaves_block_type = BLOCK_TYPE_LEAVES3,
@@ -54,6 +58,7 @@ tree_t trees[] = {
     .biome_mask = 1u << BIOME_TYPE_SAVANNAH
   },
   {
+    .plant_species = PLANT_SPECIES_TREE,
     .tree_name = "tree4",
     .trunk_block_type = BLOCK_TYPE_TREE_TRUNK4,
     .leaves_block_type = BLOCK_TYPE_LEAVES4,
@@ -65,6 +70,7 @@ tree_t trees[] = {
     .biome_mask = 1u << BIOME_TYPE_FOREST | 1u << BIOME_TYPE_RAIN_FOREST
   },
   {
+    .plant_species = PLANT_SPECIES_TREE,
     .tree_name = "tree5",
     .trunk_block_type = BLOCK_TYPE_TREE_TRUNK5,
     .leaves_block_type = BLOCK_TYPE_LEAVES5,
@@ -76,6 +82,7 @@ tree_t trees[] = {
     .biome_mask = 1u << BIOME_TYPE_GRASSLANDS
   },
   {
+    .plant_species = PLANT_SPECIES_TREE,
     .tree_name = "tree6",
     .trunk_block_type = BLOCK_TYPE_TREE_TRUNK6,
     .leaves_block_type = BLOCK_TYPE_LEAVES6,
@@ -87,6 +94,7 @@ tree_t trees[] = {
     .biome_mask = 1u << BIOME_TYPE_RAIN_FOREST
   },
   {
+    .plant_species = PLANT_SPECIES_TREE,
     .tree_name = "tree7",
     .trunk_block_type = BLOCK_TYPE_TREE_TRUNK7,
     .leaves_block_type = BLOCK_TYPE_LEAVES7,
@@ -98,6 +106,7 @@ tree_t trees[] = {
     .biome_mask = 1u << BIOME_TYPE_VOLCANIC
   },
   {
+    .plant_species = PLANT_SPECIES_TREE,
     .tree_name = "tree8",
     .trunk_block_type = BLOCK_TYPE_TREE_TRUNK7,
     .leaves_block_type = BLOCK_TYPE_LEAVES8,
@@ -109,6 +118,7 @@ tree_t trees[] = {
     .biome_mask = 1u << BIOME_TYPE_RAIN_FOREST
   },
   {
+    .plant_species = PLANT_SPECIES_TREE,
     .tree_name = "tree9",
     .trunk_block_type = BLOCK_TYPE_TREE_TRUNK7,
     .leaves_block_type = BLOCK_TYPE_LEAVES9,
@@ -122,6 +132,7 @@ tree_t trees[] = {
 
   // FLOWER TREES
   {
+    .plant_species = PLANT_SPECIES_TREE,
     .tree_name = "flowertree0",
     .trunk_block_type = BLOCK_TYPE_TREE_TRUNK0,
     .leaves_block_type = BLOCK_TYPE_FLOWER_LEAVES0,
@@ -133,6 +144,7 @@ tree_t trees[] = {
     .biome_mask = 1u << BIOME_TYPE_GRASSLANDS
   },
   {
+    .plant_species = PLANT_SPECIES_TREE,
     .tree_name = "flowertree1",
     .trunk_block_type = BLOCK_TYPE_TREE_TRUNK0,
     .leaves_block_type = BLOCK_TYPE_FLOWER_LEAVES1,
@@ -142,7 +154,21 @@ tree_t trees[] = {
     .max_width = 2,
     .spawn_chance = 0.8f,
     .biome_mask = 1u << BIOME_TYPE_GRASSLANDS
-  }
+  },
+
+  // CACTI
+  {
+    .plant_species = PLANT_SPECIES_CACTUS,
+    .tree_name = "cactus0",
+    .trunk_block_type = BLOCK_TYPE_CACTUS_TRUNK0,
+    .leaves_block_type = BLOCK_TYPE_CACTUS_FLOWER0,
+    .min_height = 2,
+    .max_height = 15,
+    .min_width = 1,
+    .max_width = 2,
+    .spawn_chance = 0.4f,
+    .biome_mask = 1u << BIOME_TYPE_DESERT
+  },
 };
 
 static void qs_biome_trees(trees_sort_key_t *array, int left, int right){
@@ -188,6 +214,7 @@ static int32_t get_num_trees_in_biome(biome_type_t biome_type){
 
 void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
   tree_t tree = trees[tree_type];
+  plant_species_t plant_species = tree.plant_species;
 
   uint32_t seed = (uint32_t)(z_row * 73856093u) ^ (uint32_t)(x_col * 19349663u); // two prime numbers for hashing
   bool will_spawn = random_spawn_from_seed(seed, tree.spawn_chance);
@@ -219,22 +246,37 @@ void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
   int32_t tree_middle = (tree_bottom + tree_top) / 2;
 
   // leaves
-  for(int32_t y = tree_middle; y <= tree_top; y++){
-    for(int32_t z = z_row - 6; z <= z_row + 6; z++){
-      for(int32_t x = x_col - 6; x <= x_col + 6; x++){
-        if(xorshift32() % 4 == 0){
-          assign_block_material(y, z, x, tree.leaves_block_type);
+  switch(plant_species){
+    case PLANT_SPECIES_TREE:
+      for(int32_t y = tree_middle; y <= tree_top; y++){
+        for(int32_t z = z_row - 6; z <= z_row + 6; z++){
+          for(int32_t x = x_col - 6; x <= x_col + 6; x++){
+            if(xorshift32() % 4 == 0){
+              assign_block_material(y, z, x, tree.leaves_block_type);
+            }
+          }
         }
       }
-    }
+      break;
+
+    case PLANT_SPECIES_CACTUS:
+      for(int32_t y = tree_bottom; y < tree_top - 1; y++){
+        uint32_t rand = xorshift32();
+        if(rand < 0.1f * UINT32_MAX){
+          if(xorshift32() % 2 == 0)
+            assign_block_material(y, z_row + trunk_width, x_col, tree.leaves_block_type);
+          else
+            assign_block_material(y, z_row, x_col + trunk_width, tree.leaves_block_type);
+        }
+      }
+      break;
   }
   
   // trunk
   for(int32_t y = tree_bottom; y <= tree_top - 2; y++){
-    float t = (float)(y - tree_bottom) / (float)(tree_top - tree_bottom);
-    int32_t width = lerp(t, trunk_width, 1.0f);
-    for(int32_t z = z_row - width / 2.0f; z < z_row + width / 2.0f; z++){
-      for(int32_t x = x_col - width / 2.0f; x < x_col + width / 2.0f; x++){
+    int32_t width = trunk_width;
+    for(int32_t z = z_row; z < z_row + width; z++){
+      for(int32_t x = x_col; x < x_col + width; x++){
         assign_block_material(y, z, x, tree.trunk_block_type);
       }
     }

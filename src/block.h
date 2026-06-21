@@ -16,9 +16,9 @@
 #define NUM_CHUNK_DIVISIONS_Y (MAP_NUM_BLOCKS_Y / CHUNK_SIZE)
 #define NUM_CHUNK_DIVISIONS_Z (MAP_NUM_BLOCKS_Z / CHUNK_SIZE)
 #define NUM_CHUNK_DIVISIONS_X (MAP_NUM_BLOCKS_X / CHUNK_SIZE)
-#define CHUNK_RENDER_DISTANCE_Y 2 // render this number of chunks around the player in XZ
-#define CHUNK_RENDER_DISTANCE_Z 2 // render this number of chunks around the player in XZ
-#define CHUNK_RENDER_DISTANCE_X 2 // render this number of chunks around the player in XZ
+#define CHUNK_RENDER_DISTANCE_Y 3 // render this number of chunks around the player in XZ
+#define CHUNK_RENDER_DISTANCE_Z 3 // render this number of chunks around the player in XZ
+#define CHUNK_RENDER_DISTANCE_X 3 // render this number of chunks around the player in XZ
 
 // SURFACE LEVEL DATA
 #define SURFACE_LEVEL (0.4f * MAP_NUM_BLOCKS_Y)
@@ -141,6 +141,10 @@ typedef enum{
   BLOCK_TYPE_LEAVES9    ,
   BLOCK_TYPE_FLOWER_LEAVES0,
   BLOCK_TYPE_FLOWER_LEAVES1,
+
+  BLOCK_TYPE_CACTUS_TRUNK0,
+  BLOCK_TYPE_CACTUS_FLOWER0,
+
   BLOCK_TYPE_WATER0     ,
   BLOCK_TYPE_BOG0       ,
   BLOCK_TYPE_GLASS      ,
@@ -310,5 +314,8 @@ void get_biome_top_surface_block(
   block_type_t *under_surface_block,
   block_type_t *stone_surface_block
 );
+
+float evaluate_spline(vector2_t *spline_points, int32_t num_spline_points, float x);
+float evaluate_height_spline(float height_noise_value, float peaks_and_valleys_noise_value);
 
 #endif

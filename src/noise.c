@@ -92,8 +92,5 @@ float perlin_noise_3d(float x, float y, float z){
   // Scale into approximate -1.0f to +1.0f range.
   result *= 1.1666f;
 
-  if(result < -1.0f) result = -1.0f;
-  if(result >  1.0f) result =  1.0f;
-
   return result;
 }

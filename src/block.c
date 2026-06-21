@@ -1653,6 +1653,68 @@ void init_block_materials(){
     })
   );
 
+  // CACTI
+  array_push(
+    block_materials,
+    ((block_material_t){
+      .material_name      = "cactustrunk0",
+      .solid              = true,
+      .mass               = 40,
+      .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
+      .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
+      .transparent_to_light = false,
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF80FF20},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .reflects_light     = true,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/cactus_trunk0.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/cactus_trunk0.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/cactus_trunk0.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/cactus_trunk0.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/cactus_trunk0.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/cactus_trunk0.png"),
+      
+      .mining_sound_type  = SOUND_TYPE_MINING_DIRT,
+      .placing_sound_type = SOUND_TYPE_NONE,
+      .breaking_sound_type= SOUND_TYPE_NONE,
+      .walking_sound_type = SOUND_TYPE_WALKING_DIRT,
+      .falling_sound_type = SOUND_TYPE_FALLING_DIRT,
+    })
+  );
+  array_push(
+    block_materials,
+    ((block_material_t){
+      .material_name      = "cactusflower0",
+      .solid              = true,
+      .mass               = 40,
+      .preferred_tool_class = PLAYER_TOOL_CLASS_AXE,
+      .mineable           = true,
+      .block_fluid_type   = BLOCK_FLUID_NONE,
+      .transparent_to_light = false,
+      .backface_culling   = true,
+      .base_color         = (color_t){.uint32 = 0xFF80FF20},
+      .emissive_color     = (color_t){.uint32 = 0x00000000},
+      .reflects_light     = true,
+      .blend_mode         = BLEND_MODE_OPAQUE,
+      .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
+      .front_texture      = load_texture("./assets/textures/blocks/cactus_flower0.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/cactus_flower0.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/cactus_flower0.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/cactus_flower0.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/cactus_flower0.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/cactus_flower0.png"),
+      
+      .mining_sound_type  = SOUND_TYPE_MINING_WOOD,
+      .placing_sound_type = SOUND_TYPE_NONE,
+      .breaking_sound_type= SOUND_TYPE_NONE,
+      .walking_sound_type = SOUND_TYPE_WALKING_WOOD,
+      .falling_sound_type = SOUND_TYPE_FALLING_WOOD,
+    })
+  );
+
   // WATER
   array_push(
     block_materials,
@@ -1861,30 +1923,46 @@ void assign_biomes(){
   for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
     for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
       
-      float temperature_noise = fabsf(perlin_noise_3d((float)x * WORLD_TEMPERATURE_HUMIDITY_SCALE, 0.0f,   (float)z * WORLD_TEMPERATURE_HUMIDITY_SCALE));
-      float humidity_noise    = fabsf(perlin_noise_3d((float)x * WORLD_TEMPERATURE_HUMIDITY_SCALE, 900.0f, (float)z * WORLD_TEMPERATURE_HUMIDITY_SCALE));
+      float temperature_noise = fabsf(perlin_noise_3d((float)x * WORLD_TEMPERATURE_SCALE, 0.05f,   (float)z * WORLD_TEMPERATURE_SCALE));
+      float humidity_noise    = fabsf(perlin_noise_3d((float)x * WORLD_HUMIDITY_SCALE, 200.1f, (float)z * WORLD_HUMIDITY_SCALE));
 
-      if(temperature_noise >= 0.45){
+      if(temperature_noise >= 0.6){
         current_biome = BIOME_TYPE_VOLCANIC;
       }
-      else if(temperature_noise >= 0.45 && temperature_noise < 0.6){
-        if(humidity_noise <= 0.5){
+      else if(temperature_noise > 0.5 && temperature_noise < 0.6){
+        current_biome = BIOME_TYPE_DESERT;
+      }
+      else if(temperature_noise > 0.4 && temperature_noise <= 0.5){
+        if(humidity_noise <= 0.4){
           current_biome = BIOME_TYPE_DESERT;
         }
-        else if(humidity_noise > 0.5 && humidity_noise < 0.7){
-          current_biome = BIOME_TYPE_SAVANNAH;
-        }
         else{
-          current_biome = BIOME_TYPE_RAIN_FOREST;
-        }
-      }
-    //else if(temperature_noise < 0.5){
-      else{
-        if(humidity_noise <= 0.1){
           current_biome = BIOME_TYPE_GRASSLANDS;
         }
-        else if(humidity_noise > 0.1 && humidity_noise < 0.4){
+      }
+      else if(temperature_noise > 0.2 && temperature_noise <= 0.4){
+        if(humidity_noise <= 0.4){
           current_biome = BIOME_TYPE_FOREST;
+        }
+        if(humidity_noise > 0.4 && humidity_noise <= 0.6){
+          current_biome = BIOME_TYPE_GRASSLANDS;
+        }
+        else{
+          current_biome = BIOME_TYPE_SAVANNAH;
+        }
+      }
+      else{
+        if(humidity_noise <= 0.2){
+          current_biome = BIOME_TYPE_RAIN_FOREST;
+        }
+        else if(humidity_noise > 0.2 && humidity_noise < 0.4){
+          current_biome = BIOME_TYPE_FOREST;
+        }
+        else if(humidity_noise >= 0.4 && humidity_noise <= 0.6){
+          current_biome = BIOME_TYPE_GRASSLANDS;
+        }
+        else if(humidity_noise > 0.6 && humidity_noise < 0.8){
+          current_biome = BIOME_TYPE_SAVANNAH;
         }
         else{
           current_biome = BIOME_TYPE_SNOW;
@@ -1910,6 +1988,194 @@ void process_window_messages(void){
 }
 
 void init_block_map(){
+
+  for(int32_t y = 0; y < MAP_NUM_BLOCKS_Y; y++){
+    for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+      for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+        assign_block_material(y, z, x, BLOCK_TYPE_AIR);
+
+        block_at(y, z, x).temperature = 30.0f;
+        block_at(y, z, x).orientation = BLOCK_ORIENTATION_FRONT;
+        block_at(y, z, x).sky_light   = 0;
+        block_at(y, z, x).block_light = 0;
+
+        block_at(y, z, x).aabb.x_min = x;
+        block_at(y, z, x).aabb.x_max = x + 1.0f;
+        block_at(y, z, x).aabb.z_min = z;
+        block_at(y, z, x).aabb.z_max = z + 1.0f;
+        block_at(y, z, x).aabb.y_min = y;
+        block_at(y, z, x).aabb.y_max = y + 1.0f;
+      }
+    }
+  }
+
+  // LAVA LEVEL
+  for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+    for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+      int32_t surface_y;
+      float lava_noise = fabsf(perlin_noise_3d((float)x * WORLD_UNDER_NOISE_SCALE, 150.0f, (float)z * WORLD_UNDER_NOISE_SCALE));
+      surface_y = WORLD_BASE_LAVA_LEVEL + (int32_t)(lava_noise * WORLD_UNDER_MAX_HEIGHT);
+      for(int32_t y = surface_y; y >= 0; y--){
+        assign_block_material(y, z, x, BLOCK_TYPE_LAVA0);
+      }
+    }
+  }
+
+
+  // base world surface levels
+  for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+    process_window_messages(); // avoids OS hanging
+    for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+      float height_noise = perlin_noise_3d((float)x * 0.03f, 100.731f, (float)z * 0.03f);
+      float peaks_and_valleys_noise = perlin_noise_3d((float)x * 0.01f, 271.923f, (float)z * 0.01f);
+
+      float height_offset = evaluate_height_spline(height_noise, peaks_and_valleys_noise);
+
+      int32_t surface_y = WORLD_BASE_SURFACE_LEVEL + (int32_t)roundf(height_offset);
+      if(surface_y >= MAP_NUM_BLOCKS_Y) surface_y = MAP_NUM_BLOCKS_Y - 1;
+      
+      biome_type_t biome_type = block_at(0, z, x).biome_type;
+      block_type_t top_surface_block, under_surface_block, stone_surface_block;
+      get_biome_top_surface_block(biome_type, &top_surface_block, &under_surface_block, &stone_surface_block);
+
+      // grass
+      assign_block_material(surface_y, z, x, top_surface_block);
+      // dirt0
+      int32_t dirt0_top = surface_y - 1;
+      int32_t dirt0_bottom = dirt0_top - WORLD_DIRT0_DEPTH + 1;
+      for(int32_t y = dirt0_top; y >= dirt0_bottom; y--){
+        assign_block_material(y, z, x, under_surface_block);
+      }
+      // stone0
+      int32_t stone0_top = dirt0_bottom - 1;
+      int32_t stone0_bottom = stone0_top - WORLD_STONE0_DEPTH + 1;
+      for(int32_t y = stone0_top; y >= 0; y--){
+        if(block_at(y, z, x).type == BLOCK_TYPE_LAVA0) break;
+
+        uint32_t random = xorshift32();
+        if(biome_type == BIOME_TYPE_VOLCANIC){
+          assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC3);
+        }
+        else if(biome_type == BIOME_TYPE_DESERT){
+          assign_block_material(y, z, x, BLOCK_TYPE_SAND0);
+        }
+        else{
+          if(random % 7 == 0)
+            assign_block_material(y, z, x, BLOCK_TYPE_STONE0);
+          else if(random % 7 == 1)
+            assign_block_material(y, z, x, BLOCK_TYPE_STONE1);
+          else if(random % 7 == 2)
+            assign_block_material(y, z, x, BLOCK_TYPE_STONE2);
+          else if(random % 7 == 3)
+            assign_block_material(y, z, x, BLOCK_TYPE_STONE3);
+          else if(random % 7 == 4)
+            assign_block_material(y, z, x, BLOCK_TYPE_STONE4);
+          else if(random % 7 == 5)
+            assign_block_material(y, z, x, BLOCK_TYPE_STONE5);
+          else if(random % 7 == 6)
+            assign_block_material(y, z, x, BLOCK_TYPE_STONE6);
+        }
+      }
+
+
+    }
+  }
+
+  // EROSION
+  for(int32_t z = 1; z < MAP_NUM_BLOCKS_Z - 1; z++){
+    process_window_messages(); // avoids OS hanging
+    for(int32_t x = 1; x < MAP_NUM_BLOCKS_X - 1; x++){
+      for(int32_t y = WORLD_BASE_SURFACE_LEVEL; y < MAP_NUM_BLOCKS_Y - 1; y++){
+        
+        biome_type_t biome_type = block_at(y, z, x).biome_type;
+        if(biome_type != BIOME_TYPE_VOLCANIC && biome_type != BIOME_TYPE_DESERT) continue;
+
+        float large_erosion_noise  = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
+        float medium_erosion_noise = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
+        float small_erosion_noise  = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
+  
+        float erosion_noise = large_erosion_noise + medium_erosion_noise + small_erosion_noise;
+  
+        if(erosion_noise > 0.6f){
+          assign_block_material(y, z, x, BLOCK_TYPE_AIR);
+        }
+      }
+    }
+  }
+
+  // water
+  for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+    process_window_messages(); // avoids OS hanging
+    for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+      for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
+  
+        if(y > WORLD_WATER_LEVEL && block_at(y, z, x).type != BLOCK_TYPE_AIR) break;
+  
+        biome_type_t biome_type = block_at(0, z, x).biome_type;
+        block_type_t top_surface_block, under_surface_block, stone_surface_block;
+        get_biome_top_surface_block(biome_type, &top_surface_block, &under_surface_block, &stone_surface_block);
+  
+        if(y <= WORLD_WATER_LEVEL && block_at(y, z, x).type == BLOCK_TYPE_AIR)
+          assign_block_material(y, z, x, BLOCK_TYPE_WATER0);
+        else if(y <= WORLD_WATER_LEVEL && block_at(y, z, x).type != BLOCK_TYPE_AIR){
+          uint32_t random = xorshift32();
+          if(random < 0.1f * (float)UINT32_MAX)
+            assign_block_material(y, z, x, BLOCK_TYPE_CLAY0);
+          else if(random < 0.95f * (float)UINT32_MAX)
+            assign_block_material(y, z, x, BLOCK_TYPE_SAND0);
+          else
+            assign_block_material(y, z, x, top_surface_block);
+          break;
+        }
+      }
+    }
+  }
+
+  // VOLCANIC BIOME LAVA POOLS
+  for(int32_t z = 1; z < MAP_NUM_BLOCKS_Z - 1; z++){
+    process_window_messages(); // avoids OS hanging
+    for(int32_t x = 1; x < MAP_NUM_BLOCKS_X - 1; x++){
+      for(int32_t y = WORLD_BASE_SURFACE_LEVEL - 10; y < MAP_NUM_BLOCKS_Y - 1; y++){
+      
+        float large_lava_noise  = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
+        float medium_lava_noise = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
+        float small_lava_noise  = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
+  
+        float lava_noise = large_lava_noise + medium_lava_noise + small_lava_noise;
+  
+        biome_type_t biome_type = block_at(0, z, x).biome_type;
+        if(lava_noise > 0.4f){
+          if(biome_type == BIOME_TYPE_VOLCANIC && y <= WORLD_VOLCANIC_BIOME_SURFACE_LAVA_LEVEL && block_at(y, z, x).type != BLOCK_TYPE_AIR)
+            assign_block_material(y, z, x, BLOCK_TYPE_LAVA0);
+        }
+      }
+    }
+  }
+
+  // CAVES
+  //for(int32_t z = 1; z < MAP_NUM_BLOCKS_Z - 1; z++){
+  //  process_window_messages(); // avoids OS hanging
+  //  for(int32_t x = 1; x < MAP_NUM_BLOCKS_X - 1; x++){
+  //    for(int32_t y = WORLD_BASE_CAVE_LEVEL; y >= 1; y--){
+  //    
+  //      float large_cave_noise  = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
+  //      float medium_cave_noise = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
+  //      float small_cave_noise  = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
+  //
+  //      float cave_noise = large_cave_noise + medium_cave_noise + small_cave_noise;
+  //
+  //      if(cave_noise > 0.25f){
+  //        assign_block_material(y, z, x, BLOCK_TYPE_AIR);
+  //      }
+  //    }
+  //  }
+  //}
+
+  place_trees();
+  place_ores();
+}
+
+void init_block_map2(){
 
   for(int32_t y = 0; y < MAP_NUM_BLOCKS_Y; y++){
     for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
@@ -3216,4 +3482,64 @@ light_sample_t get_fluid_surface_light(int32_t y, int32_t z, int32_t x){
   }
 
   return light;
+}
+
+float evaluate_spline(vector2_t *spline_points, int32_t num_spline_points, float x){
+  if(x <= spline_points[0].x)
+    return spline_points[0].y;
+
+  if(x >= spline_points[num_spline_points - 1].x)
+    return spline_points[num_spline_points - 1].y;
+
+  for(int32_t spline_point_index = 0; spline_point_index < num_spline_points - 1; spline_point_index++){
+    vector2_t left_spline_point  = spline_points[spline_point_index];
+    vector2_t right_spline_point = spline_points[spline_point_index + 1];
+
+    if(x >= left_spline_point.x && x <= right_spline_point.x){
+      float t = (x - left_spline_point.x) / (right_spline_point.x - left_spline_point.x);
+
+      return lerp(t, left_spline_point.y, right_spline_point.y);
+    }
+  }
+
+  return spline_points[num_spline_points - 1].y;
+}
+
+float evaluate_peaks_and_valleys_spline(float peaks_and_valleys_noise_value){
+  vector2_t peaks_and_valleys_spline[] = {
+    {-1.00f, -10.0f},
+    {-0.60f, -60.0f},
+    {-0.20f,  80.0f},
+    { 0.25f,  60.0f},
+    { 0.55f,  30.0f},
+    { 0.80f,  80.0f},
+    { 1.00f,  40.0f}
+  };
+
+  return evaluate_spline(
+    peaks_and_valleys_spline,
+    sizeof(peaks_and_valleys_spline) / sizeof(peaks_and_valleys_spline[0]),
+    peaks_and_valleys_noise_value
+  );
+}
+
+float evaluate_height_spline(float height_noise_value, float peaks_and_valleys_noise_value){
+  float peaks_and_valleys_height = evaluate_peaks_and_valleys_spline(peaks_and_valleys_noise_value);
+
+  vector2_t height_spline[] = {
+    {-1.00f, -60.0f},
+    {-0.60f, -30.0f},
+    {-0.20f,   0.0f},
+    { 0.25f,   6.0f},
+    // This point is nested. Instead of fixed height 20/80/etc, it uses the peaks_and_valleys spline result.
+    { 0.35f, peaks_and_valleys_height},
+    { 0.50f, 60.0f},
+    { 1.00f,  80.0f}
+  };
+
+  return evaluate_spline(
+    height_spline,
+    sizeof(height_spline) / sizeof(height_spline[0]),
+    height_noise_value
+  );
 }

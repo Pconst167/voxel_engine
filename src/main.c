@@ -123,7 +123,7 @@
 #define PLAYER_SPEED_SHIFT_KEY_FACTOR 2.0f
 #define PLAYER_ETA_DIRECTION 1.0f /* +1: mouse back looks up, -1: mouse back looks down */
 #define MOUSE_SENSITIVITY 0.005f
-#define DAY_LENGTH (0.1f * 60.0f * 60.0f / 0.016f) /* hours */
+#define DAY_LENGTH (0.05f * 60.0f * 60.0f / 0.016f) /* hours */
 
 #define FOV_Y_DEG 90.0
 #define FOV_Y (FOV_Y_DEG * M_PI / 180.0)
@@ -176,6 +176,7 @@ int8_t animation_frame;
 int8_t animation_direction = 1;
 
 texture_t biome_map;
+texture_t height_map;
 
 void setup(void) {
   
@@ -272,7 +273,7 @@ void setup(void) {
         }
       }
       if(is_water)
-        biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFFFF2020; // blue
+        biome_map.texture[z * biome_map.texture_width + x].uint32 = DEFAULT_COLOR_BLUE; // blue
       else
         switch(block_at(0, z, x).biome_type){
           case BIOME_TYPE_DESERT:
@@ -291,14 +292,47 @@ void setup(void) {
             biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFF20A070; // yellowish green
             break;
           case BIOME_TYPE_SNOW:
-            biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFFFFFFFF; // white
+            biome_map.texture[z * biome_map.texture_width + x].uint32 = DEFAULT_COLOR_WHITE; // white
             break;
           case BIOME_TYPE_VOLCANIC:
-            biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFF2020FF; // red
+            biome_map.texture[z * biome_map.texture_width + x].uint32 = DEFAULT_COLOR_RED; // red
             break;
         }
     }
 
+  }
+
+
+  height_map.texture_width = MAP_NUM_BLOCKS_X;
+  height_map.texture_height = MAP_NUM_BLOCKS_Z;
+  height_map.texture = malloc(sizeof(color_t) * MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Z);
+  if(height_map.texture == NULL){
+    print_log("[ERROR] failed to allocate biome map texture");
+    exit(1);
+  }
+  for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+    for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+      for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
+        if(block_is_water(&block_at(y, z, x))){
+          height_map.texture[z * height_map.texture_width + x].uint32 = DEFAULT_COLOR_BLUE; // blue
+          break;
+        }
+        else if(block_is_soil(&block_at(y, z, x)) || block_is_stone(&block_at(y, z, x))){
+          float height = (float)(y - WORLD_BASE_SURFACE_LEVEL) / (float)(MAP_NUM_BLOCKS_Y - WORLD_BASE_SURFACE_LEVEL);
+          if(height >= 0.0f){
+            height_map.texture[z * height_map.texture_width + x].rgb.blue  = height * 255.0f;
+            height_map.texture[z * height_map.texture_width + x].rgb.green = height * 255.0f;
+            height_map.texture[z * height_map.texture_width + x].rgb.red   = height * 255.0f;
+          }
+          else{
+            height_map.texture[z * height_map.texture_width + x].rgb.blue  = -height * 255.0f;
+            height_map.texture[z * height_map.texture_width + x].rgb.green = 0.0f;
+            height_map.texture[z * height_map.texture_width + x].rgb.red   = -height * 255.0f;
+          }
+          break;
+        }
+      }
+    }
   }
 }
 
@@ -3443,13 +3477,15 @@ void process_ambient_sounds(){
 
 }
 
-void render_biome_map(){
+void render_maps(){
   int32_t player_z = player.position.z;
   int32_t player_x = player.position.x;
 
   biome_map.texture[player_z * biome_map.texture_width + player_x].uint32 = 0xFFFFFFFF;
+  draw_texture_flat(window_width - 150, 0, 150, 150, &biome_map);
 
-  draw_texture_flat(window_width - 200, 0, 200, 200, &biome_map);
+  height_map.texture[player_z * biome_map.texture_width + player_x].uint32 = 0xFF0000FF;
+  draw_texture_flat(window_width - 150, 150, 150, 150, &height_map);
 }
 
 int main(int argc, char *argv[]){
@@ -3497,7 +3533,7 @@ int main(int argc, char *argv[]){
 
     print_debug_data();
     render_ui();
-    render_biome_map();
+    render_maps();
       
     sdl_render();
     frame_id++; /* one count per frame */
