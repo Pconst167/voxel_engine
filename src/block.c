@@ -2021,13 +2021,15 @@ void init_block_map(){
     }
   }
 
+  float peaks_and_valleys_noise_max = find_perlin_noise_slice_absolute_max(0.01f, 271.923f);
+  float height_noise_max = find_perlin_noise_slice_absolute_max(0.01f, 100.731f);
 
   // base world surface levels
   for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
     process_window_messages(); // avoids OS hanging
     for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
-      float height_noise = perlin_noise_3d((float)x * 0.03f, 100.731f, (float)z * 0.03f);
-      float peaks_and_valleys_noise = perlin_noise_3d((float)x * 0.01f, 271.923f, (float)z * 0.01f);
+      float height_noise = perlin_noise_3d((float)x * 0.03f, 100.731f, (float)z * 0.03f) / height_noise_max;
+      float peaks_and_valleys_noise = perlin_noise_3d((float)x * 0.01f, 271.923f, (float)z * 0.01f) / peaks_and_valleys_noise_max;
 
       float height_offset = evaluate_height_spline(height_noise, peaks_and_valleys_noise);
 
@@ -3509,11 +3511,11 @@ float evaluate_peaks_and_valleys_spline(float peaks_and_valleys_noise_value){
   vector2_t peaks_and_valleys_spline[] = {
     {-1.00f, -10.0f},
     {-0.60f, -60.0f},
-    {-0.20f,  80.0f},
+    {-0.20f,  40.0f},
     { 0.25f,  60.0f},
     { 0.55f,  30.0f},
-    { 0.80f,  80.0f},
-    { 1.00f,  40.0f}
+    { 0.80f,  50.0f},
+    { 1.00f,  20.0f}
   };
 
   return evaluate_spline(
@@ -3527,14 +3529,14 @@ float evaluate_height_spline(float height_noise_value, float peaks_and_valleys_n
   float peaks_and_valleys_height = evaluate_peaks_and_valleys_spline(peaks_and_valleys_noise_value);
 
   vector2_t height_spline[] = {
-    {-1.00f, -60.0f},
-    {-0.60f, -30.0f},
+    {-1.00f, -30.0f},
+    {-0.60f, -10.0f},
     {-0.20f,   0.0f},
     { 0.25f,   6.0f},
     // This point is nested. Instead of fixed height 20/80/etc, it uses the peaks_and_valleys spline result.
     { 0.35f, peaks_and_valleys_height},
-    { 0.50f, 60.0f},
-    { 1.00f,  80.0f}
+    { 0.50f, 20.0f},
+    { 1.00f,  40.0f}
   };
 
   return evaluate_spline(
@@ -3542,4 +3544,25 @@ float evaluate_height_spline(float height_noise_value, float peaks_and_valleys_n
     sizeof(height_spline) / sizeof(height_spline[0]),
     height_noise_value
   );
+}
+
+float find_perlin_noise_slice_absolute_max(float frequency, float y){
+  float absolute_max = 0.0f;
+
+  for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+    for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+      float noise = perlin_noise_3d((float)x * frequency, y, (float)z * frequency);
+      float absolute_noise = fabsf(noise);
+
+      if(absolute_noise > absolute_max){
+        absolute_max = absolute_noise;
+      }
+    }
+  }
+
+  if(absolute_max < 0.0001f){
+    absolute_max = 1.0f;
+  }
+
+  return absolute_max;
 }

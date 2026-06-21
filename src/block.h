@@ -318,4 +318,6 @@ void get_biome_top_surface_block(
 float evaluate_spline(vector2_t *spline_points, int32_t num_spline_points, float x);
 float evaluate_height_spline(float height_noise_value, float peaks_and_valleys_noise_value);
 
+float find_perlin_noise_slice_absolute_max(float frequency, float y);
+
 #endif

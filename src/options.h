@@ -22,6 +22,7 @@ typedef struct{
   bool show_debug_info;
   bool instant_mining;
   bool see_through;
+  bool fly;
 } options_t;
 
 extern options_t options;

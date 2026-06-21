@@ -404,6 +404,9 @@ void handle_game_input_actions(input_state_t *input_state){
   if(input_state->key_pressed[SDL_SCANCODE_F11]){
     options.see_through = !options.see_through;
   }
+  if(input_state->key_pressed[SDL_SCANCODE_F10]){
+    options.fly = !options.fly;
+  }
 }
 
 void handle_player_tool_selection_input(input_state_t *input_state){
@@ -683,6 +686,13 @@ void update_player_from_input(input_state_t *input_state){
     }
   }
 
+  if(input_state->key_down[SDL_SCANCODE_Q]){
+    player.position.y -= 8.0f * move_speed_delta_time;
+  }
+  if(input_state->key_down[SDL_SCANCODE_E]){
+    player.position.y += 8.0f * move_speed_delta_time;
+  }
+
   if(player.on_water){
     if(input_state->key_down[SDL_SCANCODE_SPACE]){
       player.velocity.y = 0.2f * PLAYER_JUMP_VELOCITY;
@@ -707,7 +717,8 @@ void update_player_from_input(input_state_t *input_state){
 
   if(movement.x != 0.0f) move_player_x(movement.x);
   if(movement.z != 0.0f) move_player_z(movement.z);
-  if(movement.y != 0.0f) move_player_y(movement.y);
+
+  if(!options.fly) if(movement.y != 0.0f) move_player_y(movement.y);
 
   update_walking_sound(movement);
 }
