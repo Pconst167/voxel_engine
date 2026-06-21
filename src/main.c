@@ -128,7 +128,7 @@
 #define FOV_Y_DEG 90.0
 #define FOV_Y (FOV_Y_DEG * M_PI / 180.0)
 #define ZNEAR 0.05f
-#define ZFAR (CHUNK_RENDER_DISTANCE_X + CHUNK_RENDER_DISTANCE_Z) * (CHUNK_SIZE) // approximation to sqrt(CHUNK_RENDER_DISTANCE_X^2 + CHUNK_RENDER_DISTANCE_Z^2)
+#define ZFAR (APPROX_DISTANCE(CHUNK_RENDER_DISTANCE_X, CHUNK_RENDER_DISTANCE_Z) * (CHUNK_SIZE))
 
 uint64_t frame_id = 1; /* start at 1, because all face_draw_stamp values are reset to 0 at object creation time */
 char fps_str[16];
@@ -2304,7 +2304,8 @@ void render_block_face(
         break;
     }
 
-    projected_triangle.avg_w = (projected_triangle.points[0].w + projected_triangle.points[1].w + projected_triangle.points[2].w) / 3.0f;
+    //projected_triangle.avg_w = (projected_triangle.points[0].w + projected_triangle.points[1].w + projected_triangle.points[2].w) / 3.0f;
+    projected_triangle.avg_w = projected_triangle.points[0].w;
 
     projected_triangle.face_material = (material_t){
       .material_name      = "",
@@ -2335,12 +2336,7 @@ void render_block_face(
     }
 
     if(block_material->blend_mode == BLEND_MODE_ALPHA_BLEND){
-      if(projected_triangle.avg_w > ZFAR / 2.0f){
-        projected_triangle.face_material.blend_mode = BLEND_MODE_OPAQUE;
-      }
-      else{
-        projected_triangle.face_material.opacity = 0.65f;
-      }
+      projected_triangle.face_material.opacity = 0.65f;
     }
 
     if(looked_at){
@@ -3010,6 +3006,8 @@ void update_camera_from_player(){
 }
 
 inline uint32_t rasterize_triangle(triangle_t *triangle){
+  texture_t *texture = triangle->face_material.texture;
+
   if(options.projection_mode == TEXT_WIREFRAME){
     draw_triangle(
       triangle->points[0].x, triangle->points[0].y,
@@ -3019,54 +3017,82 @@ inline uint32_t rasterize_triangle(triangle_t *triangle){
     );
     return 0;
   }
-  else if(options.projection_mode == TEXT_FILLED || triangle->face_material.texture == NULL){
+
+  if(options.projection_mode == TEXT_FILLED || texture == NULL){
     return draw_filled_triangle(
-      &triangle->points[0], 
-      &triangle->points[1], 
-      &triangle->points[2], 
+      &triangle->points[0],
+      &triangle->points[1],
+      &triangle->points[2],
       triangle->face_material.base_color,
       triangle->total_light_intensity,
       triangle->face_material.emissive_color,
       triangle->face_material.reflects_light
     );
   }
-  else{
-    switch(triangle->face_material.blend_mode){
-      case BLEND_MODE_OPAQUE:
-        return draw_textured_triangle_opaque(
-          &triangle->points[0], triangle->uv[0],
-          &triangle->points[1], triangle->uv[1],
-          &triangle->points[2], triangle->uv[2],
-          triangle->face_material.texture->texture, triangle->face_material.texture->texture_width, triangle->face_material.texture->texture_height,
-          triangle->total_light_intensity,
-          triangle->face_material.emissive_color,
-          triangle->face_material.reflects_light
-        );
 
-      case BLEND_MODE_ALPHA_TEST:
-        return draw_textured_triangle_alpha_test_float(
-          &triangle->points[0], triangle->uv[0],
-          &triangle->points[1], triangle->uv[1],
-          &triangle->points[2], triangle->uv[2],
-          triangle->face_material.texture->texture, triangle->face_material.texture->texture_width, triangle->face_material.texture->texture_height,
-          triangle->total_light_intensity,
-          triangle->face_material.emissive_color,
-          triangle->face_material.reflects_light,
-          triangle->face_material.alpha_cutoff
-        );
+  float min_x = triangle->points[0].x;
+  float max_x = triangle->points[0].x;
+  float min_y = triangle->points[0].y;
+  float max_y = triangle->points[0].y;
 
-      case BLEND_MODE_ALPHA_BLEND:
-        return draw_textured_triangle_with_opacity(
-          &triangle->points[0], triangle->uv[0],
-          &triangle->points[1], triangle->uv[1],
-          &triangle->points[2], triangle->uv[2],
-          triangle->face_material.texture->texture, triangle->face_material.texture->texture_width, triangle->face_material.texture->texture_height,
-          triangle->total_light_intensity,
-          triangle->face_material.emissive_color,
-          triangle->face_material.reflects_light,
-          triangle->face_material.opacity
-        );
-    }
+  for(int i = 1; i < 3; i++){
+    if(triangle->points[i].x < min_x) min_x = triangle->points[i].x;
+    if(triangle->points[i].x > max_x) max_x = triangle->points[i].x;
+    if(triangle->points[i].y < min_y) min_y = triangle->points[i].y;
+    if(triangle->points[i].y > max_y) max_y = triangle->points[i].y;
+  }
+
+  float screen_width = max_x - min_x;
+  float screen_height = max_y - min_y;
+  float screen_size = screen_width > screen_height ? screen_width : screen_height;
+
+  int mip = 0;
+
+  if(screen_size <= 4.0f)      mip = 2;
+  else if(screen_size <= 8.0f) mip = 1;
+  else                         mip = 0;
+
+  if(mip >= texture->num_mipmaps) mip = texture->num_mipmaps - 1;
+
+  color_t *mip_mapped_texture = texture->mipmaps[mip];
+  int32_t mip_mapped_texture_width = texture->mipmap_widths[mip];
+  int32_t mip_mapped_texture_height = texture->mipmap_heights[mip];
+
+  switch(triangle->face_material.blend_mode){
+    case BLEND_MODE_OPAQUE:
+      return draw_textured_triangle_opaque(
+        &triangle->points[0], triangle->uv[0],
+        &triangle->points[1], triangle->uv[1],
+        &triangle->points[2], triangle->uv[2],
+        mip_mapped_texture, mip_mapped_texture_width, mip_mapped_texture_height,
+        triangle->total_light_intensity,
+        triangle->face_material.emissive_color,
+        triangle->face_material.reflects_light
+      );
+
+    case BLEND_MODE_ALPHA_TEST:
+      return draw_textured_triangle_alpha_test_float(
+        &triangle->points[0], triangle->uv[0],
+        &triangle->points[1], triangle->uv[1],
+        &triangle->points[2], triangle->uv[2],
+        mip_mapped_texture, mip_mapped_texture_width, mip_mapped_texture_height,
+        triangle->total_light_intensity,
+        triangle->face_material.emissive_color,
+        triangle->face_material.reflects_light,
+        triangle->face_material.alpha_cutoff
+      );
+
+    case BLEND_MODE_ALPHA_BLEND:
+      return draw_textured_triangle_with_opacity(
+        &triangle->points[0], triangle->uv[0],
+        &triangle->points[1], triangle->uv[1],
+        &triangle->points[2], triangle->uv[2],
+        mip_mapped_texture, mip_mapped_texture_width, mip_mapped_texture_height,
+        triangle->total_light_intensity,
+        triangle->face_material.emissive_color,
+        triangle->face_material.reflects_light,
+        triangle->face_material.opacity
+      );
   }
 
   return 0;

@@ -4,12 +4,17 @@
 #include "color.h"
 
 #define MAX_NUM_TEXTURES 200
+#define MAX_MIP_LEVELS 3
 
 typedef struct{
   char filename[256];
   color_t *texture;
-  int texture_width; 
+  int texture_width;
   int texture_height;
+  color_t *mipmaps[MAX_MIP_LEVELS];
+  int mipmap_widths[MAX_MIP_LEVELS];
+  int mipmap_heights[MAX_MIP_LEVELS];
+  int num_mipmaps;
 } texture_t;
 
 extern texture_t texture_list[MAX_NUM_TEXTURES];

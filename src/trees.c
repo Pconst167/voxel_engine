@@ -140,8 +140,8 @@ tree_t trees[] = {
     .max_height = 30,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.8f,
-    .biome_mask = 1u << BIOME_TYPE_GRASSLANDS
+    .spawn_chance = 0.6f,
+    .biome_mask = 1u << BIOME_TYPE_GRASSLANDS | 1u << BIOME_TYPE_FOREST | 1u << BIOME_TYPE_RAIN_FOREST
   },
   {
     .plant_species = PLANT_SPECIES_TREE,
@@ -152,8 +152,8 @@ tree_t trees[] = {
     .max_height = 30,
     .min_width = 1,
     .max_width = 2,
-    .spawn_chance = 0.8f,
-    .biome_mask = 1u << BIOME_TYPE_GRASSLANDS
+    .spawn_chance = 0.05f,
+    .biome_mask = 1u << BIOME_TYPE_GRASSLANDS | 1u << BIOME_TYPE_FOREST | 1u << BIOME_TYPE_RAIN_FOREST
   },
 
   // CACTI

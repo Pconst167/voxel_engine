@@ -17,6 +17,8 @@
 #define DITHER_QUANTIZATION 15
 #define DITHER_QUANTIZATION_POWER 4
 
+#define APPROX_DISTANCE(a, b) ((a) > (b) ? (a) + (b) / 2.0f : (b) + (a) / 2.0f)
+
 float fmax2(float f0, float f1);
 float fmin2(float f0, float f1);
 

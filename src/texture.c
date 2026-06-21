@@ -9,16 +9,22 @@
 texture_t texture_list[MAX_NUM_TEXTURES];
 uint32_t num_textures;
 
+static color_t default_texture_pixels[] = {
+  {.uint32=0xFF000000},
+  {.uint32=0xFFFF00FF},
+  {.uint32=0xFF000000},
+  {.uint32=0xFFFF00FF}
+};
+
 texture_t default_texture = {
   .filename = "",
-  .texture = (color_t[]){
-    {.uint32=0xFF000000},
-    {.uint32=0xFFFF00FF},
-    {.uint32=0xFF000000},
-    {.uint32=0xFFFF00FF}
-  },
+  .texture = default_texture_pixels,
   .texture_width  = 2,
-  .texture_height = 2
+  .texture_height = 2,
+  .mipmaps = {default_texture_pixels},
+  .mipmap_widths = {2},
+  .mipmap_heights = {2},
+  .num_mipmaps = 1
 };
 
 void flip_texture_pixels_vertically(color_t *pixels, int texture_width, int texture_height){
@@ -39,6 +45,74 @@ void flip_texture_pixels_vertically(color_t *pixels, int texture_width, int text
   }
 
   free(temporary_row);
+}
+
+
+void generate_texture_mipmaps(texture_t *texture){
+  texture->mipmaps[0] = texture->texture;
+  texture->mipmap_widths[0] = texture->texture_width;
+  texture->mipmap_heights[0] = texture->texture_height;
+  texture->num_mipmaps = 1;
+
+  while(texture->num_mipmaps < MAX_MIP_LEVELS){
+    int source_mipmap_level = texture->num_mipmaps - 1;
+    int source_width = texture->mipmap_widths[source_mipmap_level];
+    int source_height = texture->mipmap_heights[source_mipmap_level];
+
+    if(source_width <= 4 || source_height <= 4)
+      break;
+
+    int destination_width = source_width / 2;
+    int destination_height = source_height / 2;
+
+    color_t *source_pixels = texture->mipmaps[source_mipmap_level];
+    color_t *destination_pixels = malloc(sizeof(color_t) * destination_width * destination_height);
+
+    if(destination_pixels == NULL)
+      break;
+
+    for(int y = 0; y < destination_height; y++){
+      for(int x = 0; x < destination_width; x++){
+        int source_x = x * 2;
+        int source_y = y * 2;
+
+        color_t a = source_pixels[source_y * source_width + source_x];
+        color_t b = source_pixels[source_y * source_width + source_x + 1];
+        color_t c = source_pixels[(source_y + 1) * source_width + source_x];
+        color_t d = source_pixels[(source_y + 1) * source_width + source_x + 1];
+
+        uint32_t average_alpha = (a.rgb.alpha + b.rgb.alpha + c.rgb.alpha + d.rgb.alpha) >> 2;
+        uint32_t average_red   = (a.rgb.red   + b.rgb.red   + c.rgb.red   + d.rgb.red)   >> 2;
+        uint32_t average_green = (a.rgb.green + b.rgb.green + c.rgb.green + d.rgb.green) >> 2;
+        uint32_t average_blue  = (a.rgb.blue  + b.rgb.blue  + c.rgb.blue  + d.rgb.blue)  >> 2;
+
+        color_t center = a;
+
+        int32_t sharpened_red   = average_red   + ((int32_t)center.rgb.red   - (int32_t)average_red)   / 4;
+        int32_t sharpened_green = average_green + ((int32_t)center.rgb.green - (int32_t)average_green) / 4;
+        int32_t sharpened_blue  = average_blue  + ((int32_t)center.rgb.blue  - (int32_t)average_blue)  / 4;
+
+        if(sharpened_red < 0) sharpened_red = 0;
+        if(sharpened_red > 255) sharpened_red = 255;
+        if(sharpened_green < 0) sharpened_green = 0;
+        if(sharpened_green > 255) sharpened_green = 255;
+        if(sharpened_blue < 0) sharpened_blue = 0;
+        if(sharpened_blue > 255) sharpened_blue = 255;
+
+        destination_pixels[y * destination_width + x] = (color_t){
+          .rgb.alpha = average_alpha,
+          .rgb.blue  = sharpened_blue,
+          .rgb.green = sharpened_green,
+          .rgb.red   = sharpened_red
+        };
+      }
+    }
+
+    int destination_mipmap_level = texture->num_mipmaps++;
+    texture->mipmaps[destination_mipmap_level] = destination_pixels;
+    texture->mipmap_widths[destination_mipmap_level] = destination_width;
+    texture->mipmap_heights[destination_mipmap_level] = destination_height;
+  }
 }
 
 texture_t load_png_texture_data(char *filename){
@@ -109,6 +183,7 @@ texture_t load_png_texture_data(char *filename){
 
   // png loader has the origin at top left, this converts the origin to bottom left in memory
   flip_texture_pixels_vertically(texture.texture, texture.texture_width, texture.texture_height);
+  generate_texture_mipmaps(&texture);
 
   upng_free(png_texture);
 
@@ -177,6 +252,8 @@ texture_t *create_blank_texture(
   for(uint32_t pixel_i = 0; pixel_i < total_texture_pixels; pixel_i++)
     new_texture->texture[pixel_i] = base_color;
 
+  generate_texture_mipmaps(new_texture);
+
   num_textures++;
 
   print_log("[INFO] creating new blank texture: w: %u, h: %u, color: %x", texture_width, texture_height, base_color.uint32);
@@ -209,22 +286,22 @@ texture_t *create_texture_copy(texture_t *from_texture){
 
   texture_t *new_texture = &texture_list[num_textures];
 
-  // allocate memory for new texture
-  color_t *new_texture_memory = (color_t *)malloc(from_texture->texture_width * from_texture->texture_height * sizeof(color_t));
-  if(new_texture_memory == NULL){
-    print_log("[ERROR] could not allocate memory for new texture");
-    return &default_texture;
-  }
-
   // copy data from old texture to new one
   *new_texture = *from_texture;
 
-  // override pointer
-  new_texture->texture = new_texture_memory;
+  for(int mipmap_level = 0; mipmap_level < from_texture->num_mipmaps; mipmap_level++){
+    uint32_t total_texture_pixels = from_texture->mipmap_widths[mipmap_level] * from_texture->mipmap_heights[mipmap_level];
+    new_texture->mipmaps[mipmap_level] = malloc(total_texture_pixels * sizeof(color_t));
 
-  // copy pixel data from old texture memory into new texture memory
-  uint32_t total_texture_pixels = from_texture->texture_width * from_texture->texture_height;
-  memcpy(new_texture->texture, from_texture->texture, total_texture_pixels * sizeof(color_t));
+    if(new_texture->mipmaps[mipmap_level] == NULL){
+      print_log("[ERROR] could not allocate memory for new texture");
+      return &default_texture;
+    }
+
+    memcpy(new_texture->mipmaps[mipmap_level], from_texture->mipmaps[mipmap_level], total_texture_pixels * sizeof(color_t));
+  }
+
+  new_texture->texture = new_texture->mipmaps[0];
 
   print_log("[INFO] creating a new texture as a copy of: %s, w: %u, h: %u", from_texture->filename, from_texture->texture_width, from_texture->texture_height);
 
