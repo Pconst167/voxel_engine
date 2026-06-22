@@ -2,7 +2,7 @@
 #include "block.h"
 
 player_t player = {
-  .position                     = {.x = 256.0f, .y = 150.0f, .z = 256.0f},
+  .position                     = {.x = 256.0f, .y = 128.0f, .z = 256.0f},
   .velocity                     = {.x = 0.0f, .y = 0.0f, .z = 0.0f},
   .direction                    = {.x = 0.0f, .y = 0.0f, .z = 1.0f},
   .theta                        = M_PI_2,
@@ -90,13 +90,6 @@ void init_player(){
   player.block_inventory[14].number = 400;
   player.block_inventory_size = 15;
 
-
-  for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
-    if(block_materials[block_at(y, (int32_t)player.position.z, (int32_t)player.position.x).type].solid){
-      player.position.y = y + 1.0f;
-      break;
-    }
-  }
 }
 
 // check if player already has the block type, if so add +1 to entry

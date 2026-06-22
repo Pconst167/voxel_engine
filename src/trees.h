@@ -16,7 +16,7 @@ typedef enum{
   TREE8,
   TREE9,
   FLOWER_TREE0,
-  FLOWER_TREE1,
+  CHERRY_TREE0,
 
   CACTUS0
 } tree_type_t;

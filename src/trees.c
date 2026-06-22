@@ -19,7 +19,7 @@ tree_t trees[] = {
     .min_width = 1,
     .max_width = 2,
     .spawn_chance = 0.5f,
-    .biome_mask = 1u << BIOME_TYPE_VOLCANIC
+    .biome_mask = 1u << BIOME_TYPE_VOLCANIC | 1u << BIOME_TYPE_GRASSLANDS | 1u << BIOME_TYPE_FOREST
   },
   {
     .plant_species = PLANT_SPECIES_TREE,
@@ -31,7 +31,7 @@ tree_t trees[] = {
     .min_width = 1,
     .max_width = 2,
     .spawn_chance = 0.6f,
-    .biome_mask = 1u << BIOME_TYPE_FOREST
+    .biome_mask = 1u << BIOME_TYPE_FOREST | 1u << BIOME_TYPE_GRASSLANDS
   },
   {
     .plant_species = PLANT_SPECIES_TREE,
@@ -55,7 +55,7 @@ tree_t trees[] = {
     .min_width = 1,
     .max_width = 2,
     .spawn_chance = 0.5f,
-    .biome_mask = 1u << BIOME_TYPE_SAVANNAH
+    .biome_mask = 1u << BIOME_TYPE_SAVANNAH | 1u << BIOME_TYPE_GRASSLANDS | 1u << BIOME_TYPE_FOREST
   },
   {
     .plant_species = PLANT_SPECIES_TREE,
@@ -145,9 +145,9 @@ tree_t trees[] = {
   },
   {
     .plant_species = PLANT_SPECIES_TREE,
-    .tree_name = "flowertree1",
-    .trunk_block_type = BLOCK_TYPE_TREE_TRUNK0,
-    .leaves_block_type = BLOCK_TYPE_FLOWER_LEAVES1,
+    .tree_name = "cherrytree0",
+    .trunk_block_type = BLOCK_TYPE_TREE_TRUNK1,
+    .leaves_block_type = BLOCK_TYPE_CHERRY_LEAVES0,
     .min_height = 10,
     .max_height = 30,
     .min_width = 1,
@@ -218,7 +218,7 @@ void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
 
   uint32_t seed = (uint32_t)(z_row * 73856093u) ^ (uint32_t)(x_col * 19349663u); // two prime numbers for hashing
   bool will_spawn = random_spawn_from_seed(seed, tree.spawn_chance);
-
+  
   if(!will_spawn) return;
 
   // find first solid block along y
@@ -292,12 +292,13 @@ void place_trees(){
 
   for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z += 4){
     for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x += 4){
-      biome_t biome = biomes[block_at(0, z, x).type];
+      biome_t biome = biomes[block_at(0, z, x).biome_type];
+      
       float trees_density_threshold = biome.trees_density_threshold;
       float trees_noise_frequency   = biome.trees_frequency;
-
+      
       float trees_density = fabsf(perlin_noise_3d((float)x * trees_noise_frequency, 420.0f, (float)z * trees_noise_frequency));
- 
+      
       // mark spot with tree
       if(trees_density > trees_density_threshold) trees_plane[z][x] = 1;
     }

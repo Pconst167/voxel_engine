@@ -139,7 +139,7 @@ char debug_screen_data[1024];
 
 /* game control */
 float delta_time;
-float move_speed = 2.5f;
+float move_speed = 8.5f;
 float turn_speed = 2.0f;
 bool quit = false;
 bool is_paused = false;
@@ -686,10 +686,10 @@ void update_player_from_input(input_state_t *input_state){
   }
 
   if(input_state->key_down[SDL_SCANCODE_Q]){
-    player.position.y -= 8.0f * move_speed_delta_time;
+    player.position.y -= 3.5f * move_speed_delta_time;
   }
   if(input_state->key_down[SDL_SCANCODE_E]){
-    player.position.y += 8.0f * move_speed_delta_time;
+    player.position.y += 3.5f * move_speed_delta_time;
   }
 
   if(player.on_water){
@@ -2974,7 +2974,7 @@ void draw_collision_aabb_outlines(void){
 
 void update_light(void){
 
-  sun_eta    += M_2_PI * 1.0f / DAY_LENGTH;
+  //sun_eta    += M_2_PI * 1.0f / DAY_LENGTH;
   sun_sin_eta = sinf(sun_eta);
 
   if(sun_sin_eta < 0.0f) sun_sin_eta = 0.0f;
