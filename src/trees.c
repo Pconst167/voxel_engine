@@ -103,7 +103,7 @@ tree_t trees[] = {
     .min_width = 1,
     .max_width = 2,
     .spawn_chance = 0.2f,
-    .biome_mask = 1u << BIOME_TYPE_VOLCANIC
+    .biome_mask = 1u << BIOME_TYPE_GRASSLANDS
   },
   {
     .plant_species = PLANT_SPECIES_TREE,
@@ -127,7 +127,7 @@ tree_t trees[] = {
     .min_width = 1,
     .max_width = 2,
     .spawn_chance = 0.3f,
-    .biome_mask = 1u << BIOME_TYPE_VOLCANIC
+    .biome_mask = 1u << BIOME_TYPE_RAIN_FOREST
   },
 
   // FLOWER TREES

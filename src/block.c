@@ -2029,7 +2029,7 @@ void init_block_map(){
     process_window_messages(); // avoids OS hanging
     for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
       float height_noise = perlin_noise_3d((float)x * 0.03f, 100.731f, (float)z * 0.03f) / height_noise_max;
-      float peaks_and_valleys_noise = perlin_noise_3d((float)x * 0.01f, 271.923f, (float)z * 0.01f) / peaks_and_valleys_noise_max;
+      float peaks_and_valleys_noise = perlin_noise_3d((float)x * 0.02f, 271.923f, (float)z * 0.02f) / peaks_and_valleys_noise_max;
 
       float height_offset = evaluate_height_spline(height_noise, peaks_and_valleys_noise);
 
@@ -2084,28 +2084,28 @@ void init_block_map(){
   }
 
   // EROSION
-  for(int32_t z = 1; z < MAP_NUM_BLOCKS_Z - 1; z++){
-    process_window_messages(); // avoids OS hanging
-    for(int32_t x = 1; x < MAP_NUM_BLOCKS_X - 1; x++){
-      for(int32_t y = WORLD_BASE_SURFACE_LEVEL; y < MAP_NUM_BLOCKS_Y - 1; y++){
-        
-        biome_type_t biome_type = block_at(y, z, x).biome_type;
-        if(biome_type != BIOME_TYPE_VOLCANIC && biome_type != BIOME_TYPE_DESERT) continue;
+  //for(int32_t z = 1; z < MAP_NUM_BLOCKS_Z - 1; z++){
+  //  process_window_messages(); // avoids OS hanging
+  //  for(int32_t x = 1; x < MAP_NUM_BLOCKS_X - 1; x++){
+  //    for(int32_t y = WORLD_BASE_SURFACE_LEVEL; y < MAP_NUM_BLOCKS_Y - 1; y++){
+  //      
+  //      biome_type_t biome_type = block_at(y, z, x).biome_type;
+  //      if(biome_type != BIOME_TYPE_VOLCANIC && biome_type != BIOME_TYPE_DESERT) continue;
+  //
+  //      float large_erosion_noise  = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
+  //      float medium_erosion_noise = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
+  //      float small_erosion_noise  = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
+  //
+  //      float erosion_noise = large_erosion_noise + medium_erosion_noise + small_erosion_noise;
+  //
+  //      if(erosion_noise > 0.6f){
+  //        assign_block_material(y, z, x, BLOCK_TYPE_AIR);
+  //      }
+  //    }
+  //  }
+  //}
 
-        float large_erosion_noise  = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
-        float medium_erosion_noise = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
-        float small_erosion_noise  = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
-  
-        float erosion_noise = large_erosion_noise + medium_erosion_noise + small_erosion_noise;
-  
-        if(erosion_noise > 0.6f){
-          assign_block_material(y, z, x, BLOCK_TYPE_AIR);
-        }
-      }
-    }
-  }
-
-  // water
+  // WATER
   for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
     process_window_messages(); // avoids OS hanging
     for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
@@ -2137,7 +2137,7 @@ void init_block_map(){
   for(int32_t z = 1; z < MAP_NUM_BLOCKS_Z - 1; z++){
     process_window_messages(); // avoids OS hanging
     for(int32_t x = 1; x < MAP_NUM_BLOCKS_X - 1; x++){
-      for(int32_t y = WORLD_BASE_SURFACE_LEVEL - 10; y < MAP_NUM_BLOCKS_Y - 1; y++){
+      for(int32_t y = WORLD_WATER_LEVEL + 10; y > WORLD_WATER_LEVEL - 10; y--){
       
         float large_lava_noise  = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
         float medium_lava_noise = perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f);
@@ -2147,8 +2147,16 @@ void init_block_map(){
   
         biome_type_t biome_type = block_at(0, z, x).biome_type;
         if(lava_noise > 0.4f){
-          if(biome_type == BIOME_TYPE_VOLCANIC && y <= WORLD_VOLCANIC_BIOME_SURFACE_LAVA_LEVEL && block_at(y, z, x).type != BLOCK_TYPE_AIR)
+          if(biome_type == BIOME_TYPE_VOLCANIC && block_at(y, z, x).type != BLOCK_TYPE_AIR && block_at(y, z, x).type != BLOCK_TYPE_WATER0){
             assign_block_material(y, z, x, BLOCK_TYPE_LAVA0);
+            // where lava meets water, turn to stone
+            if(block_at(y + 1, z, x).type == BLOCK_TYPE_WATER0) assign_block_material(y + 1, z, x, BLOCK_TYPE_VOLCANIC3);
+            if(block_at(y - 1, z, x).type == BLOCK_TYPE_WATER0) assign_block_material(y - 1, z, x, BLOCK_TYPE_VOLCANIC3);
+            if(block_at(y, z + 1, x).type == BLOCK_TYPE_WATER0) assign_block_material(y, z + 1, x, BLOCK_TYPE_VOLCANIC3);
+            if(block_at(y, z - 1, x).type == BLOCK_TYPE_WATER0) assign_block_material(y, z - 1, x, BLOCK_TYPE_VOLCANIC3);
+            if(block_at(y, z, x + 1).type == BLOCK_TYPE_WATER0) assign_block_material(y, z, x + 1, BLOCK_TYPE_VOLCANIC3);
+            if(block_at(y, z, x - 1).type == BLOCK_TYPE_WATER0) assign_block_material(y, z, x - 1, BLOCK_TYPE_VOLCANIC3);
+          }
         }
       }
     }
@@ -3509,9 +3517,9 @@ float evaluate_spline(vector2_t *spline_points, int32_t num_spline_points, float
 
 float evaluate_peaks_and_valleys_spline(float peaks_and_valleys_noise_value){
   vector2_t peaks_and_valleys_spline[] = {
-    {-1.00f, -10.0f},
-    {-0.60f, -60.0f},
-    {-0.20f,  40.0f},
+    {-1.00f,  30.0f},
+    {-0.60f, -20.0f},
+    {-0.20f,  20.0f},
     { 0.25f,  60.0f},
     { 0.55f,  30.0f},
     { 0.80f,  50.0f},
