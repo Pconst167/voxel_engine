@@ -2118,8 +2118,6 @@ void init_block_map(){
     for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
       for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
   
-        if(y > WORLD_WATER_LEVEL && block_at(y, z, x).type != BLOCK_TYPE_AIR) break;
-  
         biome_type_t biome_type = block_at(0, z, x).biome_type;
         block_type_t top_surface_block, under_surface_block, stone_surface_block;
         get_biome_top_surface_block(biome_type, &top_surface_block, &under_surface_block, &stone_surface_block);
