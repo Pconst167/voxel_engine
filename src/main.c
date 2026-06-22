@@ -134,7 +134,6 @@ uint64_t frame_id = 1; /* start at 1, because all face_draw_stamp values are res
 char fps_str[16];
 uint32_t total_triangles_rendered;
 uint32_t total_pixels_rendered;
-uint32_t total_chunks_rendered;
 float time_of_day; /* keeps time the accumulation of  each delta_time per frame */
 char debug_screen_data[1024];
 
@@ -1954,7 +1953,6 @@ inline void render_visible_chunks(void) {
 
   total_triangles_rendered = 0;
   total_pixels_rendered = 0;
-  total_chunks_rendered = 0;
 
   int32_t player_chunk_x = player.position.x / CHUNK_SIZE;
   int32_t player_chunk_y = player.position.y / CHUNK_SIZE;
@@ -3226,26 +3224,27 @@ void print_debug_data(){
       int32_t player_chunk_x = player_block_x / CHUNK_SIZE;
       int32_t player_chunk_y = player_block_y / CHUNK_SIZE;
       int32_t player_chunk_z = player_block_z / CHUNK_SIZE;
+      char *looked_at_block_material_name = looked_at_block.hit ? block_materials[block_at(looked_at_block.block_y, looked_at_block.block_z, looked_at_block.block_x).type].material_name : "none";
       snprintf(debug_screen_data, 1024, 
         "og: %s, ow: %s, oqs: %s\n"
         "velocity: %.2f:%.2f:%.2f\n"
-        "%ut, %upx, %uc, %ufps\n"
+        "%ut, %upx, %ufps\n"
         "block coords: %d:%d:%d, chunk coords: %d:%d:%d\n"
         "player pos: %.2f:%.2f:%.2f, look direction: %.2f:%.2f:%.2f, theta/eta: %.2f:%.2f\n"
-        "block looked at: %d:%d:%d\n"
+        "block looked at: %d:%d:%d (%s)\n"
         "sl: %d, bl: %d\n"
         "%s",
         player.on_ground    ? "y" : "n",
         player.on_water     ? "y" : "n",
         player.on_quicksand ? "y" : "n",
         player.velocity.x, player.velocity.y, player.velocity.z,
-        total_triangles_rendered, total_pixels_rendered, total_chunks_rendered, fps, 
+        total_triangles_rendered, total_pixels_rendered, fps, 
         player_block_x, player_block_y, player_block_z,
         player_chunk_x, player_chunk_y, player_chunk_z,
         player.position.x,  player.position.y,  player.position.z,
         player.direction.x, player.direction.y, player.direction.z,
         player.theta, player.eta,
-        looked_at_block.block_x, looked_at_block.block_y, looked_at_block.block_z,
+        looked_at_block.block_x, looked_at_block.block_y, looked_at_block.block_z, looked_at_block_material_name,
         block_at(player_block_y, player_block_z, player_block_x).sky_light,
         block_at(player_block_y, player_block_z, player_block_x).block_light,
         biomes[block_at((int32_t)player.position.y, (int32_t)player.position.z, (int32_t)player.position.x).biome_type].name
