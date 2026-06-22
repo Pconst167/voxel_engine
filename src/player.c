@@ -2,7 +2,7 @@
 #include "block.h"
 
 player_t player = {
-  .position                     = {.x = 300.0f, .y = 150.0f, .z = 156.0f},
+  .position                     = {.x = 256.0f, .y = 150.0f, .z = 256.0f},
   .velocity                     = {.x = 0.0f, .y = 0.0f, .z = 0.0f},
   .direction                    = {.x = 0.0f, .y = 0.0f, .z = 1.0f},
   .theta                        = M_PI_2,

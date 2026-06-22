@@ -16,9 +16,9 @@
 #define NUM_CHUNK_DIVISIONS_Y (MAP_NUM_BLOCKS_Y / CHUNK_SIZE)
 #define NUM_CHUNK_DIVISIONS_Z (MAP_NUM_BLOCKS_Z / CHUNK_SIZE)
 #define NUM_CHUNK_DIVISIONS_X (MAP_NUM_BLOCKS_X / CHUNK_SIZE)
-#define CHUNK_RENDER_DISTANCE_Y 2 // render this number of chunks around the player in XZ
-#define CHUNK_RENDER_DISTANCE_Z 4 // render this number of chunks around the player in XZ
-#define CHUNK_RENDER_DISTANCE_X 4 // render this number of chunks around the player in XZ
+#define CHUNK_RENDER_DISTANCE_Y 3 // render this number of chunks around the player in XZ
+#define CHUNK_RENDER_DISTANCE_Z 3 // render this number of chunks around the player in XZ
+#define CHUNK_RENDER_DISTANCE_X 3 // render this number of chunks around the player in XZ
 #define MAX_VISIBLE_CHUNKS ((1 + 2*CHUNK_RENDER_DISTANCE_Y) * (1 + 2*CHUNK_RENDER_DISTANCE_Z) * (1 + 2*CHUNK_RENDER_DISTANCE_X))
 
 // SURFACE LEVEL DATA
@@ -37,11 +37,11 @@
 
 // BLOCK LIGHT
 #define MAX_LIGHT_QUEUE_SIZE 1048576
-#define MAX_SKY_LIGHT 12
+#define MAX_SKY_LIGHT 15
 #define MAX_SKY_LIGHT_FLOAT (float)MAX_SKY_LIGHT
-#define MAX_BLOCK_LIGHT 18
+#define MAX_BLOCK_LIGHT 15
 #define MAX_BLOCK_LIGHT_FLOAT (float)MAX_BLOCK_LIGHT
-#define MIN_TOTAL_LIGHT (1.0f / 20.0f)
+#define MIN_TOTAL_LIGHT (1.0f / 60.0f)
 
 // WORLD PARAMETERS
 #define WORLD_BASE_SURFACE_LEVEL (0.5f * MAP_NUM_BLOCKS_Y)
