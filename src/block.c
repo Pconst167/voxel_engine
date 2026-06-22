@@ -989,7 +989,7 @@ void init_block_materials(){
   array_push(
     block_materials, 
     ((block_material_t){
-      .material_name      = "snow0",
+      .material_name      = "snowgrass",
       .solid              = true,
       .mass               = 30,
       .preferred_tool_class = PLAYER_TOOL_CLASS_SHOVEL,
@@ -1002,12 +1002,12 @@ void init_block_materials(){
       .reflects_light     = true,
       .blend_mode         = BLEND_MODE_OPAQUE,
       .alpha_cutoff       = DEFAULT_ALPHA_CUTOFF,
-      .front_texture      = load_texture("./assets/textures/blocks/snow_0.png"),
-      .back_texture       = load_texture("./assets/textures/blocks/snow_0.png"),
-      .left_texture       = load_texture("./assets/textures/blocks/snow_0.png"),
-      .right_texture      = load_texture("./assets/textures/blocks/snow_0.png"),
-      .top_texture        = load_texture("./assets/textures/blocks/snow_0.png"),
-      .bottom_texture     = load_texture("./assets/textures/blocks/snow_0.png"),
+      .front_texture      = load_texture("./assets/textures/blocks/snow_grass_side.png"),
+      .back_texture       = load_texture("./assets/textures/blocks/snow_grass_side.png"),
+      .left_texture       = load_texture("./assets/textures/blocks/snow_grass_side.png"),
+      .right_texture      = load_texture("./assets/textures/blocks/snow_grass_side.png"),
+      .top_texture        = load_texture("./assets/textures/blocks/snow_top.png"),
+      .bottom_texture     = load_texture("./assets/textures/blocks/forest_dirt.png"),
       
       .mining_sound_type  = SOUND_TYPE_MINING_SAND,
       .placing_sound_type = SOUND_TYPE_MINING_SAND,

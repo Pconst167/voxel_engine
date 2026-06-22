@@ -6,12 +6,14 @@ build-linux:
 	gcc $(SRC) \
 	$(FLAGS) \
 	-lSDL2 -lSDL2_mixer -lm \
+	-lGL \
 	-o blocks
 
 build-linux-asan:
 	gcc $(SRC) \
 	$(SANITIZER_FLAGS) \
 	-lSDL2 -lSDL2_mixer -lm \
+	-lGL \
 	-o blocks
 
 SDL2_WIN = ./lib/SDL2-2.32.10/x86_64-w64-mingw32

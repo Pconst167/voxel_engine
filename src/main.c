@@ -1972,7 +1972,7 @@ inline void render_visible_chunks(void) {
   player_chunk_start_x = clamp_int(player_chunk_start_x, 0, NUM_CHUNK_DIVISIONS_X - 1);
   player_chunk_end_x   = clamp_int(player_chunk_end_x, 0, NUM_CHUNK_DIVISIONS_X - 1);
 
-  chunk_t *visible_chunks[1 + 2*CHUNK_RENDER_DISTANCE_Y + 1 + 2*CHUNK_RENDER_DISTANCE_Z + 1 + 2*CHUNK_RENDER_DISTANCE_X];
+  chunk_t *visible_chunks[MAX_VISIBLE_CHUNKS];
   int32_t num_visible_chunks = 0;
 
   /* collect visible chunks */
@@ -1984,7 +1984,13 @@ inline void render_visible_chunks(void) {
         chunk_intersection_mode_t intersection_mode = get_chunk_intersection_mode_fast(chunk);
 
         if(intersection_mode != CHUNK_INTERSECTION_MODE_INSIDE && intersection_mode != CHUNK_INTERSECTION_MODE_INTERSECTING) continue;
-        visible_chunks[num_visible_chunks] = &chunks[y_plane][z_row][x_col];
+
+        if(num_visible_chunks >= MAX_VISIBLE_CHUNKS){
+          print_log("[ERROR] too many visible chunks: %d / %d", num_visible_chunks, MAX_VISIBLE_CHUNKS);
+          continue;
+        }
+
+        visible_chunks[num_visible_chunks] = chunk;
         num_visible_chunks++;
       }
     }
