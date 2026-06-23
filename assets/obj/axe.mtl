@@ -9,7 +9,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 1
-map_Kd /home/pconst/Desktop/3d_blocks/assets/textures/blocks/treetrunk2_side.png
+map_Kd ./assets/textures/treetrunk2_side.png
 
 newmtl head.002
 Ns 0.000000
@@ -19,4 +19,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 1
-map_Kd /home/pconst/Desktop/3d_blocks/assets/textures/blocks/stone2.png
+map_Kd ./assets/textures/stone2.png

@@ -139,7 +139,7 @@ char debug_screen_data[1024];
 
 /* game control */
 float delta_time;
-float move_speed = 8.5f;
+float move_speed = 2.5f;
 float turn_speed = 2.0f;
 bool quit = false;
 bool is_paused = false;
@@ -222,7 +222,7 @@ void setup(void) {
   // CREATE OBJECTS
   mesh_t *mesh;
   uint32_t object_id;
-  mesh = load_mesh("./assets/obj/blocks/pickaxe.obj", false);
+  mesh = load_mesh("./assets/obj/pickaxe.obj", false);
   object_id = create_object(mesh, OBJECT_TYPE_TOOL, true, false, false,
                            (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
                            (vector3_t){1.8f, 1.8f, 1.8f}, (vector3_t){0, 0, 0}, (vector3_t){player.position.x, player.position.y - 2, player.position.z},
@@ -230,7 +230,7 @@ void setup(void) {
   );
   player_obtain_tool(PLAYER_TOOL_STONE_PICKAXE, object_id);
 
-  mesh = load_mesh("./assets/obj/blocks/axe.obj", false);
+  mesh = load_mesh("./assets/obj/axe.obj", false);
   object_id = create_object(mesh, OBJECT_TYPE_TOOL, true, false, false,
                            (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
                            (vector3_t){1.8f, 1.8f, 1.8f}, (vector3_t){0, 0, 0}, (vector3_t){player.position.x, player.position.y - 2, player.position.z},
@@ -238,7 +238,7 @@ void setup(void) {
   );
   player_obtain_tool(PLAYER_TOOL_STONE_AXE, object_id);
 
-  mesh = load_mesh("./assets/obj/blocks/sword.obj", false);
+  mesh = load_mesh("./assets/obj/sword.obj", false);
   object_id = create_object(mesh, OBJECT_TYPE_TOOL, true, false, false,
                            (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
                            (vector3_t){1.8f, 1.8f, 1.8f}, (vector3_t){0, 0, 0}, (vector3_t){player.position.x, player.position.y - 2, player.position.z},
@@ -246,7 +246,7 @@ void setup(void) {
   );
   player_obtain_tool(PLAYER_TOOL_STONE_SWORD, object_id);
 
-  mesh = load_mesh("./assets/obj/blocks/shovel.obj", false);
+  mesh = load_mesh("./assets/obj/shovel.obj", false);
   object_id = create_object(mesh, OBJECT_TYPE_TOOL, true, false, false,
                            (vector3_t){.x = 1.0f, .y = 1.0f, .z = 1.0f}, (vector3_t){0.0f, 0.0f, 0.0f},
                            (vector3_t){1.8f, 1.8f, 1.8f}, (vector3_t){0, 0, 0}, (vector3_t){player.position.x, player.position.y - 2, player.position.z},
@@ -265,14 +265,21 @@ void setup(void) {
   for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
     for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
       bool is_water = false;
+      bool is_lava = false;
       for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
         if(block_is_water(&block_at(y, z, x))){
           is_water = true;
           break;
         }
+        if(block_is_lava(&block_at(y, z, x))){
+          is_lava = true;
+          break;
+        }
       }
       if(is_water)
-        biome_map.texture[z * biome_map.texture_width + x].uint32 = DEFAULT_COLOR_BLUE; // blue
+        biome_map.texture[z * biome_map.texture_width + x].uint32 = DEFAULT_COLOR_BLUE;
+      else if(is_lava)
+        biome_map.texture[z * biome_map.texture_width + x].uint32 = DEFAULT_COLOR_RED;
       else
         switch(block_at(0, z, x).biome_type){
           case BIOME_TYPE_DESERT:
@@ -291,10 +298,10 @@ void setup(void) {
             biome_map.texture[z * biome_map.texture_width + x].uint32 = 0xFF20A070; // yellowish green
             break;
           case BIOME_TYPE_SNOW:
-            biome_map.texture[z * biome_map.texture_width + x].uint32 = DEFAULT_COLOR_WHITE; // white
+            biome_map.texture[z * biome_map.texture_width + x].uint32 = DEFAULT_COLOR_WHITE;
             break;
           case BIOME_TYPE_VOLCANIC:
-            biome_map.texture[z * biome_map.texture_width + x].uint32 = DEFAULT_COLOR_RED; // red
+            biome_map.texture[z * biome_map.texture_width + x].uint32 = DEFAULT_COLOR_ORANGE;
             break;
         }
     }
@@ -2974,7 +2981,7 @@ void draw_collision_aabb_outlines(void){
 
 void update_light(void){
 
-  //sun_eta    += M_2_PI * 1.0f / DAY_LENGTH;
+  sun_eta    += M_2_PI * 1.0f / DAY_LENGTH;
   sun_sin_eta = sinf(sun_eta);
 
   if(sun_sin_eta < 0.0f) sun_sin_eta = 0.0f;
