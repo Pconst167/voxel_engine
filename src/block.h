@@ -322,5 +322,6 @@ float evaluate_height_spline(float height_noise_value, float peaks_and_valleys_n
 float find_perlin_noise_slice_absolute_max(float frequency, float y);
 
 block_type_t get_random_stone();
+block_type_t get_random_underwater_substrate();
 
 #endif

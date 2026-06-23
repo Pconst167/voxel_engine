@@ -2009,18 +2009,6 @@ void init_block_map(){
     }
   }
 
-  // LAVA LEVEL
-  for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
-    for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
-      int32_t surface_y;
-      float lava_noise = fabsf(perlin_noise_3d((float)x * WORLD_UNDER_NOISE_SCALE, 150.0f, (float)z * WORLD_UNDER_NOISE_SCALE));
-      surface_y = WORLD_BASE_LAVA_LEVEL + (int32_t)(lava_noise * WORLD_UNDER_MAX_HEIGHT);
-      for(int32_t y = surface_y; y >= 0; y--){
-        assign_block_material(y, z, x, BLOCK_TYPE_LAVA0);
-      }
-    }
-  }
-
   float base_world_surface_height = (float)MAP_NUM_BLOCKS_Y * 0.50f;
 
   // Bigger = terrain follows the spline height more strongly.
@@ -2060,58 +2048,18 @@ void init_block_map(){
       }
     }
   }
-  
-  // base world surface levels
-  //for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
-  //  process_window_messages(); // avoids OS hanging
-  //  for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
-  //    
-  //    biome_type_t biome_type = block_at(0, z, x).biome_type;
-  //    block_type_t top_surface_block, under_surface_block, stone_surface_block;
-  //    get_biome_top_surface_block(biome_type, &top_surface_block, &under_surface_block, &stone_surface_block);
-  //
-  //    // grass
-  //    assign_block_material(surface_y, z, x, top_surface_block);
-  //    // dirt0
-  //    int32_t dirt0_top = surface_y - 1;
-  //    int32_t dirt0_bottom = dirt0_top - WORLD_DIRT0_DEPTH + 1;
-  //    for(int32_t y = dirt0_top; y >= dirt0_bottom; y--){
-  //      assign_block_material(y, z, x, under_surface_block);
-  //    }
-  //    // stone0
-  //    int32_t stone0_top = dirt0_bottom - 1;
-  //    int32_t stone0_bottom = stone0_top - WORLD_STONE0_DEPTH + 1;
-  //    for(int32_t y = stone0_top; y >= 0; y--){
-  //      if(block_at(y, z, x).type == BLOCK_TYPE_LAVA0) break;
-  //
-  //      uint32_t random = xorshift32();
-  //      if(biome_type == BIOME_TYPE_VOLCANIC){
-  //        assign_block_material(y, z, x, BLOCK_TYPE_VOLCANIC3);
-  //      }
-  //      else if(biome_type == BIOME_TYPE_DESERT){
-  //        assign_block_material(y, z, x, BLOCK_TYPE_SAND0);
-  //      }
-  //      else{
-  //        if(random % 7 == 0)
-  //          assign_block_material(y, z, x, BLOCK_TYPE_STONE0);
-  //        else if(random % 7 == 1)
-  //          assign_block_material(y, z, x, BLOCK_TYPE_STONE1);
-  //        else if(random % 7 == 2)
-  //          assign_block_material(y, z, x, BLOCK_TYPE_STONE2);
-  //        else if(random % 7 == 3)
-  //          assign_block_material(y, z, x, BLOCK_TYPE_STONE3);
-  //        else if(random % 7 == 4)
-  //          assign_block_material(y, z, x, BLOCK_TYPE_STONE4);
-  //        else if(random % 7 == 5)
-  //          assign_block_material(y, z, x, BLOCK_TYPE_STONE5);
-  //        else if(random % 7 == 6)
-  //          assign_block_material(y, z, x, BLOCK_TYPE_STONE6);
-  //      }
-  //    }
-  //
-  //
-  //  }
-  //}
+
+  // BEDROCK LAVA
+  for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+    for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+      int32_t surface_y;
+      float lava_noise = fabsf(perlin_noise_3d((float)x * WORLD_UNDER_NOISE_SCALE, 150.0f, (float)z * WORLD_UNDER_NOISE_SCALE));
+      surface_y = WORLD_BASE_LAVA_LEVEL + (int32_t)(lava_noise * WORLD_UNDER_MAX_HEIGHT);
+      for(int32_t y = surface_y; y >= 0; y--){
+        assign_block_material(y, z, x, BLOCK_TYPE_LAVA0);
+      }
+    }
+  }
 
   // WATER
   for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
@@ -2123,8 +2071,14 @@ void init_block_map(){
         block_type_t top_surface_block, under_surface_block, stone_surface_block;
         get_biome_top_surface_block(biome_type, &top_surface_block, &under_surface_block, &stone_surface_block);
   
-        if(y <= WORLD_WATER_LEVEL && block_at(y, z, x).type == BLOCK_TYPE_AIR)
+        if(y <= WORLD_WATER_LEVEL && block_at(y, z, x).type == BLOCK_TYPE_AIR){
           assign_block_material(y, z, x, BLOCK_TYPE_WATER0);
+          if(z + 1 < MAP_NUM_BLOCKS_Z && block_materials[block_at(y, z + 1, x).type].solid) assign_block_material(y, z + 1, x, get_random_underwater_substrate(y, z, x));
+          if(z - 1 >= 0 && block_materials[block_at(y, z - 1, x).type].solid)               assign_block_material(y, z - 1, x, get_random_underwater_substrate(y, z, x));
+          if(x + 1 < MAP_NUM_BLOCKS_X && block_materials[block_at(y, z, x + 1).type].solid) assign_block_material(y, z, x + 1, get_random_underwater_substrate(y, z, x));
+          if(x - 1 >= 0 && block_materials[block_at(y, z, x - 1).type].solid)               assign_block_material(y, z, x - 1, get_random_underwater_substrate(y, z, x));
+          if(y - 1 >= 0 && block_materials[block_at(y - 1, z, x).type].solid)               assign_block_material(y - 1, z, x, get_random_underwater_substrate(y, z, x));
+        }
       }
     }
   }
@@ -2152,6 +2106,16 @@ block_type_t get_random_stone(){
     return BLOCK_TYPE_STONE6;
 
   return BLOCK_TYPE_STONE0;
+}
+
+block_type_t get_random_underwater_substrate(int32_t y, int32_t z, int32_t x){
+
+  float substrate_noise = fabsf(perlin_noise_3d((float)x * 0.1f, (float)y * 0.1f, (float)z * 0.1f));
+
+  if(substrate_noise >= 0.0f && substrate_noise < 0.2f) return BLOCK_TYPE_CLAY0;
+
+  return BLOCK_TYPE_SAND0;
+
 }
 
 void init_block_map3(){
