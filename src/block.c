@@ -3370,7 +3370,8 @@ bool block_is_tree_leaves(block_t *block){
     block->type == BLOCK_TYPE_LEAVES6 ||
     block->type == BLOCK_TYPE_LEAVES7 ||
     block->type == BLOCK_TYPE_LEAVES8 ||
-    block->type == BLOCK_TYPE_LEAVES9;
+    block->type == BLOCK_TYPE_LEAVES9 ||
+    block->type == BLOCK_TYPE_CACTUS_FLOWER0;
 }
 
 bool block_is_tree_trunk(block_t *block){
@@ -3382,7 +3383,8 @@ bool block_is_tree_trunk(block_t *block){
     block->type == BLOCK_TYPE_TREE_TRUNK4 ||
     block->type == BLOCK_TYPE_TREE_TRUNK5 ||
     block->type == BLOCK_TYPE_TREE_TRUNK6 ||
-    block->type == BLOCK_TYPE_TREE_TRUNK7;
+    block->type == BLOCK_TYPE_TREE_TRUNK7 ||
+    block->type == BLOCK_TYPE_CACTUS_TRUNK0;
 }
 
 bool block_is_dirt(block_t *block){

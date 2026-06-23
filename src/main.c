@@ -176,6 +176,7 @@ int8_t animation_direction = 1;
 
 texture_t biome_map;
 texture_t height_map;
+texture_t vegetation_map;
 
 void setup(void) {
   
@@ -278,8 +279,6 @@ void setup(void) {
       }
       if(is_water)
         biome_map.texture[z * biome_map.texture_width + x].uint32 = DEFAULT_COLOR_BLUE;
-      else if(is_lava)
-        biome_map.texture[z * biome_map.texture_width + x].uint32 = DEFAULT_COLOR_RED;
       else
         switch(block_at(0, z, x).biome_type){
           case BIOME_TYPE_DESERT:
@@ -313,18 +312,18 @@ void setup(void) {
   height_map.texture_height = MAP_NUM_BLOCKS_Z;
   height_map.texture = malloc(sizeof(color_t) * MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Z);
   if(height_map.texture == NULL){
-    print_log("[ERROR] failed to allocate biome map texture");
+    print_log("[ERROR] failed to allocate height map texture");
     exit(1);
   }
   for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
     for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
       for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
+        float height = (float)(y - WORLD_BASE_SURFACE_LEVEL) / (float)(MAP_NUM_BLOCKS_Y - WORLD_BASE_SURFACE_LEVEL);
         if(block_is_water(&block_at(y, z, x))){
-          height_map.texture[z * height_map.texture_width + x].uint32 = DEFAULT_COLOR_BLUE; // blue
+          height_map.texture[z * height_map.texture_width + x].uint32 = DEFAULT_COLOR_BLUE;
           break;
         }
         else if(block_is_soil(&block_at(y, z, x)) || block_is_stone(&block_at(y, z, x))){
-          float height = (float)(y - WORLD_BASE_SURFACE_LEVEL) / (float)(MAP_NUM_BLOCKS_Y - WORLD_BASE_SURFACE_LEVEL);
           if(height >= 0.0f){
             height_map.texture[z * height_map.texture_width + x].rgb.blue  = height * 255.0f;
             height_map.texture[z * height_map.texture_width + x].rgb.green = height * 255.0f;
@@ -336,6 +335,31 @@ void setup(void) {
             height_map.texture[z * height_map.texture_width + x].rgb.red   = -height * 255.0f;
           }
           break;
+        }
+      }
+    }
+  }
+
+  vegetation_map.texture_width = MAP_NUM_BLOCKS_X;
+  vegetation_map.texture_height = MAP_NUM_BLOCKS_Z;
+  vegetation_map.texture = malloc(sizeof(color_t) * MAP_NUM_BLOCKS_X * MAP_NUM_BLOCKS_Z);
+  if(vegetation_map.texture == NULL){
+    print_log("[ERROR] failed to allocate vegetation map texture");
+    exit(1);
+  }
+  for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+    for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+      for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
+        if(block_is_water(&block_at(y, z, x))){
+          vegetation_map.texture[z * height_map.texture_width + x].uint32 = DEFAULT_COLOR_BLUE;
+          break;
+        }
+        else if(block_is_tree_leaves(&block_at(y, z, x)) || block_is_tree_trunk(&block_at(y, z, x))){
+          vegetation_map.texture[z * height_map.texture_width + x].uint32 = DEFAULT_COLOR_GREEN;
+          break;
+        }
+        else{
+          vegetation_map.texture[z * height_map.texture_width + x].uint32 = biome_map.texture[z * biome_map.texture_width + x].uint32;
         }
       }
     }
@@ -3533,6 +3557,9 @@ void render_maps(){
 
   height_map.texture[player_z * biome_map.texture_width + player_x].uint32 = 0xFF0000FF;
   draw_texture_flat(window_width - 150, 150, 150, 150, &height_map);
+
+  vegetation_map.texture[player_z * biome_map.texture_width + player_x].uint32 = 0xFF0000FF;
+  draw_texture_flat(window_width - 150, 300, 150, 150, &vegetation_map);
 }
 
 int main(int argc, char *argv[]){

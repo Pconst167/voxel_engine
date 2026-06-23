@@ -165,7 +165,7 @@ tree_t trees[] = {
     .min_height = 2,
     .max_height = 15,
     .min_width = 1,
-    .max_width = 2,
+    .max_width = 3,
     .spawn_chance = 0.4f,
     .biome_mask = 1u << BIOME_TYPE_DESERT
   },
@@ -232,14 +232,14 @@ void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
       break;
     }
   }
-
+  
   if(first_solid_y < 0 || first_solid_y >= MAP_NUM_BLOCKS_Y) return;
 
   uint32_t tree_width_seed  = seed ^ 0xA53A9B1Du; // generate two more seeds, one for y, and one for ore size
   uint32_t tree_height_seed = seed ^ 0xF12C77B3u;
 
   int32_t height      = (double)tree.min_height + (double)(tree.max_height - tree.min_height) * (double)(rand_i(tree_height_seed) / (double)UINT32_MAX);
-  int32_t trunk_width = (double)tree.min_width  + (double)(tree.max_width - tree.min_width + 1) * (double)(rand_i(tree_width_seed) / (double)UINT32_MAX);
+  int32_t trunk_width = tree.min_width + (int32_t)((float)(tree.max_width - tree.min_width + 1) * ((float)rand_i(tree_width_seed) / ((float)UINT32_MAX + 1.0f)));
   
   int32_t tree_bottom = first_solid_y - 3; // -3 to place trunk below ground
   int32_t tree_top    = first_solid_y + height - 1;

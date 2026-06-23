@@ -73,8 +73,8 @@ biome_t biomes[] = {
   [BIOME_TYPE_DESERT] = {
     .name = "desert",
 
-    .trees_density_threshold = 0.7f,
-    .trees_frequency = 0.1f,
+    .trees_density_threshold = 0.2f,
+    .trees_frequency = 0.3f,
 
     .bed_lava_noise_frequency     = 0.1,
     .bed_lava_noise_amplitude     = 8,
