@@ -51,22 +51,12 @@
 #define WORLD_DIRT0_DEPTH        6
 #define WORLD_STONE0_DEPTH       6
 #define WORLD_WATER_LEVEL        (WORLD_BASE_SURFACE_LEVEL - 4)
-#define WORLD_LARGE_HILL_SCALE   0.02f
-#define WORLD_SMALL_HILL_SCALE   0.03f
-#define WORLD_MOUNTAIN_SCALE     0.01f
-#define WORLD_LAVA_POOL_SCALE    0.10f
-
-#define WORLD_OVERHANG_SCALE     0.04f
 
 #define WORLD_BASE_CAVE_LEVEL    WORLD_WATER_LEVEL - 10
 #define WORLD_UNDER_NOISE_SCALE   0.3f
 
 // WORLD LAYERS
 #define WORLD_BASE_LAVA_LEVEL      (0.00f * MAP_NUM_BLOCKS_Y)
-#define WORLD_BASE_VOLCANIC0_LEVEL (0.01f * MAP_NUM_BLOCKS_Y)
-#define WORLD_BASE_VOLCANIC1_LEVEL (0.02f * MAP_NUM_BLOCKS_Y)
-#define WORLD_BASE_VOLCANIC2_LEVEL (0.04f * MAP_NUM_BLOCKS_Y)
-#define WORLD_BASE_STONE_LEVEL     (0.08f * MAP_NUM_BLOCKS_Y)
 
 typedef struct{
   int32_t y;
@@ -312,8 +302,7 @@ void seed_block_light_around_area(int32_t y_start, int32_t y_end, int32_t z_star
 void get_biome_top_surface_block(
   biome_type_t biome_type, 
   block_type_t *top_surface_block,
-  block_type_t *under_surface_block,
-  block_type_t *stone_surface_block
+  block_type_t *under_surface_block
 );
 
 float evaluate_spline(vector2_t *spline_points, int32_t num_spline_points, float x);

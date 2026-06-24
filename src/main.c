@@ -266,16 +266,12 @@ void setup(void) {
   for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
     for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
       bool is_water = false;
-      bool is_lava = false;
       for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
         if(block_is_water(&block_at(y, z, x))){
           is_water = true;
           break;
         }
-        if(block_is_lava(&block_at(y, z, x))){
-          is_lava = true;
-          break;
-        }
+        else if(block_is_soil(&block_at(y, z, x))) break;
       }
       if(is_water)
         biome_map.texture[z * biome_map.texture_width + x].uint32 = DEFAULT_COLOR_BLUE;
@@ -3005,7 +3001,7 @@ void draw_collision_aabb_outlines(void){
 
 void update_light(void){
 
-  sun_eta    += M_2_PI * 1.0f / DAY_LENGTH;
+  //sun_eta    += M_2_PI * 1.0f / DAY_LENGTH;
   sun_sin_eta = sinf(sun_eta);
 
   if(sun_sin_eta < 0.0f) sun_sin_eta = 0.0f;

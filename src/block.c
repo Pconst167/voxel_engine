@@ -2033,9 +2033,7 @@ void init_block_map(){
 
       for(int32_t y = 0; y < MAP_NUM_BLOCKS_Y; y++){
         float distance_below_surface = surface_height - (float)y;
-
         float base_density = distance_below_surface * density_gradient;
-
         float density_noise = perlin_noise_3d((float)x * 0.08f, (float)y * 0.08f, (float)z * 0.08f);
         //density_noise *= density_noise;
 
@@ -2061,6 +2059,29 @@ void init_block_map(){
     }
   }
 
+  // BIOME LAYERS
+  for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
+    process_window_messages(); // avoids OS hanging
+    for(int32_t x = 0; x < MAP_NUM_BLOCKS_X; x++){
+      for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
+        block_t *block = &block_at(y, z, x);
+
+        if(block_is_stone(block)){
+          biome_type_t biome_type = block_at(0, z, x).biome_type;
+          block_type_t top_surface_block, subsurface_block;
+          get_biome_top_surface_block(biome_type, &top_surface_block, &subsurface_block);
+          assign_block_material(y, z, x, top_surface_block);
+          for(int32_t yy = y - 1; yy >= y - 1 - WORLD_DIRT0_DEPTH; yy--){
+            if(block_at(yy, z, x).type == BLOCK_TYPE_AIR) break; // stop filling with we find an air block
+            assign_block_material(yy, z, x, subsurface_block);
+          }
+          break;
+        }
+      }
+    }
+  }
+
+
   // WATER
   for(int32_t z = 0; z < MAP_NUM_BLOCKS_Z; z++){
     process_window_messages(); // avoids OS hanging
@@ -2068,8 +2089,6 @@ void init_block_map(){
       for(int32_t y = MAP_NUM_BLOCKS_Y - 1; y >= 0; y--){
   
         biome_type_t biome_type = block_at(0, z, x).biome_type;
-        block_type_t top_surface_block, under_surface_block, stone_surface_block;
-        get_biome_top_surface_block(biome_type, &top_surface_block, &under_surface_block, &stone_surface_block);
   
         if(y <= WORLD_WATER_LEVEL && block_at(y, z, x).type == BLOCK_TYPE_AIR){
           assign_block_material(y, z, x, BLOCK_TYPE_WATER0);
@@ -2124,52 +2143,44 @@ block_type_t get_random_underwater_substrate(int32_t y, int32_t z, int32_t x){
 void get_biome_top_surface_block(
   biome_type_t biome_type, 
   block_type_t *top_surface_block,
-  block_type_t *under_surface_block,
-  block_type_t *stone_surface_block
+  block_type_t *subsurface_block
 ){
 
   switch(biome_type){
     case BIOME_TYPE_GRASSLANDS:
       *top_surface_block = BLOCK_TYPE_GRASSLANDS_GRASS;
-      *under_surface_block = BLOCK_TYPE_GRASSLANDS_DIRT;
-      *stone_surface_block = BLOCK_TYPE_STONE0;
+      *subsurface_block = BLOCK_TYPE_GRASSLANDS_DIRT;
       return;
       
     case BIOME_TYPE_FOREST:
       *top_surface_block = BLOCK_TYPE_FOREST_GRASS;
-      *under_surface_block = BLOCK_TYPE_FOREST_DIRT;
-      *stone_surface_block = BLOCK_TYPE_STONE0;
+      *subsurface_block = BLOCK_TYPE_FOREST_DIRT;
       return;
       
     case BIOME_TYPE_RAIN_FOREST:
       *top_surface_block = BLOCK_TYPE_FOREST_GRASS;
-      *under_surface_block = BLOCK_TYPE_FOREST_DIRT;
-      *stone_surface_block = BLOCK_TYPE_STONE0;
+      *subsurface_block = BLOCK_TYPE_FOREST_DIRT;
       return;
       
     case BIOME_TYPE_DESERT:
       *top_surface_block = BLOCK_TYPE_SAND0;
-      *under_surface_block= BLOCK_TYPE_SAND0;
-      *stone_surface_block = BLOCK_TYPE_STONE0;
+      *subsurface_block= BLOCK_TYPE_SAND0;
       return;
       
     case BIOME_TYPE_SNOW:
       *top_surface_block = BLOCK_TYPE_SNOW_0;
-      *under_surface_block= BLOCK_TYPE_SNOW_1;
-      *stone_surface_block = BLOCK_TYPE_STONE0;
+      *subsurface_block= BLOCK_TYPE_SNOW_1;
       return;
 
     case BIOME_TYPE_VOLCANIC:
       *top_surface_block = BLOCK_TYPE_VOLCANIC3;
-      *under_surface_block = BLOCK_TYPE_VOLCANIC3;
-      *stone_surface_block = BLOCK_TYPE_VOLCANIC2;
+      *subsurface_block = BLOCK_TYPE_VOLCANIC3;
       return;
 
     case BIOME_TYPE_SAVANNAH:
     default:
       *top_surface_block = BLOCK_TYPE_SAVANNAH_GRASS;
-      *under_surface_block = BLOCK_TYPE_GRASSLANDS_DIRT;
-      *stone_surface_block = BLOCK_TYPE_STONE0;
+      *subsurface_block = BLOCK_TYPE_GRASSLANDS_DIRT;
       return;
   }
 }
