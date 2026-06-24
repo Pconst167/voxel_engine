@@ -3253,13 +3253,13 @@ float evaluate_spline(vector2_t *spline_points, int32_t num_spline_points, float
 
 float evaluate_peaks_and_valleys_spline(float peaks_and_valleys_noise_value){
   vector2_t peaks_and_valleys_spline[] = {
-    {-1.00f,  -30.0f},
-    {-0.60f,  -20.0f},
+    {-1.00f,  -10.0f},
+    {-0.60f,  -60.0f},
     {-0.20f,   0.0f},
     { 0.25f,  10.0f},
-    { 0.55f,  20.0f},
-    { 0.80f,  40.0f},
-    { 1.00f,  20.0f}
+    { 0.55f,  60.0f},
+    { 0.80f,  160.0f},
+    { 1.00f,  60.0f}
   };
 
   return evaluate_spline(

@@ -251,9 +251,9 @@ void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
       for(int32_t y = tree_middle; y <= tree_top; y++){
         float factor = 1.0f - (float)(y - tree_middle) / (float)(tree_top - tree_middle);
 
-        for(int32_t x = x_col - 2 * factor - 3; x <= x_col + 2 * factor + 4; x++){
-          for(int32_t z = z_row - 2 * factor - 3; z <= z_row + 2 * factor + 4; z++){
-            float leaves_noise = perlin_noise_3d((float)x * 0.3f, (float)y * 0.3f, (float)z * 0.3f);
+        for(int32_t x = x_col - 2 * factor - 3 + 1; x <= x_col + 2 * factor + 3; x++){
+          for(int32_t z = z_row - 2 * factor - 3 + 1; z <= z_row + 2 * factor + 3; z++){
+            float leaves_noise = perlin_noise_3d((float)x * 0.5f, (float)y * 0.4f, (float)z * 0.5f);
             if(leaves_noise > 0.0f){
               assign_block_material(y, z, x, tree.leaves_block_type);
             }
