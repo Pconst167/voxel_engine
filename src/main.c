@@ -139,7 +139,7 @@ char debug_screen_data[1024];
 
 /* game control */
 float delta_time;
-float move_speed = 2.5f;
+float move_speed = 8.5f;
 float turn_speed = 2.0f;
 bool quit = false;
 bool is_paused = false;

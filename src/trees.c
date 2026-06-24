@@ -249,9 +249,12 @@ void place_tree(int32_t z_row, int32_t x_col, tree_type_t tree_type){
   switch(plant_species){
     case PLANT_SPECIES_TREE:
       for(int32_t y = tree_middle; y <= tree_top; y++){
-        for(int32_t z = z_row - 6; z <= z_row + 6; z++){
-          for(int32_t x = x_col - 6; x <= x_col + 6; x++){
-            if(xorshift32() % 4 == 0){
+        float factor = 1.0f - (float)(y - tree_middle) / (float)(tree_top - tree_middle);
+
+        for(int32_t x = x_col - 2 * factor - 3; x <= x_col + 2 * factor + 4; x++){
+          for(int32_t z = z_row - 2 * factor - 3; z <= z_row + 2 * factor + 4; z++){
+            float leaves_noise = perlin_noise_3d((float)x * 0.3f, (float)y * 0.3f, (float)z * 0.3f);
+            if(leaves_noise > 0.0f){
               assign_block_material(y, z, x, tree.leaves_block_type);
             }
           }
