@@ -213,7 +213,7 @@ inline uint32_t draw_filled_triangle(
 
         float interpolated_reciprocal_w = alpha * one_over_v0_w + beta * one_over_v1_w + gamma * one_over_v2_w;
 
-        if(interpolated_reciprocal_w > zbuffer[y * window_width + x] || !zbuffer_test){
+        if(interpolated_reciprocal_w > zbuffer[y * window_width + x] || !options.ztest){
           uint32_t red_total   = 0;
           uint32_t green_total = 0;
           uint32_t blue_total  = 0;
@@ -242,7 +242,7 @@ inline uint32_t draw_filled_triangle(
           };
 
           color_buffer[y * window_width + x] = final_color;
-          if(zbuffer_write) zbuffer[y * window_width + x] = interpolated_reciprocal_w;
+          if(options.zwrite) zbuffer[y * window_width + x] = interpolated_reciprocal_w;
         }
       }
       else if(was_inside) break;
@@ -374,7 +374,7 @@ uint32_t draw_filled_triangle_float(
 
         float interpolated_reciprocal_w = alpha * (1.0f / v0->w) + beta  * (1.0f / v1->w) + gamma * (1.0f / v2->w);
 
-        if(interpolated_reciprocal_w > zbuffer[y * window_width + x] || !zbuffer_test){
+        if(interpolated_reciprocal_w > zbuffer[y * window_width + x] || !options.ztest){
           uint32_t red_total   = 0;
           uint32_t green_total = 0;
           uint32_t blue_total  = 0;
@@ -405,7 +405,7 @@ uint32_t draw_filled_triangle_float(
 
           if((unsigned)x < (unsigned)window_width && (unsigned)y < (unsigned)window_height){
             color_buffer[y * window_width + x] = final_color;
-            if(zbuffer_write) zbuffer[y * window_width + x] = interpolated_reciprocal_w;
+            if(options.zwrite) zbuffer[y * window_width + x] = interpolated_reciprocal_w;
           }
         }
       }
@@ -540,7 +540,7 @@ inline uint32_t draw_textured_triangle_opaque(
 
         float interpolated_reciprocal_w = (alpha * one_over_v0_w) + (beta * one_over_v1_w) + (gamma * one_over_v2_w);
 
-        if(interpolated_reciprocal_w > zbuffer[y * window_width + x] || !zbuffer_test){
+        if(interpolated_reciprocal_w > zbuffer[y * window_width + x] || !options.ztest){
           float interpolated_u = (alpha * v0_u_over_w) + (beta * v1_u_over_w) + (gamma * v2_u_over_w);
           float interpolated_v = (alpha * v0_v_over_w) + (beta * v1_v_over_w) + (gamma * v2_v_over_w);
 
@@ -587,7 +587,7 @@ inline uint32_t draw_textured_triangle_opaque(
           };
 
           color_buffer[y * window_width + x] = final_color;
-          if(zbuffer_write) zbuffer[y * window_width + x] = interpolated_reciprocal_w;
+          if(options.zwrite) zbuffer[y * window_width + x] = interpolated_reciprocal_w;
         }
       }
       else if(was_inside) break;
@@ -734,7 +734,7 @@ uint32_t draw_textured_triangle_opaque_float(
 
         float interpolated_reciprocal_w = alpha * one_over_v0_w + beta * one_over_v1_w + gamma * one_over_v2_w;
 
-        if(interpolated_reciprocal_w > zbuffer[y * window_width + x] || !zbuffer_test){
+        if(interpolated_reciprocal_w > zbuffer[y * window_width + x] || !options.ztest){
           float interpolated_u = alpha * v0_u_over_v0_w + beta  * v1_u_over_v1_w + gamma * v2_u_over_v2_w;
           float interpolated_v = alpha * v0_v_over_v0_w + beta  * v1_v_over_v1_w + gamma * v2_v_over_v2_w;
 
@@ -778,7 +778,7 @@ uint32_t draw_textured_triangle_opaque_float(
           /* draw pixel */
           if((unsigned)x < (unsigned)window_width && (unsigned)y < (unsigned)window_height){
             color_buffer[y * window_width + x] = final_color;
-            if(zbuffer_write) zbuffer[y * window_width + x] = interpolated_reciprocal_w;
+            if(options.zwrite) zbuffer[y * window_width + x] = interpolated_reciprocal_w;
           }
         }
       }
@@ -919,7 +919,7 @@ uint32_t draw_textured_triangle_alpha_test_float(
 
         float interpolated_reciprocal_w = alpha * one_over_v0_w + beta * one_over_v1_w + gamma * one_over_v2_w;
 
-        if(interpolated_reciprocal_w > zbuffer[y * window_width + x] || !zbuffer_test){
+        if(interpolated_reciprocal_w > zbuffer[y * window_width + x] || !options.ztest){
           float interpolated_u = alpha * v0_u_over_v0_w + beta  * v1_u_over_v1_w + gamma * v2_u_over_v2_w;
           float interpolated_v = alpha * v0_v_over_v0_w + beta  * v1_v_over_v1_w + gamma * v2_v_over_v2_w;
 
@@ -963,7 +963,7 @@ uint32_t draw_textured_triangle_alpha_test_float(
 
             if((unsigned)x < (unsigned)window_width && (unsigned)y < (unsigned)window_height){
               color_buffer[y * window_width + x] = final_color;
-              if(zbuffer_write) zbuffer[y * window_width + x] = interpolated_reciprocal_w;
+              if(options.zwrite) zbuffer[y * window_width + x] = interpolated_reciprocal_w;
             }
           }
         }
@@ -1098,7 +1098,7 @@ inline uint32_t draw_textured_triangle_with_opacity(
         float interpolated_reciprocal_w = (alpha * one_over_v0_w) + (beta * one_over_v1_w) + (gamma * one_over_v2_w);
 
 
-        if(interpolated_reciprocal_w > zbuffer[y * window_width + x] || !zbuffer_test){
+        if(interpolated_reciprocal_w > zbuffer[y * window_width + x] || !options.ztest){
           float interpolated_u = alpha * v0_u_over_w + beta  * v1_u_over_w + gamma * v2_u_over_w;
           float interpolated_v = alpha * v0_v_over_w + beta  * v1_v_over_w + gamma * v2_v_over_w;
 
@@ -1316,7 +1316,7 @@ uint32_t draw_textured_triangle_with_opacity_float(
 
         float interpolated_reciprocal_w = alpha * one_over_v0_w + beta * one_over_v1_w + gamma * one_over_v2_w;
 
-        if(interpolated_reciprocal_w > zbuffer[y * window_width + x] || !zbuffer_test){
+        if(interpolated_reciprocal_w > zbuffer[y * window_width + x] || !options.ztest){
           float interpolated_u = alpha * v0_u_over_v0_w + beta  * v1_u_over_v1_w + gamma * v2_u_over_v2_w;
           float interpolated_v = alpha * v0_v_over_v0_w + beta  * v1_v_over_v1_w + gamma * v2_v_over_v2_w;
 
@@ -1526,7 +1526,7 @@ uint32_t draw_textured_triangle_alpha_blend_float(
 
         float interpolated_reciprocal_w = alpha * one_over_v0_w + beta * one_over_v1_w + gamma * one_over_v2_w;
 
-        if(interpolated_reciprocal_w > zbuffer[y * window_width + x] || !zbuffer_test){
+        if(interpolated_reciprocal_w > zbuffer[y * window_width + x] || !options.ztest){
           float interpolated_u = alpha * v0_u_over_v0_w + beta  * v1_u_over_v1_w + gamma * v2_u_over_v2_w;
           float interpolated_v = alpha * v0_v_over_v0_w + beta  * v1_v_over_v1_w + gamma * v2_v_over_v2_w;
 
@@ -1704,7 +1704,7 @@ uint32_t draw_textured_triangle_affine(
 
         float interpolated_reciprocal_w = alpha * (1.0f / v0->w) + beta  * (1.0f / v1->w) + gamma * (1.0f / v2->w);
 
-        if(interpolated_reciprocal_w > zbuffer[y * window_width + x] || !zbuffer_test){
+        if(interpolated_reciprocal_w > zbuffer[y * window_width + x] || !options.ztest){
           float interpolated_u = alpha * v0_u + beta * v1_u + gamma * v2_u;
           float interpolated_v = alpha * v0_v + beta * v1_v + gamma * v2_v;
 
@@ -1835,7 +1835,7 @@ inline void draw_pixel_opaque(int x, int y, color_t color, float zbuffer_value){
   if((unsigned)x >= (unsigned)window_width || (unsigned)y >= (unsigned)window_height) return;
 
   color_buffer[y * window_width + x] = color;
-  if(zbuffer_write) zbuffer[y * window_width + x] = zbuffer_value;
+  if(options.zwrite) zbuffer[y * window_width + x] = zbuffer_value;
 }
 
 inline void draw_pixel_alpha_test(int x, int y, uint8_t alpha_cutoff, color_t color, float zbuffer_value){
@@ -1844,7 +1844,7 @@ inline void draw_pixel_alpha_test(int x, int y, uint8_t alpha_cutoff, color_t co
   if(color.rgb.alpha < alpha_cutoff) return;
 
   color_buffer[y * window_width + x] = color;
-  if(zbuffer_write) zbuffer[y * window_width + x] = zbuffer_value;
+  if(options.zwrite) zbuffer[y * window_width + x] = zbuffer_value;
 }
 
 inline void draw_pixel_alpha_blend(int x, int y, float opacity, color_t color){
@@ -1891,14 +1891,14 @@ inline void draw_pixel(int x, int y, blend_mode_t blend_mode, uint8_t alpha_cuto
   switch(blend_mode){
     case BLEND_MODE_OPAQUE:{
       color_buffer[y * window_width + x] = color;
-      if(zbuffer_write) zbuffer[y * window_width + x] = zbuffer_value;
+      if(options.zwrite) zbuffer[y * window_width + x] = zbuffer_value;
       return;
     }
 
     case BLEND_MODE_ALPHA_TEST:{
       if(color.rgb.alpha < alpha_cutoff) return;
       color_buffer[y * window_width + x] = color;
-      if(zbuffer_write) zbuffer[y * window_width + x] = zbuffer_value;
+      if(options.zwrite) zbuffer[y * window_width + x] = zbuffer_value;
       return;
     }
 
@@ -2128,7 +2128,7 @@ void draw_textured_triangle_opaque(
 
       int buffer_index = y * window_width + x;
 
-      if(interpolated_reciprocal_w > zbuffer[buffer_index] || !zbuffer_test){
+      if(interpolated_reciprocal_w > zbuffer[buffer_index] || !options.ztest){
         float interpolated_u =
           alpha * v0_u_over_v0_w +
           beta  * v1_u_over_v1_w +
@@ -2178,7 +2178,7 @@ void draw_textured_triangle_opaque(
         };
 
         color_buffer[buffer_index] = final_color;
-        if(zbuffer_write) zbuffer[buffer_index] = interpolated_reciprocal_w;
+        if(options.zwrite) zbuffer[buffer_index] = interpolated_reciprocal_w;
       }
 
       w0 += delta_w0_col;

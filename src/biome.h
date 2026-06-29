@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #define WORLD_TEMPERATURE_SCALE 0.005
-#define WORLD_HUMIDITY_SCALE 0.05
+#define WORLD_HUMIDITY_SCALE 0.01
 
 typedef enum{
   BIOME_TYPE_GRASSLANDS,

@@ -5,6 +5,10 @@ options_t options = {
   .projection_mode                = TEXT_PERSPECTIVE_CORRECT,
   .backface_culling_override      = false,
   .backface_culling               = true,
+
+  .ztest                          = true,
+  .zwrite                         = true,
+
   .dither                         = false,
   .render_chunk_outlines          = false,
   .render_collision_aabb_outlines = false,

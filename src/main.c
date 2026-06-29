@@ -3434,9 +3434,9 @@ void render_player_tools(){
   objects[player_active_tool_object_id].rotation.x = rotation_x;
 
   // RENDER
-  zbuffer_test = false;
+  options.ztest = false;
   render_object(&objects[player_active_tool_object_id]);
-  zbuffer_test = true;
+  options.ztest = true;
 }
 
 bool player_is_inside_cave(void){

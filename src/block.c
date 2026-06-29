@@ -3256,10 +3256,10 @@ float evaluate_peaks_and_valleys_spline(float peaks_and_valleys_noise_value){
     {-1.00f,  -10.0f},
     {-0.60f,  -60.0f},
     {-0.20f,   0.0f},
-    { 0.25f,  10.0f},
-    { 0.55f,  60.0f},
+    { 0.25f,  50.0f},
+    { 0.55f,  100.0f},
     { 0.80f,  160.0f},
-    { 1.00f,  60.0f}
+    { 1.00f,  80.0f}
   };
 
   return evaluate_spline(

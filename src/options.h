@@ -13,6 +13,10 @@ typedef struct{
   bool wireframe_overlay;
   bool backface_culling_override;
   bool backface_culling;
+
+  bool ztest;
+  bool zwrite;
+
   bool dither;
   bool object_render_debug;
   bool render_chunk_outlines;

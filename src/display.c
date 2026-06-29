@@ -1,6 +1,7 @@
 #include "display.h"
 #include "log.h"
 #include "color.h"
+#include "options.h"
 #include "debug.h"
 
 #define ASPECT_RATIO_X 1920.0f
@@ -10,8 +11,6 @@ SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 color_t *color_buffer = NULL;
 float *zbuffer = NULL;
-bool zbuffer_test = true;
-bool zbuffer_write = true;
 SDL_Texture *color_buffer_texture = NULL;
 int window_width;
 int window_height;
