@@ -120,7 +120,7 @@
 #include "save_state.h"
 #include "debug.h"
 
-#define PLAYER_SPEED_SHIFT_KEY_FACTOR 2.0f
+#define PLAYER_SPEED_SHIFT_KEY_FACTOR 1.5f
 #define PLAYER_ETA_DIRECTION 1.0f /* +1: mouse back looks up, -1: mouse back looks down */
 #define MOUSE_SENSITIVITY 0.005f
 #define DAY_LENGTH (0.05f * 60.0f * 60.0f / 0.016f) /* hours */
@@ -139,7 +139,7 @@ char debug_screen_data[1024];
 
 /* game control */
 float delta_time;
-float move_speed = 8.5f;
+float move_speed = 3.5f;
 float turn_speed = 2.0f;
 bool quit = false;
 bool is_paused = false;
@@ -1084,7 +1084,6 @@ inline void move_player_x(float movement_x){
   }
 
   player.position.x = target_position.x;
-  update_player_aabb();
 }
 
 inline void move_player_z(float movement_z){
@@ -1423,7 +1422,6 @@ inline void move_player_z(float movement_z){
   }
 
   player.position.z = target_position.z;
-  update_player_aabb();
 }
 
 inline void move_player_y(float movement_y){
@@ -1805,7 +1803,6 @@ inline void move_player_y(float movement_y){
   }
 
   player.position.y = target_position.y;
-  update_player_aabb();
 
 }
 
