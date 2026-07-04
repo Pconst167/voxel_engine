@@ -233,9 +233,6 @@ typedef struct{
   float distance;
 } block_raycast_hit_t;
 
-// keep block type names as strings
-extern char *block_type_names[];
-
 extern block_material_t *block_materials;
 
 // Y slowest changing dimension, X is fastest changing
