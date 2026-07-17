@@ -1,0 +1,94 @@
+#ifndef MAIN_H
+#define MAIN_H
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <SDL2/SDL.h>
+#include "vector.h"
+#include "triangle.h"
+#include "object.h"
+#include "clipping.h"
+#include "color.h"
+#include "chunk.h"
+#include "collision.h"
+#include "font.h"
+
+typedef struct{
+  bool quit_requested;
+
+  bool left_mouse_pressed;
+  bool left_mouse_released;
+  bool right_mouse_pressed;
+  bool right_mouse_released;
+
+  int mouse_wheel_delta;
+
+  int mouse_x;
+  int mouse_y;
+  int mouse_xrel;
+  int mouse_yrel;
+
+  bool key_down[SDL_NUM_SCANCODES];
+  bool key_pressed[SDL_NUM_SCANCODES];
+
+  bool shift_pressed;
+  bool ctrl_pressed;
+  bool alt_pressed;
+} input_state_t;
+
+void setup(void);
+
+void print_debug_data();
+void free_resources(void);
+void object_quicksort(object_sort_key_t *array, int count);
+void qs_object(object_sort_key_t *array, int left, int right);
+void chunk_quicksort(chunk_sort_key_t *array, int count);
+void qs_chunk(chunk_sort_key_t *array, int left, int right);
+void triangle_quicksort(triangle_t *array, int count);
+void qs_triangle(triangle_t *array, int left, int right);
+void render_sun(void);
+void update_light(void);
+
+// INPUT
+void poll_input(input_state_t *input_state);
+void handle_game_input_actions(input_state_t *input_state);
+void handle_player_tool_selection_input(input_state_t *input_state);
+void update_player_from_input(input_state_t *input_state);
+
+// ACTIONS
+void handle_mouse_actions(input_state_t *input_state);
+
+// GAME UPDATE
+
+void draw_char(int x, int y, char character, color_t color, int scale, font_type_t type);
+void draw_text(int x, int y, const char *text, color_t color, int scale, font_type_t type);
+
+uint32_t rasterize_triangle(triangle_t *triangle);
+
+bool chunk_vertex_inside_plane(vector4_t vertex, frustrum_plane_t frustrum_plane);
+uint32_t chunk_num_vertices_inside_plane(chunk_t *chunk, frustrum_plane_t frustrum_plane);
+int get_chunk_intersection_mode(chunk_t *chunk);
+chunk_intersection_mode_t get_chunk_intersection_mode_fast(chunk_t *chunk);
+void render_chunk_blocks(chunk_t *chunk, bool transparent_only);
+void render_visible_chunks(void);
+void render_block_face(
+  block_face_t block_face, 
+  block_material_t *block_material, 
+  bool looked_at, 
+  block_orientation_t block_orientation,
+  light_intensity_rgb_t light_intensity
+);
+void draw_chunk_outlines(void);
+void draw_collision_aabb_outlines(void);
+
+void render_player_tools();
+
+bool resolve_player_against_object_aabb_xz(const collision_aabb_t *box);
+
+void move_player_x(float movement_x);
+void move_player_y(float movement_y);
+void move_player_z(float movement_z);
+
+void load_skybox();
+
+#endif

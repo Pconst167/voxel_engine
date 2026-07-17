@@ -2996,7 +2996,7 @@ void draw_collision_aabb_outlines(void){
 
 void update_light(void){
 
-  //sun_eta    += M_2_PI * 1.0f / DAY_LENGTH;
+  sun_eta    += M_2_PI * 1.0f / DAY_LENGTH;
   sun_sin_eta = sinf(sun_eta);
 
   if(sun_sin_eta < 0.0f) sun_sin_eta = 0.0f;

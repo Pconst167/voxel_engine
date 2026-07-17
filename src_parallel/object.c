@@ -1,0 +1,160 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "object.h"
+#include "array.h"
+#include "matrix.h"
+#include "collision.h"
+#include "log.h"
+#include "debug.h"
+
+object_t objects[MAX_NUM_OBJECTS];
+uint32_t num_objects;
+
+int32_t create_object(
+  mesh_t *mesh,
+  object_type_t object_type,
+  bool backface_culling,
+  bool attach_collision_aabb,
+  bool collision_aabb_active,
+  vector3_t collision_aabb_scale,
+  vector3_t collision_aabb_translation,
+
+  vector3_t scale,
+  vector3_t rotation,
+  vector3_t translation,
+  vector3_t velocity,
+  vector3_t angular_velocity
+){
+  if(num_objects >= MAX_NUM_OBJECTS){
+    print_log("[ERROR] max number of objects reached %d", MAX_NUM_OBJECTS);
+    return -1;
+  }
+
+  print_log("creating new object: %d", num_objects);
+
+  object_t *object = &objects[num_objects];
+
+  object->mesh                    = mesh;
+  object->object_type             = object_type;
+  object->backface_culling        = backface_culling;
+                                  
+  object->scale                   = scale;
+  object->rotation                = rotation;
+  object->translation             = translation;
+  object->velocity                = velocity;
+  object->angular_velocity        = angular_velocity;
+ 
+  // set the material_overrides array to NULL
+  object->material_overrides      = NULL;
+  // allocate space for the material override flags, because these flags are tested every time to see if an object has overrides
+  // and therefore the array cannot be empty
+  object->material_override_flags = malloc(sizeof(bool) * mesh->num_materials);
+  memset(object->material_override_flags, 0x00, sizeof(bool) * mesh->num_materials);
+
+  // create and attach a collision aabb to object
+  if(attach_collision_aabb){
+    create_collision_aabb(
+      (aabb_3d_t){
+        .x_min = 0.5 * object->bbox_aabb.x_min * (1.0 + collision_aabb_scale.x) + 0.5 * object->bbox_aabb.x_max * (1.0 - collision_aabb_scale.x) + collision_aabb_translation.x,
+        .x_max = 0.5 * object->bbox_aabb.x_min * (1.0 - collision_aabb_scale.x) + 0.5 * object->bbox_aabb.x_max * (1.0 + collision_aabb_scale.x) + collision_aabb_translation.x,
+        .y_min = 0.5 * object->bbox_aabb.y_min * (1.0 + collision_aabb_scale.y) + 0.5 * object->bbox_aabb.y_max * (1.0 - collision_aabb_scale.y) + collision_aabb_translation.y,
+        .y_max = 0.5 * object->bbox_aabb.y_min * (1.0 - collision_aabb_scale.y) + 0.5 * object->bbox_aabb.y_max * (1.0 + collision_aabb_scale.y) + collision_aabb_translation.y,
+        .z_min = 0.5 * object->bbox_aabb.z_min * (1.0 + collision_aabb_scale.z) + 0.5 * object->bbox_aabb.z_max * (1.0 - collision_aabb_scale.z) + collision_aabb_translation.z,
+        .z_max = 0.5 * object->bbox_aabb.z_min * (1.0 - collision_aabb_scale.z) + 0.5 * object->bbox_aabb.z_max * (1.0 + collision_aabb_scale.z) + collision_aabb_translation.z
+      },
+      num_objects,
+      collision_aabb_active
+    );
+    print_log(
+      "created and attached new (%s) collision aabb to object: %d (x_min: %.3f, x_max: %.3f, z_min: %.3f, z_max: %.3f, y_min: %.3f, y_max: %.3f)", 
+      collision_aabb_active ? "active" : "inactive",
+      num_objects,
+      object->bbox_aabb.x_min, object->bbox_aabb.x_max,
+      object->bbox_aabb.y_min, object->bbox_aabb.y_max,
+      object->bbox_aabb.z_min, object->bbox_aabb.z_max
+    );
+  }
+
+  num_objects++;
+
+  return num_objects - 1;
+}
+
+aabb_3d_t get_object_aabb(uint32_t object_id){
+  return objects[object_id].bbox_aabb;
+}
+
+void object_activate_collision_aabb(uint32_t collision_aabb_id){
+  collision_aabbs[collision_aabb_id].active = true;
+}
+
+void object_deactivate_collision_aabb(uint32_t collision_aabb_id){
+  collision_aabbs[collision_aabb_id].active = false;
+}
+
+/*
+  add override material to object:
+    search material by name inside mesh
+    if object does not have any overriding materials yet, allocate memory for ALL slots and reset memory to 0
+    then write new overriding material slot inside object and set override flag for that material
+    NOTE: the old mesh material name is copied into new object's overriding material name
+*/
+void object_override_material(uint32_t object_id, char *material_name, material_t new_material){
+  if(object_id >= num_objects){
+    print_log("[ERROR] object index out of bounds: %u", object_id);
+    exit(1);
+  }
+
+  if(new_material.material_name[0] != '\0'){
+    print_log("[ERROR] new object overriding material should not have a new name: %s", new_material.material_name);
+    exit(1);
+  }
+
+  object_t *object = &objects[object_id];
+
+  mesh_t *mesh = object->mesh;
+
+  uint32_t num_mesh_materials = mesh->num_materials;
+  for(uint32_t material_i = 0; material_i < num_mesh_materials; material_i++){
+    if(!strcmp(mesh->materials[material_i].material_name, material_name)){
+      if(object->material_overrides == NULL){
+        object->material_overrides = malloc(sizeof(material_t) * num_mesh_materials);
+        memset(object->material_overrides, 0x00, sizeof(material_t) * num_mesh_materials);
+      }
+
+      // copy mesh material name into object's material name
+      object->material_overrides[material_i] = new_material;
+      object->material_override_flags[material_i] = true;
+      strcpy(object->material_overrides[material_i].material_name, mesh->materials[material_i].material_name);
+      return;
+    }
+  }
+
+  print_log("[ERROR] material not found in mesh when trying to add object override: %s", material_name);
+}
+
+/*
+  search for a material by name - either in the object overrides or in original mesh materials
+  if material is overriden in object, return pointer to overriden object material
+  if material is not overriden, return a pointer to the mesh material
+*/
+material_t *object_get_material_ref_by_name(uint32_t object_id, char *material_name){
+  object_t *object = &objects[object_id];
+
+  uint32_t num_obj_materials = object->mesh->num_materials;
+  for(uint32_t material_i = 0; material_i < num_obj_materials; material_i++){
+    if(object->material_override_flags[material_i] == true){ // if object material is overriden
+      if(!strcmp(object->material_overrides[material_i].material_name, material_name))
+        return &object->material_overrides[material_i];
+    }
+    else{
+      if(!strcmp(object->mesh->materials[material_i].material_name, material_name))
+        return &object->mesh->materials[material_i];
+    }
+  }
+
+  print_log("[ERROR] material '%s' not found either in object '%u' or its mesh", material_name, object_id);
+  exit(1);
+  return NULL;
+}

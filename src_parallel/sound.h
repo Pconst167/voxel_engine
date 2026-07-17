@@ -1,0 +1,86 @@
+#ifndef SOUND_H
+#define SOUND_H
+
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
+#include <stdint.h>
+
+#define MAX_NUM_SOUNDS_PER_ENTRY 4
+#define SOUND_MAX_NUM_CHANNELS 32
+
+#define SOUND_CHANNEL_AMBIENT_NATURE_DAY   0
+#define SOUND_CHANNEL_AMBIENT_NATURE_NIGHT 1
+#define SOUND_CHANNEL_AMBIENT_NATURE_CAVE  2
+#define SOUND_CHANNEL_AMBIENT_WATER        3
+#define SOUND_CHANNEL_AMBIENT_LAVA         4
+
+#define SOUND_CHANNEL_WALKING              5
+#define SOUND_CHANNEL_FALLING              6
+
+#define SOUND_CHANNEL_MINING               7
+
+#define SOUND_TRANSIENT_CHANNELS_START     8
+
+typedef struct{
+  Mix_Chunk *sounds[MAX_NUM_SOUNDS_PER_ENTRY];
+  int32_t num_sounds;
+} sound_t;
+
+typedef enum{
+  SOUND_TYPE_NONE,
+
+  SOUND_TYPE_AMBIENT_NATURE_DAY,
+  SOUND_TYPE_AMBIENT_NATURE_NIGHT,
+  SOUND_TYPE_AMBIENT_NATURE_CAVE,
+  SOUND_TYPE_AMBIENT_WATER,
+  SOUND_TYPE_AMBIENT_UNDERWATER,
+  SOUND_TYPE_AMBIENT_LAVA,
+  SOUND_TYPE_AMBIENT_WIND,
+
+  SOUND_TYPE_WALKING_DIRT,
+  SOUND_TYPE_WALKING_SAND,
+  SOUND_TYPE_WALKING_WOOD,
+  SOUND_TYPE_WALKING_STONE,
+
+  SOUND_TYPE_MINING_DIRT,
+  SOUND_TYPE_MINING_SAND,
+  SOUND_TYPE_MINING_WOOD,
+  SOUND_TYPE_MINING_STONE,
+  SOUND_TYPE_MINING_LEAVES,
+  SOUND_TYPE_MINING_GLASS,
+
+  SOUND_TYPE_FALLING_DIRT,
+  SOUND_TYPE_FALLING_SAND,
+  SOUND_TYPE_FALLING_WOOD,
+  SOUND_TYPE_FALLING_STONE,
+  SOUND_TYPE_FALLING_WATER,
+  SOUND_TYPE_FALLING_WATER_STRONG,
+} sound_type_t;
+
+typedef struct{
+  bool active;
+  int32_t channel;
+  int32_t start_volume;
+  int32_t target_volume;
+  uint32_t start_ticks;
+  uint32_t duration_ms;
+} channel_volume_fade_t;
+
+bool init_audio(void);
+Mix_Chunk* load_sound(char *filename);
+void shutdown_audio(void);
+
+void play_ambient_sound(sound_type_t sound_type, int32_t channel, int32_t loop);
+
+void play_transient_sound(int32_t channel, sound_type_t sound_type);
+
+void fadeout_transient_sound_channels();
+void fadeout_ambient_sound_channel(int32_t channel_number, int32_t ms);
+
+void set_channel_volume(int32_t channel, int32_t volume, bool max);
+void halt_channel(int32_t channel);
+
+void fade_channel_volume_to(int32_t channel, int32_t target_volume, uint32_t duration_ms);
+void update_channel_volume_fades(void);
+
+#endif

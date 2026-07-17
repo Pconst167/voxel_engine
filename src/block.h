@@ -17,8 +17,8 @@
 #define NUM_CHUNK_DIVISIONS_Z (MAP_NUM_BLOCKS_Z / CHUNK_SIZE)
 #define NUM_CHUNK_DIVISIONS_X (MAP_NUM_BLOCKS_X / CHUNK_SIZE)
 #define CHUNK_RENDER_DISTANCE_Y 3 // render this number of chunks around the player in XZ
-#define CHUNK_RENDER_DISTANCE_Z 3 // render this number of chunks around the player in XZ
-#define CHUNK_RENDER_DISTANCE_X 3 // render this number of chunks around the player in XZ
+#define CHUNK_RENDER_DISTANCE_Z 4 // render this number of chunks around the player in XZ
+#define CHUNK_RENDER_DISTANCE_X 4 // render this number of chunks around the player in XZ
 #define MAX_VISIBLE_CHUNKS ((1 + 2*CHUNK_RENDER_DISTANCE_Y) * (1 + 2*CHUNK_RENDER_DISTANCE_Z) * (1 + 2*CHUNK_RENDER_DISTANCE_X))
 
 // SURFACE LEVEL DATA
@@ -217,7 +217,6 @@ typedef struct{
   float temperature;
   aabb_3d_t aabb;
   float avg_w;
-  bool looked_at;
   uint8_t sky_light;
   uint8_t block_light;
 } block_t;
